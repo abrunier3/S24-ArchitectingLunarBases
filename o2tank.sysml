@@ -8,28 +8,23 @@ package 'Oxygen Tank for Habitation' {
     private import ISQBase::*;
     private import ScalarValues::*;
 
-part def O2Tank {
+    part def Mesh {
+        attribute points : String;
+        attribute faceVertexCounts : String;
+        attribute faceVertexIndices : String;
+    }
 
-        attribute spatial {
-            attribute x : Real = 0.0;      // meters, local frame
-            attribute y : Real = 0.0;
-            attribute z : Real = 0.0;
+        // -------------------------------------------------------------------------
+        // Oxygen Tank
+        // -------------------------------------------------------------------------
 
-            attribute scaleX : Real = 1.0;
-            attribute scaleY : Real = 1.0;
-            attribute scaleZ : Real = 1.0;
+    part O2Tank {
+        part mesh : Mesh {
+            points = "[(-1, -1, -1),( 1, -1, -1),( 1,  1, -1),(-1,  1, -1),(-1, -1,  1),( 1, -1,  1),( 1,  1,  1),(-1,  1,  1)]";
 
-            attribute width : Real = 0.2;  // meters
-            attribute height : Real = 0.1;
-            attribute depth : Real = 0.5;
+            faceVertexCounts = "[4,4,4,4,4,4]";
 
-            attribute meshAddr : String = "0x47f62756";  // unique identifier for mesh
-        }
-
-        attribute visual {
-            attribute usdAsset : String = "assets/spaceport/landpadcomplex.usd";   // path to .usd or .usdz file
-            attribute color : String = "#ffffff84";      // hex or named color
-            attribute material : String = "";   // optional material name
+            faceVertexIndices = "[0,1,2,3,4,5,6,7,0,1,5,4,3,2,6,7,0,3,7,4,1,2,6,5]";
         }
     }
 }

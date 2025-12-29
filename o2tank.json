@@ -1,70 +1,64 @@
-{
-  "parts": [
-    {
-      "name": "O2Tank",
-      "kind": "part",
-      "attributes": [
-        {
-          "name": "x",
-          "type": "Real",
-          "default": "0.0"
-        },
-        {
-          "name": "y",
-          "type": "Real",
-          "default": "0.0"
-        },
-        {
-          "name": "z",
-          "type": "Real",
-          "default": "0.0"
-        },
-        {
-          "name": "scaleX",
-          "type": "Real",
-          "default": "1.0"
-        },
-        {
-          "name": "scaleY",
-          "type": "Real",
-          "default": "1.0"
-        },
-        {
-          "name": "scaleZ",
-          "type": "Real",
-          "default": "1.0"
-        },
-        {
-          "name": "width",
-          "type": "Real",
-          "default": "120.0"
-        },
-        {
-          "name": "height",
-          "type": "Real",
-          "default": "20.0"
-        },
-        {
-          "name": "depth",
-          "type": "Real",
-          "default": "80.0"
-        },
-        {
-          "name": "usdAsset",
-          "type": "String",
-          "default": "\"assets/spaceport/landpadcomplex.usd\""
-        },
-        {
-          "name": "color",
-          "type": "String",
-          "default": "\"#ffffff84\""
-        },
-        {
-          "name": "material",
-          "type": "String",
-          "default": "\"\""
-        }
-      ]
-    }
-  ]
-}
+[
+  {
+    "kind": "construct",
+    "keyword": "package",
+    "name": "Oxygen Tank for Habitation",
+    "body": [
+      {
+        "kind": "construct",
+        "keyword": "part def",
+        "name": "Mesh",
+        "body": [
+          {
+            "kind": "construct",
+            "keyword": "attribute",
+            "name": "points",
+            "type": "String"
+          },
+          {
+            "kind": "construct",
+            "keyword": "attribute",
+            "name": "faceVertexCounts",
+            "type": "String"
+          },
+          {
+            "kind": "construct",
+            "keyword": "attribute",
+            "name": "faceVertexIndices",
+            "type": "String"
+          }
+        ]
+      },
+      {
+        "kind": "construct",
+        "keyword": "part",
+        "name": "O2Tank",
+        "body": [
+          {
+            "kind": "construct",
+            "keyword": "part",
+            "name": "mesh",
+            "type": "Mesh",
+            "body": [
+              {
+                "kind": "assignment",
+                "lhs": "points",
+                "rhs": "[(-1, -1, -1),( 1, -1, -1),( 1,  1, -1),(-1,  1, -1),(-1, -1,  1),( 1, -1,  1),( 1,  1,  1),(-1,  1,  1)]"
+              },
+              {
+                "kind": "assignment",
+                "lhs": "faceVertexCounts",
+                "rhs": "[4,4,4,4,4,4]"
+              },
+              {
+                "kind": "assignment",
+                "lhs": "faceVertexIndices",
+                "rhs": "[0,1,2,3,4,5,6,7,0,1,5,4,3,2,6,7,0,3,7,4,1,2,6,5]"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]
