@@ -1,0 +1,43 @@
+#usda 1.0
+(
+    defaultPrim = "OxygenTank"
+    metersPerUnit = 1
+    upAxis = "Z"
+)
+
+def Xform "OxygenTank" (
+    customData = {
+        string ports = "[{'name': 'inlet', 'type': 'fluid', 'medium': 'O2'}, {'name': 'outlet', 'type': 'fluid', 'medium': 'O2'}]"
+        dictionary trace = {
+            string[] requirements = ["REQ-ECLSS-O2-001"]
+            string sysml_element_id = "..."
+        }
+    }
+)
+{
+    custom string asset:id = "urn:lunarspaceport1:part:OxygenTank:001"
+    custom string class:domain = "ECLSS"
+    custom string class:fluid = "O2"
+    custom string class:kind = "tank"
+    custom double3 prop:dims_m = (2, 1, 1)
+    custom double prop:mass_kg = 120
+    custom string prop:material = "Aluminum_2219"
+    custom double prop:max_pressure_Pa = 30000000
+    custom double prop:volume_m3 = 1
+
+    def Mesh "geom" (
+        customData = {
+            string materialHint = "assets/mtl/aluminum.usda:/Materials/Aluminum_2219"
+        }
+        prepend references = @assets/geom/o2_tank_geom.usda@</OxygenTank_Geom>
+    )
+    {
+    }
+
+    def Scope "materials" (
+        prepend references = @assets/mtl/aluminum.usda@
+    )
+    {
+    }
+}
+
