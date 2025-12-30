@@ -1,0 +1,32 @@
+#usda 1.0
+(
+    customLayerData = {
+        string assetType = "lander_component"
+        string curationDate = "2025-10-26"
+        string material = "Material_182"
+        string partID = "Geometry_158"
+        string partName = "landing_leg_rear_right"
+        string sourceCAD = "blue_moon_lander_model.step"
+        string status = "curated"
+        string subsystem = "landing_system"
+        string version = "1.0"
+    }
+    defaultPrim = "/Lander/landing_system/Geometry_158_Xform"
+    metersPerUnit = 1
+    upAxis = "Y"
+)
+
+def "Lander"
+{
+    def "landing_system"
+    {
+        def Xform "Geometry_158_Xform" (
+            prepend references = @../un_curated/Geometry_158.usd@
+        )
+        {
+            double3 xformOp:translate = (0, 0, 0)
+            uniform token[] xformOpOrder = ["xformOp:translate"]
+        }
+    }
+}
+

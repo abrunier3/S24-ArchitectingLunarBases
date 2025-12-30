@@ -1,0 +1,32 @@
+#usda 1.0
+(
+    customLayerData = {
+        string assetType = "lander_component"
+        string curationDate = "2025-10-26"
+        string material = "Material_171"
+        string partID = "Geometry_147"
+        string partName = "communications_antenna_main"
+        string sourceCAD = "blue_moon_lander_model.step"
+        string status = "curated"
+        string subsystem = "communications"
+        string version = "1.0"
+    }
+    defaultPrim = "/Lander/communications/Geometry_147_Xform"
+    metersPerUnit = 1
+    upAxis = "Y"
+)
+
+def "Lander"
+{
+    def "communications"
+    {
+        def Xform "Geometry_147_Xform" (
+            prepend references = @../un_curated/Geometry_147.usd@
+        )
+        {
+            double3 xformOp:translate = (0, 0, 0)
+            uniform token[] xformOpOrder = ["xformOp:translate"]
+        }
+    }
+}
+

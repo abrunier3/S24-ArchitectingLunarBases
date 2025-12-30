@@ -1,0 +1,32 @@
+#usda 1.0
+(
+    customLayerData = {
+        string assetType = "lander_component"
+        string curationDate = "2025-10-26"
+        string material = "Material_183"
+        string partID = "Geometry_159"
+        string partName = "landing_support_rod_rear_right"
+        string sourceCAD = "blue_moon_lander_model.step"
+        string status = "curated"
+        string subsystem = "landing_structure"
+        string version = "1.0"
+    }
+    defaultPrim = "/Lander/landing_structure/Geometry_159_Xform"
+    metersPerUnit = 1
+    upAxis = "Y"
+)
+
+def "Lander"
+{
+    def "landing_structure"
+    {
+        def Xform "Geometry_159_Xform" (
+            prepend references = @../un_curated/Geometry_159.usd@
+        )
+        {
+            double3 xformOp:translate = (0, 0, 0)
+            uniform token[] xformOpOrder = ["xformOp:translate"]
+        }
+    }
+}
+

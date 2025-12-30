@@ -1,0 +1,32 @@
+#usda 1.0
+(
+    customLayerData = {
+        string assetType = "lander_component"
+        string curationDate = "2025-10-26"
+        string material = "Material_191"
+        string partID = "Geometry_167"
+        string partName = "lower_body_with_tanks"
+        string sourceCAD = "blue_moon_lander_model.step"
+        string status = "curated"
+        string subsystem = "propulsion_and_structure"
+        string version = "1.0"
+    }
+    defaultPrim = "/Lander/propulsion_and_structure/Geometry_167_Xform"
+    metersPerUnit = 1
+    upAxis = "Y"
+)
+
+def "Lander"
+{
+    def "propulsion_and_structure"
+    {
+        def Xform "Geometry_167_Xform" (
+            prepend references = @../un_curated/Geometry_167.usd@
+        )
+        {
+            double3 xformOp:translate = (0, 0, 0)
+            uniform token[] xformOpOrder = ["xformOp:translate"]
+        }
+    }
+}
+

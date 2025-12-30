@@ -1,0 +1,32 @@
+#usda 1.0
+(
+    customLayerData = {
+        string assetType = "lander_component"
+        string curationDate = "2025-10-26"
+        string material = "Material_168"
+        string partID = "Geometry_144"
+        string partName = "engine_mount_cross_brace"
+        string sourceCAD = "blue_moon_lander_model.step"
+        string status = "curated"
+        string subsystem = "propulsion_structure"
+        string version = "1.0"
+    }
+    defaultPrim = "/Lander/propulsion_structure/Geometry_144_Xform"
+    metersPerUnit = 1
+    upAxis = "Y"
+)
+
+def "Lander"
+{
+    def "propulsion_structure"
+    {
+        def Xform "Geometry_144_Xform" (
+            prepend references = @../un_curated/Geometry_144.usd@
+        )
+        {
+            double3 xformOp:translate = (0, 0, 0)
+            uniform token[] xformOpOrder = ["xformOp:translate"]
+        }
+    }
+}
+

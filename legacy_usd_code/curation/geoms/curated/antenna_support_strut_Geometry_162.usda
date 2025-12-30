@@ -1,0 +1,32 @@
+#usda 1.0
+(
+    customLayerData = {
+        string assetType = "lander_component"
+        string curationDate = "2025-10-26"
+        string material = "Material_186"
+        string partID = "Geometry_162"
+        string partName = "antenna_support_strut"
+        string sourceCAD = "blue_moon_lander_model.step"
+        string status = "curated"
+        string subsystem = "communication_structure"
+        string version = "1.0"
+    }
+    defaultPrim = "/Lander/communication_structure/Geometry_162_Xform"
+    metersPerUnit = 1
+    upAxis = "Y"
+)
+
+def "Lander"
+{
+    def "communication_structure"
+    {
+        def Xform "Geometry_162_Xform" (
+            prepend references = @../un_curated/Geometry_162.usd@
+        )
+        {
+            double3 xformOp:translate = (0, 0, 0)
+            uniform token[] xformOpOrder = ["xformOp:translate"]
+        }
+    }
+}
+

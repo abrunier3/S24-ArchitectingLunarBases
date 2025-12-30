@@ -1,0 +1,411 @@
+#usda 1.0
+
+def Xform "HabitationModule"
+{
+    custom string internalVolume = "None"
+    custom string maxCrew = "None"
+    custom string maxPassengers = "None"
+    custom string spatial:depth = "80.0;"
+    custom string spatial:height = "20.0;"
+    custom string spatial:qw = "1.0;"
+    custom string spatial:qx = "0.0;     // quaternion orientation"
+    custom string spatial:qy = "0.0;"
+    custom string spatial:qz = "0.0;"
+    custom string spatial:scaleX = "1.0;"
+    custom string spatial:scaleY = "1.0;"
+    custom string spatial:scaleZ = "1.0;"
+    custom string spatial:width = "120.0;  // meters"
+    custom string spatial:x = "0.0;      // meters, local frame"
+    custom string spatial:y = "0.0;"
+    custom string spatial:z = "0.0;"
+    custom string visual:color = '"#6ec21fff";      // hex or named color'
+    custom string visual:material = '"";   // optional material name'
+    custom string visual:usdAsset = '"assets/spaceport/hab.usd";   // path to .usd or .usdz file'
+
+    def Xform "crewQuarters"
+    {
+    }
+
+    def Xform "passengerQuarters"
+    {
+    }
+
+    def Xform "galley"
+    {
+    }
+
+    def Xform "hygiene"
+    {
+    }
+}
+
+def Xform "PowerPlant"
+{
+    custom string availability = "None"
+    custom string maxPowerOutput = "None"
+    custom string spatial:depth = "80.0;"
+    custom string spatial:height = "20.0;"
+    custom string spatial:qw = "1.0;"
+    custom string spatial:qx = "0.0;     // quaternion orientation"
+    custom string spatial:qy = "0.0;"
+    custom string spatial:qz = "0.0;"
+    custom string spatial:scaleX = "1.0;"
+    custom string spatial:scaleY = "1.0;"
+    custom string spatial:scaleZ = "1.0;"
+    custom string spatial:width = "120.0;  // meters"
+    custom string spatial:x = "0.0;      // meters, local frame"
+    custom string spatial:y = "0.0;"
+    custom string spatial:z = "0.0;"
+    custom string visual:color = '"#e3da21ff";      // hex or named color'
+    custom string visual:material = '"";   // optional material name'
+    custom string visual:usdAsset = '"assets/spaceport/powerplant.usd";   // path to .usd or .usdz file'
+
+    def Xform "generation"
+    {
+    }
+
+    def Xform "storage"
+    {
+    }
+}
+
+def Xform "PowerDistribution"
+{
+    custom string conversionLoss = "None"
+    custom string spatial:depth = "80.0;"
+    custom string spatial:height = "20.0;"
+    custom string spatial:qw = "1.0;"
+    custom string spatial:qx = "0.0;     // quaternion orientation"
+    custom string spatial:qy = "0.0;"
+    custom string spatial:qz = "0.0;"
+    custom string spatial:scaleX = "1.0;"
+    custom string spatial:scaleY = "1.0;"
+    custom string spatial:scaleZ = "1.0;"
+    custom string spatial:width = "120.0;  // meters"
+    custom string spatial:x = "0.0;      // meters, local frame"
+    custom string spatial:y = "0.0;"
+    custom string spatial:z = "0.0;"
+    custom string visual:color = '"#ffff00ff";      // hex or named color'
+    custom string visual:material = '"";   // optional material name'
+    custom string visual:usdAsset = '"assets/spaceport/powerdist.usd";   // path to .usd or .usdz file'
+}
+
+def Xform "ECLSS"
+{
+    custom string co2RemovalReal = "None"
+    custom string o2ProductionReal = "None"
+    custom string spatial:depth = "80.0;"
+    custom string spatial:height = "20.0;"
+    custom string spatial:qw = "1.0;"
+    custom string spatial:qx = "0.0;     // quaternion orientation"
+    custom string spatial:qy = "0.0;"
+    custom string spatial:qz = "0.0;"
+    custom string spatial:scaleX = "1.0;"
+    custom string spatial:scaleY = "1.0;"
+    custom string spatial:scaleZ = "1.0;"
+    custom string spatial:width = "120.0;  // meters"
+    custom string spatial:x = "0.0;      // meters, local frame"
+    custom string spatial:y = "0.0;"
+    custom string spatial:z = "0.0;"
+    custom string visual:color = '"#4ff66eff";      // hex or named color'
+    custom string visual:material = '"";   // optional material name'
+    custom string visual:usdAsset = '"assets/spaceport/eclss.usd";   // path to .usd or .usdz file'
+    custom string waterRecoveryEfficiency = "None"
+
+    def Xform "atmosphereLoop"
+    {
+    }
+
+    def Xform "waterLoop"
+    {
+    }
+
+    def Xform "wasteManagement"
+    {
+    }
+}
+
+def Xform "ThermalControl"
+{
+    custom string coolingReal = "None"
+    custom string spatial:depth = "80.0;"
+    custom string spatial:height = "20.0;"
+    custom string spatial:qw = "1.0;"
+    custom string spatial:qx = "0.0;     // quaternion orientation"
+    custom string spatial:qy = "0.0;"
+    custom string spatial:qz = "0.0;"
+    custom string spatial:scaleX = "1.0;"
+    custom string spatial:scaleY = "1.0;"
+    custom string spatial:scaleZ = "1.0;"
+    custom string spatial:width = "120.0;  // meters"
+    custom string spatial:x = "0.0;      // meters, local frame"
+    custom string spatial:y = "0.0;"
+    custom string spatial:z = "0.0;"
+    custom string visual:color = '"#ff2a2aff";      // hex or named color'
+    custom string visual:material = '"";   // optional material name'
+    custom string visual:usdAsset = '"assets/spaceport/thermalcontrol.usd";   // path to .usd or .usdz file'
+
+    def Xform "radiators"
+    {
+    }
+
+    def Xform "internalFluidLoops"
+    {
+    }
+}
+
+def Xform "LandingPadComplex"
+{
+    custom string maxLandingMass = "None"
+    custom string numberOfPads = "None"
+    custom string padReal = "None"
+    custom string spatial:depth = "80.0;"
+    custom string spatial:height = "20.0;"
+    custom string spatial:qw = "1.0;"
+    custom string spatial:qx = "0.0;     // quaternion orientation"
+    custom string spatial:qy = "0.0;"
+    custom string spatial:qz = "0.0;"
+    custom string spatial:scaleX = "1.0;"
+    custom string spatial:scaleY = "1.0;"
+    custom string spatial:scaleZ = "1.0;"
+    custom string spatial:width = "120.0;  // meters"
+    custom string spatial:x = "0.0;      // meters, local frame"
+    custom string spatial:y = "0.0;"
+    custom string spatial:z = "0.0;"
+    custom string visual:color = '"#ffffff84";      // hex or named color'
+    custom string visual:material = '"";   // optional material name'
+    custom string visual:usdAsset = '"assets/spaceport/landpadcomplex.usd";   // path to .usd or .usdz file'
+
+    def Xform "landingPads"
+    {
+    }
+}
+
+def Xform "ISRUPlant"
+{
+    custom string o2ProductionReal = "None"
+    custom string propellantProductionReal = "None"
+    custom string regolithThroughput = "None"
+    custom string spatial:depth = "80.0;"
+    custom string spatial:height = "20.0;"
+    custom string spatial:qw = "1.0;"
+    custom string spatial:qx = "0.0;     // quaternion orientation"
+    custom string spatial:qy = "0.0;"
+    custom string spatial:qz = "0.0;"
+    custom string spatial:scaleX = "1.0;"
+    custom string spatial:scaleY = "1.0;"
+    custom string spatial:scaleZ = "1.0;"
+    custom string spatial:width = "120.0;  // meters"
+    custom string spatial:x = "0.0;      // meters, local frame"
+    custom string spatial:y = "0.0;"
+    custom string spatial:z = "0.0;"
+    custom string visual:color = '"#269bfbff";      // hex or named color'
+    custom string visual:material = '"";   // optional material name'
+    custom string visual:usdAsset = '"assets/spaceport/isru.usd";   // path to .usd or .usdz file'
+
+    def Xform "excavation"
+    {
+    }
+
+    def Xform "processing"
+    {
+    }
+
+    def Xform "storage"
+    {
+    }
+}
+
+def Xform "PropellantDepot"
+{
+    custom string spatial:depth = "80.0;"
+    custom string spatial:height = "20.0;"
+    custom string spatial:qw = "1.0;"
+    custom string spatial:qx = "0.0;     // quaternion orientation"
+    custom string spatial:qy = "0.0;"
+    custom string spatial:qz = "0.0;"
+    custom string spatial:scaleX = "1.0;"
+    custom string spatial:scaleY = "1.0;"
+    custom string spatial:scaleZ = "1.0;"
+    custom string spatial:width = "120.0;  // meters"
+    custom string spatial:x = "0.0;      // meters, local frame"
+    custom string spatial:y = "0.0;"
+    custom string spatial:z = "0.0;"
+    custom string storageReal = "None"
+    custom string visual:color = '"#4d86ffff";      // hex or named color'
+    custom string visual:material = '"";   // optional material name'
+    custom string visual:usdAsset = '"assets/spaceport/propdepot.usd";   // path to .usd or .usdz file'
+
+    def Xform "tanks"
+    {
+    }
+
+    def Xform "transferManifold"
+    {
+    }
+}
+
+def Xform "CommsSystem"
+{
+    custom string downlinkReal = "None"
+    custom string spatial:depth = "80.0;"
+    custom string spatial:height = "20.0;"
+    custom string spatial:qw = "1.0;"
+    custom string spatial:qx = "0.0;     // quaternion orientation"
+    custom string spatial:qy = "0.0;"
+    custom string spatial:qz = "0.0;"
+    custom string spatial:scaleX = "1.0;"
+    custom string spatial:scaleY = "1.0;"
+    custom string spatial:scaleZ = "1.0;"
+    custom string spatial:width = "120.0;  // meters"
+    custom string spatial:x = "0.0;      // meters, local frame"
+    custom string spatial:y = "0.0;"
+    custom string spatial:z = "0.0;"
+    custom string uplinkReal = "None"
+    custom string visual:color = '"#ffa928ff";      // hex or named color'
+    custom string visual:material = '"";   // optional material name'
+    custom string visual:usdAsset = '"assets/spaceport/comms.usd";   // path to .usd or .usdz file'
+}
+
+def Xform "SurfaceLogistics"
+{
+    custom string cargoThroughput = "None"
+    custom string spatial:depth = "80.0;"
+    custom string spatial:height = "20.0;"
+    custom string spatial:qw = "1.0;"
+    custom string spatial:qx = "0.0;     // quaternion orientation"
+    custom string spatial:qy = "0.0;"
+    custom string spatial:qz = "0.0;"
+    custom string spatial:scaleX = "1.0;"
+    custom string spatial:scaleY = "1.0;"
+    custom string spatial:scaleZ = "1.0;"
+    custom string spatial:width = "120.0;  // meters"
+    custom string spatial:x = "0.0;      // meters, local frame"
+    custom string spatial:y = "0.0;"
+    custom string spatial:z = "0.0;"
+    custom string storageReal = "None"
+    custom string visual:color = '"#ffffff31";      // hex or named color'
+    custom string visual:material = '"";   // optional material name'
+    custom string visual:usdAsset = '"assets/spaceport/logistics.usd";   // path to .usd or .usdz file'
+
+    def Xform "cargoYard"
+    {
+    }
+
+    def Xform "loaders"
+    {
+    }
+
+    def Xform "surfaceVehicles"
+    {
+    }
+}
+
+def Xform "LunarSpaceport1"
+{
+    custom string ossf:body = '"Moon";              // "Moon"'
+    custom string ossf:elevation = "0.0;           // meters"
+    custom string ossf:illuminationModel = '"SouthPoleLowSun"; // "SouthPoleLowSun"'
+    custom string ossf:latitude = "-89.5;            // degrees"
+    custom string ossf:longitude = "45.0;           // degrees"
+    custom string ossf:referenceFrame = '"IAU_MOON";    // "IAU_MOON"'
+    custom string ossf:terrainTile = '"LRO_NAC_SouthPole_001";       // OSSF tile ID'
+    custom string portName = "None"
+    custom string spatial:depth = "80.0;"
+    custom string spatial:height = "20.0;"
+    custom string spatial:qw = "1.0;"
+    custom string spatial:qx = "0.0;     // quaternion orientation"
+    custom string spatial:qy = "0.0;"
+    custom string spatial:qz = "0.0;"
+    custom string spatial:scaleX = "1.0;"
+    custom string spatial:scaleY = "1.0;"
+    custom string spatial:scaleZ = "1.0;"
+    custom string spatial:width = "120.0;  // meters"
+    custom string spatial:x = "0.0;      // meters, local frame"
+    custom string spatial:y = "0.0;"
+    custom string spatial:z = "0.0;"
+    custom string visual:color = '"#ff4ae7ff";      // hex or named color'
+    custom string visual:material = '"";   // optional material name'
+    custom string visual:usdAsset = '"assets/spaceport/spaceport.usd";   // path to .usd or .usdz file'
+
+    def Xform "hab"
+    {
+    }
+
+    def Xform "eclss"
+    {
+    }
+
+    def Xform "powerPlant"
+    {
+    }
+
+    def Xform "powerDist"
+    {
+    }
+
+    def Xform "thermal"
+    {
+    }
+
+    def Xform "landingPadComplex"
+    {
+    }
+
+    def Xform "isru"
+    {
+    }
+
+    def Xform "propDepot"
+    {
+    }
+
+    def Xform "comms"
+    {
+    }
+
+    def Xform "logistics"
+    {
+    }
+}
+
+def Xform "hab"
+{
+}
+
+def Xform "eclss"
+{
+}
+
+def Xform "powerPlant"
+{
+}
+
+def Xform "powerDist"
+{
+}
+
+def Xform "thermal"
+{
+}
+
+def Xform "landingPadComplex"
+{
+}
+
+def Xform "isru"
+{
+}
+
+def Xform "propDepot"
+{
+}
+
+def Xform "logistics"
+{
+}
+
+def Xform "comms"
+{
+}
+

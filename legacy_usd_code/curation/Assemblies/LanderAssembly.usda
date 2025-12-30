@@ -1,0 +1,257 @@
+#usda 1.0
+(
+    defaultPrim = "LanderAssembly"
+    metersPerUnit = 1
+    upAxis = "Y"
+)
+
+def Xform "LanderAssembly"
+{
+    def Xform "communication_structure"
+    {
+        def Xform "antenna_support_strut_Geometry_162" (
+            prepend references = @../geoms/curated/antenna_support_strut_Geometry_162.usda@
+        )
+        {
+            rel material:binding = </LanderMaterials/Material_186>
+        }
+    }
+
+    def Xform "communications"
+    {
+        def Xform "communications_antenna_main_Geometry_147" (
+            prepend references = @../geoms/curated/communications_antenna_main_Geometry_147.usda@
+        )
+        {
+            rel material:binding = </LanderMaterials/Material_171>
+        }
+    }
+
+    def Xform "propulsion_structure"
+    {
+        def Xform "engine_mount_cross_brace_Geometry_144" (
+            prepend references = @../geoms/curated/engine_mount_cross_brace_Geometry_144.usda@
+        )
+        {
+            rel material:binding = </LanderMaterials/Material_168>
+        }
+
+        def Xform "thrust_frame_support_Geometry_153" (
+            prepend references = @../geoms/curated/thrust_frame_support_Geometry_153.usda@
+        )
+        {
+            rel material:binding = </LanderMaterials/Material_177>
+        }
+
+        def Xform "thrust_mount_connector_rod_Geometry_156" (
+            prepend references = @../geoms/curated/thrust_mount_connector_rod_Geometry_156.usda@
+        )
+        {
+            rel material:binding = </LanderMaterials/Material_180>
+        }
+
+        def Xform "thruster_connector_rod_right_Geometry_169" (
+            prepend references = @../geoms/curated/thruster_connector_rod_right_Geometry_169.usda@
+        )
+        {
+            rel material:binding = </LanderMaterials/Material_193>
+        }
+
+        def Xform "thruster_mount_connector_Geometry_150" (
+            prepend references = @../geoms/curated/thruster_mount_connector_Geometry_150.usda@
+        )
+        {
+            rel material:binding = </LanderMaterials/Material_174>
+        }
+
+        def Xform "thruster_mount_connector_Geometry_164" (
+            prepend references = @../geoms/curated/thruster_mount_connector_Geometry_164.usda@
+        )
+        {
+            rel material:binding = </LanderMaterials/Material_188>
+        }
+    }
+
+    def Xform "landing_system"
+    {
+        def Xform "landing_leg_front_left_Geometry_141" (
+            prepend references = @../geoms/curated/landing_leg_front_left_Geometry_141.usda@
+        )
+        {
+            rel material:binding = </LanderMaterials/Material_165>
+        }
+
+        def Xform "landing_leg_rear_left_Geometry_142" (
+            prepend references = @../geoms/curated/landing_leg_rear_left_Geometry_142.usda@
+        )
+        {
+            rel material:binding = </LanderMaterials/Material_166>
+        }
+
+        def Xform "landing_leg_rear_right_Geometry_158" (
+            prepend references = @../geoms/curated/landing_leg_rear_right_Geometry_158.usda@
+        )
+        {
+            rel material:binding = </LanderMaterials/Material_182>
+        }
+    }
+
+    def Xform "landing_structure"
+    {
+        def Xform "landing_leg_front_right_Geometry_152" (
+            prepend references = @../geoms/curated/landing_leg_front_right_Geometry_152.usda@
+        )
+        {
+            rel material:binding = </LanderMaterials/Material_176>
+        }
+
+        def Xform "landing_support_rod_front_left_Geometry_161" (
+            prepend references = @../geoms/curated/landing_support_rod_front_left_Geometry_161.usda@
+        )
+        {
+            rel material:binding = </LanderMaterials/Material_185>
+        }
+
+        def Xform "landing_support_rod_front_left_Geometry_166" (
+            prepend references = @../geoms/curated/landing_support_rod_front_left_Geometry_166.usda@
+        )
+        {
+            rel material:binding = </LanderMaterials/Material_190>
+        }
+
+        def Xform "landing_support_rod_front_right_Geometry_157" (
+            prepend references = @../geoms/curated/landing_support_rod_front_right_Geometry_157.usda@
+        )
+        {
+            rel material:binding = </LanderMaterials/Material_181>
+        }
+
+        def Xform "landing_support_rod_front_right_Geometry_168" (
+            prepend references = @../geoms/curated/landing_support_rod_front_right_Geometry_168.usda@
+        )
+        {
+            rel material:binding = </LanderMaterials/Material_192>
+        }
+
+        def Xform "landing_support_rod_left_Geometry_160" (
+            prepend references = @../geoms/curated/landing_support_rod_left_Geometry_160.usda@
+        )
+        {
+            rel material:binding = </LanderMaterials/Material_184>
+        }
+
+        def Xform "landing_support_rod_rear_left_Geometry_154" (
+            prepend references = @../geoms/curated/landing_support_rod_rear_left_Geometry_154.usda@
+        )
+        {
+            rel material:binding = </LanderMaterials/Material_178>
+        }
+
+        def Xform "landing_support_rod_rear_left_Geometry_165" (
+            prepend references = @../geoms/curated/landing_support_rod_rear_left_Geometry_165.usda@
+        )
+        {
+            rel material:binding = </LanderMaterials/Material_189>
+        }
+
+        def Xform "landing_support_rod_rear_right_Geometry_159" (
+            prepend references = @../geoms/curated/landing_support_rod_rear_right_Geometry_159.usda@
+        )
+        {
+            rel material:binding = </LanderMaterials/Material_183>
+        }
+
+        def Xform "landing_support_rod_rear_right_Geometry_163" (
+            prepend references = @../geoms/curated/landing_support_rod_rear_right_Geometry_163.usda@
+        )
+        {
+            rel material:binding = </LanderMaterials/Material_187>
+        }
+
+        def Xform "support_strut_front_Geometry_140" (
+            prepend references = @../geoms/curated/support_strut_front_Geometry_140.usda@
+        )
+        {
+            rel material:binding = </LanderMaterials/Material_164>
+        }
+
+        def Xform "support_strut_lower_left_Geometry_145" (
+            prepend references = @../geoms/curated/support_strut_lower_left_Geometry_145.usda@
+        )
+        {
+            rel material:binding = </LanderMaterials/Material_169>
+        }
+
+        def Xform "support_strut_lower_left_Geometry_149" (
+            prepend references = @../geoms/curated/support_strut_lower_left_Geometry_149.usda@
+        )
+        {
+            rel material:binding = </LanderMaterials/Material_173>
+        }
+
+        def Xform "support_strut_lower_rear_Geometry_148" (
+            prepend references = @../geoms/curated/support_strut_lower_rear_Geometry_148.usda@
+        )
+        {
+            rel material:binding = </LanderMaterials/Material_172>
+        }
+
+        def Xform "support_strut_lower_right_Geometry_146" (
+            prepend references = @../geoms/curated/support_strut_lower_right_Geometry_146.usda@
+        )
+        {
+            rel material:binding = </LanderMaterials/Material_170>
+        }
+
+        def Xform "support_strut_mid_right_Geometry_151" (
+            prepend references = @../geoms/curated/support_strut_mid_right_Geometry_151.usda@
+        )
+        {
+            rel material:binding = </LanderMaterials/Material_175>
+        }
+
+        def Xform "support_strut_rear_Geometry_143" (
+            prepend references = @../geoms/curated/support_strut_rear_Geometry_143.usda@
+        )
+        {
+            rel material:binding = </LanderMaterials/Material_167>
+        }
+    }
+
+    def Xform "propulsion_and_structure"
+    {
+        def Xform "lower_body_with_tanks_Geometry_167" (
+            prepend references = @../geoms/curated/lower_body_with_tanks_Geometry_167.usda@
+        )
+        {
+            rel material:binding = </LanderMaterials/Material_191>
+        }
+    }
+
+    def Xform "structure"
+    {
+        def Xform "main_cabin_Geometry_139" (
+            prepend references = @../geoms/curated/main_cabin_Geometry_139.usda@
+        )
+        {
+            rel material:binding = </LanderMaterials/Material_163>
+        }
+    }
+
+    def Xform "propulsion"
+    {
+        def Xform "main_thruster_Geometry_155" (
+            prepend references = @../geoms/curated/main_thruster_Geometry_155.usda@
+        )
+        {
+            rel material:binding = </LanderMaterials/Material_179>
+        }
+    }
+}
+
+def Scope "LanderMaterials" (
+    prepend references = @../Materials/LanderMaterials.usda@
+)
+{
+}
+
