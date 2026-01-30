@@ -205,9 +205,7 @@ class SafeEvaluator(ast.NodeVisitor):
         raise ValueError("Unsupported binary operator")
 
 
-# ----------------------------
-# Semantic evaluation (corrected)
-# ----------------------------
+
 
 def _collect_env(part: PartNode, parent_chain: List[str] | None = None) -> Dict[str, float]:
     """
@@ -299,9 +297,7 @@ def evaluate_attributes(model: Model):
             break
 
 
-# ----------------------------
-# Unit conversion
-# ----------------------------
+
 
 def _convert_numeric_with_units(name: str, value: float) -> tuple[str, float]:
     if name == "volume":
@@ -318,9 +314,7 @@ def _convert_numeric_with_units(name: str, value: float) -> tuple[str, float]:
     return name, value
 
 
-# ----------------------------
-# JSON mapping
-# ----------------------------
+
 
 def build_part_json(model: Model, part: PartNode, namespace: str = "lunarspaceport1") -> Dict[str, Any]:
     part_id = f"urn:{namespace}:part:{part.name}:001"
@@ -368,19 +362,11 @@ def build_part_json(model: Model, part: PartNode, namespace: str = "lunarspacepo
     }
 
 
-# ----------------------------
-# Public API
-# ----------------------------
-
 def sysml_to_json(sysml_text: str, namespace: str = "lunarspaceport1") -> List[Dict[str, Any]]:
     model = parse_sysml(sysml_text)
     evaluate_attributes(model)
     return [build_part_json(model, part, namespace=namespace) for part in model.parts.values()]
 
-
-# ----------------------------
-# CLI
-# ----------------------------
 
 def main():
     if len(sys.argv) < 3:
