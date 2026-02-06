@@ -24,7 +24,7 @@ from CommunicationModule import CommunicationModule
 from LunarRover import LunarRover
 from RoverChargingStation import RoverChargingStation
 from LandingLaunchZone import LandingLaunchZone
-
+from ImportUtility import data_from_json
 
 
 # -------------------------------------------------
@@ -106,7 +106,8 @@ def main():
     regolithBuffer = simpy.Container(system, capacity=20_000)
 
     # ISRU Plant
-    plant = ISRUPlant(system, 1600, 0.1)
+    isruPlantData = data_from_json("ISRUV2.json")['ISRUPlant']
+    plant = ISRUPlant(system, isruPlantData.raw['attributes'])
     
     # Solar Power System (100 kW output, 500 kWh battery)
     solarSystem = SolarPowerSystem(
