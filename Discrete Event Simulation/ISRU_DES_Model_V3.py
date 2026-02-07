@@ -110,34 +110,27 @@ def main():
     plant = ISRUPlant(system, isruPlantData.raw['attributes'])
     
     # Solar Power System (100 kW output, 500 kWh battery)
-    solarSystem = SolarPowerSystem(
-        system, 
-        powerOutput=100,  # kW
-        batteryCapacity=500,  # kWh
-        batteryDegradationFactor=1.0,
-        powerDegradationFactor=1.0
-    )
+    solarPowerSystemData = data_from_json("SolarPowerSystemV1.json")['SolarPowerSystem']
+    solarSystem = SolarPowerSystem(system, solarPowerSystemData.raw['attributes'])
     
     # Power Manager
     powerManager = PowerManager(system, solarSystem)
     
     # Habitation Module (5 kW constant)
-    habitat = HabitationModule(system, "Habitat-1", constantPowerRate=5)
+    habitationModuleData = data_from_json("HabitationModuleV1.json")['HabitationModule']
+    habitat = HabitationModule(system, "Habitat-1", habitationModuleData.raw['attributes'])
     habitat.scheduleSpike(10, 20)  # 20 kWh spike at hour 10
     powerManager.registerConsumer(habitat)
     
     # Communication Module (2 kW constant)
-    comms = CommunicationModule(system, "CommArray-1", constantPowerRate=2)
+    communicationModuleData = data_from_json("CommunicationModuleV1.json")['CommunicationModule']
+    comms = CommunicationModule(system, "CommArray-1", communicationModuleData.raw['attributes'])
     comms.scheduleSpike(15, 10)  # 10 kWh spike at hour 15
     powerManager.registerConsumer(comms)
     
     # Landing/Launch Zone (10 kW chilling, 3 kW utilities)
-    landingZone = LandingLaunchZone(
-        system, 
-        "LZ-Alpha",
-        loxCapacity=50000,  # kg
-        utilitiesPowerRate=3  # kW
-    )
+    landingZoneData = data_from_json("LaunchLandingZoneV1.json")['LaunchLandingZone']
+    landingZone = LandingLaunchZone(system, "LZ-Alpha", attributeDict=landingZoneData.raw['attributes'])
     landingZone.scheduleSpike(25, 50)  # 50 kWh spike at hour 25
     powerManager.registerConsumer(landingZone)
     
@@ -150,8 +143,9 @@ def main():
     )
     powerManager.registerConsumer(chargingStation)
     
-    regolithCargoRover = LunarRover(system, name="Regolith Cargo Rover", roverType="cargo", maxCapacity=5000, energyPerKmPerKg=3.4*10**-4, batteryCapacity=100, hoursPerKm=5)
-    LOXCargoRover = LunarRover(system, name="LOX Cargo Rover", roverType="cargo", maxCapacity=5000, energyPerKmPerKg=3.4*10**-4, batteryCapacity=100, hoursPerKm=5)
+    roverData = data_from_json("RoverV1.json")['Rover']
+    regolithCargoRover = LunarRover(system, name="Regolith Cargo Rover", roverType="cargo", attributeDict=roverData.raw['attributes'])
+    LOXCargoRover = LunarRover(system, name="LOX Cargo Rover", roverType="cargo", attributeDict=roverData.raw['attributes'])
 
     # Start processes
     system.process(regolithRoverController(system, regolithBuffer, roverBatch, 1, regolithCargoRover))

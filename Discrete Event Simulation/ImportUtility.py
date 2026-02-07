@@ -66,3 +66,8 @@ isruPlant = data_from_json("ISRUV2.json")['ISRUPlant']
 print(isruPlant.raw['attributes']["processingRate"])
 
 #generate_json_from_sysml("ISRUPlantModelV3.sysml", "ISRUV2.json")
+#generate_json_from_sysml("CommunicationModuleV1.sysml", "CommunicationModuleV1.json")
+#generate_json_from_sysml("RoverV1.sysml", "RoverV1.json")
+generate_json_from_sysml("LaunchLandingZoneV1.sysml", "LaunchLandingZoneV1.json")
+#generate_json_from_sysml("SolarPowerSystemV1.sysml", "SolarPowerSystemV1.json")
+#generate_json_from_sysml("HabitationModuleV1.sysml", "HabitationModuleV1.json")
