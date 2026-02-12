@@ -1,0 +1,42 @@
+#usda 1.0
+(
+    defaultPrim = "Materials"
+)
+
+def Scope "Materials"
+{
+    def Material "Aluminum_2219_T87" (
+        customData = {
+            double cte_1_K = 0.000023
+            double density_kg_m3 = 2840
+            double poissonRatio = 0.33
+            string source = "TBD"
+            double specificHeat_J_kgK = 900
+            string standard = "AA 2219-T87"
+            double thermalConductivity_W_mK = 120
+            double ultimateStrength_Pa = 450000000
+            double yieldStrength_Pa = 350000000
+            double youngModulus_Pa = 73000000000
+        }
+    )
+    {
+    }
+
+    def Material "Titanium_Ti6Al4V" (
+        customData = {
+            double cte_1_K = 0.0000086
+            double density_kg_m3 = 4430
+            double poissonRatio = 0.34
+            string source = "TBD"
+            double specificHeat_J_kgK = 560
+            string standard = "Ti-6Al-4V"
+            double thermalConductivity_W_mK = 6.7
+            double ultimateStrength_Pa = 950000000
+            double yieldStrength_Pa = 880000000
+            double youngModulus_Pa = 114000000000
+        }
+    )
+    {
+    }
+}
+
