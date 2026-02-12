@@ -1,0 +1,39 @@
+#usda 1.0
+(
+    defaultPrim = "LunarRover"
+    metersPerUnit = 1
+    upAxis = "Z"
+)
+
+def Xform "LunarRover"
+{
+    custom string asset:id = "urn:lunarspaceport1:part:LunarRover:001"
+    custom string asset:type = "Part"
+    custom double attr:batteryCapacity = 100
+    custom double attr:batteryCharge = 100
+    custom double attr:currentLoad = 0
+    custom double attr:energyPerKmPerKg = 0.00034
+    custom double attr:hoursPerKm = 5
+    custom double attr:maxCapacity = 5000
+    custom double attr:totalDistanceTraveled = 0
+    custom double attr:totalEnergyConsumed = 0
+    custom double3 spatial:dims_m = (3.2, 2, 1.8)
+    custom double spatial:metersPerUnit = 1
+    custom string spatial:upAxis = "Z"
+
+    def Mesh "geom" (
+        customData = {
+            string materialHint = "../mtl/lunar_materials.usda:/Materials/Aluminum_2219_T87"
+        }
+        prepend references = @../geoms/LunarRover_geom.usda@</LunarRover_Geom>
+    )
+    {
+    }
+
+    def Scope "materials" (
+        prepend references = @../mtl/lunar_materials.usda@
+    )
+    {
+    }
+}
+
