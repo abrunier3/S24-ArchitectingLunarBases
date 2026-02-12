@@ -59,13 +59,6 @@ def parse_literal_token(value_str: str) -> Any:
 
 
 def parse_sysml(text: str) -> Model:
-    """
-    Parse a subset of SysML v2:
-      - package 'Name' { ... }
-      - part <Name> { ... }
-      - attribute <name> = <value>;
-    Produces nested PartNode tree.
-    """
     model = Model()
     current_stack: List[PartNode] = []
     brace_stack: List[str] = []
@@ -75,11 +68,15 @@ def parse_sysml(text: str) -> Model:
         if not line:
             continue
 
-        # package
-        m = re.match(r"package\s+'([^']+)'\s*\{", line)
+        # package (with or without quotes)
+        m = re.match(r"package\s+(?:'([^']+)'|(\w+))\s*\{", line)
         if m:
-            model.package_name = m.group(1)
+            model.package_name = m.group(1) or m.group(2)
             brace_stack.append("package")
+            continue
+
+        # ignore private import lines
+        if line.startswith("private import"):
             continue
 
         # ignore requirement blocks
@@ -91,17 +88,15 @@ def parse_sysml(text: str) -> Model:
         if re.match(r"satisfy\s+\w+\s+by\s+\w+;", line):
             continue
 
-        # part (top-level or nested)
-        m = re.match(r"part\s+(\w+)\s*\{", line)
+        # part (top-level or nested), with optional 'def' and inheritance
+        m = re.match(r"part\s+(?:def\s+)?(\w+)(?:\s*:\s*\w+)?\s*\{", line)
         if m:
             part_name = m.group(1)
             node = PartNode(name=part_name)
-
             if current_stack:
                 current_stack[-1].children[part_name] = node
             else:
                 model.parts[part_name] = node
-
             current_stack.append(node)
             brace_stack.append("part")
             continue
