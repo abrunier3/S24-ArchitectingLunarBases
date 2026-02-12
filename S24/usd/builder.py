@@ -28,6 +28,7 @@ class USDBuilder:
         database_dir: str = "database",
         overwrite: bool = True,
         use_paths_from_vetted: bool = False,
+        material_library_path: Optional[str] = None,
     ) -> None:
         self.by_name = by_name
         self.overwrite = overwrite
@@ -39,6 +40,13 @@ class USDBuilder:
         self.mats_dir = os.path.join(self.assets_dir, "mats")
         self.comps_dir = os.path.join(self.assets_dir, "components")
         self.scenes_dir = os.path.join(database_dir, "scenes")
+        mtl_dir = os.path.join(self.assets_dir, "mtl")
+        os.makedirs(mtl_dir, exist_ok=True)
+
+        if material_library_path is None:
+            material_library_path = os.path.join(mtl_dir, "lunar_materials.usda")
+
+        self.material_library_path = os.path.abspath(material_library_path)
 
         os.makedirs(self.geoms_dir, exist_ok=True)
         os.makedirs(self.mats_dir, exist_ok=True)
@@ -83,12 +91,12 @@ class USDBuilder:
             up_axis=vp.up_axis,
         )
 
-    def build_component(self, vp: VettedPart, *, geom_path: str, mat_path: str) -> str:
+    def build_component(self, vp: VettedPart, *, geom_path: str) -> str:
         comp_path = self.comp_path_for(vp)
         ensure_can_write(comp_path, overwrite=self.overwrite)
 
         geom_prim_path = f"/{vp.name}_Geom"
-        material_prim_path = f"/Materials/{self.material_name_for(vp)}"
+        material_prim_path = f"/Materials/{vp.material_ref}"
 
         raw_attrs = vp.raw.get("attributes", {})
 
@@ -103,17 +111,16 @@ class USDBuilder:
             raw_attributes=raw_attrs,
             geom_layer_path=geom_path,
             geom_prim_path=geom_prim_path,
-            mat_layer_path=mat_path,
-            material_prim_path=material_prim_path,
+            mat_layer_path=self.material_library_path,     # <-- changed
+            material_prim_path=material_prim_path,         # <-- changed
         )
 
     def build_all_parts(self) -> Dict[str, Dict[str, str]]:
         outputs: Dict[str, Dict[str, str]] = {}
         for name, vp in self.by_name.items():
             geom = self.build_geometry(vp)
-            mat = self.build_material(vp)
-            comp = self.build_component(vp, geom_path=geom, mat_path=mat)
-            outputs[name] = {"geom": geom, "mat": mat, "component": comp}
+            comp = self.build_component(vp, geom_path=geom)
+            outputs[name] = {"geom": geom, "component": comp}
         return outputs
 
     def write_assembly_scene(
