@@ -1,0 +1,47 @@
+#usda 1.0
+(
+    defaultPrim = "ISRUPlant"
+    metersPerUnit = 1
+    upAxis = "Z"
+)
+
+def Xform "ISRUPlant"
+{
+    custom string asset:id = "urn:lunarspaceport1:part:ISRUPlant:001"
+    custom string asset:type = "Part"
+    custom double attr:beneficiationLiftHeight = 1
+    custom double attr:electrolysisEnergyCoeff = 8.26
+    custom double attr:excavationEnergyCoeff = 0.0000065
+    custom double attr:extractionCoeff_a = 0.51
+    custom double attr:extractionCoeff_b = 0.47
+    custom double attr:gangueTransportDist = 1
+    custom double attr:liquefactionEnergyCoeff = 1.17
+    custom double attr:LOXStored = 0
+    custom double attr:lunarGravity = 1.62
+    custom double attr:molarMassIlm = 151.71
+    custom double attr:molarMassO2 = 31.999
+    custom double attr:processingRate = 1600
+    custom double attr:reactorEnergyCoeff = 0.385
+    custom double attr:regHeadGrade = 0.1
+    custom double attr:totalEnergyConsumed = 0
+    custom double attr:transportEnergyCoeff = 0.00036
+    custom double3 spatial:dims_m = (20, 15, 8)
+    custom double spatial:metersPerUnit = 1
+    custom string spatial:upAxis = "Z"
+
+    def Mesh "geom" (
+        customData = {
+            string materialHint = "../mtl/lunar_materials.usda:/Materials/Aluminum_2219_T87"
+        }
+        prepend references = @../geoms/ISRUPlant_geom.usda@</ISRUPlant_Geom>
+    )
+    {
+    }
+
+    def Scope "materials" (
+        prepend references = @../mtl/lunar_materials.usda@
+    )
+    {
+    }
+}
+
