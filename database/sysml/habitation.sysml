@@ -25,7 +25,7 @@
             attribute HabitationModule_volume = (HabitationModule_dims.length * HabitationModule_dims.width * HabitationModule_dims.height) * HabitationModule_dims.metersPerUnit^3 * 1000; // liters
 
             attribute geometry = "assets/geom/HabModule_geom.usda";
-            attribute material = "assets/mtl/titanium.usda"; // Titanium
+            attribute materialRef = "Titanium_Ti6Al4V"; // Titanium
 
             part O2Tank1 {
                 part O2Tank1_dims {
@@ -49,7 +49,7 @@
                 attribute O2Tank1_wallThickness = 0.01; // meters
 
                 attribute geometry = "assets/geom/O2Tank_geom.usda";
-                attribute material = "assets/mtl/aluminum.usda"; // Aluminum alloy 2219-T87
+                attribute materialRef = "Aluminum_2219_T87"; // Aluminum alloy 2219-T87
             }
 
             part O2Tank2 {
@@ -74,7 +74,7 @@
                 attribute O2Tank2_wallThickness = 0.01; // meters
 
                 attribute geometry = "assets/geom/O2Tank_geom.usda";
-                attribute material = "assets/mtl/aluminum.usda"; // Aluminum alloy 2219-T87
+                attribute materialRef = "Aluminum_2219_T87"; // Aluminum alloy 2219-T87
             }
         }
     }
