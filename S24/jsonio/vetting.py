@@ -18,7 +18,7 @@ class VettedPart:
     translate: Tuple[float, float, float]
 
     geom_path: str
-    material_path: str
+    material_ref: str
 
     parent: Optional[str]
     children: List[str]
@@ -88,7 +88,12 @@ class VettingProc:
 
             meta = _require(p, "metadata", ctx)
             geom = _validate_asset_path(_require(meta, "geometry", ctx), f"{ctx}.geometry")
-            mat  = _validate_asset_path(_require(meta, "material", ctx), f"{ctx}.material")
+            # NEW: materialRef (stable ID), not a file path
+            mat_ref = p.get("materialRef")
+            if mat_ref is None:
+                # optional backward-compat: accept old metadata.material for now
+                mat_ref = meta.get("material")
+            mat_ref = _as_str(mat_ref, f"{ctx}.materialRef")
 
             by_name[name] = VettedPart(
                 raw=p,
@@ -100,7 +105,7 @@ class VettingProc:
                 up_axis=str(dims.get("upAxis", "Z")).upper(),
                 translate=translate,
                 geom_path=geom,
-                material_path=mat,
+                material_ref=mat_ref,
                 parent=p.get("parent"),
                 children=list(p.get("children", [])),
             )
