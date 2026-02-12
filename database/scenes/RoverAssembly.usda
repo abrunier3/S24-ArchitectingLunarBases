@@ -1,0 +1,18 @@
+#usda 1.0
+(
+    defaultPrim = "World"
+    metersPerUnit = 1
+    upAxis = "Z"
+)
+
+def Xform "World"
+{
+    def Xform "LunarRover" (
+        prepend references = @../assets/components/LunarRover.usda@</LunarRover>
+    )
+    {
+        double3 xformOp:translate = (20, 5, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate"]
+    }
+}
+
