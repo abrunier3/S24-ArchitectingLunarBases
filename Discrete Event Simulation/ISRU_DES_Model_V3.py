@@ -25,7 +25,7 @@ from LunarRover import LunarRover
 from RoverChargingStation import RoverChargingStation
 from LandingLaunchZone import LandingLaunchZone
 from ImportUtility import data_from_json
-
+import json
 
 # -------------------------------------------------
 # Rover Process (Modified to work with new rover system)
@@ -167,11 +167,18 @@ def main():
     print(f"\nISRU Plant:")
     print(f"  LOX Stored: {plant.LOXStored:.2f} kg")
     print(f"  Energy Consumed: {plant.totalEnergyConsumed:.2f} kWh")
+    print(f"  Total Operational Hours: {plant.processingUptime:.2f} hours")
+    print(f"  Regolith Recieved: {plant.regolithRecieved:.2f} kg")
+    print(f"  Total LOX Production: {plant.totalLOXProduction:.2f} kg")
     
     print(f"\nSolar Power System:")
     print(f"  Total Generated: {solarSystem.totalEnergyGenerated:.2f} kWh")
     print(f"  From Battery: {solarSystem.totalEnergyFromBattery:.2f} kWh")
     print(f"  Battery Charge: {solarSystem.batteryCharge:.2f}/{solarSystem.batteryCapacity:.2f} kWh")
+
+    print(f"\nPower Manager Stats")
+    print(f"  Energy Generated Time Array: {powerManager.powerGeneratedSeries} kWh")
+    print(f"  Total Energy Demand Time Array: {powerManager.totalDemandSeries} kWh")
     
     print(f"\n{habitat.name}:")
     print(f"  Energy Consumed: {habitat.totalEnergyConsumed:.2f} kWh")
@@ -201,6 +208,64 @@ def main():
     print("="*70)
 
     # Output --------------------------------------------------
+    # Create the results dictionary
+    results = {
+        "ISRU_Plant": {
+            "LOX_Stored_kg": round(plant.LOXStored, 2),
+            "Energy_Consumed_kWh": round(plant.totalEnergyConsumed, 2),
+            "Total_Operational_Hours": round(plant.processingUptime, 2),
+            "Regolith_Received_kg": round(plant.regolithRecieved, 2),
+            "Total_LOX_Production_kg": round(plant.totalLOXProduction, 2)
+        },
+        "Solar_Power_System": {
+            "Total_Generated_kWh": round(solarSystem.totalEnergyGenerated, 2),
+            "From_Battery_kWh": round(solarSystem.totalEnergyFromBattery, 2),
+            "Battery_Charge_kWh": round(solarSystem.batteryCharge, 2),
+            "Battery_Capacity_kWh": round(solarSystem.batteryCapacity, 2)
+        },
+        "Power_Manager": {
+            "Energy_Generated_Time_Array_kWh": powerManager.powerGeneratedSeries,
+            "Total_Demand_Time_Array_kWh": powerManager.totalDemandSeries
+        },
+        "Habitat": {
+            "Name": habitat.name,
+            "Energy_Consumed_kWh": round(habitat.totalEnergyConsumed, 2)
+        },
+        "Communications": {
+            "Name": comms.name,
+            "Energy_Consumed_kWh": round(comms.totalEnergyConsumed, 2)
+        },
+        "Landing_Zone": {
+            "Name": landingZone.name,
+            "LOX_Stored_kg": round(landingZone.loxStored, 2),
+            "Energy_Consumed_kWh": round(landingZone.totalEnergyConsumed, 2)
+        },
+        "Regolith_Cargo_Rover": {
+            "Name": regolithCargoRover.name,
+            "Total_Distance_km": round(regolithCargoRover.totalDistanceTraveled, 2),
+            "Energy_Consumed_kWh": round(regolithCargoRover.totalEnergyConsumed, 2),
+            "Battery_Charge_kWh": round(regolithCargoRover.batteryCharge, 2),
+            "Battery_Capacity_kWh": round(regolithCargoRover.batteryCapacity, 2),
+            "Current_Load_kg": round(regolithCargoRover.currentLoad, 2)
+        },
+        "LOX_Cargo_Rover": {
+            "Name": LOXCargoRover.name,
+            "Total_Distance_km": round(LOXCargoRover.totalDistanceTraveled, 2),
+            "Energy_Consumed_kWh": round(LOXCargoRover.totalEnergyConsumed, 2),
+            "Battery_Charge_kWh": round(LOXCargoRover.batteryCharge, 2),
+            "Battery_Capacity_kWh": round(LOXCargoRover.batteryCapacity, 2),
+            "Current_Load_kg": round(LOXCargoRover.currentLoad, 2)
+        },
+        "Charging_Station": {
+            "Name": chargingStation.name,
+            "Energy_Consumed_kWh": round(chargingStation.totalEnergyConsumed, 2),
+            "Energy_Delivered_to_Rovers_kWh": round(chargingStation.totalEnergyDelivered, 2)
+        }
+    }
+
+    # Export to JSON file
+    with open('lunar_spaceport_results.json', 'w') as f:
+        json.dump(results, f, indent=4)
 
 
 if __name__ == "__main__":

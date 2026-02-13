@@ -12,6 +12,8 @@ class PowerManager:
         self.system = system
         self.solarSystem = solarSystem
         self.consumers = []  # List of power consumers
+        self.powerGeneratedSeries = [] #Create an array to track how much power is generated at each time step
+        self.totalDemandSeries = [] #Create an array to track how much power demand exists at each time step
         
     def registerConsumer(self, consumer):
         """Register a power consumer"""
@@ -37,6 +39,10 @@ class PowerManager:
             # Manage power balance
             energyBalance = energyGenerated - totalDemand
             
+            #Update internal tracking arrays
+            self.powerGeneratedSeries.append(energyGenerated)
+            self.totalDemandSeries.append(totalDemand)
+
             if energyBalance > 0:
                 # Excess power - charge battery
                 stored = self.solarSystem.chargeBattery(energyBalance)
