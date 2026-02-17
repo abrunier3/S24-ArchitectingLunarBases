@@ -16,6 +16,11 @@ class VettedPart:
     meters_per_unit: float
     up_axis: str
     translate: Tuple[float, float, float]
+    rotation_deg: Tuple[float, float, float]
+    angle_unit: str
+    pressure_unit: str
+    mass_unit: str
+    length_unit: str
 
     geom_path: str
     material_ref: str
@@ -85,6 +90,16 @@ class VettingProc:
                 _as_float(dims.get("Y", 0.0), f"{ctx}.Y"),
                 _as_float(dims.get("Z", 0.0), f"{ctx}.Z"),
             )
+            rotation_deg = (
+                _as_float(dims.get("rX_deg", 0.0), f"{ctx}.rX_deg"),
+                _as_float(dims.get("rY_deg", 0.0), f"{ctx}.rY_deg"),
+                _as_float(dims.get("rZ_deg", 0.0), f"{ctx}.rZ_deg"),
+            )
+
+            angle_unit = str(dims.get("angleUnit", "deg"))
+            pressure_unit = str(dims.get("pressureUnit", "kPa"))
+            mass_unit = str(dims.get("massUnit", "kg"))
+            length_unit = str(dims.get("lengthUnit", "m"))
 
             meta = _require(p, "metadata", ctx)
             geom = _validate_asset_path(_require(meta, "geometry", ctx), f"{ctx}.geometry")
@@ -107,6 +122,11 @@ class VettingProc:
                 geom_path=geom,
                 material_ref=mat_ref,
                 parent=p.get("parent"),
+                rotation_deg=rotation_deg,
+                angle_unit=angle_unit,
+                pressure_unit=pressure_unit,
+                mass_unit=mass_unit,
+                length_unit=length_unit,
                 children=list(p.get("children", [])),
             )
 
