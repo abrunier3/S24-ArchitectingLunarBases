@@ -1,0 +1,123 @@
+name: STEP File Detected — Create Model Folder & Registration Issue
+
+on:
+  push:
+    paths:
+      - 'models/*.step'
+      - 'models/*.stp'
+      - 'models/*.STEP'
+      - 'models/*.STP'
+
+jobs:
+  register-model:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Detect new STEP files
+        id: detect
+        run: |
+          STEP_FILES=$(git diff --name-only --diff-filter=A HEAD~1 HEAD | grep -iE '\.(step|stp)$' | grep '^models/' || true)
+
+          if [ -z "$STEP_FILES" ]; then
+            echo "No new STEP files detected."
+            echo "has_files=false" >> $GITHUB_OUTPUT
+          else
+            echo "New STEP files: $STEP_FILES"
+            echo "has_files=true" >> $GITHUB_OUTPUT
+            echo "step_files<<EOF" >> $GITHUB_OUTPUT
+            echo "$STEP_FILES" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create folders and issues for each STEP file
+        if: steps.detect.outputs.has_files == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          FORM_BASE_URL: "https://github.gatech.edu/pages/gatech-s24-team/s24-lunar-assets/sysml_generator.html"
+          REPO: ${{ github.repository }}
+          PUSHER: ${{ github.actor }}
+          COMMIT_SHA: ${{ github.sha }}
+        run: |
+          echo "${{ steps.detect.outputs.step_files }}" | while IFS= read -r STEP_PATH; do
+            [ -z "$STEP_PATH" ] && continue
+
+            STEP_FILE=$(basename "$STEP_PATH")
+            STEM="${STEP_FILE%.*}"
+
+            echo "Processing: $STEP_FILE (stem: $STEM)"
+
+            # Create the model folder
+            FOLDER="models/${STEM}"
+            mkdir -p "$FOLDER"
+            cat > "$FOLDER/.gitkeep" << GITKEEP
+# Folder created automatically for ${STEP_FILE}
+# Fill in the SysML file using the registration form and commit it here.
+GITKEEP
+
+            # Encode filename for URL
+            ENCODED=$(python3 -c "import urllib.parse; print(urllib.parse.quote('${STEP_FILE}'))")
+            FORM_URL="${FORM_BASE_URL}?step=${ENCODED}"
+
+            # Write issue body to file
+            cat > /tmp/BODY.md << BODY
+## New CAD Model Detected
+
+**File:** \`${STEP_PATH}\`
+**Pushed by:** @${PUSHER}
+**Commit:** \`${COMMIT_SHA:0:7}\`
+**Model folder:** \`${FOLDER}/\`
+
+---
+
+### ✅ Next step: Fill in the model attributes
+
+A folder has been created at \`${FOLDER}/\`. You now need to generate the SysML metadata file.
+
+👉 **[Open the Model Registration Form](${FORM_URL})**
+
+The form is pre-filled with the STEP file name. Fill in:
+- Part name, material
+- Dimensions (length, width, height)
+- Position & orientation (X, Y, Z, rX, rY, rZ)
+- Units
+- Any custom attributes (mass, pressure, etc.)
+
+Once done, **download the generated \`.sysml\` file** and commit it to:
+\`\`\`
+${FOLDER}/${STEM}.sysml
+\`\`\`
+
+---
+*This issue was created automatically by the S24 DEE pipeline.*
+BODY
+
+            # Create GitHub Issue (fallback without label if label doesn't exist)
+            gh issue create \
+              --repo "$REPO" \
+              --title "🛰️ New STEP file detected: ${STEP_FILE}" \
+              --body-file /tmp/BODY.md \
+              --label "model-registration" || \
+            gh issue create \
+              --repo "$REPO" \
+              --title "🛰️ New STEP file detected: ${STEP_FILE}" \
+              --body-file /tmp/BODY.md
+
+            echo "✅ Done for $STEP_FILE"
+          done
+
+      - name: Commit new folders
+        if: steps.detect.outputs.has_files == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add models/
+          git diff --staged --quiet || git commit -m "chore: create model folder(s) for new STEP file(s) [skip ci]"
+          git push
