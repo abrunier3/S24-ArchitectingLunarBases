@@ -40,7 +40,7 @@ jobs:
         if: steps.detect.outputs.has_files == 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          FORM_BASE_URL: "https://abrunier3.github.io/S24-ArchitectingLunarBases/sysml_generator.html"
+          FORM_BASE_URL: "https://github.gatech.edu/pages/gatech-s24-team/s24-lunar-assets/sysml_generator.html"
           REPO: ${{ github.repository }}
           PUSHER: ${{ github.actor }}
           COMMIT_SHA: ${{ github.sha }}
@@ -56,7 +56,10 @@ jobs:
             echo "Processing: $STEP_FILE"
 
             mkdir -p "$FOLDER"
-            printf "# Folder created automatically for %s\n# Commit your %s.sysml here after filling the registration form.\n" "$STEP_FILE" "$STEM" > "$FOLDER/.gitkeep"
+
+            # Move the .step file into its subfolder
+            git mv "$STEP_PATH" "$FOLDER/$STEP_FILE"
+            echo "Moved $STEP_PATH to $FOLDER/$STEP_FILE"
 
             ENCODED=$(python3 -c "import urllib.parse; print(urllib.parse.quote('${STEP_FILE}'))")
             FORM_URL="${FORM_BASE_URL}?step=${ENCODED}"
@@ -83,5 +86,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add models/
-          git diff --staged --quiet || git commit -m "chore: create model folder(s) for new STEP file(s) [skip ci]"
+          git diff --staged --quiet || git commit -m "chore: move STEP file(s) into model subfolder(s) [skip ci]"
           git push
