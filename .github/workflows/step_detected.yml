@@ -40,7 +40,7 @@ jobs:
         if: steps.detect.outputs.has_files == 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          FORM_BASE_URL: "https://github.com/abrunier3/S24-ArchitectingLunarBases/sysml_generator.html"
+          FORM_BASE_URL: "https://abrunier3.github.io/S24-ArchitectingLunarBases/sysml_generator.html"
           REPO: ${{ github.repository }}
           PUSHER: ${{ github.actor }}
           COMMIT_SHA: ${{ github.sha }}
