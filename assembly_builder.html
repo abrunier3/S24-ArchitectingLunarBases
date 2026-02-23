@@ -575,6 +575,58 @@
   }
   .tree-node-row.drag-over .node-name { color: var(--accent); }
 
+  /* File drop zone */
+  .tree-container.file-drag-over {
+    outline: 2px dashed var(--green);
+    outline-offset: -4px;
+    background: rgba(0,255,157,0.04);
+  }
+  .drop-hint {
+    text-align: center;
+    padding: 16px;
+    color: var(--green);
+    font-size: 11px;
+    display: none;
+  }
+  .tree-container.file-drag-over .drop-hint { display: block; }
+
+  /* Paste modal */
+  .paste-modal-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.6);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+  }
+  .paste-modal-overlay.open { display: flex; }
+  .paste-modal {
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: 6px;
+    padding: 24px;
+    width: 560px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .paste-modal h3 { font-family: var(--sans); font-size: 14px; color: var(--text); }
+  .paste-modal textarea {
+    width: 100%;
+    height: 260px;
+    background: var(--bg);
+    border: 1px solid var(--border2);
+    border-radius: var(--r);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 10px;
+    resize: vertical;
+    outline: none;
+  }
+  .paste-modal textarea:focus { border-color: var(--accent2); }
+  .paste-modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
+
   /* Edit mode banner */
   .edit-banner {
     padding: 10px 14px;
@@ -642,14 +694,17 @@
   <div class="panel-header">
     <span class="panel-label">Assembly Tree</span>
     <div class="panel-header-actions">
+      <button class="btn-sm btn-outline" onclick="openPasteModal()">⊕ Import</button>
       <button class="btn-sm btn-outline" onclick="openAddNodeModal(null)">+ Node</button>
     </div>
   </div>
 
   <div class="tree-container" id="treeContainer">
+    <div class="drop-hint">Drop .sysml file here to import</div>
     <div class="tree-empty">
       <div class="big">🌲</div>
-      Load an existing assembly<br>or add a root node to start
+      Load an existing assembly<br>or add a root node to start<br><br>
+      <span style="color:var(--green);font-size:10px;">Drop a .sysml file here or click ⊕ Import</span>
     </div>
   </div>
 
@@ -788,6 +843,19 @@
 
 </div>
 
+<!-- PASTE SYSML MODAL -->
+<div class="paste-modal-overlay" id="pasteModalOverlay">
+  <div class="paste-modal">
+    <h3>⊕ Import SysML</h3>
+    <textarea id="pasteInput" placeholder="Paste your .sysml content here, or drop a .sysml file on the tree panel..."></textarea>
+    <div style="font-size:10px;color:var(--text3)">The imported assembly will be added as a child of the selected node, or at the root if nothing is selected.</div>
+    <div class="paste-modal-actions">
+      <button class="btn-sm btn-outline" onclick="closePasteModal()">Cancel</button>
+      <button class="btn-sm btn-primary" onclick="confirmPaste()">Import</button>
+    </div>
+  </div>
+</div>
+
 <!-- ADD NODE MODAL -->
 <div class="modal-overlay" id="modalOverlay">
   <div class="modal">
@@ -878,6 +946,102 @@ if (assemblyUrl) {
   document.getElementById('repoUrl').value = assemblyUrl;
   window.addEventListener('DOMContentLoaded', () => loadFromGitHub());
 }
+
+// ══════════════════════════════════════════════
+// IMPORT SYSML (paste + file drop)
+// ══════════════════════════════════════════════
+function openPasteModal() {
+  document.getElementById('pasteInput').value = '';
+  document.getElementById('pasteModalOverlay').classList.add('open');
+  setTimeout(() => document.getElementById('pasteInput').focus(), 100);
+}
+
+function closePasteModal() {
+  document.getElementById('pasteModalOverlay').classList.remove('open');
+}
+
+function confirmPaste() {
+  const text = document.getElementById('pasteInput').value.trim();
+  if (!text) return;
+  importSysMLText(text);
+  closePasteModal();
+}
+
+function importSysMLText(text) {
+  // Parse into a temporary tree
+  const savedTree = tree;
+  const savedCounter = nodeCounter;
+  tree = [];
+  parseSysML(text);
+  const imported = tree;
+  tree = savedTree;
+  nodeCounter = savedCounter;
+
+  if (!imported || imported.length === 0) {
+    showError('Could not parse SysML — check the format.');
+    return;
+  }
+
+  // Re-assign IDs to avoid conflicts
+  function reId(node) {
+    node.id = makeId();
+    if (node.children) node.children.forEach(reId);
+  }
+  imported.forEach(reId);
+
+  // Insert under selected node or at root
+  if (selectedNodeId) {
+    const target = findNode(selectedNodeId);
+    if (target) {
+      imported.forEach(n => target.children.push(n));
+      renderTree();
+      showSuccess(imported.map(n => n.name).join(', ') + ' imported ✓');
+      return;
+    }
+  }
+  // Add at root level
+  imported.forEach(n => tree.push(n));
+  renderTree();
+  document.getElementById('btnExport').disabled = false;
+  showSuccess(imported.map(n => n.name).join(', ') + ' imported ✓');
+}
+
+// File drag & drop on tree container
+document.addEventListener('DOMContentLoaded', () => {
+  const treeContainer = document.getElementById('treeContainer');
+
+  treeContainer.addEventListener('dragover', (e) => {
+    // Only handle file drags (not node drags)
+    if (e.dataTransfer.types.includes('Files')) {
+      e.preventDefault();
+      e.stopPropagation();
+      treeContainer.classList.add('file-drag-over');
+    }
+  });
+
+  treeContainer.addEventListener('dragleave', (e) => {
+    if (!treeContainer.contains(e.relatedTarget)) {
+      treeContainer.classList.remove('file-drag-over');
+    }
+  });
+
+  treeContainer.addEventListener('drop', (e) => {
+    if (!e.dataTransfer.files || e.dataTransfer.files.length === 0) return;
+    e.preventDefault();
+    e.stopPropagation();
+    treeContainer.classList.remove('file-drag-over');
+
+    const file = e.dataTransfer.files[0];
+    if (!file.name.endsWith('.sysml') && !file.name.endsWith('.sysML')) {
+      showError('Please drop a .sysml file.');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (ev) => importSysMLText(ev.target.result);
+    reader.readAsText(file);
+  });
+});
 
 // ══════════════════════════════════════════════
 // GITHUB LOADER
