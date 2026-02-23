@@ -965,7 +965,8 @@ function parseAttributes(body, name) {
     if (attrName.startsWith(name + '_dims')) continue;
     // Strip name prefix
     const shortName = attrName.startsWith(name + '_') ? attrName.slice(name.length + 1) : attrName;
-    const val = cm[2].trim().replace(/^"|"$/g, '');
+    const raw = cm[2].trim();
+    const val = raw.replace(/^"|"$/g, ''); // strip surrounding quotes if string literal
     const unit = cm[3] ? cm[3].trim() : '';
     customAttrs.push({ name: shortName, value: val, unit });
   }
@@ -1501,8 +1502,9 @@ function emitDims(name, d, indent) {
   s += pad(indent) + 'attribute ' + name + '_volume = (' + name + '_dims.length * ' + name + '_dims.width * ' + name + '_dims.height) * ' + name + '_dims.metersPerUnit^3 * 1000;\n';
   if (d.customAttrs) {
     d.customAttrs.forEach(attr => {
-      const isNum = !isNaN(parseFloat(attr.value)) && isFinite(attr.value);
-      s += pad(indent) + 'attribute ' + name + '_' + attr.name + ' = ' + (isNum ? attr.value : '"' + attr.value + '"') + ';';
+      // No quotes for numbers or SysML expressions (only for plain text strings)
+      const isExpr = !isNaN(parseFloat(attr.value)) || /[*+\-/().^_]/.test(attr.value);
+      s += pad(indent) + 'attribute ' + name + '_' + attr.name + ' = ' + (isExpr ? attr.value : '"' + attr.value + '"') + ';';
       if (attr.unit) s += ' // ' + attr.unit;
       s += '\n';
     });
