@@ -40,7 +40,8 @@ jobs:
         if: steps.detect.outputs.has_files == 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          FORM_BASE_URL: "https://abrunier3.github.io/S24-ArchitectingLunarBases/sysml_generator.html"
+          FORM_BASE_URL: "https://abrunier3.github.io/S24-ArchitectingLunarBases/assembly_builder.html"
+          ASSEMBLY_RAW_URL: "https://raw.githubusercontent.com/abrunier3/S24-ArchitectingLunarBases/main/models/assembly.sysml"
           REPO: ${{ github.repository }}
           PUSHER: ${{ github.actor }}
           COMMIT_SHA: ${{ github.sha }}
@@ -56,16 +57,13 @@ jobs:
             echo "Processing: $STEP_FILE"
 
             mkdir -p "$FOLDER"
-
-            # Move the .step file into its subfolder
-            git mv "$STEP_PATH" "$FOLDER/$STEP_FILE"
-            echo "Moved $STEP_PATH to $FOLDER/$STEP_FILE"
+            printf "# Folder created automatically for %s\n" "$STEP_FILE" > "$FOLDER/.gitkeep"
 
             ENCODED=$(python3 -c "import urllib.parse; print(urllib.parse.quote('${STEP_FILE}'))")
-            FORM_URL="${FORM_BASE_URL}?step=${ENCODED}"
+            FORM_URL="${FORM_BASE_URL}?step=${ENCODED}&assembly=${ASSEMBLY_RAW_URL}"
 
-            printf "## New CAD Model Detected\n\n**File:** \`%s\`\n**Pushed by:** @%s\n**Commit:** \`%s\`\n**Model folder:** \`%s/\`\n\n---\n\n### Next step: Fill in the model attributes\n\nA folder has been created at \`%s/\`. You now need to generate the SysML metadata file.\n\n**Open the Model Registration Form:** %s\n\nThe form is pre-filled with the STEP file name. Fill in dimensions, orientation, material, units, and any custom attributes.\n\nOnce done, download the generated \`.sysml\` file and commit it to:\n\`%s/%s.sysml\`\n\n---\n*This issue was created automatically by the S24 DEE pipeline.*\n" \
-              "$STEP_PATH" "$PUSHER" "$SHORT_SHA" "$FOLDER" "$FOLDER" "$FORM_URL" "$FOLDER" "$STEM" > /tmp/BODY.md
+            printf "## New CAD Model Detected\n\n**File:** \`%s\`\n**Pushed by:** @%s\n**Commit:** \`%s\`\n**Model folder:** \`%s/\`\n\n---\n\n### Next step: Register this part in the assembly\n\nA folder has been created at \`%s/\`.\n\nYou need to add this part's metadata to the shared assembly file.\n\n**Open the Assembly Builder:** %s\n\nThe tool will automatically load the current \`models/assembly.sysml\`. Find or create the node for \`%s\`, fill in the metadata, then click **Download**.\n\nCommit the updated \`assembly.sysml\` to:\n\`models/assembly.sysml\`\n\n---\n*This issue was created automatically by the S24 DEE pipeline.*\n" \
+              "$STEP_PATH" "$PUSHER" "$SHORT_SHA" "$FOLDER" "$FOLDER" "$FORM_URL" "$STEM" > /tmp/BODY.md
 
             gh issue create \
               --repo "$REPO" \
@@ -86,5 +84,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add models/
-          git diff --staged --quiet || git commit -m "chore: move STEP file(s) into model subfolder(s) [skip ci]"
+          git diff --staged --quiet || git commit -m "chore: create model folder(s) for new STEP file(s) [skip ci]"
           git push
