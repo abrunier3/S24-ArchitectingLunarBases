@@ -1651,21 +1651,21 @@ function pad(n) { return '    '.repeat(n); }
 function emitDims(name, d, indent) {
   let s = '';
   s += pad(indent) + 'part ' + name + '_dims {\n';
-  s += pad(indent+1) + 'attribute length = ' + d.length + ';\n';
-  s += pad(indent+1) + 'attribute width = ' + d.width + ';\n';
-  s += pad(indent+1) + 'attribute height = ' + d.height + ';\n';
-  s += pad(indent+1) + 'attribute metersPerUnit = ' + d.metersPerUnit + ';\n';
-  s += pad(indent+1) + 'attribute upAxis = "' + d.upAxis + '";\n';
-  s += pad(indent+1) + 'attribute angleUnit = "' + d.angleUnit + '";\n';
-  s += pad(indent+1) + 'attribute pressureUnit = "' + d.pressureUnit + '";\n';
-  s += pad(indent+1) + 'attribute massUnit = "' + d.massUnit + '";\n';
-  s += pad(indent+1) + 'attribute lengthUnit = "' + d.lengthUnit + '";\n';
-  s += pad(indent+1) + 'attribute X = ' + d.posX + ';\n';
-  s += pad(indent+1) + 'attribute Y = ' + d.posY + ';\n';
-  s += pad(indent+1) + 'attribute Z = ' + d.posZ + ';\n';
-  s += pad(indent+1) + 'attribute rX_deg = ' + d.rotX + ';\n';
-  s += pad(indent+1) + 'attribute rY_deg = ' + d.rotY + ';\n';
-  s += pad(indent+1) + 'attribute rZ_deg = ' + d.rotZ + ';\n';
+  s += pad(indent+1) + 'attribute length = ' + (d.length || '0') + ';\n';
+  s += pad(indent+1) + 'attribute width = ' + (d.width || '0') + ';\n';
+  s += pad(indent+1) + 'attribute height = ' + (d.height || '0') + ';\n';
+  s += pad(indent+1) + 'attribute metersPerUnit = ' + (d.metersPerUnit || '1') + ';\n';
+  s += pad(indent+1) + 'attribute upAxis = "' + (d.upAxis || 'Z') + '";\n';
+  s += pad(indent+1) + 'attribute angleUnit = "' + (d.angleUnit || 'deg') + '";\n';
+  s += pad(indent+1) + 'attribute pressureUnit = "' + (d.pressureUnit || 'kPa') + '";\n';
+  s += pad(indent+1) + 'attribute massUnit = "' + (d.massUnit || 'kg') + '";\n';
+  s += pad(indent+1) + 'attribute lengthUnit = "' + (d.lengthUnit || 'm') + '";\n';
+  s += pad(indent+1) + 'attribute X = ' + (d.posX || '0') + ';\n';
+  s += pad(indent+1) + 'attribute Y = ' + (d.posY || '0') + ';\n';
+  s += pad(indent+1) + 'attribute Z = ' + (d.posZ || '0') + ';\n';
+  s += pad(indent+1) + 'attribute rX_deg = ' + (d.rotX || '0') + ';\n';
+  s += pad(indent+1) + 'attribute rY_deg = ' + (d.rotY || '0') + ';\n';
+  s += pad(indent+1) + 'attribute rZ_deg = ' + (d.rotZ || '0') + ';\n';
   s += pad(indent) + '}\n\n';
   s += pad(indent) + 'attribute ' + name + '_volume = (' + name + '_dims.length * ' + name + '_dims.width * ' + name + '_dims.height) * ' + name + '_dims.metersPerUnit^3 * 1000;\n';
   if (d.customAttrs) {
