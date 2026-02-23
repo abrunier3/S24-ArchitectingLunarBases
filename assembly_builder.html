@@ -1,0 +1,1526 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>S24 DEE — Assembly Builder</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #080a0f;
+    --bg2: #0d1018;
+    --surface: #111520;
+    --surface2: #161b26;
+    --border: #1e2535;
+    --border2: #2a3347;
+    --accent: #00d4ff;
+    --accent2: #0099cc;
+    --accent-dim: rgba(0, 212, 255, 0.08);
+    --accent-dim2: rgba(0, 212, 255, 0.15);
+    --green: #00ff9d;
+    --green-dim: rgba(0, 255, 157, 0.08);
+    --warn: #ffb347;
+    --danger: #ff4d6d;
+    --text: #d4dae8;
+    --text2: #8892a4;
+    --text3: #4a5568;
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'Syne', sans-serif;
+    --r: 4px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: var(--mono);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: grid;
+    grid-template-columns: 380px 1fr;
+    grid-template-rows: 56px 1fr;
+  }
+
+  /* ── TOP BAR ── */
+  .topbar {
+    grid-column: 1 / -1;
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 24px;
+    gap: 16px;
+  }
+
+  .topbar-logo {
+    font-family: var(--sans);
+    font-weight: 800;
+    font-size: 15px;
+    letter-spacing: -0.3px;
+    color: var(--accent);
+  }
+
+  .topbar-sep { color: var(--border2); }
+
+  .topbar-title {
+    font-size: 12px;
+    color: var(--text2);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+  }
+
+  .topbar-actions { margin-left: auto; display: flex; gap: 8px; }
+
+  .btn-sm {
+    padding: 6px 14px;
+    font-family: var(--mono);
+    font-size: 11px;
+    border-radius: var(--r);
+    cursor: pointer;
+    transition: all 0.15s;
+    letter-spacing: 0.5px;
+  }
+
+  .btn-outline {
+    background: transparent;
+    border: 1px solid var(--border2);
+    color: var(--text2);
+  }
+  .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+
+  .btn-primary {
+    background: var(--accent);
+    border: 1px solid var(--accent);
+    color: #000;
+    font-weight: 700;
+  }
+  .btn-primary:hover { background: #33ddff; }
+  .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* ── LEFT PANEL — TREE ── */
+  .panel-tree {
+    background: var(--bg2);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .panel-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .panel-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--text3);
+  }
+
+  .panel-header-actions { display: flex; gap: 6px; }
+
+  .tree-container {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px 8px;
+  }
+
+  .tree-container::-webkit-scrollbar { width: 4px; }
+  .tree-container::-webkit-scrollbar-track { background: transparent; }
+  .tree-container::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+  /* Tree nodes */
+  .tree-node {
+    user-select: none;
+  }
+
+  .tree-node-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 8px;
+    border-radius: var(--r);
+    cursor: pointer;
+    transition: background 0.1s;
+    position: relative;
+  }
+
+  .tree-node-row:hover { background: var(--surface2); }
+  .tree-node-row.selected { background: var(--accent-dim2); }
+  .tree-node-row.selected .node-name { color: var(--accent); }
+
+  .tree-indent { display: flex; align-items: center; }
+  .tree-line {
+    width: 16px;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--border2);
+    font-size: 10px;
+    flex-shrink: 0;
+  }
+
+  .node-toggle {
+    width: 14px;
+    height: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text3);
+    font-size: 9px;
+    flex-shrink: 0;
+    transition: transform 0.15s;
+  }
+
+  .node-toggle.open { transform: rotate(90deg); }
+  .node-toggle.leaf { color: transparent; }
+
+  .node-icon {
+    font-size: 12px;
+    flex-shrink: 0;
+  }
+
+  .node-name {
+    font-size: 12px;
+    color: var(--text);
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+
+
+  .tree-children {
+    overflow: hidden;
+    transition: height 0.2s ease;
+  }
+
+  /* Tree empty state */
+  .tree-empty {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text3);
+    font-size: 11px;
+    line-height: 1.8;
+  }
+
+  .tree-empty .big { font-size: 28px; margin-bottom: 8px; }
+
+  /* Load status */
+  .load-status {
+    padding: 10px 20px;
+    font-size: 11px;
+    color: var(--text3);
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .load-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--text3);
+    flex-shrink: 0;
+  }
+  .load-dot.ok { background: var(--green); }
+  .load-dot.err { background: var(--danger); }
+  .load-dot.loading {
+    background: var(--accent);
+    animation: pulse 1s infinite;
+  }
+
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+  /* ── RIGHT PANEL — FORM ── */
+  .panel-form {
+    overflow-y: auto;
+    padding: 32px 40px 80px;
+    background: var(--bg);
+  }
+
+  .panel-form::-webkit-scrollbar { width: 4px; }
+  .panel-form::-webkit-scrollbar-track { background: transparent; }
+  .panel-form::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+  /* placement indicator */
+  .placement-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r);
+    margin-bottom: 28px;
+    font-size: 11px;
+    color: var(--text2);
+  }
+
+  .placement-bar .path {
+    font-family: var(--mono);
+    color: var(--accent);
+    font-size: 11px;
+  }
+
+  .placement-bar .hint {
+    margin-left: auto;
+    color: var(--text3);
+    font-size: 10px;
+  }
+
+  /* Section */
+  .form-section { margin-bottom: 28px; }
+
+  .section-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--text3);
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .field { margin-bottom: 12px; }
+
+  .field-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+
+  .field-row-2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  label {
+    display: block;
+    font-size: 10px;
+    color: var(--text3);
+    margin-bottom: 5px;
+    letter-spacing: 0.5px;
+  }
+
+  label .u { color: var(--accent2); font-size: 9px; }
+
+  input, select {
+    width: 100%;
+    padding: 8px 10px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 12px;
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+
+  input:focus, select:focus {
+    border-color: var(--accent2);
+    box-shadow: 0 0 0 2px rgba(0,212,255,0.1);
+  }
+
+  input::placeholder { color: var(--text3); opacity: 0.6; }
+
+  select {
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' fill='%234a5568' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10l-5 5z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    padding-right: 28px;
+  }
+
+  /* Custom attrs */
+  .custom-row {
+    display: grid;
+    grid-template-columns: 2fr 1.5fr 1fr 30px;
+    gap: 8px;
+    align-items: end;
+    margin-bottom: 8px;
+    animation: slideIn 0.15s ease;
+  }
+
+  @keyframes slideIn {
+    from { opacity:0; transform: translateY(-4px); }
+    to { opacity:1; transform: translateY(0); }
+  }
+
+  .btn-icon {
+    width: 30px; height: 32px;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: var(--r);
+    color: var(--text3);
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.15s;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  .btn-icon:hover { border-color: var(--danger); color: var(--danger); }
+
+  .btn-add-attr {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 14px;
+    background: transparent;
+    border: 1px dashed var(--border2);
+    border-radius: var(--r);
+    color: var(--text3);
+    font-family: var(--mono);
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .btn-add-attr:hover { border-color: var(--accent2); color: var(--accent); }
+
+  /* Add part to tree button */
+  .btn-add-to-tree {
+    width: 100%;
+    padding: 11px;
+    background: var(--green-dim);
+    border: 1px solid rgba(0,255,157,0.25);
+    border-radius: var(--r);
+    color: var(--green);
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+    letter-spacing: 0.5px;
+    margin-top: 8px;
+  }
+
+  .btn-add-to-tree:hover {
+    background: rgba(0,255,157,0.15);
+    box-shadow: 0 0 20px rgba(0,255,157,0.1);
+  }
+
+  .success-banner {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    background: rgba(0,255,157,0.1);
+    border: 1px solid rgba(0,255,157,0.3);
+    border-radius: var(--r);
+    color: var(--green);
+    font-size: 12px;
+    margin-top: 10px;
+    animation: bannerIn 0.2s ease;
+  }
+
+  @keyframes bannerIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .success-banner .check {
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+
+  /* Generate button */
+  .btn-generate {
+    width: 100%;
+    padding: 13px;
+    background: var(--accent);
+    border: none;
+    border-radius: var(--r);
+    color: #000;
+    font-family: var(--sans);
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+    letter-spacing: 0.3px;
+  }
+
+  .btn-generate:hover {
+    background: #33ddff;
+    box-shadow: 0 4px 24px rgba(0,212,255,0.3);
+  }
+
+  /* Output */
+  .output-wrap {
+    margin-top: 24px;
+    display: none;
+  }
+  .output-wrap.visible { display: block; animation: slideIn 0.2s ease; }
+
+  .output-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+
+  pre {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r);
+    padding: 16px;
+    font-size: 11px;
+    line-height: 1.7;
+    overflow-x: auto;
+    color: var(--text);
+    max-height: 400px;
+    overflow-y: auto;
+  }
+
+  /* Modal */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: 8px;
+    padding: 24px;
+    width: 360px;
+    animation: slideIn 0.2s ease;
+  }
+
+  .modal h3 {
+    font-family: var(--sans);
+    font-size: 15px;
+    margin-bottom: 16px;
+    color: var(--text);
+  }
+
+  .modal-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 20px;
+    justify-content: flex-end;
+  }
+
+  /* Repo loader */
+  .repo-loader {
+    padding: 20px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .repo-loader label { margin-bottom: 6px; font-size: 10px; color: var(--text3); letter-spacing: 1px; text-transform: uppercase; }
+
+  .repo-input-row { display: flex; gap: 6px; }
+
+  .repo-input-row input { flex: 1; }
+
+  /* Node actions on hover */
+  .node-actions {
+    display: flex;
+    gap: 4px;
+    margin-left: auto;
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+
+  .tree-node-row:hover .node-actions { opacity: 1; }
+
+  .node-btn {
+    width: 18px; height: 18px;
+    background: transparent;
+    border: 1px solid var(--border2);
+    border-radius: 2px;
+    color: var(--text3);
+    cursor: pointer;
+    font-size: 10px;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.1s;
+  }
+
+  .node-btn:hover { border-color: var(--danger); color: var(--danger); }
+  .node-btn.add:hover { border-color: var(--accent2); color: var(--accent); }
+  .node-btn.rename:hover { border-color: var(--warn); color: var(--warn); }
+
+  /* Drag & drop */
+  .tree-node-row[draggable="true"] { cursor: grab; }
+  .tree-node-row[draggable="true"]:active { cursor: grabbing; }
+  .tree-node-row.dragging { opacity: 0.35; }
+  .tree-node-row.drag-over {
+    background: var(--accent-dim2);
+    outline: 1px dashed var(--accent);
+    outline-offset: -1px;
+  }
+  .tree-node-row.drag-over .node-name { color: var(--accent); }
+
+  /* Edit mode banner */
+  .edit-banner {
+    padding: 10px 14px;
+    background: rgba(255,179,71,0.08);
+    border: 1px solid rgba(255,179,71,0.25);
+    border-radius: var(--r);
+    color: var(--warn);
+    font-size: 11px;
+    margin-bottom: 16px;
+    display: none;
+    align-items: center;
+    gap: 10px;
+  }
+  .edit-banner.visible { display: flex; }
+  .edit-banner button {
+    margin-left: auto;
+    padding: 3px 10px;
+    background: transparent;
+    border: 1px solid rgba(255,179,71,0.4);
+    border-radius: var(--r);
+    color: var(--warn);
+    font-family: var(--mono);
+    font-size: 10px;
+    cursor: pointer;
+  }
+  .edit-banner button:hover { background: rgba(255,179,71,0.1); }
+
+  /* Rename inline input */
+  .node-name-input {
+    background: var(--surface2);
+    border: 1px solid var(--accent2);
+    border-radius: 2px;
+    color: var(--accent);
+    font-family: var(--mono);
+    font-size: 12px;
+    padding: 1px 6px;
+    flex: 1;
+    outline: none;
+  }
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="topbar-logo">S24 DEE</div>
+  <div class="topbar-sep">·</div>
+  <div class="topbar-title">Assembly Builder</div>
+  <div class="topbar-actions">
+    <button class="btn-sm btn-outline" onclick="clearAll()">Clear All</button>
+    <button class="btn-sm btn-primary" id="btnExport" onclick="downloadSysML()" disabled>⬇ Download</button>
+  </div>
+</div>
+
+<!-- LEFT: TREE -->
+<div class="panel-tree">
+  <div class="repo-loader">
+    <label>GitHub Raw URL — assembly.sysml</label>
+    <div class="repo-input-row">
+      <input type="text" id="repoUrl" placeholder="https://raw.githubusercontent.com/..." style="font-size:10px;">
+      <button class="btn-sm btn-outline" onclick="loadFromGitHub()">Load</button>
+    </div>
+  </div>
+
+  <div class="panel-header">
+    <span class="panel-label">Assembly Tree</span>
+    <div class="panel-header-actions">
+      <button class="btn-sm btn-outline" onclick="openAddNodeModal(null)">+ Node</button>
+    </div>
+  </div>
+
+  <div class="tree-container" id="treeContainer">
+    <div class="tree-empty">
+      <div class="big">🌲</div>
+      Load an existing assembly<br>or add a root node to start
+    </div>
+  </div>
+
+  <div class="load-status" id="loadStatus">
+    <div class="load-dot" id="loadDot"></div>
+    <span id="loadMsg">No file loaded</span>
+  </div>
+</div>
+
+<!-- RIGHT: FORM -->
+<div class="panel-form">
+
+  <div class="placement-bar" id="placementBar">
+    <span>📍 Placement:</span>
+    <span class="path" id="placementPath">— select a node in the tree —</span>
+  </div>
+
+  <div class="edit-banner" id="editBanner">
+    ✏️ Editing: <strong id="editingName"></strong> — modify fields then click Save
+    <button onclick="cancelEdit()">✕ Cancel</button>
+  </div>
+
+  <!-- STEP FILE -->
+  <div class="form-section">
+    <div class="section-label">Identity</div>
+    <div class="field-row-2">
+      <div class="field">
+        <label>STEP Filename</label>
+        <input type="text" id="stepFileName" placeholder="e.g. rover.step" oninput="syncPartName(this.value)">
+      </div>
+      <div class="field">
+        <label>Part Name <span class="u">(auto)</span></label>
+        <input type="text" id="partName" placeholder="auto-filled" required>
+      </div>
+    </div>
+    <div class="field">
+      <label>Material</label>
+      <select id="materialRef">
+        <option value="Aluminum_2219_T87">Aluminum 2219-T87</option>
+        <option value="Titanium_Ti6Al4V">Titanium Ti-6Al-4V</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- DIMENSIONS -->
+  <div class="form-section">
+    <div class="section-label">Dimensions</div>
+    <div class="field-row">
+      <div class="field"><label>Length <span class="u">(m)</span></label><input type="number" id="dimLength" step="any" placeholder="0.0"></div>
+      <div class="field"><label>Width <span class="u">(m)</span></label><input type="number" id="dimWidth" step="any" placeholder="0.0"></div>
+      <div class="field"><label>Height <span class="u">(m)</span></label><input type="number" id="dimHeight" step="any" placeholder="0.0"></div>
+    </div>
+  </div>
+
+  <!-- POSITION -->
+  <div class="form-section">
+    <div class="section-label">Transform — Position</div>
+    <div class="field-row">
+      <div class="field"><label>X <span class="u">(m)</span></label><input type="number" id="posX" step="any" value="0"></div>
+      <div class="field"><label>Y <span class="u">(m)</span></label><input type="number" id="posY" step="any" value="0"></div>
+      <div class="field"><label>Z <span class="u">(m)</span></label><input type="number" id="posZ" step="any" value="0"></div>
+    </div>
+  </div>
+
+  <!-- ORIENTATION -->
+  <div class="form-section">
+    <div class="section-label">Transform — Orientation</div>
+    <div class="field-row">
+      <div class="field"><label>rX <span class="u">(deg)</span></label><input type="number" id="rotX" step="any" value="0"></div>
+      <div class="field"><label>rY <span class="u">(deg)</span></label><input type="number" id="rotY" step="any" value="0"></div>
+      <div class="field"><label>rZ <span class="u">(deg)</span></label><input type="number" id="rotZ" step="any" value="0"></div>
+    </div>
+  </div>
+
+  <!-- UNITS -->
+  <div class="form-section">
+    <div class="section-label">Units</div>
+    <div class="field-row">
+      <div class="field"><label>metersPerUnit</label><input type="number" id="metersPerUnit" step="any" value="1"></div>
+      <div class="field"><label>upAxis</label>
+        <select id="upAxis"><option value="Z" selected>Z</option><option value="Y">Y</option><option value="X">X</option></select>
+      </div>
+      <div class="field"><label>angleUnit</label>
+        <select id="angleUnit"><option value="deg" selected>deg</option><option value="rad">rad</option></select>
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>pressureUnit</label>
+        <select id="pressureUnit"><option value="kPa" selected>kPa</option><option value="Pa">Pa</option><option value="bar">bar</option></select>
+      </div>
+      <div class="field"><label>massUnit</label>
+        <select id="massUnit"><option value="kg" selected>kg</option><option value="g">g</option><option value="lb">lb</option></select>
+      </div>
+      <div class="field"><label>lengthUnit</label>
+        <select id="lengthUnit"><option value="m" selected>m</option><option value="cm">cm</option><option value="mm">mm</option></select>
+      </div>
+    </div>
+  </div>
+
+  <!-- CUSTOM ATTRS -->
+  <div class="form-section">
+    <div class="section-label">Custom Attributes</div>
+    <div id="customAttrs"></div>
+    <button class="btn-add-attr" onclick="addCustomAttr()">+ Add Attribute</button>
+  </div>
+
+  <!-- ADD TO TREE -->
+  <div class="form-section">
+    <button class="btn-add-to-tree" id="btnAddPart" onclick="addPartToTree()">＋ Add Part to Assembly Tree</button>
+    <button class="btn-add-to-tree" id="btnSaveEdit" onclick="saveEdit()" style="display:none; background:rgba(255,179,71,0.1); border-color:rgba(255,179,71,0.4); color:var(--warn);">💾 Save Changes</button>
+    <div id="successBanner" style="display:none;" class="success-banner">
+      <span class="check">✓</span>
+      <span id="successMsg">Part added to assembly</span>
+    </div>
+  </div>
+
+  <div style="height:1px;background:var(--border);margin-bottom:28px;"></div>
+
+  <!-- GENERATE -->
+  <div class="form-section" style="display:flex; gap:10px;">
+    <button class="btn-generate" onclick="previewSysML()" style="background:var(--surface); border:1px solid var(--border2); color:var(--text2);">Preview</button>
+    <button class="btn-generate" onclick="downloadSysML()">⬇ Download</button>
+  </div>
+
+  <!-- OUTPUT PREVIEW -->
+  <div class="output-wrap" id="outputWrap">
+    <div class="output-head">
+      <div class="section-label" style="margin:0">Preview</div>
+      <div style="display:flex; gap:8px;">
+        <button class="btn-sm btn-outline" id="btnCopySysml" onclick="copySysML()">Copy</button>
+        <button class="btn-sm btn-outline" onclick="closePreview()">✕ Close</button>
+      </div>
+    </div>
+    <pre id="sysmlOutput"></pre>
+  </div>
+
+</div>
+
+<!-- ADD NODE MODAL -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <h3 id="modalTitle">Add Node</h3>
+    <div class="field">
+      <label>Node Name</label>
+      <input type="text" id="modalNodeName" placeholder="e.g. HabitationModule">
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-sm btn-outline" onclick="closeModal()">Cancel</button>
+      <button class="btn-sm btn-primary" onclick="confirmAddNode()">Add</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════
+// DATA MODEL
+// ══════════════════════════════════════════════
+let tree = [];
+let selectedNodeId = null;
+let modalParentId = null;
+let nodeCounter = 0;
+let attrCounter = 0;
+let dragSrcId = null;
+let collapsedNodes = new Set();
+let editingNodeId = null;
+
+function makeId() { return 'n' + (++nodeCounter); }
+
+function findNode(id, nodes = tree) {
+  for (const node of nodes) {
+    if (node.id === id) return node;
+    if (node.children) {
+      const found = findNode(id, node.children);
+      if (found) return found;
+    }
+  }
+  return null;
+}
+
+function findParentNode(id, nodes = tree, parent = null) {
+  for (const node of nodes) {
+    if (node.id === id) return parent;
+    if (node.children && node.children.length > 0) {
+      const found = findParentNode(id, node.children, node);
+      if (found !== undefined) return found;
+    }
+  }
+  return undefined;
+}
+
+function isDescendant(ancestorId, nodeId) {
+  const ancestor = findNode(ancestorId);
+  if (!ancestor) return false;
+  function check(node) {
+    if (!node.children) return false;
+    for (const c of node.children) {
+      if (c.id === nodeId || check(c)) return true;
+    }
+    return false;
+  }
+  return check(ancestor);
+}
+
+function removeFromTree(id, nodes) {
+  const idx = nodes.findIndex(n => n.id === id);
+  if (idx !== -1) { nodes.splice(idx, 1); return true; }
+  for (const n of nodes) {
+    if (n.children && removeFromTree(id, n.children)) return true;
+  }
+  return false;
+}
+
+// ══════════════════════════════════════════════
+// URL PARAM AUTO-FILL + AUTO-LOAD
+// ══════════════════════════════════════════════
+const params = new URLSearchParams(window.location.search);
+const stepParam = params.get('step') || '';
+if (stepParam) {
+  const base = stepParam.replace(/\.(step|stp)$/i, '').trim();
+  document.getElementById('stepFileName').value = stepParam;
+  document.getElementById('partName').value = base;
+}
+const assemblyUrl = params.get('assembly') || '';
+if (assemblyUrl) {
+  document.getElementById('repoUrl').value = assemblyUrl;
+  window.addEventListener('DOMContentLoaded', () => loadFromGitHub());
+}
+
+// ══════════════════════════════════════════════
+// GITHUB LOADER
+// ══════════════════════════════════════════════
+async function loadFromGitHub() {
+  const url = document.getElementById('repoUrl').value.trim();
+  if (!url) return;
+  setLoadStatus('loading', 'Fetching assembly.sysml...');
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const text = await res.text();
+    parseSysML(text);
+    setLoadStatus('ok', 'Loaded from GitHub');
+    renderTree();
+  } catch(e) {
+    setLoadStatus('err', 'Failed: ' + e.message);
+  }
+}
+
+function setLoadStatus(state, msg) {
+  document.getElementById('loadDot').className = 'load-dot ' + state;
+  document.getElementById('loadMsg').textContent = msg;
+}
+
+// ══════════════════════════════════════════════
+// SYSML PARSER
+// ══════════════════════════════════════════════
+function parseSysML(text) {
+  tree = [];
+  const rootMatch = text.match(/part\s+(\w+)\s*\{/);
+  if (!rootMatch) return;
+  const rootName = rootMatch[1];
+  const rootNode = { id: makeId(), name: rootName, type: 'assembly', children: [], data: {} };
+  const rootBody = extractBody(text, text.indexOf(rootMatch[0]) + rootMatch[0].length - 1);
+  const childRe = /^\s*part\s+(\w+)\s*\{/gm;
+  let m;
+  while ((m = childRe.exec(rootBody)) !== null) {
+    const childName = m[1];
+    if (childName === rootName + '_dims') continue;
+    rootNode.children.push({ id: makeId(), name: childName, type: 'part', children: [], data: {} });
+  }
+  tree = [rootNode];
+  document.getElementById('btnExport').disabled = false;
+}
+
+function extractBody(text, openBraceIdx) {
+  let depth = 0, i = openBraceIdx, start = -1;
+  while (i < text.length) {
+    if (text[i] === '{') { if (depth === 0) start = i + 1; depth++; }
+    else if (text[i] === '}') { depth--; if (depth === 0) return text.slice(start, i); }
+    i++;
+  }
+  return '';
+}
+
+// ══════════════════════════════════════════════
+// TREE RENDER
+// ══════════════════════════════════════════════
+function renderTree() {
+  const container = document.getElementById('treeContainer');
+  if (tree.length === 0) {
+    container.innerHTML = '<div class="tree-empty"><div class="big">🌲</div>Load an existing assembly<br>or add a root node to start</div>';
+    return;
+  }
+  container.innerHTML = '';
+  tree.forEach(node => container.appendChild(buildNodeEl(node, 0)));
+  document.getElementById('btnExport').disabled = false;
+}
+
+function buildNodeEl(node, depth) {
+  const wrapper = document.createElement('div');
+  wrapper.className = 'tree-node';
+  wrapper.dataset.id = node.id;
+
+  const hasChildren = node.children && node.children.length > 0;
+  const isAssembly = node.type === 'assembly';
+  const isCollapsed = collapsedNodes.has(node.id);
+
+  const row = document.createElement('div');
+  row.className = 'tree-node-row' + (node.id === selectedNodeId ? ' selected' : '');
+  row.onclick = (e) => { e.stopPropagation(); selectNode(node.id); };
+
+  // Drag & drop
+  row.draggable = true;
+  row.dataset.nodeId = node.id;
+  row.addEventListener('dragstart', (e) => {
+    e.stopPropagation();
+    dragSrcId = node.id;
+    row.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+  });
+  row.addEventListener('dragend', () => {
+    row.classList.remove('dragging');
+    document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+    dragSrcId = null;
+  });
+  row.addEventListener('dragover', (e) => {
+    e.preventDefault(); e.stopPropagation();
+    if (dragSrcId && dragSrcId !== node.id) {
+      document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+      row.classList.add('drag-over');
+    }
+  });
+  row.addEventListener('dragleave', (e) => { e.stopPropagation(); row.classList.remove('drag-over'); });
+  row.addEventListener('drop', (e) => {
+    e.preventDefault(); e.stopPropagation();
+    row.classList.remove('drag-over');
+    if (!dragSrcId || dragSrcId === node.id) return;
+    if (isDescendant(dragSrcId, node.id)) return;
+    const srcNode = findNode(dragSrcId);
+    if (!srcNode) return;
+    removeFromTree(dragSrcId, tree);
+    const target = findNode(node.id);
+    if (!target) { renderTree(); return; }
+    // Always drop inside target (makes it a container if needed)
+    target.children.push(srcNode);
+    renderTree();
+  });
+
+  // Indent lines
+  for (let i = 0; i < depth; i++) {
+    const line = document.createElement('div');
+    line.className = 'tree-line';
+    line.textContent = i === depth - 1 ? 'L' : ' ';
+    row.appendChild(line);
+  }
+
+  // Toggle
+  const toggle = document.createElement('div');
+  toggle.className = 'node-toggle' + (hasChildren ? (isCollapsed ? '' : ' open') : ' leaf');
+  toggle.textContent = hasChildren ? '▶' : '·';
+  if (hasChildren) {
+    toggle.style.cursor = 'pointer';
+    toggle.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (collapsedNodes.has(node.id)) collapsedNodes.delete(node.id);
+      else collapsedNodes.add(node.id);
+      renderTree();
+    });
+  }
+  row.appendChild(toggle);
+
+  // Icon
+  const icon = document.createElement('div');
+  icon.className = 'node-icon';
+  icon.textContent = hasChildren ? '📦' : '🔩';
+  row.appendChild(icon);
+
+  // Name
+  const name = document.createElement('div');
+  name.className = 'node-name';
+  name.textContent = node.name;
+  row.appendChild(name);
+
+
+
+  // Actions
+  const actions = document.createElement('div');
+  actions.className = 'node-actions';
+
+  const addBtn = document.createElement('button');
+  addBtn.className = 'node-btn add';
+  addBtn.textContent = '+';
+  addBtn.title = 'Add child node';
+  addBtn.onclick = (e) => { e.stopPropagation(); openAddNodeModal(node.id); };
+  actions.appendChild(addBtn);
+
+  const renameBtn = document.createElement('button');
+  renameBtn.className = 'node-btn rename';
+  renameBtn.textContent = '✎';
+  renameBtn.title = 'Rename';
+  renameBtn.onclick = (e) => { e.stopPropagation(); startRename(node.id); };
+  actions.appendChild(renameBtn);
+
+  if (node.data && Object.keys(node.data).length > 0) {
+    const editBtn = document.createElement('button');
+    editBtn.className = 'node-btn';
+    editBtn.textContent = '⊞';
+    editBtn.title = 'Edit metadata';
+    editBtn.style.cssText = 'border-color:var(--warn);color:var(--warn)';
+    editBtn.onclick = (e) => { e.stopPropagation(); startEditMetadata(node.id); };
+    actions.appendChild(editBtn);
+  }
+
+  const delBtn = document.createElement('button');
+  delBtn.className = 'node-btn';
+  delBtn.textContent = '×';
+  delBtn.title = 'Delete';
+  delBtn.onclick = (e) => { e.stopPropagation(); deleteNode(node.id); };
+  actions.appendChild(delBtn);
+
+  row.appendChild(actions);
+  wrapper.appendChild(row);
+
+  // Children (sorted: leaves first)
+  if (hasChildren && !isCollapsed) {
+    const childContainer = document.createElement('div');
+    childContainer.className = 'tree-children';
+    const sorted = [...node.children].sort((a, b) => {
+      const aL = a.children.length === 0, bL = b.children.length === 0;
+      return aL === bL ? 0 : aL ? -1 : 1;
+    });
+    sorted.forEach(child => childContainer.appendChild(buildNodeEl(child, depth + 1)));
+    wrapper.appendChild(childContainer);
+  }
+
+  return wrapper;
+}
+
+function selectNode(id) {
+  selectedNodeId = id;
+  const node = findNode(id);
+  if (node) {
+    document.getElementById('placementPath').textContent = getNodePath(id);
+    if (node.data && Object.keys(node.data).length > 0) {
+      startEditMetadata(id);
+    } else {
+      resetForm();
+      cancelEdit();
+      document.getElementById('partName').value = node.name;
+      document.getElementById('stepFileName').value = node.name + '.step';
+    }
+  }
+  renderTree();
+}
+
+function getNodePath(id, nodes = tree, path = '') {
+  for (const node of nodes) {
+    const current = path ? path + ' > ' + node.name : node.name;
+    if (node.id === id) return current;
+    if (node.children) {
+      const found = getNodePath(id, node.children, current);
+      if (found) return found;
+    }
+  }
+  return '';
+}
+
+function deleteNode(id) {
+  if (selectedNodeId === id) selectedNodeId = null;
+  removeFromTree(id, tree);
+  renderTree();
+}
+
+// ══════════════════════════════════════════════
+// MODAL
+// ══════════════════════════════════════════════
+function openAddNodeModal(parentId) {
+  modalParentId = parentId;
+  document.getElementById('modalTitle').textContent = parentId ? 'Add Child Node' : 'Add Root Node';
+  document.getElementById('modalNodeName').value = '';
+  document.getElementById('modalOverlay').classList.add('open');
+  setTimeout(() => document.getElementById('modalNodeName').focus(), 100);
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('open');
+}
+
+function confirmAddNode() {
+  const name = document.getElementById('modalNodeName').value.trim();
+  const type = 'part';
+  if (!name) return;
+  const node = { id: makeId(), name, type, children: [], data: {} };
+  if (!modalParentId) {
+    tree.push(node);
+  } else {
+    const parent = findNode(modalParentId);
+    if (parent) parent.children.push(node);
+  }
+  closeModal();
+  renderTree();
+  document.getElementById('btnExport').disabled = false;
+}
+
+document.getElementById('modalNodeName').addEventListener('keydown', e => {
+  if (e.key === 'Enter') confirmAddNode();
+  if (e.key === 'Escape') closeModal();
+});
+
+// ══════════════════════════════════════════════
+// RENAME
+// ══════════════════════════════════════════════
+function startRename(id) {
+  const nodeEl = document.querySelector('.tree-node[data-id="' + id + '"]');
+  if (!nodeEl) return;
+  const nameEl = nodeEl.querySelector('.node-name');
+  const currentName = nameEl.textContent;
+  const input = document.createElement('input');
+  input.className = 'node-name-input';
+  input.value = currentName;
+  nameEl.replaceWith(input);
+  input.focus(); input.select();
+  const commit = () => {
+    const newName = input.value.trim();
+    if (newName && newName !== currentName) {
+      const node = findNode(id);
+      if (node) node.name = newName;
+    }
+    renderTree();
+  };
+  input.addEventListener('blur', commit);
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); commit(); }
+    if (e.key === 'Escape') renderTree();
+  });
+}
+
+// ══════════════════════════════════════════════
+// EDIT METADATA
+// ══════════════════════════════════════════════
+function startEditMetadata(id) {
+  const node = findNode(id);
+  if (!node) return;
+  editingNodeId = id;
+  resetForm();
+  const d = node.data || {};
+  document.getElementById('stepFileName').value = d.stepFile || '';
+  document.getElementById('partName').value = node.name;
+  document.getElementById('materialRef').value = d.material || 'Aluminum_2219_T87';
+  document.getElementById('dimLength').value = d.length || '';
+  document.getElementById('dimWidth').value = d.width || '';
+  document.getElementById('dimHeight').value = d.height || '';
+  document.getElementById('posX').value = d.posX || '0';
+  document.getElementById('posY').value = d.posY || '0';
+  document.getElementById('posZ').value = d.posZ || '0';
+  document.getElementById('rotX').value = d.rotX || '0';
+  document.getElementById('rotY').value = d.rotY || '0';
+  document.getElementById('rotZ').value = d.rotZ || '0';
+  document.getElementById('metersPerUnit').value = d.metersPerUnit || '1';
+  document.getElementById('upAxis').value = d.upAxis || 'Z';
+  document.getElementById('angleUnit').value = d.angleUnit || 'deg';
+  document.getElementById('pressureUnit').value = d.pressureUnit || 'kPa';
+  document.getElementById('massUnit').value = d.massUnit || 'kg';
+  document.getElementById('lengthUnit').value = d.lengthUnit || 'm';
+  document.getElementById('customAttrs').innerHTML = '';
+  attrCounter = 0;
+  if (d.customAttrs) {
+    d.customAttrs.forEach(attr => {
+      addCustomAttr();
+      const rows = document.querySelectorAll('.custom-row');
+      const last = rows[rows.length - 1];
+      last.querySelector('.attr-name').value = attr.name;
+      last.querySelector('.attr-value').value = attr.value;
+      last.querySelector('.attr-unit').value = attr.unit || '';
+    });
+  }
+  document.getElementById('editBanner').classList.add('visible');
+  document.getElementById('editingName').textContent = node.name;
+  document.getElementById('btnAddPart').style.display = 'none';
+  document.getElementById('btnSaveEdit').style.display = 'block';
+  document.querySelector('.panel-form').scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function saveEdit() {
+  if (!editingNodeId) return;
+  const node = findNode(editingNodeId);
+  if (!node) return;
+  const newName = document.getElementById('partName').value.trim();
+  if (newName) node.name = newName;
+  node.data = collectFormData();
+  renderTree();
+  cancelEdit();
+  showSuccess('"' + node.name + '" updated ✓');
+}
+
+function cancelEdit() {
+  editingNodeId = null;
+  document.getElementById('editBanner').classList.remove('visible');
+  document.getElementById('btnAddPart').style.display = 'block';
+  document.getElementById('btnSaveEdit').style.display = 'none';
+}
+
+// ══════════════════════════════════════════════
+// CUSTOM ATTRIBUTES
+// ══════════════════════════════════════════════
+function addCustomAttr() {
+  attrCounter++;
+  const container = document.getElementById('customAttrs');
+  const row = document.createElement('div');
+  row.className = 'custom-row';
+  row.id = 'attr-' + attrCounter;
+  row.innerHTML =
+    '<div class="field">' + (attrCounter===1?'<label>Name</label>':'') + '<input type="text" placeholder="e.g. dryMass" class="attr-name"></div>' +
+    '<div class="field">' + (attrCounter===1?'<label>Value</label>':'') + '<input type="text" placeholder="e.g. 400" class="attr-value"></div>' +
+    '<div class="field">' + (attrCounter===1?'<label>Unit</label>':'') + '<input type="text" placeholder="e.g. kg" class="attr-unit"></div>' +
+    '<button class="btn-icon" onclick="removeAttr(' + attrCounter + ')">×</button>';
+  container.appendChild(row);
+}
+
+function removeAttr(id) {
+  const el = document.getElementById('attr-' + id);
+  if (el) el.remove();
+}
+
+function syncPartName(val) {
+  const base = val.replace(/\.(step|stp)$/i, '').trim();
+  if (base) document.getElementById('partName').value = base;
+}
+
+// ══════════════════════════════════════════════
+// ADD PART TO TREE
+// ══════════════════════════════════════════════
+function addPartToTree() {
+  const name = document.getElementById('partName').value.trim();
+  if (!name) { showError('Enter a Part Name first.'); return; }
+  if (!selectedNodeId) { showError('Select a node in the tree first.'); return; }
+  const selected = findNode(selectedNodeId);
+  if (!selected) { showError('Node not found. Click a node on the left.'); return; }
+
+  const data = collectFormData();
+  selected.name = name;
+  selected.data = data;
+  renderTree();
+  showSuccess('"' + name + '" — metadata saved ✓');
+  resetForm();
+}
+
+function showSuccess(msg) {
+  const banner = document.getElementById('successBanner');
+  banner.style.background = '';
+  banner.style.borderColor = '';
+  banner.style.color = '';
+  document.querySelector('#successBanner .check').textContent = '✓';
+  document.getElementById('successMsg').textContent = msg;
+  banner.style.display = 'flex';
+  if (banner._timeout) clearTimeout(banner._timeout);
+  banner._timeout = setTimeout(() => { banner.style.display = 'none'; }, 3000);
+}
+
+function showError(msg) {
+  const banner = document.getElementById('successBanner');
+  banner.style.background = 'rgba(255,77,109,0.1)';
+  banner.style.borderColor = 'rgba(255,77,109,0.3)';
+  banner.style.color = 'var(--danger)';
+  document.querySelector('#successBanner .check').textContent = '✗';
+  document.getElementById('successMsg').textContent = msg;
+  banner.style.display = 'flex';
+  if (banner._timeout) clearTimeout(banner._timeout);
+  banner._timeout = setTimeout(() => {
+    banner.style.display = 'none';
+    banner.style.background = '';
+    banner.style.borderColor = '';
+    banner.style.color = '';
+    document.querySelector('#successBanner .check').textContent = '✓';
+  }, 3000);
+}
+
+function collectFormData() {
+  const customAttrs = [];
+  document.querySelectorAll('.custom-row').forEach(row => {
+    const n = row.querySelector('.attr-name').value.trim();
+    const v = row.querySelector('.attr-value').value.trim();
+    const u = row.querySelector('.attr-unit').value.trim();
+    if (n && v) customAttrs.push({ name: n, value: v, unit: u });
+  });
+  return {
+    stepFile: document.getElementById('stepFileName').value.trim(),
+    material: document.getElementById('materialRef').value,
+    length: document.getElementById('dimLength').value || '0',
+    width: document.getElementById('dimWidth').value || '0',
+    height: document.getElementById('dimHeight').value || '0',
+    posX: document.getElementById('posX').value || '0',
+    posY: document.getElementById('posY').value || '0',
+    posZ: document.getElementById('posZ').value || '0',
+    rotX: document.getElementById('rotX').value || '0',
+    rotY: document.getElementById('rotY').value || '0',
+    rotZ: document.getElementById('rotZ').value || '0',
+    metersPerUnit: document.getElementById('metersPerUnit').value || '1',
+    upAxis: document.getElementById('upAxis').value,
+    angleUnit: document.getElementById('angleUnit').value,
+    pressureUnit: document.getElementById('pressureUnit').value,
+    massUnit: document.getElementById('massUnit').value,
+    lengthUnit: document.getElementById('lengthUnit').value,
+    customAttrs
+  };
+}
+
+function resetForm() {
+  document.getElementById('stepFileName').value = '';
+  document.getElementById('partName').value = '';
+  document.getElementById('dimLength').value = '';
+  document.getElementById('dimWidth').value = '';
+  document.getElementById('dimHeight').value = '';
+  document.getElementById('posX').value = '0';
+  document.getElementById('posY').value = '0';
+  document.getElementById('posZ').value = '0';
+  document.getElementById('rotX').value = '0';
+  document.getElementById('rotY').value = '0';
+  document.getElementById('rotZ').value = '0';
+  document.getElementById('metersPerUnit').value = '1';
+  document.getElementById('upAxis').value = 'Z';
+  document.getElementById('angleUnit').value = 'deg';
+  document.getElementById('pressureUnit').value = 'kPa';
+  document.getElementById('massUnit').value = 'kg';
+  document.getElementById('lengthUnit').value = 'm';
+  document.getElementById('materialRef').value = 'Aluminum_2219_T87';
+  document.getElementById('customAttrs').innerHTML = '';
+  attrCounter = 0;
+}
+
+// ══════════════════════════════════════════════
+// SYSML GENERATOR
+// ══════════════════════════════════════════════
+function pad(n) { return '    '.repeat(n); }
+
+function emitDims(name, d, indent) {
+  let s = '';
+  s += pad(indent) + 'part ' + name + '_dims {\n';
+  s += pad(indent+1) + 'attribute length = ' + d.length + ';\n';
+  s += pad(indent+1) + 'attribute width = ' + d.width + ';\n';
+  s += pad(indent+1) + 'attribute height = ' + d.height + ';\n';
+  s += pad(indent+1) + 'attribute metersPerUnit = ' + d.metersPerUnit + ';\n';
+  s += pad(indent+1) + 'attribute upAxis = "' + d.upAxis + '";\n';
+  s += pad(indent+1) + 'attribute angleUnit = "' + d.angleUnit + '";\n';
+  s += pad(indent+1) + 'attribute pressureUnit = "' + d.pressureUnit + '";\n';
+  s += pad(indent+1) + 'attribute massUnit = "' + d.massUnit + '";\n';
+  s += pad(indent+1) + 'attribute lengthUnit = "' + d.lengthUnit + '";\n';
+  s += pad(indent+1) + 'attribute X = ' + d.posX + ';\n';
+  s += pad(indent+1) + 'attribute Y = ' + d.posY + ';\n';
+  s += pad(indent+1) + 'attribute Z = ' + d.posZ + ';\n';
+  s += pad(indent+1) + 'attribute rX_deg = ' + d.rotX + ';\n';
+  s += pad(indent+1) + 'attribute rY_deg = ' + d.rotY + ';\n';
+  s += pad(indent+1) + 'attribute rZ_deg = ' + d.rotZ + ';\n';
+  s += pad(indent) + '}\n\n';
+  s += pad(indent) + 'attribute ' + name + '_volume = (' + name + '_dims.length * ' + name + '_dims.width * ' + name + '_dims.height) * ' + name + '_dims.metersPerUnit^3 * 1000;\n';
+  if (d.customAttrs) {
+    d.customAttrs.forEach(attr => {
+      const isNum = !isNaN(parseFloat(attr.value)) && isFinite(attr.value);
+      s += pad(indent) + 'attribute ' + name + '_' + attr.name + ' = ' + (isNum ? attr.value : '"' + attr.value + '"') + ';';
+      if (attr.unit) s += ' // ' + attr.unit;
+      s += '\n';
+    });
+  }
+  const geom = (d.stepFile ? d.stepFile.replace(/\.(step|stp)$/i, '') : name) + '_geom';
+  s += pad(indent) + 'attribute geometry = "assets/geom/' + geom + '.usda";\n';
+  s += pad(indent) + 'attribute materialRef = "' + d.material + '";\n';
+  return s;
+}
+
+function generateNode(node, indent) {
+  const hasData = node.data && Object.keys(node.data).length > 0;
+  const hasChildren = node.children && node.children.length > 0;
+  let s = '';
+
+  s += pad(indent) + 'part ' + node.name + ' {\n';
+  if (hasData) {
+    s += emitDims(node.name, node.data, indent + 1);
+  }
+  if (hasChildren) {
+    s += '\n';
+    const sorted = [...node.children].sort((a, b) => {
+      const aL = a.children.length === 0, bL = b.children.length === 0;
+      return aL === bL ? 0 : aL ? -1 : 1;
+    });
+    sorted.forEach(child => { s += generateNode(child, indent + 1); });
+  }
+  if (!hasData && !hasChildren) {
+    s += pad(indent + 1) + '/* no data */\n';
+  }
+  s += pad(indent) + '}\n';
+  return s;
+}
+
+function buildSysML() {
+  if (tree.length === 0) return '';
+  const root = tree[0];
+  let s = "package '" + root.name + "' {\n\n";
+  s += '    private import SysML::*;\n';
+  s += '    private import SI::*;\n';
+  s += '    private import ISQBase::*;\n';
+  s += '    private import ScalarValues::*;\n\n';
+  s += generateNode(root, 1);
+  s += '}\n';
+  return s;
+}
+
+function previewSysML() {
+  const sysml = buildSysML();
+  if (!sysml) { showError('Tree is empty.'); return; }
+  document.getElementById('sysmlOutput').textContent = sysml;
+  const wrap = document.getElementById('outputWrap');
+  wrap.classList.add('visible');
+  wrap.scrollIntoView({ behavior: 'smooth' });
+}
+
+function closePreview() {
+  document.getElementById('outputWrap').classList.remove('visible');
+}
+
+function copySysML() {
+  const text = buildSysML();
+  if (!text) { showError('Tree is empty.'); return; }
+
+  const flashBtn = () => {
+    const btn = document.getElementById('btnCopySysml');
+    btn.textContent = '✓ Copied!';
+    btn.style.color = 'var(--green)';
+    setTimeout(() => { btn.textContent = 'Copy'; btn.style.color = ''; }, 2000);
+  };
+
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(flashBtn).catch(() => {
+      fallbackCopy(text); flashBtn();
+    });
+  } else {
+    fallbackCopy(text); flashBtn();
+  }
+}
+
+function fallbackCopy(text) {
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.cssText = 'position:fixed;opacity:0;top:0;left:0';
+  document.body.appendChild(ta);
+  ta.focus(); ta.select();
+  document.execCommand('copy');
+  document.body.removeChild(ta);
+}
+
+function downloadSysML() {
+  const sysml = buildSysML();
+  if (!sysml) { showError('Tree is empty.'); return; }
+  const blob = new Blob([sysml], { type: 'text/plain' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'assembly.sysml'; a.click();
+  URL.revokeObjectURL(url);
+}
+
+function clearAll() {
+  tree = [];
+  selectedNodeId = null;
+  collapsedNodes.clear();
+  renderTree();
+  document.getElementById('btnExport').disabled = true;
+  document.getElementById('outputWrap').classList.remove('visible');
+  document.getElementById('placementPath').textContent = '— select a node in the tree —';
+  setLoadStatus('', 'No file loaded');
+  resetForm();
+}
+
+</script>
+</body>
+</html>
