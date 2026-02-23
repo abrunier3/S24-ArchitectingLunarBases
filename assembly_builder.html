@@ -937,10 +937,11 @@ function parsePart(body, startIdx) {
 
   // Parse dims
   const data = {};
-  const dimsPat = new RegExp('part\s+' + name + '_dims\s*\{');
-  const dimsM = dimsPat.exec(inner);
-  if (dimsM) {
-    const dimsInner = extractBody(inner, dimsM.index + dimsM[0].length - 1);
+  const dimsTag = 'part ' + name + '_dims';
+  const dimsIdx = inner.indexOf(dimsTag);
+  if (dimsIdx !== -1) {
+    const braceIdx = inner.indexOf('{', dimsIdx);
+    const dimsInner = extractBody(inner, braceIdx);
     const dimMap = { length:'length', width:'width', height:'height',
       metersPerUnit:'metersPerUnit', upAxis:'upAxis', angleUnit:'angleUnit',
       pressureUnit:'pressureUnit', massUnit:'massUnit', lengthUnit:'lengthUnit',
