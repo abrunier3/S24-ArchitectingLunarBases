@@ -906,24 +906,6 @@ function setLoadStatus(state, msg) {
 // ══════════════════════════════════════════════
 // SYSML PARSER
 // ══════════════════════════════════════════════
-function parseSysML(text) {
-  tree = [];
-  const rootMatch = text.match(/part\s+(\w+)\s*\{/);
-  if (!rootMatch) return;
-  const rootName = rootMatch[1];
-  const rootNode = { id: makeId(), name: rootName, type: 'assembly', children: [], data: {} };
-  const rootBody = extractBody(text, text.indexOf(rootMatch[0]) + rootMatch[0].length - 1);
-  const childRe = /^\s*part\s+(\w+)\s*\{/gm;
-  let m;
-  while ((m = childRe.exec(rootBody)) !== null) {
-    const childName = m[1];
-    if (childName === rootName + '_dims') continue;
-    rootNode.children.push({ id: makeId(), name: childName, type: 'part', children: [], data: {} });
-  }
-  tree = [rootNode];
-  document.getElementById('btnExport').disabled = false;
-}
-
 function extractBody(text, openBraceIdx) {
   let depth = 0, i = openBraceIdx, start = -1;
   while (i < text.length) {
@@ -932,6 +914,118 @@ function extractBody(text, openBraceIdx) {
     i++;
   }
   return '';
+}
+
+function parseAttributes(body, name) {
+  // Parse dims block
+  const data = {};
+  const dimsRe = new RegExp('part\\s+' + name + '_dims\\s*\\{');
+  const dimsMatch = dimsRe.exec(body);
+  if (dimsMatch) {
+    const dimsBody = extractBody(body, dimsMatch.index + dimsMatch[0].length - 1);
+    const attrRe = /attribute\s+(\w+)\s*=\s*([^;]+);/g;
+    let m;
+    while ((m = attrRe.exec(dimsBody)) !== null) {
+      const k = m[1], v = m[2].trim().replace(/^"|"$/g, '');
+      const map = {
+        length:'length', width:'width', height:'height',
+        metersPerUnit:'metersPerUnit', upAxis:'upAxis',
+        angleUnit:'angleUnit', pressureUnit:'pressureUnit',
+        massUnit:'massUnit', lengthUnit:'lengthUnit',
+        X:'posX', Y:'posY', Z:'posZ',
+        rX_deg:'rotX', rY_deg:'rotY', rZ_deg:'rotZ'
+      };
+      if (map[k]) data[map[k]] = v;
+    }
+  }
+
+  // Parse geometry, materialRef
+  const geoM = body.match(/attribute\s+geometry\s*=\s*"([^"]+)"/);
+  if (geoM) {
+    const geomName = geoM[1].replace('assets/geom/', '').replace('_geom.usda', '');
+    data.stepFile = geomName + '.step';
+  }
+  const matM = body.match(/attribute\s+materialRef\s*=\s*"([^"]+)"/);
+  if (matM) data.material = matM[1];
+  else data.material = 'Aluminum_2219_T87';
+
+  // Parse custom attributes (not dims, not volume, not geometry, not materialRef)
+  const customAttrs = [];
+  const customRe = /attribute\s+(\w+)\s*=\s*([^;]+);(?:\s*\/\/\s*(.+))?/g;
+  let cm;
+  const skip = new Set([
+    name+'_volume', 'geometry', 'materialRef',
+    'length','width','height','metersPerUnit','upAxis',
+    'angleUnit','pressureUnit','massUnit','lengthUnit',
+    'X','Y','Z','rX_deg','rY_deg','rZ_deg'
+  ]);
+  while ((cm = customRe.exec(body)) !== null) {
+    const attrName = cm[1];
+    if (skip.has(attrName)) continue;
+    if (attrName.startsWith(name + '_dims')) continue;
+    // Strip name prefix
+    const shortName = attrName.startsWith(name + '_') ? attrName.slice(name.length + 1) : attrName;
+    const val = cm[2].trim().replace(/^"|"$/g, '');
+    const unit = cm[3] ? cm[3].trim() : '';
+    customAttrs.push({ name: shortName, value: val, unit });
+  }
+  if (customAttrs.length > 0) data.customAttrs = customAttrs;
+  else data.customAttrs = [];
+
+  return data;
+}
+
+function parseNode(body, name) {
+  // Find direct child parts (depth=1 only)
+  const children = [];
+  let i = 0;
+  while (i < body.length) {
+    const partRe = /part\s+(\w+)\s*\{/g;
+    partRe.lastIndex = i;
+    const m = partRe.exec(body);
+    if (!m) break;
+    const childName = m[1];
+    // Skip _dims blocks (they belong to parent's data)
+    if (childName.endsWith('_dims')) { i = m.index + 1; continue; }
+    const childBody = extractBody(body, m.index + m[0].length - 1);
+    const childData = parseAttributes(childBody, childName);
+    const hasChildParts = /part\s+\w+\s*\{/.test(childBody.replace(new RegExp('part\\s+' + childName + '_dims\\s*\\{[^}]*\\}', 'g'), ''));
+    const childNode = {
+      id: makeId(), name: childName, type: hasChildParts ? 'assembly' : 'part',
+      children: [], data: childData
+    };
+    if (hasChildParts) {
+      childNode.children = parseNode(childBody, childName);
+    }
+    children.push(childNode);
+    // Skip past this entire child block
+    i = m.index + m[0].length;
+    let depth = 1, j = i;
+    while (j < body.length && depth > 0) {
+      if (body[j] === '{') depth++;
+      else if (body[j] === '}') depth--;
+      j++;
+    }
+    i = j;
+  }
+  return children;
+}
+
+function parseSysML(text) {
+  tree = [];
+  // Find root part
+  const rootMatch = text.match(/part\s+(\w+)\s*\{/);
+  if (!rootMatch) return;
+  const rootName = rootMatch[1];
+  const rootBody = extractBody(text, text.indexOf(rootMatch[0]) + rootMatch[0].length - 1);
+  const rootData = parseAttributes(rootBody, rootName);
+  const rootNode = {
+    id: makeId(), name: rootName, type: 'assembly',
+    children: parseNode(rootBody, rootName),
+    data: rootData
+  };
+  tree = [rootNode];
+  document.getElementById('btnExport').disabled = false;
 }
 
 // ══════════════════════════════════════════════
