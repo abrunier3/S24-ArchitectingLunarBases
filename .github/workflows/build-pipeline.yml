@@ -22,21 +22,34 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Conda
+      - name: Set up Conda with cache
         uses: conda-incubator/setup-miniconda@v3
         with:
           python-version: '3.10'
           auto-activate-base: true
+          use-mamba: true
 
-      - name: Install pxr and dependencies
+      - name: Cache conda environment
+        uses: actions/cache@v4
+        id: conda-cache
+        with:
+          path: /usr/share/miniconda/envs/s24
+          key: conda-s24-${{ hashFiles('setup.py', 'setup.cfg', 'pyproject.toml') }}
+
+      - name: Create conda environment
+        if: steps.conda-cache.outputs.cache-hit != 'true'
         run: |
-          conda install -y -c conda-forge usd-core
-          pip install -e .
+          mamba create -n s24 -y python=3.10
+          mamba install -n s24 -y -c conda-forge usd
+
+      - name: Install S24 package
+        run: |
+          conda run -n s24 pip install -e .
 
       - name: Run pipeline
         run: |
           mkdir -p database/json database/scenes database/assets
-          python -m S24.cli build \
+          conda run -n s24 python -m S24.cli build \
             --sysml database/sysml/assembly.sysml \
             --json database/json/assembly.json \
             --materials-sysml database/sysml/materials.sysml \
