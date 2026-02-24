@@ -1378,6 +1378,7 @@ function parseSysML(text) {
     }
   }
   if (tree.length > 0) document.getElementById('btnExport').disabled = false;
+  document.getElementById('btnPublish').disabled = false;
 }
 
 // ══════════════════════════════════════════════
@@ -1392,6 +1393,7 @@ function renderTree() {
   container.innerHTML = '';
   tree.forEach(node => container.appendChild(buildNodeEl(node, 0)));
   document.getElementById('btnExport').disabled = false;
+  document.getElementById('btnPublish').disabled = false;
 }
 
 function buildNodeEl(node, depth) {
@@ -1598,6 +1600,7 @@ function confirmAddNode() {
   closeModal();
   renderTree();
   document.getElementById('btnExport').disabled = false;
+  document.getElementById('btnPublish').disabled = false;
 }
 
 document.getElementById('modalNodeName').addEventListener('keydown', e => {
@@ -1962,6 +1965,7 @@ function clearAll() {
   collapsedNodes.clear();
   renderTree();
   document.getElementById('btnExport').disabled = true;
+  document.getElementById('btnPublish').disabled = true;
   document.getElementById('outputWrap').classList.remove('visible');
   document.getElementById('placementPath').textContent = '— select a node in the tree —';
   setLoadStatus('', 'No file loaded');
