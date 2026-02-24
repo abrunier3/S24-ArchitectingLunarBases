@@ -627,6 +627,58 @@
   .paste-modal textarea:focus { border-color: var(--accent2); }
   .paste-modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
 
+  /* Pipeline modal */
+  .pipeline-modal-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.6);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+  }
+  .pipeline-modal-overlay.open { display: flex; }
+  .pipeline-modal {
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: 6px;
+    padding: 24px;
+    width: 480px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .pipeline-modal h3 { font-family: var(--sans); font-size: 14px; color: var(--text); }
+  .pipeline-modal .field { display: flex; flex-direction: column; gap: 6px; }
+  .pipeline-modal label { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 1px; }
+  .pipeline-modal input {
+    background: var(--bg);
+    border: 1px solid var(--border2);
+    border-radius: var(--r);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 8px 10px;
+    outline: none;
+    width: 100%;
+  }
+  .pipeline-modal input:focus { border-color: var(--green); }
+  .pipeline-modal .hint { font-size: 10px; color: var(--text3); line-height: 1.6; }
+  .pipeline-modal .hint a { color: var(--green); }
+  .pipeline-modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
+  .btn-run {
+    background: rgba(0,255,157,0.1);
+    border: 1px solid var(--green);
+    color: var(--green);
+    padding: 6px 14px;
+    font-family: var(--mono);
+    font-size: 11px;
+    border-radius: var(--r);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .btn-run:hover { background: rgba(0,255,157,0.2); }
+  .btn-run:disabled { opacity: 0.4; cursor: not-allowed; }
+
   /* GitHub publish modal */
   .gh-modal-overlay {
     display: none;
@@ -730,6 +782,7 @@
   <div class="topbar-actions">
     <button class="btn-sm btn-outline" onclick="clearAll()">Clear All</button>
     <button class="btn-sm btn-outline" id="btnPublish" onclick="openGitHubModal()">☁ Publish to GitHub</button>
+    <button class="btn-sm btn-outline" onclick="openRunPipelineModal()">▶ Run Pipeline</button>
     <button class="btn-sm btn-primary" id="btnExport" onclick="downloadSysML()" disabled>⬇ Download</button>
   </div>
 </div>
@@ -917,6 +970,31 @@
     <div class="gh-modal-actions">
       <button class="btn-sm btn-outline" onclick="closeGitHubModal()">Cancel</button>
       <button class="btn-github" id="btnConfirmPublish" onclick="publishToGitHub()">Publish</button>
+    </div>
+  </div>
+</div>
+
+<!-- RUN PIPELINE MODAL -->
+<div class="pipeline-modal-overlay" id="pipelineModalOverlay">
+  <div class="pipeline-modal">
+    <h3>▶ Run Pipeline — SysML → JSON → USD</h3>
+    <div class="field">
+      <label>GitHub Token</label>
+      <input type="password" id="pipelineToken" placeholder="github_pat_...">
+    </div>
+    <div class="field">
+      <label>Commit message</label>
+      <input type="text" id="pipelineCommitMsg" value="chore: rebuild USD assets from assembly.sysml">
+    </div>
+    <div class="hint">
+      Triggers the <code>build-pipeline.yml</code> workflow on GitHub Actions.<br>
+      Results will appear in <code>database/scenes/</code> and <code>database/assets/</code>.<br><br>
+      <a href="https://github.com/abrunier3/S24-ArchitectingLunarBases/actions" target="_blank">Monitor progress in Actions →</a>
+    </div>
+    <div id="pipelineStatus" style="font-size:11px;color:var(--text3);min-height:16px;"></div>
+    <div class="pipeline-modal-actions">
+      <button class="btn-sm btn-outline" onclick="closePipelineModal()">Cancel</button>
+      <button class="btn-run" id="btnConfirmRun" onclick="runPipeline()">▶ Run</button>
     </div>
   </div>
 </div>
@@ -1121,6 +1199,71 @@ document.addEventListener('DOMContentLoaded', () => {
     reader.readAsText(file);
   });
 });
+
+// ══════════════════════════════════════════════
+// RUN PIPELINE
+// ══════════════════════════════════════════════
+const GH_WORKFLOW = 'build-pipeline.yml';
+
+function openRunPipelineModal() {
+  const saved = localStorage.getItem('gh_token');
+  if (saved) document.getElementById('pipelineToken').value = saved;
+  document.getElementById('pipelineStatus').textContent = '';
+  document.getElementById('pipelineModalOverlay').classList.add('open');
+}
+
+function closePipelineModal() {
+  document.getElementById('pipelineModalOverlay').classList.remove('open');
+}
+
+async function runPipeline() {
+  const token = document.getElementById('pipelineToken').value.trim();
+  const msg = document.getElementById('pipelineCommitMsg').value.trim() || 'chore: rebuild USD assets';
+  if (!token) { setPipelineStatus('error', 'Token required.'); return; }
+
+  localStorage.setItem('gh_token', token);
+
+  const btn = document.getElementById('btnConfirmRun');
+  btn.disabled = true;
+  setPipelineStatus('loading', 'Triggering workflow...');
+
+  try {
+    const res = await fetch(
+      'https://api.github.com/repos/' + GH_OWNER + '/' + GH_REPO + '/actions/workflows/' + GH_WORKFLOW + '/dispatches',
+      {
+        method: 'POST',
+        headers: {
+          'Authorization': 'Bearer ' + token,
+          'Accept': 'application/vnd.github+json',
+          'X-GitHub-Api-Version': '2022-11-28',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          ref: GH_BRANCH,
+          inputs: { commit_message: msg }
+        })
+      }
+    );
+
+    if (res.status === 204) {
+      setPipelineStatus('ok', '✓ Pipeline triggered! Check Actions tab for progress.');
+      setTimeout(() => closePipelineModal(), 2000);
+    } else {
+      const err = await res.json();
+      throw new Error(err.message || 'HTTP ' + res.status);
+    }
+  } catch(e) {
+    setPipelineStatus('error', '✗ ' + e.message);
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+function setPipelineStatus(state, msg) {
+  const el = document.getElementById('pipelineStatus');
+  el.textContent = msg;
+  el.style.color = state === 'ok' ? 'var(--green)' : state === 'error' ? 'var(--danger)' : 'var(--accent)';
+}
 
 // ══════════════════════════════════════════════
 // GITHUB PUBLISH
