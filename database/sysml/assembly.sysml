@@ -134,4 +134,28 @@ package 'HabitationModule' {
         attribute materialRef = "Aluminum_2219_T87";
     }
 
+    part landing_site {
+        part landing_site_dims {
+            attribute length = 2;
+            attribute width = 0;
+            attribute height = 2;
+            attribute metersPerUnit = 1;
+            attribute upAxis = "Z";
+            attribute angleUnit = "deg";
+            attribute pressureUnit = "kPa";
+            attribute massUnit = "kg";
+            attribute lengthUnit = "m";
+            attribute X = 0;
+            attribute Y = 0;
+            attribute Z = 0;
+            attribute rX_deg = 0;
+            attribute rY_deg = 0;
+            attribute rZ_deg = 0;
+        }
+
+        attribute landing_site_volume = (landing_site_dims.length * landing_site_dims.width * landing_site_dims.height) * landing_site_dims.metersPerUnit^3 * 1000;
+        attribute geometry = "assets/geom/landing_site_geom.usda";
+        attribute materialRef = "Aluminum_2219_T87";
+    }
+
 }
