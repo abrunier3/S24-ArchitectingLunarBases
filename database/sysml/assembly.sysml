@@ -86,8 +86,8 @@ package 'HabitationModule' {
         }
     }
 
-    part caca {
-        part caca_dims {
+    part rover {
+        part rover_dims {
             attribute length = 0;
             attribute width = 0;
             attribute height = 0;
@@ -105,7 +105,7 @@ package 'HabitationModule' {
             attribute rZ_deg = 0;
         }
 
-        attribute caca_volume = (caca_dims.length * caca_dims.width * caca_dims.height) * caca_dims.metersPerUnit^3 * 1000;
+        attribute rover_volume = (rover_dims.length * rover_dims.width * rover_dims.height) * rover_dims.metersPerUnit^3 * 1000;
         attribute geometry = "assets/geom/caca_geom.usda";
         attribute materialRef = "Aluminum_2219_T87";
     }
