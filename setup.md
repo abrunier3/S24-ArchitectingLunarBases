@@ -1,4 +1,3 @@
-[Uploading setup.md…]()
 # S24 Lunar Assets — CAD Model Registry
 
 This repository stores all CAD models (.step files) and their SysML metadata for the S24 lunar base DEE pipeline.
@@ -22,9 +21,9 @@ models/
 
 ### 2. Open the Assembly Builder
 
-👉 **[Open Assembly Builder](https://abrunier3.github.io/S24-ArchitectingLunarBases/assembly_builder.html?assembly=https://raw.githubusercontent.com/abrunier3/S24-ArchitectingLunarBases/main/models/assembly.sysml)**
+👉 **[Open Assembly Builder](https://abrunier3.github.io/S24-ArchitectingLunarBases/assembly_builder.html?assembly=https://raw.githubusercontent.com/abrunier3/S24-ArchitectingLunarBases/main/database/sysml/assembly.sysml)**
 
-> The tool will automatically load the current `models/assembly.sysml` from this repo.
+> The tool will automatically load the current `database/sysml/assembly.sysml` from this repo.
 
 ### 3. Fill in your part's metadata
 
@@ -35,10 +34,10 @@ models/
 ### 4. Download and commit
 
 - Click **⬇ Download** to get the updated `assembly.sysml`
-- Commit it to `models/assembly.sysml`
+- Commit it to `database/sysml/assembly.sysml`
 
 ```bash
-git add models/assembly.sysml
+git add database/sysml/assembly.sysml
 git commit -m "feat: add metadata for <YourPartName>"
 git push
 ```
