@@ -1,4 +1,4 @@
-package 'Habitation Module' {
+package 'HabitationModule' {
 
     private import SysML::*;
     private import SI::*;
@@ -10,14 +10,12 @@ package 'Habitation Module' {
             attribute length = 15;
             attribute width = 10;
             attribute height = 5;
-
             attribute metersPerUnit = 1;
             attribute upAxis = "Z";
             attribute angleUnit = "deg";
             attribute pressureUnit = "kPa";
             attribute massUnit = "kg";
             attribute lengthUnit = "m";
-
             attribute X = 0;
             attribute Y = 0;
             attribute Z = 0;
@@ -27,7 +25,6 @@ package 'Habitation Module' {
         }
 
         attribute HabitationModule_volume = (HabitationModule_dims.length * HabitationModule_dims.width * HabitationModule_dims.height) * HabitationModule_dims.metersPerUnit^3 * 1000;
-
         attribute geometry = "assets/geom/HabModule_geom.usda";
         attribute materialRef = "Titanium_Ti6Al4V";
 
@@ -36,14 +33,12 @@ package 'Habitation Module' {
                 attribute length = 1.5;
                 attribute width = 1.2;
                 attribute height = 1.3;
-
                 attribute metersPerUnit = 1;
                 attribute upAxis = "Z";
                 attribute angleUnit = "deg";
                 attribute pressureUnit = "kPa";
                 attribute massUnit = "kg";
                 attribute lengthUnit = "m";
-
                 attribute X = 5;
                 attribute Y = 2;
                 attribute Z = 7;
@@ -58,24 +53,20 @@ package 'Habitation Module' {
             attribute O2Tank1_operatingPressure = 250;
             attribute O2Tank1_maxPressure = 400;
             attribute O2Tank1_wallThickness = 0.01;
-
             attribute geometry = "assets/geom/O2Tank_geom.usda";
             attribute materialRef = "Aluminum_2219_T87";
         }
-
         part O2Tank2 {
             part O2Tank2_dims {
                 attribute length = 1.5;
                 attribute width = 1.2;
                 attribute height = 1.3;
-
                 attribute metersPerUnit = 1;
                 attribute upAxis = "Z";
                 attribute angleUnit = "deg";
                 attribute pressureUnit = "kPa";
                 attribute massUnit = "kg";
                 attribute lengthUnit = "m";
-
                 attribute X = -3;
                 attribute Y = -3;
                 attribute Z = -6;
@@ -90,9 +81,9 @@ package 'Habitation Module' {
             attribute O2Tank2_operatingPressure = 250;
             attribute O2Tank2_maxPressure = 400;
             attribute O2Tank2_wallThickness = 0.01;
-
             attribute geometry = "assets/geom/O2Tank_geom.usda";
             attribute materialRef = "Aluminum_2219_T87";
         }
     }
+
 }
