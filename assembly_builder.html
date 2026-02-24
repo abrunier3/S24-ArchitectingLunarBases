@@ -1356,12 +1356,28 @@ function parsePart(body, startIdx) {
 
 function parseSysML(text) {
   tree = [];
-  const rootPartM = text.match(/part\s+(\w+)\s*\{/);
-  if (!rootPartM) return;
-  const result = parsePart(text, rootPartM.index);
-  if (!result) return;
-  tree = [result.node];
-  document.getElementById('btnExport').disabled = false;
+  // Find ALL top-level part blocks inside the package
+  // Extract package body first
+  const pkgM = text.match(/package\s+[^{]+\{/);
+  const searchIn = pkgM ? text.slice(pkgM.index + pkgM[0].length) : text;
+
+  const partRe = /part\s+\w+\s*\{/g;
+  let m;
+  let i = 0;
+  while ((m = partRe.exec(searchIn)) !== null) {
+    // Only top-level parts (not nested) — check by scanning from start
+    const before = searchIn.slice(0, m.index);
+    const depth = (before.match(/\{/g) || []).length - (before.match(/\}/g) || []).length;
+    if (depth === 0) {
+      const result = parsePart(searchIn, m.index);
+      if (result) {
+        tree.push(result.node);
+        // Skip past this block
+        partRe.lastIndex = result.endIdx;
+      }
+    }
+  }
+  if (tree.length > 0) document.getElementById('btnExport').disabled = false;
 }
 
 // ══════════════════════════════════════════════
@@ -1876,13 +1892,13 @@ function generateNode(node, indent) {
 
 function buildSysML() {
   if (tree.length === 0) return '';
-  const root = tree[0];
-  let s = "package '" + root.name + "' {\n\n";
+  const pkgName = tree[0].name;
+  let s = "package '" + pkgName + "' {\n\n";
   s += '    private import SysML::*;\n';
   s += '    private import SI::*;\n';
   s += '    private import ISQBase::*;\n';
   s += '    private import ScalarValues::*;\n\n';
-  s += generateNode(root, 1);
+  tree.forEach(function(root) { s += generateNode(root, 1); s += '\n'; });
   s += '}\n';
   return s;
 }
