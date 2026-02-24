@@ -1,0 +1,46 @@
+#usda 1.0
+(
+    defaultPrim = "World"
+    metersPerUnit = 1
+    upAxis = "Z"
+)
+
+def Xform "World"
+{
+    def Xform "HabitationModule" (
+        prepend references = @../assets/components/HabitationModule.usda@</HabitationModule>
+    )
+    {
+        float3 xformOp:rotateXYZ = (0, 0, 0)
+        double3 xformOp:translate = (0, 0, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ"]
+
+        def Xform "O2Tank1" (
+            prepend references = @../assets/components/O2Tank1.usda@</O2Tank1>
+        )
+        {
+            float3 xformOp:rotateXYZ = (0, 0, 0)
+            double3 xformOp:translate = (5, 2, 7)
+            uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ"]
+        }
+
+        def Xform "O2Tank2" (
+            prepend references = @../assets/components/O2Tank2.usda@</O2Tank2>
+        )
+        {
+            float3 xformOp:rotateXYZ = (0, 0, 0)
+            double3 xformOp:translate = (-3, -3, -6)
+            uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ"]
+        }
+    }
+
+    def Xform "caca" (
+        prepend references = @../assets/components/caca.usda@</caca>
+    )
+    {
+        float3 xformOp:rotateXYZ = (0, 0, 0)
+        double3 xformOp:translate = (20, 0, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ"]
+    }
+}
+
