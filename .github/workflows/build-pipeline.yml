@@ -14,44 +14,36 @@ jobs:
     permissions:
       contents: write
 
+    defaults:
+      run:
+        shell: bash -el {0}
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - name: Set up Conda
+        uses: conda-incubator/setup-miniconda@v3
         with:
           python-version: '3.10'
+          auto-activate-base: true
 
-      - name: Install dependencies
+      - name: Install pxr and dependencies
         run: |
-          python -m pip install --upgrade pip
-          python -m pip install -e .
+          conda install -y -c conda-forge usd-core
+          pip install -e .
 
-      - name: Run pipeline for each SysML model
+      - name: Run pipeline
         run: |
           mkdir -p database/json database/scenes database/assets
-
-          for SYSML_FILE in database/sysml/*.sysml; do
-            # Skip assembly.sysml and materials.sysml
-            BASENAME=$(basename "$SYSML_FILE" .sysml)
-            if [ "$BASENAME" = "assembly" ] || [ "$BASENAME" = "materials" ]; then
-              continue
-            fi
-
-            echo "Building: $BASENAME"
-
-            python -m S24.cli build \
-              --sysml "database/sysml/${BASENAME}.sysml" \
-              --json "database/json/${BASENAME}.json" \
-              --materials-sysml database/sysml/materials.sysml \
-              --materials-json database/json/materials.json \
-              --assets database/assets \
-              --scene "database/scenes/${BASENAME}Assembly.usda" \
-              --root "$BASENAME"
-
-            echo "Done: $BASENAME"
-          done
+          python -m S24.cli build \
+            --sysml database/sysml/assembly.sysml \
+            --json database/json/assembly.json \
+            --materials-sysml database/sysml/materials.sysml \
+            --materials-json database/json/materials.json \
+            --assets database/assets \
+            --scene database/scenes/Assembly.usda \
+            --root-all
 
       - name: Commit generated assets
         run: |
