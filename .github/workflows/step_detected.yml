@@ -10,7 +10,6 @@ on:
 
 jobs:
   register-model:
-    if: false
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -42,7 +41,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           FORM_BASE_URL: "https://abrunier3.github.io/S24-ArchitectingLunarBases/assembly_builder.html"
-          ASSEMBLY_RAW_URL: "https://raw.githubusercontent.com/abrunier3/S24-ArchitectingLunarBases/main/models/assembly.sysml"
+          ASSEMBLY_RAW_URL: "https://raw.githubusercontent.com/abrunier3/S24-ArchitectingLunarBases/main/database/sysml/assembly.sysml"
           REPO: ${{ github.repository }}
           PUSHER: ${{ github.actor }}
           COMMIT_SHA: ${{ github.sha }}
@@ -63,7 +62,7 @@ jobs:
             ENCODED=$(python3 -c "import urllib.parse; print(urllib.parse.quote('${STEP_FILE}'))")
             FORM_URL="${FORM_BASE_URL}?step=${ENCODED}&assembly=${ASSEMBLY_RAW_URL}"
 
-            printf "## New CAD Model Detected\n\n**File:** \`%s\`\n**Pushed by:** @%s\n**Commit:** \`%s\`\n**Model folder:** \`%s/\`\n\n---\n\n### Next step: Register this part in the assembly\n\nA folder has been created at \`%s/\`.\n\nYou need to add this part's metadata to the shared assembly file.\n\n**Open the Assembly Builder:** %s\n\nThe tool will automatically load the current \`models/assembly.sysml\`. Find or create the node for \`%s\`, fill in the metadata, then click **Download**.\n\nCommit the updated \`assembly.sysml\` to:\n\`models/assembly.sysml\`\n\n---\n*This issue was created automatically by the S24 DEE pipeline.*\n" \
+            printf "## New CAD Model Detected\n\n**File:** \`%s\`\n**Pushed by:** @%s\n**Commit:** \`%s\`\n**Model folder:** \`%s/\`\n\n---\n\n### Next step: Register this part in the assembly\n\nA folder has been created at \`%s/\`.\n\nYou need to add this part's metadata to the shared assembly file.\n\n**Open the Assembly Builder:** %s\n\nThe tool will automatically load the current \`database/sysml/assembly.sysml\`. Find or create the node for \`%s\`, fill in the metadata, then click **Download**.\n\nCommit the updated \`assembly.sysml\` to:\n\`database/sysml/assembly.sysml\`\n\n---\n*This issue was created automatically by the S24 DEE pipeline.*\n" \
               "$STEP_PATH" "$PUSHER" "$SHORT_SHA" "$FOLDER" "$FOLDER" "$FORM_URL" "$STEM" > /tmp/BODY.md
 
             gh issue create \
