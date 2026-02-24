@@ -1,0 +1,62 @@
+name: Build Pipeline — SysML → JSON → USD
+
+on:
+  workflow_dispatch:
+    inputs:
+      commit_message:
+        description: 'Commit message for generated assets'
+        required: false
+        default: 'chore: rebuild USD assets from assembly.sysml'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e .
+
+      - name: Run pipeline for each SysML model
+        run: |
+          mkdir -p database/json database/scenes database/assets
+
+          for SYSML_FILE in database/sysml/*.sysml; do
+            # Skip assembly.sysml and materials.sysml
+            BASENAME=$(basename "$SYSML_FILE" .sysml)
+            if [ "$BASENAME" = "assembly" ] || [ "$BASENAME" = "materials" ]; then
+              continue
+            fi
+
+            echo "Building: $BASENAME"
+
+            python -m S24.cli build \
+              --sysml "database/sysml/${BASENAME}.sysml" \
+              --json "database/json/${BASENAME}.json" \
+              --materials-sysml database/sysml/materials.sysml \
+              --materials-json database/json/materials.json \
+              --assets database/assets \
+              --scene "database/scenes/${BASENAME}Assembly.usda" \
+              --root "$BASENAME"
+
+            echo "Done: $BASENAME"
+          done
+
+      - name: Commit generated assets
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add database/json/ database/scenes/ database/assets/
+          git diff --staged --quiet || git commit -m "${{ github.event.inputs.commit_message }}"
+          git push
