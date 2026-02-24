@@ -1167,7 +1167,7 @@ async function publishToGitHub() {
   try {
     // Get current SHA (needed for update)
     let sha = null;
-    const getRes = await fetch(apiUrl + '?ref=' + GH_BRANCH, { headers });
+    const getRes = await fetch(apiUrl + '?ref=' + GH_BRANCH + '&t=' + Date.now(), { headers, cache: 'no-store' });
     if (getRes.ok) {
       const data = await getRes.json();
       sha = data.sha;
