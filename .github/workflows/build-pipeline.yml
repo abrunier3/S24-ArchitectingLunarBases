@@ -27,7 +27,7 @@ jobs:
         with:
           python-version: '3.10'
           auto-activate-base: true
-          use-mamba: true
+          use-mamba: false
 
       - name: Cache conda environment
         uses: actions/cache@v4
@@ -39,8 +39,8 @@ jobs:
       - name: Create conda environment
         if: steps.conda-cache.outputs.cache-hit != 'true'
         run: |
-          mamba create -n s24 -y python=3.10
-          mamba install -n s24 -y -c conda-forge usd
+          conda create -n s24 -y python=3.10
+          conda install -n s24 -y -c conda-forge usd
 
       - name: Install S24 package
         run: |
