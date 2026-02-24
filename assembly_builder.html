@@ -627,6 +627,58 @@
   .paste-modal textarea:focus { border-color: var(--accent2); }
   .paste-modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
 
+  /* GitHub publish modal */
+  .gh-modal-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.6);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+  }
+  .gh-modal-overlay.open { display: flex; }
+  .gh-modal {
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: 6px;
+    padding: 24px;
+    width: 480px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .gh-modal h3 { font-family: var(--sans); font-size: 14px; color: var(--text); }
+  .gh-modal .field { display: flex; flex-direction: column; gap: 6px; }
+  .gh-modal label { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 1px; }
+  .gh-modal input {
+    background: var(--bg);
+    border: 1px solid var(--border2);
+    border-radius: var(--r);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 8px 10px;
+    outline: none;
+    width: 100%;
+  }
+  .gh-modal input:focus { border-color: var(--accent2); }
+  .gh-modal .hint { font-size: 10px; color: var(--text3); line-height: 1.6; }
+  .gh-modal .hint a { color: var(--accent2); }
+  .gh-modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
+  .btn-github {
+    background: rgba(0,212,255,0.1);
+    border: 1px solid var(--accent2);
+    color: var(--accent);
+    padding: 6px 14px;
+    font-family: var(--mono);
+    font-size: 11px;
+    border-radius: var(--r);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .btn-github:hover { background: rgba(0,212,255,0.2); }
+  .btn-github:disabled { opacity: 0.4; cursor: not-allowed; }
+
   /* Edit mode banner */
   .edit-banner {
     padding: 10px 14px;
@@ -677,6 +729,7 @@
   <div class="topbar-title">Assembly Builder</div>
   <div class="topbar-actions">
     <button class="btn-sm btn-outline" onclick="clearAll()">Clear All</button>
+    <button class="btn-sm btn-outline" id="btnPublish" onclick="openGitHubModal()" disabled>☁ Publish to GitHub</button>
     <button class="btn-sm btn-primary" id="btnExport" onclick="downloadSysML()" disabled>⬇ Download</button>
   </div>
 </div>
@@ -843,6 +896,31 @@
 
 </div>
 
+<!-- GITHUB PUBLISH MODAL -->
+<div class="gh-modal-overlay" id="ghModalOverlay">
+  <div class="gh-modal">
+    <h3>☁ Publish to GitHub</h3>
+    <div class="field">
+      <label>Personal Access Token</label>
+      <input type="password" id="ghToken" placeholder="github_pat_...">
+    </div>
+    <div class="field">
+      <label>Commit message</label>
+      <input type="text" id="ghCommitMsg" value="chore: update assembly.sysml">
+    </div>
+    <div class="hint">
+      The token needs <strong>Contents: Read & Write</strong> on <code>abrunier3/S24-ArchitectingLunarBases</code> only.<br>
+      <a href="https://github.com/settings/personal-access-tokens/new" target="_blank">Create a Fine-grained token →</a><br><br>
+      Your token is saved in your browser (localStorage) and never sent anywhere except the GitHub API.
+    </div>
+    <div id="ghStatus" style="font-size:11px;color:var(--text3);min-height:16px;"></div>
+    <div class="gh-modal-actions">
+      <button class="btn-sm btn-outline" onclick="closeGitHubModal()">Cancel</button>
+      <button class="btn-github" id="btnConfirmPublish" onclick="publishToGitHub()">Publish</button>
+    </div>
+  </div>
+</div>
+
 <!-- PASTE SYSML MODAL -->
 <div class="paste-modal-overlay" id="pasteModalOverlay">
   <div class="paste-modal">
@@ -1003,6 +1081,7 @@ function importSysMLText(text) {
   imported.forEach(n => tree.push(n));
   renderTree();
   document.getElementById('btnExport').disabled = false;
+  document.getElementById('btnPublish').disabled = false;
   showSuccess(imported.map(n => n.name).join(', ') + ' imported ✓');
 }
 
@@ -1042,6 +1121,94 @@ document.addEventListener('DOMContentLoaded', () => {
     reader.readAsText(file);
   });
 });
+
+// ══════════════════════════════════════════════
+// GITHUB PUBLISH
+// ══════════════════════════════════════════════
+const GH_OWNER = 'abrunier3';
+const GH_REPO  = 'S24-ArchitectingLunarBases';
+const GH_PATH  = 'models/assembly.sysml';
+const GH_BRANCH = 'main';
+
+function openGitHubModal() {
+  // Restore saved token
+  const saved = localStorage.getItem('gh_token');
+  if (saved) document.getElementById('ghToken').value = saved;
+  document.getElementById('ghStatus').textContent = '';
+  document.getElementById('ghModalOverlay').classList.add('open');
+}
+
+function closeGitHubModal() {
+  document.getElementById('ghModalOverlay').classList.remove('open');
+}
+
+async function publishToGitHub() {
+  const token = document.getElementById('ghToken').value.trim();
+  const msg   = document.getElementById('ghCommitMsg').value.trim() || 'chore: update assembly.sysml';
+  if (!token) { setGhStatus('error', 'Token required.'); return; }
+
+  // Save token locally
+  localStorage.setItem('gh_token', token);
+
+  const sysml = buildSysML();
+  if (!sysml) { setGhStatus('error', 'Tree is empty.'); return; }
+
+  const btn = document.getElementById('btnConfirmPublish');
+  btn.disabled = true;
+  setGhStatus('loading', 'Fetching current file SHA...');
+
+  const headers = {
+    'Authorization': 'Bearer ' + token,
+    'Accept': 'application/vnd.github+json',
+    'X-GitHub-Api-Version': '2022-11-28'
+  };
+  const apiUrl = 'https://api.github.com/repos/' + GH_OWNER + '/' + GH_REPO + '/contents/' + GH_PATH;
+
+  try {
+    // Get current SHA (needed for update)
+    let sha = null;
+    const getRes = await fetch(apiUrl + '?ref=' + GH_BRANCH, { headers });
+    if (getRes.ok) {
+      const data = await getRes.json();
+      sha = data.sha;
+    } else if (getRes.status !== 404) {
+      throw new Error('Could not fetch file: HTTP ' + getRes.status);
+    }
+
+    setGhStatus('loading', 'Publishing...');
+
+    // Encode content as base64
+    const encoded = btoa(unescape(encodeURIComponent(sysml)));
+
+    const body = { message: msg, content: encoded, branch: GH_BRANCH };
+    if (sha) body.sha = sha;
+
+    const putRes = await fetch(apiUrl, {
+      method: 'PUT',
+      headers: { ...headers, 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+
+    if (!putRes.ok) {
+      const err = await putRes.json();
+      throw new Error(err.message || 'HTTP ' + putRes.status);
+    }
+
+    setGhStatus('ok', '✓ Published successfully!');
+    setTimeout(() => closeGitHubModal(), 1500);
+
+  } catch(e) {
+    setGhStatus('error', '✗ ' + e.message);
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+function setGhStatus(state, msg) {
+  const el = document.getElementById('ghStatus');
+  el.textContent = msg;
+  el.style.color = state === 'ok' ? 'var(--green)' : state === 'error' ? 'var(--danger)' : 'var(--accent)';
+}
 
 // ══════════════════════════════════════════════
 // GITHUB LOADER
