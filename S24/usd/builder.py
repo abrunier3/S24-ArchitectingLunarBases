@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import os
-from typing import Dict, Optional
+from typing import Dict, List, Optional
 
 from S24.jsonio.vetting import VettedPart
 
@@ -111,8 +111,8 @@ class USDBuilder:
             raw_attributes=raw_attrs,
             geom_layer_path=geom_path,
             geom_prim_path=geom_prim_path,
-            mat_layer_path=self.material_library_path,     # <-- changed
-            material_prim_path=material_prim_path,         # <-- changed
+            mat_layer_path=self.material_library_path,
+            material_prim_path=material_prim_path,
         )
 
     def build_all_parts(self) -> Dict[str, Dict[str, str]]:
@@ -128,29 +128,42 @@ class USDBuilder:
         *,
         scene_name: str = "assembly.usda",
         root_name: Optional[str] = None,
+        root_names: Optional[List[str]] = None,
         include_root_as_instance: bool = True,
         instanceable: bool = False,
         debug_refs: bool = False,
     ) -> str:
-        ensure_can_write(self.scenes_dir, overwrite=True)  # ensures dirs exist
+        """
+        Write assembly scene with one or multiple roots into a single USD file.
 
-        if root_name is None:
+        Use root_names=[...] for multi-root, or root_name="X" for single root
+        (backward compatible).
+        """
+        ensure_can_write(self.scenes_dir, overwrite=True)
+
+        # --- Resolve roots list ---
+        if root_names is not None:
+            roots = root_names
+        elif root_name is not None:
+            roots = [root_name]
+        else:
+            # Auto-detect: parts with no parent
             roots = [n for n, vp in self.by_name.items() if vp.parent is None]
             if not roots:
                 raise ValueError("No root found.")
-            root_name = roots[0]
 
-        root_part = self.by_name[root_name]
+        # Use first root's metadata for stage-level settings
+        first_root = self.by_name[roots[0]]
         scene_path = os.path.join(self.scenes_dir, scene_name)
         ensure_can_write(scene_path, overwrite=self.overwrite)
 
         return author_assembly_scene(
             scene_path=scene_path,
-            root_name=root_name,
+            root_names=roots,
             by_name=self.by_name,
             comp_path_for=self.comp_path_for,
-            meters_per_unit=float(root_part.meters_per_unit),
-            up_axis=str(root_part.up_axis),
+            meters_per_unit=float(first_root.meters_per_unit),
+            up_axis=str(first_root.up_axis),
             include_root_as_instance=include_root_as_instance,
             instanceable=instanceable,
             debug_refs=debug_refs,
