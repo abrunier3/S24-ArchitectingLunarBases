@@ -51,5 +51,14 @@ def Xform "World"
         double3 xformOp:translate = (0, 3, 0)
         uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ"]
     }
+
+    def Xform "landing_site" (
+        prepend references = @../assets/components/landing_site.usda@</landing_site>
+    )
+    {
+        float3 xformOp:rotateXYZ = (0, 0, 0)
+        double3 xformOp:translate = (0, 0, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ"]
+    }
 }
 

@@ -1,0 +1,32 @@
+#usda 1.0
+(
+    defaultPrim = "landing_site"
+    metersPerUnit = 1
+    upAxis = "Z"
+)
+
+def Xform "landing_site"
+{
+    custom string asset:id = "urn:lunarspaceport1:part:landing_site:001"
+    custom string asset:type = "Part"
+    custom double attr:landing_site_volume_m3 = 0
+    custom double3 spatial:dims_m = (2, 0, 2)
+    custom double spatial:metersPerUnit = 1
+    custom string spatial:upAxis = "Z"
+
+    def Mesh "geom" (
+        customData = {
+            string materialHint = "../mtl/lunar_materials.usda:/Materials/Aluminum_2219_T87"
+        }
+        prepend references = @../geoms/landing_site_geom.usda@</landing_site_Geom>
+    )
+    {
+    }
+
+    def Scope "materials" (
+        prepend references = @../mtl/lunar_materials.usda@
+    )
+    {
+    }
+}
+
