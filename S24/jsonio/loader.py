@@ -1,5 +1,5 @@
 import json
-from typing import Any, List, Union
+from typing import List, Union
 
 
 def load_parts_json(source: Union[str, List[dict]]) -> List[dict]:
