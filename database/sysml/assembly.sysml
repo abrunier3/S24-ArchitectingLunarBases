@@ -1,15 +1,15 @@
-package 'HabitationModule' {
+package 'HabitationModule12' {
 
     private import SysML::*;
     private import SI::*;
     private import ISQBase::*;
     private import ScalarValues::*;
 
-    part HabitationModule {
-        part HabitationModule_dims {
-            attribute length = 15;
-            attribute width = 10;
-            attribute height = 5;
+    part HabitationModule12 {
+        part HabitationModule12_dims {
+            attribute length = 13;
+            attribute width = 13;
+            attribute height = 6;
             attribute metersPerUnit = 1;
             attribute upAxis = "Z";
             attribute angleUnit = "deg";
@@ -24,9 +24,9 @@ package 'HabitationModule' {
             attribute rZ_deg = 0;
         }
 
-        attribute HabitationModule_volume = (HabitationModule_dims.length * HabitationModule_dims.width * HabitationModule_dims.height) * HabitationModule_dims.metersPerUnit^3 * 1000;
+        attribute HabitationModule12_volume = (HabitationModule12_dims.length * HabitationModule12_dims.width * HabitationModule12_dims.height) * HabitationModule12_dims.metersPerUnit^3 * 1000;
         attribute geometry = "assets/geom/HabModule_geom.usda";
-        attribute materialRef = "Titanium_Ti6Al4V";
+        attribute materialRef = "Aluminum_2219_T87";
 
         part O2Tank1 {
             part O2Tank1_dims {
@@ -54,7 +54,7 @@ package 'HabitationModule' {
             attribute O2Tank1_maxPressure = 400;
             attribute O2Tank1_wallThickness = 0.01;
             attribute geometry = "assets/geom/O2Tank_geom.usda";
-            attribute materialRef = "Aluminum_2219_T87";
+            attribute materialRef = "Titanium_Ti6Al4V";
         }
         part O2Tank2 {
             part O2Tank2_dims {
@@ -82,7 +82,7 @@ package 'HabitationModule' {
             attribute O2Tank2_maxPressure = 400;
             attribute O2Tank2_wallThickness = 0.01;
             attribute geometry = "assets/geom/O2Tank_geom.usda";
-            attribute materialRef = "Aluminum_2219_T87";
+            attribute materialRef = "Titanium_Ti6Al4V";
         }
     }
 
