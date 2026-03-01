@@ -1,12 +1,12 @@
-package 'HabitationModule' {
+package 'HabitationModule11' {
 
     private import SysML::*;
     private import SI::*;
     private import ISQBase::*;
     private import ScalarValues::*;
 
-    part HabitationModule {
-        part HabitationModule_dims {
+    part HabitationModule11 {
+        part HabitationModule11_dims {
             attribute length = 15;
             attribute width = 10;
             attribute height = 5;
@@ -24,7 +24,7 @@ package 'HabitationModule' {
             attribute rZ_deg = 0;
         }
 
-        attribute HabitationModule_volume = (HabitationModule_dims.length * HabitationModule_dims.width * HabitationModule_dims.height) * HabitationModule_dims.metersPerUnit^3 * 1000;
+        attribute HabitationModule11_volume = (HabitationModule11_dims.length * HabitationModule11_dims.width * HabitationModule11_dims.height) * HabitationModule11_dims.metersPerUnit^3 * 1000;
         attribute geometry = "assets/geom/HabModule_geom.usda";
         attribute materialRef = "Titanium_Ti6Al4V";
 
