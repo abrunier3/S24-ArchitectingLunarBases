@@ -86,8 +86,76 @@ package 'HabitationModule' {
         }
     }
 
-    part tester {
-        /* no data */
+    part rover {
+        part rover_dims {
+            attribute length = 0;
+            attribute width = 0;
+            attribute height = 0;
+            attribute metersPerUnit = 1;
+            attribute upAxis = "Z";
+            attribute angleUnit = "deg";
+            attribute pressureUnit = "kPa";
+            attribute massUnit = "kg";
+            attribute lengthUnit = "m";
+            attribute X = 20;
+            attribute Y = 0;
+            attribute Z = 0;
+            attribute rX_deg = 0;
+            attribute rY_deg = 0;
+            attribute rZ_deg = 0;
+        }
+
+        attribute rover_volume = (rover_dims.length * rover_dims.width * rover_dims.height) * rover_dims.metersPerUnit^3 * 1000;
+        attribute geometry = "assets/geom/caca_geom.usda";
+        attribute materialRef = "Aluminum_2219_T87";
+    }
+
+    part ISRU_PLANT {
+        part ISRU_PLANT_dims {
+            attribute length = 0;
+            attribute width = 0;
+            attribute height = 0;
+            attribute metersPerUnit = 1;
+            attribute upAxis = "Z";
+            attribute angleUnit = "deg";
+            attribute pressureUnit = "kPa";
+            attribute massUnit = "kg";
+            attribute lengthUnit = "m";
+            attribute X = 0;
+            attribute Y = 3;
+            attribute Z = 0;
+            attribute rX_deg = 0;
+            attribute rY_deg = 0;
+            attribute rZ_deg = 0;
+        }
+
+        attribute ISRU_PLANT_volume = (ISRU_PLANT_dims.length * ISRU_PLANT_dims.width * ISRU_PLANT_dims.height) * ISRU_PLANT_dims.metersPerUnit^3 * 1000;
+        attribute geometry = "assets/geom/ISRU_PLANT_geom.usda";
+        attribute materialRef = "Aluminum_2219_T87";
+    }
+
+    part landing_site {
+        part landing_site_dims {
+            attribute length = 2;
+            attribute width = 0;
+            attribute height = 2;
+            attribute metersPerUnit = 1;
+            attribute upAxis = "Z";
+            attribute angleUnit = "deg";
+            attribute pressureUnit = "kPa";
+            attribute massUnit = "kg";
+            attribute lengthUnit = "m";
+            attribute X = 0;
+            attribute Y = 0;
+            attribute Z = 0;
+            attribute rX_deg = 0;
+            attribute rY_deg = 0;
+            attribute rZ_deg = 0;
+        }
+
+        attribute landing_site_volume = (landing_site_dims.length * landing_site_dims.width * landing_site_dims.height) * landing_site_dims.metersPerUnit^3 * 1000;
+        attribute geometry = "assets/geom/landing_site_geom.usda";
+        attribute materialRef = "Aluminum_2219_T87";
     }
 
 }
