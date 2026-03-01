@@ -1,0 +1,32 @@
+#usda 1.0
+(
+    defaultPrim = "O2Tank3"
+    metersPerUnit = 1
+    upAxis = "Z"
+)
+
+def Xform "O2Tank3"
+{
+    custom string asset:id = "urn:lunarspaceport1:part:O2Tank3:001"
+    custom string asset:type = "Part"
+    custom double attr:O2Tank3_volume_m3 = 2.34
+    custom double3 spatial:dims_m = (1.5, 1.2, 1.3)
+    custom double spatial:metersPerUnit = 1
+    custom string spatial:upAxis = "Z"
+
+    def Mesh "geom" (
+        customData = {
+            string materialHint = "../mtl/lunar_materials.usda:/Materials/Aluminum_2219_T87"
+        }
+        prepend references = @../geoms/O2Tank3_geom.usda@</O2Tank3_Geom>
+    )
+    {
+    }
+
+    def Scope "materials" (
+        prepend references = @../mtl/lunar_materials.usda@
+    )
+    {
+    }
+}
+

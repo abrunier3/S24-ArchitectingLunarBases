@@ -32,6 +32,15 @@ def Xform "World"
             double3 xformOp:translate = (-3, -3, -6)
             uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ"]
         }
+
+        def Xform "O2Tank3" (
+            prepend references = @../assets/components/O2Tank3.usda@</O2Tank3>
+        )
+        {
+            float3 xformOp:rotateXYZ = (0, 0, 0)
+            double3 xformOp:translate = (-6, -6, -12)
+            uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ"]
+        }
     }
 
     def Xform "rover" (
