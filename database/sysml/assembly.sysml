@@ -54,7 +54,7 @@ package 'HabitationModule' {
             attribute O2Tank1_maxPressure = 400;
             attribute O2Tank1_wallThickness = 0.01;
             attribute geometry = "assets/geom/O2Tank_geom.usda";
-            attribute materialRef = "Titanium_Ti6Al4V";
+            attribute materialRef = "Aluminum_2219_T87";
         }
         part O2Tank2 {
             part O2Tank2_dims {
@@ -82,6 +82,29 @@ package 'HabitationModule' {
             attribute O2Tank2_maxPressure = 400;
             attribute O2Tank2_wallThickness = 0.01;
             attribute geometry = "assets/geom/O2Tank_geom.usda";
+            attribute materialRef = "Aluminum_2219_T87";
+        }
+        part O2Tank3 {
+            part O2Tank3_dims {
+                attribute length = 1.2;
+                attribute width = 1.3;
+                attribute height = 1.5;
+                attribute metersPerUnit = 1;
+                attribute upAxis = "Z";
+                attribute angleUnit = "deg";
+                attribute pressureUnit = "kPa";
+                attribute massUnit = "kg";
+                attribute lengthUnit = "m";
+                attribute X = -6;
+                attribute Y = -6;
+                attribute Z = -12;
+                attribute rX_deg = 0;
+                attribute rY_deg = 0;
+                attribute rZ_deg = 0;
+            }
+
+            attribute O2Tank3_volume = (O2Tank3_dims.length * O2Tank3_dims.width * O2Tank3_dims.height) * O2Tank3_dims.metersPerUnit^3 * 1000;
+            attribute geometry = "assets/geom/O2Tank3_geom.usda";
             attribute materialRef = "Aluminum_2219_T87";
         }
     }
