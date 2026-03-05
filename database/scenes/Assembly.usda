@@ -40,16 +40,16 @@ def Xform "World"
             float3 xformOp:rotateXYZ = (0, 0, 0)
             double3 xformOp:translate = (-6, -6, -12)
             uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ"]
-        }
-    }
 
-    def Xform "rover" (
-        prepend references = @../assets/components/rover.usda@</rover>
-    )
-    {
-        float3 xformOp:rotateXYZ = (0, 0, 0)
-        double3 xformOp:translate = (20, 0, 0)
-        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ"]
+            def Xform "rover" (
+                prepend references = @../assets/components/rover.usda@</rover>
+            )
+            {
+                float3 xformOp:rotateXYZ = (0, 0, 0)
+                double3 xformOp:translate = (20, 0, 0)
+                uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ"]
+            }
+        }
     }
 
     def Xform "ISRU_PLANT" (
@@ -63,6 +63,15 @@ def Xform "World"
 
     def Xform "landing_site" (
         prepend references = @../assets/components/landing_site.usda@</landing_site>
+    )
+    {
+        float3 xformOp:rotateXYZ = (0, 0, 0)
+        double3 xformOp:translate = (0, 0, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ"]
+    }
+
+    def Xform "example" (
+        prepend references = @../assets/components/example.usda@</example>
     )
     {
         float3 xformOp:rotateXYZ = (0, 0, 0)
