@@ -106,30 +106,6 @@ package 'HabitationModule' {
             attribute O2Tank3_volume = (O2Tank3_dims.length * O2Tank3_dims.width * O2Tank3_dims.height) * O2Tank3_dims.metersPerUnit^3 * 1000;
             attribute geometry = "assets/geom/O2Tank3_geom.usda";
             attribute materialRef = "Aluminum_2219_T87";
-
-            part rover {
-                part rover_dims {
-                    attribute length = 0;
-                    attribute width = 0;
-                    attribute height = 0;
-                    attribute metersPerUnit = 1;
-                    attribute upAxis = "Z";
-                    attribute angleUnit = "deg";
-                    attribute pressureUnit = "kPa";
-                    attribute massUnit = "kg";
-                    attribute lengthUnit = "m";
-                    attribute X = 20;
-                    attribute Y = 0;
-                    attribute Z = 0;
-                    attribute rX_deg = 0;
-                    attribute rY_deg = 0;
-                    attribute rZ_deg = 0;
-                }
-
-                attribute rover_volume = (rover_dims.length * rover_dims.width * rover_dims.height) * rover_dims.metersPerUnit^3 * 1000;
-                attribute geometry = "assets/geom/caca_geom.usda";
-                attribute materialRef = "Aluminum_2219_T87";
-            }
         }
     }
 
@@ -181,28 +157,12 @@ package 'HabitationModule' {
         attribute materialRef = "Aluminum_2219_T87";
     }
 
-    part example {
-        part example_dims {
-            attribute length = 0;
-            attribute width = 0;
-            attribute height = 0;
-            attribute metersPerUnit = 1;
-            attribute upAxis = "Z";
-            attribute angleUnit = "deg";
-            attribute pressureUnit = "kPa";
-            attribute massUnit = "kg";
-            attribute lengthUnit = "m";
-            attribute X = 0;
-            attribute Y = 0;
-            attribute Z = 0;
-            attribute rX_deg = 0;
-            attribute rY_deg = 0;
-            attribute rZ_deg = 0;
-        }
+    part Propellant_Depot {
+        /* no data */
+    }
 
-        attribute example_volume = (example_dims.length * example_dims.width * example_dims.height) * example_dims.metersPerUnit^3 * 1000;
-        attribute geometry = "assets/geom/example_geom.usda";
-        attribute materialRef = "Aluminum_2219_T87";
+    part Rover {
+        /* no data */
     }
 
 }
