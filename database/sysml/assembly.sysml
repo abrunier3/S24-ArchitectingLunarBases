@@ -16,7 +16,7 @@ package 'HabitationModule' {
             attribute pressureUnit = "kPa";
             attribute massUnit = "kg";
             attribute lengthUnit = "m";
-            attribute X = 0;
+            attribute X = 10;
             attribute Y = 0;
             attribute Z = 0;
             attribute rX_deg = 0;
@@ -31,9 +31,9 @@ package 'HabitationModule' {
 
     part ISRU_PLANT {
         part ISRU_PLANT_dims {
-            attribute length = 0;
-            attribute width = 0;
-            attribute height = 0;
+            attribute length = 5;
+            attribute width = 4;
+            attribute height = 2;
             attribute metersPerUnit = 1;
             attribute upAxis = "Z";
             attribute angleUnit = "deg";
