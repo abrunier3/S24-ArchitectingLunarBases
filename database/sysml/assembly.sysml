@@ -112,7 +112,7 @@ package 'HabitationModule' {
             attribute pressureUnit = "kPa";
             attribute massUnit = "kg";
             attribute lengthUnit = "m";
-            attribute X = 0;
+            attribute X = 3;
             attribute Y = 0;
             attribute Z = 0;
             attribute rX_deg = 0;
