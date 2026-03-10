@@ -61,6 +61,13 @@ def build_world_from_manifest(manifest_path: str) -> str:
     if os.path.exists(world_usd):
         os.remove(world_usd)
 
+        # Close any currently open stage first
+    omni.usd.get_context().close_stage()
+
+    # Remove the existing generated world so CreateNew can recreate it
+    if os.path.exists(world_usd):
+        os.remove(world_usd)
+
     stage = Usd.Stage.CreateNew(world_usd)
 
     # Stage metadata
