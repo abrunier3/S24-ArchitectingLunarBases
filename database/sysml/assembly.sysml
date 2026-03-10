@@ -158,7 +158,27 @@ package 'HabitationModule' {
     }
 
     part Propellant_Depot {
-        /* no data */
+        part Propellant_Depot_dims {
+            attribute length = 4;
+            attribute width = 4;
+            attribute height = 2.5;
+            attribute metersPerUnit = 1;
+            attribute upAxis = "Z";
+            attribute angleUnit = "deg";
+            attribute pressureUnit = "kPa";
+            attribute massUnit = "kg";
+            attribute lengthUnit = "m";
+            attribute X = 0;
+            attribute Y = 0;
+            attribute Z = 0;
+            attribute rX_deg = 0;
+            attribute rY_deg = 0;
+            attribute rZ_deg = 0;
+        }
+
+        attribute Propellant_Depot_volume = (Propellant_Depot_dims.length * Propellant_Depot_dims.width * Propellant_Depot_dims.height) * Propellant_Depot_dims.metersPerUnit^3 * 1000;
+        attribute geometry = "assets/geom/Propellant_Depot_geom.usda";
+        attribute materialRef = "Aluminum_2219_T87";
     }
 
     part Rover {
