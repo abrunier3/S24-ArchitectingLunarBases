@@ -1,0 +1,138 @@
+{
+  "scenario_id": "isru_nominal_temp",
+  "scenario_name": "Temporary ISRU to Propellant Depot Delivery",
+  "world_build": "database/json/world_build/landing_site_world_build.json",
+  "time_unit": "hr",
+  "duration": 16.0,
+  "playback_dt": 0.25,
+  "actors": [
+    {
+      "id": "ISRU_PLANT",
+      "display_name": "ISRU Plant",
+      "prim_path": "/World/ISRUPlant"
+    },
+    {
+      "id": "LZ_ALPHA",
+      "display_name": "Landing / Depot",
+      "prim_path": "/World/LandingLaunchZone"
+    },
+    {
+      "id": "LOX_CARGO_ROVER",
+      "display_name": "LOX Cargo Rover",
+      "prim_path": "/World/LunarRover"
+    }
+  ],
+  "routes": [
+    {
+      "route_id": "isru_to_lz_alpha",
+      "from_actor": "ISRU_PLANT",
+      "to_actor": "LZ_ALPHA",
+      "waypoints": [
+        [20.0, 0.0, 0.0],
+        [25.0, 0.0, 0.0],
+        [30.0, 0.0, 0.0],
+        [35.0, 0.0, 0.0],
+        [40.0, 0.0, 0.0]
+      ]
+    }
+  ],
+  "initial_state": {
+    "ISRU_PLANT": {
+      "status": "processing",
+      "lox_stored_kg": 0.0
+    },
+    "LZ_ALPHA": {
+      "status": "waiting",
+      "lox_stored_kg": 0.0
+    },
+    "LOX_CARGO_ROVER": {
+      "status": "waiting_for_load",
+      "cargo_kg": 0.0,
+      "battery_kwh": 100.0,
+      "route_progress": 0.0
+    }
+  },
+  "events": [
+    {
+      "time": 2.0,
+      "type": "state_update",
+      "actor": "ISRU_PLANT",
+      "updates": {
+        "lox_stored_kg": 25.0
+      }
+    },
+    {
+      "time": 4.0,
+      "type": "state_update",
+      "actor": "ISRU_PLANT",
+      "updates": {
+        "lox_stored_kg": 55.0
+      }
+    },
+    {
+      "time": 6.0,
+      "type": "state_update",
+      "actor": "ISRU_PLANT",
+      "updates": {
+        "lox_stored_kg": 85.0
+      }
+    },
+    {
+      "time": 8.0,
+      "type": "state_update",
+      "actor": "ISRU_PLANT",
+      "updates": {
+        "lox_stored_kg": 110.0,
+        "status": "ready_for_transfer"
+      }
+    },
+    {
+      "time": 9.0,
+      "type": "move_start",
+      "actor": "LOX_CARGO_ROVER",
+      "route_id": "isru_to_lz_alpha",
+      "updates": {
+        "status": "en_route_to_depot",
+        "cargo_kg": 110.0
+      }
+    },
+    {
+      "time": 12.0,
+      "type": "move_end",
+      "actor": "LOX_CARGO_ROVER",
+      "route_id": "isru_to_lz_alpha",
+      "updates": {
+        "status": "arrived_at_depot",
+        "cargo_kg": 0.0,
+        "battery_kwh": 91.0,
+        "route_progress": 1.0
+      }
+    },
+    {
+      "time": 12.5,
+      "type": "state_update",
+      "actor": "LZ_ALPHA",
+      "updates": {
+        "lox_stored_kg": 110.0,
+        "status": "tank_filled"
+      }
+    }
+  ],
+  "timeseries": {
+    "ISRU_PLANT.lox_stored_kg": [
+      [0.0, 0.0],
+      [2.0, 25.0],
+      [4.0, 55.0],
+      [6.0, 85.0],
+      [8.0, 110.0]
+    ],
+    "LZ_ALPHA.lox_stored_kg": [
+      [0.0, 0.0],
+      [12.5, 110.0]
+    ],
+    "LOX_CARGO_ROVER.battery_kwh": [
+      [0.0, 100.0],
+      [12.0, 91.0]
+    ]
+  }
+}
