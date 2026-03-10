@@ -57,6 +57,10 @@ def build_world_from_manifest(manifest_path: str) -> str:
     up_axis = stage_cfg.get("upAxis", "Z")
 
     # Create/overwrite world stage (will write USDA text)
+    # Remove existing world file if it already exists
+    if os.path.exists(world_usd):
+        os.remove(world_usd)
+
     stage = Usd.Stage.CreateNew(world_usd)
 
     # Stage metadata
