@@ -89,7 +89,7 @@ package 'HabitationModule' {
             attribute massUnit = "kg";
             attribute lengthUnit = "m";
             attribute X = 0;
-            attribute Y = 0;
+            attribute Y = 5;
             attribute Z = 0;
             attribute rX_deg = 0;
             attribute rY_deg = 0;
