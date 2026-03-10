@@ -1,6 +1,7 @@
 import os
 import omni.ext
 import omni.ui as ui
+import omni.kit.app
 
 
 class Lsp1PipelineExtension(omni.ext.IExt):
@@ -14,7 +15,7 @@ class Lsp1PipelineExtension(omni.ext.IExt):
         with self._window.frame:
             with ui.VStack(spacing=10):
                 ui.Label("Manifest (JSON)", height=20)
-                ui.StringField(self._manifest_model)
+                ui.StringField(model=self._manifest_model)
 
                 with ui.HStack(spacing=10):
                     ui.Button("Build / Open World", clicked_fn=self._on_build)
@@ -28,7 +29,8 @@ class Lsp1PipelineExtension(omni.ext.IExt):
         self._window = None
 
     def _default_manifest_path(self) -> str:
-        ext_path = omni.ext.get_extension_path(self._ext_id)
+        ext_manager = omni.kit.app.get_app().get_extension_manager()
+        ext_path = ext_manager.get_extension_path(self._ext_id)
         repo_root = os.path.normpath(os.path.join(ext_path, "..", ".."))
         return os.path.join(repo_root, "database", "manifests", "lsp1_assets.json")
 
@@ -41,7 +43,7 @@ class Lsp1PipelineExtension(omni.ext.IExt):
     def _on_build(self):
         try:
             from .builder import build_world_from_manifest
-            path = self._manifest_model.as_string
+            path = self._manifest_model.get_value_as_string()
             if not os.path.isfile(path):
                 raise FileNotFoundError(f"Manifest not found: {path}")
             world = build_world_from_manifest(path)
@@ -52,7 +54,7 @@ class Lsp1PipelineExtension(omni.ext.IExt):
     def _on_validate(self):
         try:
             from .builder import validate_metadata
-            path = self._manifest_model.as_string
+            path = self._manifest_model.get_value_as_string()
             if not os.path.isfile(path):
                 raise FileNotFoundError(f"Manifest not found: {path}")
             report = validate_metadata(path)
