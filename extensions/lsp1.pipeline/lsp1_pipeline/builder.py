@@ -29,6 +29,75 @@ def _rel_from_target(target_file: str, asset_file: str) -> str:
     target_dir = os.path.dirname(os.path.abspath(target_file))
     return os.path.relpath(os.path.abspath(asset_file), target_dir).replace("\\", "/")
 
+def _sanitize_token(value: str) -> str:
+    value = (value or "").strip().lower()
+    cleaned = []
+    prev_underscore = False
+
+    for ch in value:
+        if ch.isalnum():
+            cleaned.append(ch)
+            prev_underscore = False
+        else:
+            if not prev_underscore:
+                cleaned.append("_")
+                prev_underscore = True
+
+    result = "".join(cleaned).strip("_")
+    return result or "unnamed"
+
+
+def _derive_asset_id(parent_path: str, layer: Dict[str, Any]) -> str:
+    """
+    Derive a stable backend asset_id unless one is explicitly provided.
+    Example:
+      /World/Assemblies + LSP1Assembly -> world_assemblies_lsp1assembly
+    """
+    explicit = (layer.get("asset_id") or "").strip()
+    if explicit:
+        return explicit
+
+    logical_path = f"{parent_path}/{layer.get('name', 'unnamed')}"
+    return _sanitize_token(logical_path)
+
+
+def _derive_display_name(layer: Dict[str, Any]) -> str:
+    explicit = (layer.get("display_name") or "").strip()
+    if explicit:
+        return explicit
+    return layer.get("name", "Unnamed")
+
+
+def _derive_asset_type_and_role(layer: Dict[str, Any], group_name: str) -> tuple[str, str]:
+    """
+    Derive generic semantic tags in the backend.
+    Priority:
+      1. explicit top-level field
+      2. metadata field
+      3. group-based fallback
+    """
+    metadata = layer.get("metadata", {}) or {}
+
+    asset_type = (layer.get("asset_type") or metadata.get("asset_type") or "").strip()
+    role = (layer.get("role") or metadata.get("role") or "").strip()
+
+    if not asset_type:
+        if group_name == "environment":
+            asset_type = "environment_asset"
+        elif group_name == "assemblies":
+            asset_type = "assembly_asset"
+        else:
+            asset_type = "generic_asset"
+
+    if not role:
+        if group_name == "environment":
+            role = "environment"
+        elif group_name == "assemblies":
+            role = "assembly_member"
+        else:
+            role = "unspecified"
+
+    return asset_type, role
 
 def _validate_layer_schema(layer: Dict[str, Any], group_name: str) -> None:
     """Basic schema validation for each environment/assembly entry."""
@@ -127,12 +196,16 @@ def _add_layer_group(
 
         metadata = layer.get("metadata", {}) or {}
 
+        derived_asset_id = _derive_asset_id(parent_path, layer)
+        derived_display_name = _derive_display_name(layer)
+        derived_asset_type, derived_role = _derive_asset_type_and_role(layer, group_name)
+
         custom_data = {
             "s24:name": layer.get("name", ""),
-            "s24:asset_id": layer.get("asset_id", ""),
-            "s24:asset_type": layer.get("asset_type", ""),
-            "s24:role": layer.get("role", ""),
-            "s24:display_name": layer.get("display_name", layer.get("name", "")),
+            "s24:asset_id": derived_asset_id,
+            "s24:asset_type": derived_asset_type,
+            "s24:role": derived_role,
+            "s24:display_name": derived_display_name,
             "s24:source_usd": usd_ref,
         }
 
