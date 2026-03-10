@@ -55,9 +55,9 @@ package 'HabitationModule' {
 
     part landing_site {
         part landing_site_dims {
-            attribute length = 2;
-            attribute width = 0;
-            attribute height = 2;
+            attribute length = 1;
+            attribute width = 1;
+            attribute height = .5;
             attribute metersPerUnit = 1;
             attribute upAxis = "Z";
             attribute angleUnit = "deg";
