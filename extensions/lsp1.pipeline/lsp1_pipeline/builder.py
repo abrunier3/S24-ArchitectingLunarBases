@@ -54,10 +54,8 @@ def _define_xform_with_reference(
     translate=(0.0, 0.0, 0.0),
     rotate_xyz=(0.0, 0.0, 0.0),
     scale=(1.0, 1.0, 1.0),
-) -> Usd.Prim:
-    """
-    Create a wrapper Xform prim and add a reference to an external USD file.
-    """
+    custom_data=None,
+):
     xform_path = Sdf.Path(parent_path).AppendChild(name)
     prim = stage.DefinePrim(xform_path, "Xform")
     xf = UsdGeom.Xformable(prim)
@@ -68,6 +66,11 @@ def _define_xform_with_reference(
     xf.AddScaleOp().Set(tuple(scale))
 
     prim.GetReferences().AddReference(ref_path)
+
+    if custom_data:
+        for key, value in custom_data.items():
+            prim.SetCustomDataByKey(key, value)
+
     return prim
 
 
@@ -122,6 +125,21 @@ def _add_layer_group(
             scale[2] * unit_scale,
         ]
 
+        metadata = layer.get("metadata", {}) or {}
+
+        custom_data = {
+            "s24:name": layer.get("name", ""),
+            "s24:asset_id": layer.get("asset_id", ""),
+            "s24:asset_type": layer.get("asset_type", ""),
+            "s24:role": layer.get("role", ""),
+            "s24:display_name": layer.get("display_name", layer.get("name", "")),
+            "s24:source_usd": usd_ref,
+        }
+
+        # Preserve any arbitrary metadata keys automatically
+        for k, v in metadata.items():
+            custom_data[f"s24:{k}"] = v
+
         _define_xform_with_reference(
             stage=stage,
             parent_path=parent_path,
@@ -130,8 +148,8 @@ def _add_layer_group(
             translate=translate,
             rotate_xyz=rotate,
             scale=final_scale,
+            custom_data=custom_data,
         )
-
 
 def _create_sun_light(stage: Usd.Stage, lighting_cfg: Dict[str, Any]) -> None:
     """Create optional distant sunlight."""
