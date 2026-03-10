@@ -1,0 +1,27 @@
+#usda 1.0
+(
+    defaultPrim = "World"
+    metersPerUnit = 1
+    upAxis = "Y"
+)
+
+def Xform "World"
+{
+    def Xform "Moon" (
+        prepend references = @/home/ang/Desktop/scene/assets/moon/curated/moon_component.usda@
+    )
+    {
+        double3 xformOp:translate = (0, 0, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate"]
+    }
+
+    def Xform "Lander" (
+        prepend references = @/home/ang/Desktop/scene/assets/lander/curated_lander/lander_component.usda@
+    )
+    {
+        float3 xformOp:scale = (0.06789176, 0.06789176, 0.06789176)
+        double3 xformOp:translate = (1, 0.03154870060863154, 1)
+        uniform token[] xformOpOrder = ["xformOp:scale", "xformOp:translate"]
+    }
+}
+
