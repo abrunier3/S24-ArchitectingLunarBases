@@ -32,7 +32,7 @@ class Lsp1PipelineExtension(omni.ext.IExt):
         ext_manager = omni.kit.app.get_app().get_extension_manager()
         ext_path = ext_manager.get_extension_path(self._ext_id)
         repo_root = os.path.normpath(os.path.join(ext_path, "..", ".."))
-        return os.path.join(repo_root, "database", "manifests", "lsp1_assets.json")
+        return os.path.join(repo_root, "database", "json", "lsp1.json")
 
     def _set_status(self, msg: str):
         if hasattr(self, "_status") and self._status:
