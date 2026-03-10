@@ -1,0 +1,32 @@
+#usda 1.0
+(
+    defaultPrim = "Rover"
+    metersPerUnit = 1
+    upAxis = "Z"
+)
+
+def Xform "Rover"
+{
+    custom string asset:id = "urn:lunarspaceport1:part:Rover:001"
+    custom string asset:type = "Part"
+    custom double attr:Rover_volume_m3 = 12
+    custom double3 spatial:dims_m = (4, 2, 1.5)
+    custom double spatial:metersPerUnit = 1
+    custom string spatial:upAxis = "Z"
+
+    def Mesh "geom" (
+        customData = {
+            string materialHint = "../mtl/lunar_materials.usda:/Materials/Aluminum_2219_T87"
+        }
+        prepend references = @../geoms/Rover_geom.usda@</Rover_Geom>
+    )
+    {
+    }
+
+    def Scope "materials" (
+        prepend references = @../mtl/lunar_materials.usda@
+    )
+    {
+    }
+}
+

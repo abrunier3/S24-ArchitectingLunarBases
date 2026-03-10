@@ -14,42 +14,6 @@ def Xform "World"
         float3 xformOp:rotateXYZ = (0, 0, 0)
         double3 xformOp:translate = (0, 0, 0)
         uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ"]
-
-        def Xform "O2Tank1" (
-            prepend references = @../assets/components/O2Tank1.usda@</O2Tank1>
-        )
-        {
-            float3 xformOp:rotateXYZ = (0, 0, 0)
-            double3 xformOp:translate = (5, 2, 7)
-            uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ"]
-        }
-
-        def Xform "O2Tank2" (
-            prepend references = @../assets/components/O2Tank2.usda@</O2Tank2>
-        )
-        {
-            float3 xformOp:rotateXYZ = (0, 0, 0)
-            double3 xformOp:translate = (-3, -3, -6)
-            uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ"]
-        }
-
-        def Xform "O2Tank3" (
-            prepend references = @../assets/components/O2Tank3.usda@</O2Tank3>
-        )
-        {
-            float3 xformOp:rotateXYZ = (0, 0, 0)
-            double3 xformOp:translate = (-6, -6, -12)
-            uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ"]
-
-            def Xform "rover" (
-                prepend references = @../assets/components/rover.usda@</rover>
-            )
-            {
-                float3 xformOp:rotateXYZ = (0, 0, 0)
-                double3 xformOp:translate = (20, 0, 0)
-                uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ"]
-            }
-        }
     }
 
     def Xform "ISRU_PLANT" (
@@ -70,8 +34,17 @@ def Xform "World"
         uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ"]
     }
 
-    def Xform "example" (
-        prepend references = @../assets/components/example.usda@</example>
+    def Xform "Propellant_Depot" (
+        prepend references = @../assets/components/Propellant_Depot.usda@</Propellant_Depot>
+    )
+    {
+        float3 xformOp:rotateXYZ = (0, 0, 0)
+        double3 xformOp:translate = (0, 0, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ"]
+    }
+
+    def Xform "Rover" (
+        prepend references = @../assets/components/Rover.usda@</Rover>
     )
     {
         float3 xformOp:rotateXYZ = (0, 0, 0)

@@ -1,0 +1,32 @@
+#usda 1.0
+(
+    defaultPrim = "Propellant_Depot"
+    metersPerUnit = 1
+    upAxis = "Z"
+)
+
+def Xform "Propellant_Depot"
+{
+    custom string asset:id = "urn:lunarspaceport1:part:Propellant_Depot:001"
+    custom string asset:type = "Part"
+    custom double attr:Propellant_Depot_volume_m3 = 40
+    custom double3 spatial:dims_m = (4, 4, 2.5)
+    custom double spatial:metersPerUnit = 1
+    custom string spatial:upAxis = "Z"
+
+    def Mesh "geom" (
+        customData = {
+            string materialHint = "../mtl/lunar_materials.usda:/Materials/Aluminum_2219_T87"
+        }
+        prepend references = @../geoms/Propellant_Depot_geom.usda@</Propellant_Depot_Geom>
+    )
+    {
+    }
+
+    def Scope "materials" (
+        prepend references = @../mtl/lunar_materials.usda@
+    )
+    {
+    }
+}
+
