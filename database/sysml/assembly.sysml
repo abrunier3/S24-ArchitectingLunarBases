@@ -182,7 +182,27 @@ package 'HabitationModule' {
     }
 
     part Rover {
-        /* no data */
+        part Rover_dims {
+            attribute length = 4;
+            attribute width = 2;
+            attribute height = 1.5;
+            attribute metersPerUnit = 1;
+            attribute upAxis = "Z";
+            attribute angleUnit = "deg";
+            attribute pressureUnit = "kPa";
+            attribute massUnit = "kg";
+            attribute lengthUnit = "m";
+            attribute X = 0;
+            attribute Y = 0;
+            attribute Z = 0;
+            attribute rX_deg = 0;
+            attribute rY_deg = 0;
+            attribute rZ_deg = 0;
+        }
+
+        attribute Rover_volume = (Rover_dims.length * Rover_dims.width * Rover_dims.height) * Rover_dims.metersPerUnit^3 * 1000;
+        attribute geometry = "assets/geom/Rover_geom.usda";
+        attribute materialRef = "Aluminum_2219_T87";
     }
 
 }
