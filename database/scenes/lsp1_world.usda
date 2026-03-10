@@ -12,12 +12,13 @@ def Xform "World"
         def Xform "LunarTerrain" (
             customData = {
                 dictionary s24 = {
-                    string asset_id = ""
-                    string asset_type = ""
-                    string display_name = "LunarTerrain"
+                    string asset_id = "terrain_001"
+                    string asset_type = "terrain"
+                    string display_name = "Lunar Terrain"
                     string name = "LunarTerrain"
-                    string role = ""
+                    string role = "environment"
                     string source_usd = "lunar_terrain500.usda"
+                    string terrain_model = "lunar_terrain500"
                 }
             }
             prepend references = @lunar_terrain500.usda@
@@ -35,11 +36,13 @@ def Xform "World"
         def Xform "LSP1Assembly" (
             customData = {
                 dictionary s24 = {
-                    string asset_id = ""
-                    string asset_type = ""
-                    string display_name = "LSP1Assembly"
+                    string asset_id = "assembly_001"
+                    string asset_type = "assembly"
+                    string display_name = "LSP1 Assembly"
                     string name = "LSP1Assembly"
-                    string role = ""
+                    string role = "site_layout"
+                    string scenario_class = "lsp1"
+                    string source = "stakeholder_gui"
                     string source_usd = "assembly.usda"
                 }
             }
