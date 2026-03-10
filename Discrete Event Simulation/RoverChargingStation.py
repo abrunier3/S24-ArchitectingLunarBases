@@ -55,3 +55,13 @@ class RoverChargingStation:
             demand = self.chargingPowerRate * dt
             return demand
         return 0
+    
+    def getLoggingAttributes(self):
+        attr = {
+            "Name": self.name,
+            "charging_power_rate":self.chargingPowerRate,
+            "efficiency_factor": self.efficiencyFactor,
+            "total_energy_consumed": self.totalEnergyConsumed,
+            "total_energy_delivered": self.totalEnergyDelivered
+        }
+        return attr

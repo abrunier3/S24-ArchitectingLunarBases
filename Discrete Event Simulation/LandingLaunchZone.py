@@ -67,6 +67,17 @@ class LandingLaunchZone:
         self.totalEnergyConsumed += demand
         return demand
     
+    def getLoggingAttributes(self):
+        attr = {
+            "Name": self.name,
+            "LOX_Capacity":self.loxCapacity,
+            "LOX_Stored": self.loxStored,
+            "utilities_power_rate":self.utilitiesPowerRate,
+            "Energy_Consumed_kWh": self.totalEnergyConsumed,
+            "chilling_power_per_kg_LOX": self.chillingPowerPerKgLOX,
+            "Spike_Events_Array": self.spikeEvents
+        }
+        return attr
 
 
 # class LandingLaunchZone:

@@ -25,7 +25,9 @@ from LunarRover import LunarRover
 from RoverChargingStation import RoverChargingStation
 from LandingLaunchZone import LandingLaunchZone
 from ImportUtility import data_from_json
+from LoggingManager import LoggingManager
 import json
+import time
 
 # -------------------------------------------------
 # Rover Process (Modified to work with new rover system)
@@ -93,6 +95,7 @@ def LOXDeliveryController(system, plant:ISRUPlant, rover: LunarRover, landingZon
 # Example Usage in Main
 # -------------------------------------------------
 def main():
+    start_time = time.perf_counter()
     # Experiment data -----------------------------------------
     experiment = "ISRU Processing Plant with Full Infrastructure"
     roverBatch = 4000          # kg
@@ -105,35 +108,45 @@ def main():
     # Resources
     regolithBuffer = simpy.Container(system, capacity=20_000)
 
+    #Setup Logger
+    logger = LoggingManager(system, time_step=1.0)
+    logger.setup()
+
     # ISRU Plant
     isruPlantData = data_from_json("ISRUV2.json")['ISRUPlant']
-    plant = ISRUPlant(system, isruPlantData.raw['attributes'])
-    
+    plant = ISRUPlant(system, "ISRU_Plant", isruPlantData.raw['attributes'])
+    logger.add(plant)
+
     # Solar Power System (100 kW output, 500 kWh battery)
     solarPowerSystemData = data_from_json("SolarPowerSystemV1.json")['SolarPowerSystem']
-    solarSystem = SolarPowerSystem(system, solarPowerSystemData.raw['attributes'])
-    
+    solarSystem = SolarPowerSystem(system, "Solar_Power_System", solarPowerSystemData.raw['attributes'])
+    logger.add(solarSystem)
+
     # Power Manager
     powerManager = PowerManager(system, solarSystem)
-    
+    logger.add(powerManager)
+
     # Habitation Module (5 kW constant)
     habitationModuleData = data_from_json("HabitationModuleV1.json")['HabitationModule']
     habitat = HabitationModule(system, "Habitat-1", habitationModuleData.raw['attributes'])
     habitat.scheduleSpike(10, 20)  # 20 kWh spike at hour 10
     powerManager.registerConsumer(habitat)
-    
+    logger.add(habitat)
+
     # Communication Module (2 kW constant)
     communicationModuleData = data_from_json("CommunicationModuleV1.json")['CommunicationModule']
     comms = CommunicationModule(system, "CommArray-1", communicationModuleData.raw['attributes'])
     comms.scheduleSpike(15, 10)  # 10 kWh spike at hour 15
     powerManager.registerConsumer(comms)
-    
+    logger.add(comms)
+
     # Landing/Launch Zone (10 kW chilling, 3 kW utilities)
     landingZoneData = data_from_json("LaunchLandingZoneV1.json")['LaunchLandingZone']
     landingZone = LandingLaunchZone(system, "LZ-Alpha", attributeDict=landingZoneData.raw['attributes'])
     landingZone.scheduleSpike(25, 50)  # 50 kWh spike at hour 25
     powerManager.registerConsumer(landingZone)
-    
+    logger.add(landingZone)
+
     # Rover Charging Station
     chargingStation = RoverChargingStation(
         system,
@@ -142,10 +155,13 @@ def main():
         efficiencyFactor=0.85
     )
     powerManager.registerConsumer(chargingStation)
-    
+    logger.add(chargingStation)
+
     roverData = data_from_json("RoverV1.json")['Rover']
     regolithCargoRover = LunarRover(system, name="Regolith Cargo Rover", roverType="cargo", attributeDict=roverData.raw['attributes'])
     LOXCargoRover = LunarRover(system, name="LOX Cargo Rover", roverType="cargo", attributeDict=roverData.raw['attributes'])
+    logger.add(regolithCargoRover)
+    logger.add(LOXCargoRover)
 
     # Start processes
     system.process(regolithRoverController(system, regolithBuffer, roverBatch, 1, regolithCargoRover))
@@ -208,8 +224,16 @@ def main():
     print("="*70)
 
     # Output --------------------------------------------------
+    end_time = time.perf_counter()
+    elapsed_time = end_time - start_time
+    print(f"Elapsed time: {elapsed_time:.4f} seconds")
+    #print(logger.logDict)
+
     # Create the results dictionary
-    results = {
+    final_results = {
+        "Sim_Metrics" : {
+            "Simulation_Run_Time": round(elapsed_time, 4)
+        },
         "ISRU_Plant": {
             "LOX_Stored_kg": round(plant.LOXStored, 2),
             "Energy_Consumed_kWh": round(plant.totalEnergyConsumed, 2),
@@ -265,9 +289,10 @@ def main():
 
     # Export to JSON file
     with open('lunar_spaceport_results.json', 'w') as f:
-        json.dump(results, f, indent=4)
-
-
+        json.dump(final_results, f, indent=4)
+    
+    logger.saveToJSON()
+    
 if __name__ == "__main__":
     """ This is a standard block of code used for Python development.
     It means that when this file is run through Python it will run the

@@ -1,0 +1,940 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lunar Spaceport — Simulation Explorer</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:        #080d14;
+    --panel:     #0d1520;
+    --border:    #1a2a3d;
+    --accent:    #00d4ff;
+    --accent2:   #ff6b35;
+    --accent3:   #7fff6b;
+    --text:      #cde4f5;
+    --muted:     #4a6a85;
+    --glow:      0 0 20px rgba(0,212,255,0.25);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Starfield background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      radial-gradient(1px 1px at 20% 30%, rgba(255,255,255,0.6) 0%, transparent 100%),
+      radial-gradient(1px 1px at 80% 10%, rgba(255,255,255,0.4) 0%, transparent 100%),
+      radial-gradient(1px 1px at 50% 70%, rgba(255,255,255,0.5) 0%, transparent 100%),
+      radial-gradient(1px 1px at 10% 80%, rgba(255,255,255,0.3) 0%, transparent 100%),
+      radial-gradient(1px 1px at 90% 60%, rgba(255,255,255,0.5) 0%, transparent 100%),
+      radial-gradient(1px 1px at 35% 90%, rgba(255,255,255,0.3) 0%, transparent 100%),
+      radial-gradient(1px 1px at 65% 40%, rgba(255,255,255,0.4) 0%, transparent 100%),
+      radial-gradient(1px 1px at 15% 50%, rgba(255,255,255,0.2) 0%, transparent 100%),
+      radial-gradient(1px 1px at 75% 85%, rgba(255,255,255,0.4) 0%, transparent 100%),
+      radial-gradient(1px 1px at 45% 15%, rgba(255,255,255,0.5) 0%, transparent 100%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Subtle lunar surface gradient at bottom */
+  body::after {
+    content: '';
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    height: 180px;
+    background: linear-gradient(to top, rgba(20,35,55,0.6), transparent);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  header {
+    position: relative;
+    z-index: 10;
+    padding: 28px 40px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    background: rgba(8,13,20,0.85);
+    backdrop-filter: blur(10px);
+  }
+
+  .logo-mark {
+    width: 42px; height: 42px;
+    border-radius: 50%;
+    border: 2px solid var(--accent);
+    display: grid;
+    place-items: center;
+    box-shadow: var(--glow);
+    flex-shrink: 0;
+  }
+
+  .logo-mark svg { width: 22px; height: 22px; }
+
+  .header-text h1 {
+    font-size: 1.25rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #fff;
+  }
+
+  .header-text p {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+    margin-top: 2px;
+  }
+
+  .status-pill {
+    margin-left: auto;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    padding: 5px 14px;
+    border-radius: 20px;
+    border: 1px solid var(--muted);
+    color: var(--muted);
+    text-transform: uppercase;
+    transition: all 0.3s;
+  }
+
+  .status-pill.ready {
+    border-color: var(--accent3);
+    color: var(--accent3);
+    box-shadow: 0 0 12px rgba(127,255,107,0.2);
+  }
+
+  main {
+    position: relative;
+    z-index: 10;
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    gap: 0;
+    height: calc(100vh - 85px);
+  }
+
+  /* ── Sidebar ── */
+  aside {
+    border-right: 1px solid var(--border);
+    padding: 24px 20px;
+    overflow-y: auto;
+    background: rgba(13,21,32,0.7);
+    backdrop-filter: blur(6px);
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  aside::-webkit-scrollbar { width: 4px; }
+  aside::-webkit-scrollbar-track { background: transparent; }
+  aside::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  .drop-zone {
+    border: 2px dashed var(--border);
+    border-radius: 10px;
+    padding: 24px 16px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.25s;
+    background: rgba(0,212,255,0.02);
+  }
+
+  .drop-zone:hover, .drop-zone.drag-over {
+    border-color: var(--accent);
+    background: rgba(0,212,255,0.07);
+    box-shadow: var(--glow);
+  }
+
+  .drop-zone svg { opacity: 0.5; margin-bottom: 10px; }
+  .drop-zone p { font-size: 0.8rem; color: var(--muted); line-height: 1.5; }
+  .drop-zone span { color: var(--accent); font-weight: 600; }
+
+  input[type="file"] { display: none; }
+
+  .section-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+
+  select {
+    width: 100%;
+    padding: 10px 14px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    font-size: 0.85rem;
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%234a6a85' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(0,212,255,0.1); }
+  select:disabled { opacity: 0.35; cursor: not-allowed; }
+
+  /* Series list */
+  .series-list { display: flex; flex-direction: column; gap: 8px; }
+
+  .series-item {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.78rem;
+    animation: slideIn 0.2s ease;
+  }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateX(-10px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+
+  .series-swatch {
+    width: 20px; height: 20px;
+    border-radius: 4px;
+    flex-shrink: 0;
+    cursor: pointer;
+    border: 2px solid rgba(255,255,255,0.15);
+    transition: border-color 0.2s, transform 0.15s;
+    position: relative;
+  }
+  .series-swatch:hover {
+    border-color: rgba(255,255,255,0.5);
+    transform: scale(1.15);
+  }
+  .series-swatch:hover::after {
+    content: '✎';
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    font-size: 10px;
+    border-radius: 2px;
+    background: rgba(0,0,0,0.45);
+    color: #fff;
+  }
+  /* Single hidden color input, moved off-screen */
+  #hiddenColorPicker {
+    position: fixed;
+    left: -9999px;
+    top: -9999px;
+    opacity: 0;
+    width: 0;
+    height: 0;
+    border: none;
+    padding: 0;
+  }
+
+  .series-info { flex: 1; min-width: 0; }
+  .series-entity { font-weight: 600; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .series-attr { color: var(--muted); font-family: 'Space Mono', monospace; font-size: 0.65rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  .remove-btn {
+    background: none;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    padding: 2px;
+    border-radius: 4px;
+    transition: color 0.2s;
+    flex-shrink: 0;
+  }
+  .remove-btn:hover { color: #ff5555; }
+
+  .btn {
+    width: 100%;
+    padding: 11px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-family: 'Syne', sans-serif;
+    font-weight: 600;
+    font-size: 0.85rem;
+    letter-spacing: 0.05em;
+    transition: all 0.2s;
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: #000;
+  }
+  .btn-primary:hover:not(:disabled) {
+    background: #33ddff;
+    box-shadow: 0 0 20px rgba(0,212,255,0.4);
+    transform: translateY(-1px);
+  }
+  .btn-primary:disabled { opacity: 0.3; cursor: not-allowed; }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--muted);
+    border: 1px solid var(--border);
+  }
+  .btn-ghost:hover { color: var(--text); border-color: var(--muted); }
+
+  .divider {
+    border: none;
+    border-top: 1px solid var(--border);
+  }
+
+  /* ── Chart area ── */
+  .chart-area {
+    padding: 28px 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    overflow-y: auto;
+    background: rgba(8,13,20,0.5);
+  }
+
+  .chart-area::-webkit-scrollbar { width: 4px; }
+  .chart-area::-webkit-scrollbar-track { background: transparent; }
+  .chart-area::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  .chart-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .chart-title {
+    font-size: 1.1rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    color: #fff;
+  }
+
+  .chart-subtitle {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--muted);
+    margin-top: 3px;
+  }
+
+  /* Layout toggle */
+  .layout-toggle {
+    margin-left: auto;
+    display: flex;
+    gap: 6px;
+  }
+
+  .toggle-btn {
+    padding: 6px 14px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    cursor: pointer;
+    letter-spacing: 0.08em;
+    transition: all 0.2s;
+  }
+  .toggle-btn.active {
+    background: rgba(0,212,255,0.1);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .charts-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .charts-container.overlay-mode {
+    flex-direction: column;
+  }
+
+  .chart-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    position: relative;
+    transition: border-color 0.2s;
+  }
+
+  .chart-card:hover { border-color: var(--muted); }
+
+  .chart-card-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 12px;
+  }
+
+  .chart-card canvas { max-height: 280px; }
+  .chart-card.overlay canvas { max-height: 380px; }
+
+  /* Stats row */
+  .stats-row {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .stat-chip {
+    background: rgba(0,212,255,0.05);
+    border: 1px solid rgba(0,212,255,0.15);
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+  }
+
+  .stat-chip span { color: var(--accent); font-weight: 700; }
+
+  /* Empty state */
+  .empty-state {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    color: var(--muted);
+    text-align: center;
+    padding: 40px;
+  }
+
+  .empty-state svg { opacity: 0.2; }
+  .empty-state h2 { font-size: 1.1rem; color: var(--text); opacity: 0.4; }
+  .empty-state p { font-size: 0.8rem; line-height: 1.6; max-width: 320px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-mark">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#00d4ff" stroke-width="1.5">
+      <circle cx="12" cy="12" r="10"/>
+      <path d="M12 2a7 7 0 0 1 0 14 7 7 0 0 0 0 6"/>
+      <path d="M2 12h4M18 12h4"/>
+    </svg>
+  </div>
+  <div class="header-text">
+    <h1>Lunar Spaceport</h1>
+    <p>DES Simulation Explorer — Variable Plotter</p>
+  </div>
+  <div class="status-pill" id="statusPill">NO DATA</div>
+</header>
+
+<main>
+  <aside>
+    <!-- File drop -->
+    <div>
+      <div class="section-label">Simulation Log</div>
+      <div class="drop-zone" id="dropZone">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#00d4ff" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        <p>Drop your <span>.json</span> log here<br>or <span>click to browse</span></p>
+      </div>
+      <input type="file" id="fileInput" accept=".json">
+    </div>
+
+    <hr class="divider">
+
+    <!-- Entity picker -->
+    <div>
+      <div class="section-label">Entity</div>
+      <select id="entitySelect" disabled>
+        <option value="">— load a file first —</option>
+      </select>
+    </div>
+
+    <!-- Attribute picker -->
+    <div>
+      <div class="section-label">Attribute</div>
+      <select id="attrSelect" disabled>
+        <option value="">— pick an entity —</option>
+      </select>
+    </div>
+
+    <button class="btn btn-primary" id="addBtn" disabled>+ Add to Chart</button>
+
+    <hr class="divider">
+
+    <!-- Series list -->
+    <div>
+      <div class="section-label">Active Series</div>
+      <div class="series-list" id="seriesList">
+        <p style="font-size:0.75rem;color:var(--muted);text-align:center;padding:10px 0">No series added yet</p>
+      </div>
+    </div>
+
+    <button class="btn btn-ghost" id="clearBtn">Clear All</button>
+  </aside>
+
+  <section class="chart-area" id="chartArea">
+    <div class="empty-state" id="emptyState">
+      <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+        <circle cx="12" cy="12" r="10"/>
+        <path d="M12 8v4l3 3"/>
+        <path d="M3.6 9h16.8M3.6 15h16.8"/>
+      </svg>
+      <h2>No Data Loaded</h2>
+      <p>Drop your <code style="color:var(--accent);font-size:0.85em">lunar_spaceport_log.json</code> file onto the panel on the left, then select an entity and attribute to start plotting.</p>
+    </div>
+
+    <div id="liveArea" style="display:none;flex-direction:column;gap:24px;flex:1">
+      <div class="chart-header">
+        <div>
+          <div class="chart-title" id="chartTitle">Ready to plot</div>
+          <div class="chart-subtitle" id="chartSubtitle">Select a series from the left panel</div>
+        </div>
+        <div class="layout-toggle">
+          <button class="toggle-btn active" id="stackedBtn">Stacked</button>
+          <button class="toggle-btn" id="overlayBtn">Overlay</button>
+        </div>
+      </div>
+
+      <div class="stats-row" id="statsRow"></div>
+
+      <div class="charts-container" id="chartsContainer"></div>
+    </div>
+  </section>
+</main>
+
+<!-- Single off-screen color picker shared by all swatches -->
+<input type="color" id="hiddenColorPicker">
+
+<script>
+// ─── State ───────────────────────────────────────────────────────────────────
+let simData = null;   // { time: float → { entity → { attr → value } } }
+let times = [];
+let series = [];      // [{ entity, attr, color, chartInstance }]
+let layoutMode = 'stacked'; // 'stacked' | 'overlay'
+
+const PALETTE = [
+  '#00d4ff','#ff6b35','#7fff6b','#ffd700','#c77dff',
+  '#ff4d6d','#48cae4','#fb8500','#06d6a0','#f72585'
+];
+
+// ─── DOM refs ────────────────────────────────────────────────────────────────
+const dropZone    = document.getElementById('dropZone');
+const fileInput   = document.getElementById('fileInput');
+const entitySel   = document.getElementById('entitySelect');
+const attrSel     = document.getElementById('attrSelect');
+const addBtn      = document.getElementById('addBtn');
+const clearBtn    = document.getElementById('clearBtn');
+const seriesList  = document.getElementById('seriesList');
+const statusPill  = document.getElementById('statusPill');
+const emptyState  = document.getElementById('emptyState');
+const liveArea    = document.getElementById('liveArea');
+const chartTitle  = document.getElementById('chartTitle');
+const chartSub    = document.getElementById('chartSubtitle');
+const statsRow    = document.getElementById('statsRow');
+const chartsContainer = document.getElementById('chartsContainer');
+const stackedBtn  = document.getElementById('stackedBtn');
+const overlayBtn  = document.getElementById('overlayBtn');
+const colorPicker = document.getElementById('hiddenColorPicker');
+
+// Live swatch preview while dragging colour
+colorPicker.addEventListener('input', () => {
+  if (colorPicker._targetSwatch) {
+    colorPicker._targetSwatch.style.background = colorPicker.value;
+  }
+});
+
+// Commit colour and re-render charts when picker closes
+colorPicker.addEventListener('change', () => {
+  const i = colorPicker._targetIndex;
+  if (i !== undefined) {
+    series[i].color = colorPicker.value;
+    renderAll();
+  }
+});
+
+// ─── File loading ─────────────────────────────────────────────────────────────
+dropZone.addEventListener('click', () => fileInput.click());
+fileInput.addEventListener('change', e => loadFile(e.target.files[0]));
+
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+dropZone.addEventListener('dragleave', ()  => dropZone.classList.remove('drag-over'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropZone.classList.remove('drag-over');
+  const file = e.dataTransfer.files[0];
+  if (file) loadFile(file);
+});
+
+function loadFile(file) {
+  if (!file || !file.name.endsWith('.json')) return alert('Please select a .json file.');
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const raw = JSON.parse(e.target.result);
+      processData(raw);
+    } catch (err) {
+      alert('Could not parse JSON: ' + err.message);
+    }
+  };
+  reader.readAsText(file);
+}
+
+function processData(raw) {
+  simData = {};
+  for (const [k, v] of Object.entries(raw)) {
+    const t = parseFloat(k);
+    if (!isNaN(t)) simData[t] = v;
+  }
+
+  times = Object.keys(simData).map(Number).sort((a,b) => a - b);
+  const tMax = times[times.length - 1];
+  const tMin = times[0];
+
+  // Status
+  statusPill.textContent = `${times.length} STEPS · ${tMin}–${tMax} H`;
+  statusPill.classList.add('ready');
+
+  // Populate entity dropdown
+  const entities = getEntities();
+  entitySel.innerHTML = '<option value="">— select entity —</option>';
+  entities.forEach(e => {
+    const opt = document.createElement('option');
+    opt.value = e; opt.textContent = e;
+    entitySel.appendChild(opt);
+  });
+  entitySel.disabled = false;
+  attrSel.disabled = true;
+  addBtn.disabled = true;
+
+  dropZone.querySelector('p').innerHTML = `<span style="color:var(--accent3)">✓ Loaded:</span> ${file ? file.name : 'file'}`;
+}
+
+// ─── Dropdowns ───────────────────────────────────────────────────────────────
+function getEntities() {
+  const set = new Set();
+  for (const snap of Object.values(simData)) Object.keys(snap).forEach(k => set.add(k));
+  return [...set].sort();
+}
+
+function getNumericAttrs(entity) {
+  const set = new Set();
+  for (const snap of Object.values(simData)) {
+    if (!snap[entity]) continue;
+    for (const [k, v] of Object.entries(snap[entity])) {
+      if (typeof v === 'number' && !['Name'].includes(k)) set.add(k);
+    }
+  }
+  return [...set].sort();
+}
+
+entitySel.addEventListener('change', () => {
+  const ent = entitySel.value;
+  attrSel.innerHTML = '<option value="">— select attribute —</option>';
+  attrSel.disabled = true;
+  addBtn.disabled = true;
+  if (!ent) return;
+  const attrs = getNumericAttrs(ent);
+  attrs.forEach(a => {
+    const opt = document.createElement('option');
+    opt.value = a; opt.textContent = a;
+    attrSel.appendChild(opt);
+  });
+  attrSel.disabled = false;
+});
+
+attrSel.addEventListener('change', () => {
+  addBtn.disabled = !attrSel.value;
+});
+
+// ─── Add series ───────────────────────────────────────────────────────────────
+addBtn.addEventListener('click', () => {
+  const entity = entitySel.value;
+  const attr   = attrSel.value;
+  if (!entity || !attr) return;
+
+  // Avoid exact duplicates
+  if (series.find(s => s.entity === entity && s.attr === attr)) {
+    alert('This series is already on the chart.');
+    return;
+  }
+
+  const color = PALETTE[series.length % PALETTE.length];
+  series.push({ entity, attr, color });
+  renderAll();
+});
+
+clearBtn.addEventListener('click', () => {
+  series = [];
+  renderAll();
+});
+
+// ─── Layout toggle ───────────────────────────────────────────────────────────
+stackedBtn.addEventListener('click', () => {
+  layoutMode = 'stacked';
+  stackedBtn.classList.add('active');
+  overlayBtn.classList.remove('active');
+  renderAll();
+});
+overlayBtn.addEventListener('click', () => {
+  layoutMode = 'overlay';
+  overlayBtn.classList.add('active');
+  stackedBtn.classList.remove('active');
+  renderAll();
+});
+
+// ─── Render ───────────────────────────────────────────────────────────────────
+function extractSeries(entity, attr) {
+  const xs = [], ys = [];
+  for (const t of times) {
+    const snap = simData[t];
+    if (snap?.[entity] && typeof snap[entity][attr] === 'number') {
+      xs.push(t);
+      ys.push(snap[entity][attr]);
+    }
+  }
+  return { xs, ys };
+}
+
+function renderAll() {
+  // Destroy old charts
+  chartsContainer.querySelectorAll('canvas').forEach(c => {
+    const inst = Chart.getChart(c);
+    if (inst) inst.destroy();
+  });
+  chartsContainer.innerHTML = '';
+  statsRow.innerHTML = '';
+  seriesList.innerHTML = '';
+
+  if (series.length === 0) {
+    emptyState.style.display = 'flex';
+    liveArea.style.display = 'none';
+    seriesList.innerHTML = '<p style="font-size:0.75rem;color:var(--muted);text-align:center;padding:10px 0">No series added yet</p>';
+    return;
+  }
+
+  emptyState.style.display = 'none';
+  liveArea.style.display = 'flex';
+
+  // Sidebar series items
+  series.forEach((s, i) => {
+    const div = document.createElement('div');
+    div.className = 'series-item';
+    div.innerHTML = `
+      <div class="series-swatch" data-i="${i}" style="background:${s.color}" title="Click to change color"></div>
+      <div class="series-info">
+        <div class="series-entity">${s.entity}</div>
+        <div class="series-attr">${s.attr}</div>
+      </div>
+      <button class="remove-btn" data-i="${i}" title="Remove">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>`;
+    seriesList.appendChild(div);
+  });
+
+  // Wire up swatch clicks to the single hidden color picker
+  seriesList.querySelectorAll('.series-swatch').forEach(swatch => {
+    swatch.addEventListener('click', () => {
+      const i = parseInt(swatch.dataset.i);
+      colorPicker.value = series[i].color;
+      colorPicker._targetIndex = i;
+      colorPicker._targetSwatch = swatch;
+      colorPicker.click();
+    });
+  });
+
+  seriesList.querySelectorAll('.remove-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      series.splice(parseInt(btn.dataset.i), 1);
+      renderAll();
+    });
+  });
+
+  // Header
+  chartTitle.textContent = series.length === 1
+    ? `${series[0].entity} — ${series[0].attr}`
+    : `${series.length} Series`;
+  chartSub.textContent = `t = ${times[0]} → ${times[times.length-1]} h  ·  ${times.length} data points`;
+
+  // Stats chips
+  series.forEach(s => {
+    const { ys } = extractSeries(s.entity, s.attr);
+    if (!ys.length) return;
+    const min = Math.min(...ys), max = Math.max(...ys), last = ys[ys.length-1];
+    const chip = document.createElement('div');
+    chip.className = 'stat-chip';
+    chip.style.borderColor = s.color + '44';
+    chip.innerHTML = `<span style="color:${s.color}">${s.entity}</span> ${s.attr} · min <span>${fmt(min)}</span> · max <span>${fmt(max)}</span> · final <span>${fmt(last)}</span>`;
+    statsRow.appendChild(chip);
+  });
+
+  if (layoutMode === 'stacked') {
+    renderStacked();
+  } else {
+    renderOverlay();
+  }
+}
+
+function renderStacked() {
+  series.forEach(s => {
+    const { xs, ys } = extractSeries(s.entity, s.attr);
+    const card = makeCard(`${s.entity} › ${s.attr}`, false);
+    const canvas = card.querySelector('canvas');
+
+    new Chart(canvas, {
+      type: 'line',
+      data: {
+        labels: xs,
+        datasets: [{
+          data: ys,
+          borderColor: s.color,
+          backgroundColor: s.color + '18',
+          borderWidth: 1.8,
+          pointRadius: xs.length > 300 ? 0 : 2,
+          pointHoverRadius: 5,
+          fill: true,
+          tension: 0.3,
+          label: s.attr,
+        }]
+      },
+      options: chartOptions(s.attr)
+    });
+
+    chartsContainer.appendChild(card);
+  });
+}
+
+function renderOverlay() {
+  const card = makeCard('Overlay — All Series', true);
+  const canvas = card.querySelector('canvas');
+
+  const allXs = [...new Set(series.flatMap(s => extractSeries(s.entity, s.attr).xs))].sort((a,b)=>a-b);
+
+  new Chart(canvas, {
+    type: 'line',
+    data: {
+      labels: allXs,
+      datasets: series.map(s => {
+        const { xs, ys } = extractSeries(s.entity, s.attr);
+        const lookup = Object.fromEntries(xs.map((x,i) => [x, ys[i]]));
+        return {
+          label: `${s.entity} › ${s.attr}`,
+          data: allXs.map(t => lookup[t] ?? null),
+          borderColor: s.color,
+          backgroundColor: 'transparent',
+          borderWidth: 1.8,
+          pointRadius: allXs.length > 300 ? 0 : 2,
+          pointHoverRadius: 5,
+          fill: false,
+          tension: 0.3,
+          spanGaps: true,
+        };
+      })
+    },
+    options: chartOptions(null, true)
+  });
+
+  chartsContainer.appendChild(card);
+}
+
+function makeCard(label, isOverlay) {
+  const card = document.createElement('div');
+  card.className = 'chart-card' + (isOverlay ? ' overlay' : '');
+  card.innerHTML = `<div class="chart-card-label">${label}</div><canvas></canvas>`;
+  return card;
+}
+
+function chartOptions(yLabel, showLegend = false) {
+  return {
+    responsive: true,
+    maintainAspectRatio: true,
+    interaction: { mode: 'index', intersect: false },
+    plugins: {
+      legend: {
+        display: showLegend,
+        labels: {
+          color: '#cde4f5',
+          font: { family: 'Space Mono', size: 10 },
+          boxWidth: 12,
+        }
+      },
+      tooltip: {
+        backgroundColor: '#0d1520',
+        borderColor: '#1a2a3d',
+        borderWidth: 1,
+        titleColor: '#00d4ff',
+        bodyColor: '#cde4f5',
+        titleFont: { family: 'Space Mono', size: 11 },
+        bodyFont: { family: 'Space Mono', size: 11 },
+        callbacks: {
+          title: items => `t = ${items[0].label} h`,
+          label: item => ` ${item.dataset.label ?? yLabel}: ${fmt(item.parsed.y)}`
+        }
+      }
+    },
+    scales: {
+      x: {
+        ticks: {
+          color: '#4a6a85',
+          font: { family: 'Space Mono', size: 10 },
+          maxTicksLimit: 10,
+          callback: v => `${parseFloat(v).toLocaleString()} h`
+        },
+        grid: { color: 'rgba(255,255,255,0.04)' },
+        border: { color: '#1a2a3d' }
+      },
+      y: {
+        ticks: {
+          color: '#4a6a85',
+          font: { family: 'Space Mono', size: 10 },
+          callback: v => fmt(v)
+        },
+        grid: { color: 'rgba(255,255,255,0.04)' },
+        border: { color: '#1a2a3d' },
+        title: yLabel ? {
+          display: true,
+          text: yLabel,
+          color: '#4a6a85',
+          font: { family: 'Space Mono', size: 10 }
+        } : undefined
+      }
+    }
+  };
+}
+
+function fmt(n) {
+  if (n === null || n === undefined) return '—';
+  if (Math.abs(n) >= 1e6)  return (n/1e6).toFixed(2) + 'M';
+  if (Math.abs(n) >= 1e3)  return (n/1e3).toFixed(2) + 'k';
+  if (Math.abs(n) < 0.001 && n !== 0) return n.toExponential(2);
+  return parseFloat(n.toFixed(4)).toString();
+}
+
+// expose for drop zone label after load
+let file;
+dropZone.addEventListener('drop', e => { file = e.dataTransfer.files[0]; });
+fileInput.addEventListener('change', e => { file = e.target.files[0]; });
+</script>
+</body>
+</html>

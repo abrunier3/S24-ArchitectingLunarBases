@@ -9,7 +9,7 @@ class SolarPowerSystem:
     Solar panel system with battery storage and degradation capabilities.
     Manages power generation, battery charging, and power distribution.
     """
-    def __init__(self, system, attributeDict):
+    def __init__(self, system, name, attributeDict):
         """
         Args:
             system: SimPy environment
@@ -18,6 +18,7 @@ class SolarPowerSystem:
             batteryDegradationFactor: Factor to degrade battery capacity over time (0-1)
             powerDegradationFactor: Factor to degrade power output over time (0-1)
         """
+        self.name = name
         self.system = system
         self.nominalPowerOutput = attributeDict["powerOutput"]  # kW
         self.powerDegradationFactor = attributeDict["powerDegradationFactor"]
@@ -81,8 +82,18 @@ class SolarPowerSystem:
         if oldCapacity > 0:
             self.batteryCharge = (self.batteryCharge / oldCapacity) * self.batteryCapacity
 
-
-
+    def getLoggingAttributes(self):
+        attr = {
+            "Name": self.name,
+            "power_degradation_factor": self.powerDegradationFactor,
+            "current_power_output": self.currentPowerOutput,
+            "battery_degradation_factor": self.batteryDegradationFactor,
+            "battery_capacity": self.batteryCapacity,
+            "battery_charge": self.batteryCharge,
+            "total_energy_generated": self.totalEnergyGenerated,
+            "total_energy_from_battery": self.totalEnergyFromBattery
+        }
+        return attr
 
 
 

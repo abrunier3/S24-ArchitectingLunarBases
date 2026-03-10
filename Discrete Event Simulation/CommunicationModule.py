@@ -49,7 +49,15 @@ class CommunicationModule:
         self.totalEnergyConsumed += demand
         return demand
 
-
+    def getLoggingAttributes(self):
+        attr = {
+            "Name": self.name,
+            "Energy_Consumed_kWh": round(self.totalEnergyConsumed, 2),
+            "Constant_Power_Rate": round(self.constantPowerRate, 2),
+            "Spike_Events_Array": self.spikeEvents
+        }
+        return attr
+        
 
 
 # class CommunicationModule:

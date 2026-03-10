@@ -63,7 +63,20 @@ class LunarRover:
         self.currentLoad = 0
         return cargo
 
-
+    def getLoggingAttributes(self):
+        attr = {
+            "Name": self.name,
+            "rover_type":self.type,
+            "max_capacity": self.maxCapacity,
+            "current_load":self.currentLoad,
+            "energy_per_km_per_kg": self.energyPerKmPerKg,
+            "battery_capacity": self.batteryCapacity,
+            "battery_charge": self.batteryCharge,
+            "total_distance_traveled": self.totalDistanceTraveled,
+            "total_energy_consumed": self.totalEnergyConsumed,
+            "hours_per_km": self.hoursPerKm
+        }
+        return attr
 
 # class LunarRover:
 #     """

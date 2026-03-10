@@ -15,6 +15,11 @@ class PowerManager:
         self.powerGeneratedSeries = [] #Create an array to track how much power is generated at each time step
         self.totalDemandSeries = [] #Create an array to track how much power demand exists at each time step
         
+        #These are simply variables that stores the latest demand and production numbers so that the logger can access them
+        #Should not be used externally
+        self.latestEnergyDemand = 0
+        self.latestEnergyProduction = 0
+
     def registerConsumer(self, consumer):
         """Register a power consumer"""
         self.consumers.append(consumer)
@@ -39,6 +44,10 @@ class PowerManager:
             # Manage power balance
             energyBalance = energyGenerated - totalDemand
             
+            #Updated tracking variables
+            self.latestEnergyDemand = totalDemand
+            self.latestEnergyProduction = energyGenerated
+
             #Update internal tracking arrays
             self.powerGeneratedSeries.append(energyGenerated)
             self.totalDemandSeries.append(totalDemand)
@@ -57,3 +66,11 @@ class PowerManager:
                 except RuntimeError as e:
                     print(str(e))
                     raise
+
+    def getLoggingAttributes(self):
+        attr = {
+            "Name": "Power_Manager",
+            "current_energy_demand":self.latestEnergyDemand,
+            "current_energy_production": self.latestEnergyProduction,
+        }
+        return attr
