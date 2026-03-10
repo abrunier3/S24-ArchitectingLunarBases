@@ -2,7 +2,6 @@ import os
 import omni.ext
 import omni.ui as ui
 
-from .builder import build_world_from_manifest, validate_metadata
 
 
 class Lsp1PipelineExtension(omni.ext.IExt):
