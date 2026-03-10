@@ -1,5 +1,4 @@
 import json
-from pathlib import Path
 
 import omni.usd
 from pxr import UsdGeom, Gf
@@ -11,28 +10,31 @@ class ScenarioPlayer:
         self.time = 0.0
         self.state = {}
         self.active_moves = {}
+        self._applied_event_indices = set()
 
     def load(self, scenario_path: str):
         with open(scenario_path, "r", encoding="utf-8") as f:
             self.scenario = json.load(f)
+
         self.time = 0.0
-        self.state = self.scenario.get("initial_state", {}).copy()
+        self.state = json.loads(json.dumps(self.scenario.get("initial_state", {})))
         self.active_moves = {}
+        self._applied_event_indices = set()
 
     def update(self, t: float):
         self.time = t
         if not self.scenario:
             return
 
-        # Apply all events up to current time
-        for event in self.scenario.get("events", []):
-            if event.get("_applied", False):
-                continue
-            if event["time"] <= t:
-                self._apply_event(event)
-                event["_applied"] = True
+        events = self.scenario.get("events", [])
 
-        # Update active rover motions
+        for i, event in enumerate(events):
+            if i in self._applied_event_indices:
+                continue
+            if float(event["time"]) <= t:
+                self._apply_event(event)
+                self._applied_event_indices.add(i)
+
         self._update_motion()
 
     def _apply_event(self, event: dict):
@@ -51,8 +53,8 @@ class ScenarioPlayer:
             move_end_time = self._find_matching_move_end(actor, route_id)
             self.active_moves[actor] = {
                 "route": route,
-                "start_time": event["time"],
-                "end_time": move_end_time,
+                "start_time": float(event["time"]),
+                "end_time": float(move_end_time),
             }
             self.state[actor].update(event.get("updates", {}))
 
@@ -70,11 +72,7 @@ class ScenarioPlayer:
 
     def _find_matching_move_end(self, actor: str, route_id: str):
         for event in self.scenario.get("events", []):
-            if (
-                event["type"] == "move_end"
-                and event["actor"] == actor
-                and event["route_id"] == route_id
-            ):
+            if event["type"] == "move_end" and event["actor"] == actor and event["route_id"] == route_id:
                 return event["time"]
         raise ValueError(f"No move_end found for actor={actor}, route={route_id}")
 
@@ -104,6 +102,7 @@ class ScenarioPlayer:
                 progress = max(0.0, min(1.0, (self.time - start) / (end - start)))
 
             pos = self._interp_polyline(waypoints, progress)
+
             xform = UsdGeom.Xformable(prim)
             xform.ClearXformOpOrder()
             xform.AddTranslateOp().Set(Gf.Vec3d(pos[0], pos[1], pos[2]))
