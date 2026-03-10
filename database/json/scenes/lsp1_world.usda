@@ -1,0 +1,66 @@
+#usda 1.0
+(
+    metersPerUnit = 1
+    upAxis = "Z"
+)
+
+def Xform "World"
+{
+    def Xform "LunarTerrain" (
+        prepend references = @c:\users\imalave3\malaka hub\s24-architectinglunarbases\s24-architectinglunarbases\database\scenes\lunar_terrain500.usda@
+    )
+    {
+        float3 xformOp:rotateXYZ = (0, 0, 0)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (0, 0, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+    }
+
+    def Xform "HabitationModule" (
+        prepend references = @c:\users\imalave3\malaka hub\s24-architectinglunarbases\s24-architectinglunarbases\database\json\assets\components\HabitationModule.usda@
+    )
+    {
+        float3 xformOp:rotateXYZ = (0, 0, 0)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (0, 0, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+    }
+
+    def Xform "ISRUPlant" (
+        prepend references = @c:\users\imalave3\malaka hub\s24-architectinglunarbases\s24-architectinglunarbases\database\json\assets\components\ISRUPlant.usda@
+    )
+    {
+        float3 xformOp:rotateXYZ = (0, 0, 0)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (20, 0, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+    }
+
+    def Xform "LandingLaunchZone" (
+        prepend references = @c:\users\imalave3\malaka hub\s24-architectinglunarbases\s24-architectinglunarbases\database\json\assets\components\LandingLaunchZone.usda@
+    )
+    {
+        float3 xformOp:rotateXYZ = (0, 0, 0)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (50, 0, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+    }
+
+    def Xform "LunarRover" (
+        prepend references = @c:\users\imalave3\malaka hub\s24-architectinglunarbases\s24-architectinglunarbases\database\json\assets\components\LunarRover.usda@
+    )
+    {
+        float3 xformOp:rotateXYZ = (0, 0, 0)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (10, 5, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+    }
+
+    def DistantLight "SunLight"
+    {
+        custom float intensity = 50000
+        float3 xformOp:rotateXYZ = (-45, 35, 0)
+        uniform token[] xformOpOrder = ["xformOp:rotateXYZ"]
+    }
+}
+
