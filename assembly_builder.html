@@ -770,9 +770,36 @@
     flex: 1;
     outline: none;
   }
+
+  .hub-back {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    z-index: 9999;
+    background: rgba(8,13,20,0.9);
+    border: 1px solid #1a2a3d;
+    color: #4a6a85;
+    font-family: monospace;
+    font-size: 11px;
+    padding: 5px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: color 0.2s, border-color 0.2s;
+    backdrop-filter: blur(6px);
+  }
+  .hub-back:hover { color: #cde4f5; border-color: #4a6a85; }
 </style>
 </head>
 <body>
+<a class="hub-back" href="index.html">
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+  Hub
+</a>
+
 
 <!-- TOP BAR -->
 <div class="topbar">
