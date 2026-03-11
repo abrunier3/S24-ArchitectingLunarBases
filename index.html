@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>S24 — Lunar Spaceport Digital Ecosystem</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #080d14;
+    --panel: #0d1520;
+    --border: #1a2a3d;
+    --accent: #00d4ff;
+    --green: #00ff9d;
+    --orange: #ff6b35;
+    --text: #cde4f5;
+    --muted: #4a6a85;
+    --glow-blue: 0 0 30px rgba(0,212,255,0.3);
+    --glow-green: 0 0 30px rgba(0,255,157,0.3);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  /* ── Starfield ── */
+  #stars {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── Landing page ── */
+  #landing {
+    position: relative;
+    z-index: 10;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    transition: opacity 0.4s, transform 0.4s;
+  }
+
+  #landing.hidden {
+    opacity: 0;
+    pointer-events: none;
+    transform: scale(0.97);
+  }
+
+  .eyebrow {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 20px;
+    animation: fadeUp 0.8s ease both;
+  }
+
+  .title {
+    font-size: clamp(2.5rem, 6vw, 5rem);
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #fff;
+    text-align: center;
+    line-height: 1.05;
+    animation: fadeUp 0.8s 0.1s ease both;
+  }
+
+  .title span {
+    color: var(--accent);
+    text-shadow: var(--glow-blue);
+  }
+
+  .subtitle {
+    margin-top: 16px;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    text-align: center;
+    animation: fadeUp 0.8s 0.2s ease both;
+  }
+
+  /* ── Moon graphic ── */
+  .moon-ring {
+    width: 180px;
+    height: 180px;
+    margin: 40px 0 48px;
+    position: relative;
+    animation: fadeUp 0.8s 0.15s ease both;
+  }
+
+  .moon-ring svg {
+    width: 100%;
+    height: 100%;
+    animation: rotateSlow 40s linear infinite;
+  }
+
+  .moon-core {
+    position: absolute;
+    inset: 22px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 38% 38%, #1e3a5f, #080d14);
+    border: 1px solid #1a3050;
+    box-shadow: inset 0 0 30px rgba(0,0,0,0.8), 0 0 40px rgba(0,212,255,0.1);
+  }
+
+  .moon-label {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .moon-label span:first-child {
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: 0.08em;
+  }
+
+  .moon-label span:last-child {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.55rem;
+    color: var(--muted);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+  }
+
+  /* ── Cards ── */
+  .cards {
+    display: flex;
+    gap: 20px;
+    animation: fadeUp 0.8s 0.3s ease both;
+  }
+
+  .card {
+    width: 260px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px 24px;
+    cursor: pointer;
+    transition: all 0.25s;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 16px;
+    opacity: 0;
+    transition: opacity 0.25s;
+  }
+
+  .card.blue::before  { background: radial-gradient(circle at 50% 0%, rgba(0,212,255,0.08), transparent 70%); }
+  .card.green::before { background: radial-gradient(circle at 50% 0%, rgba(0,255,157,0.08), transparent 70%); }
+
+  .card:hover {
+    transform: translateY(-4px);
+    border-color: var(--card-accent);
+  }
+
+  .card:hover::before { opacity: 1; }
+
+  .card.blue  { --card-accent: var(--accent); }
+  .card.green { --card-accent: var(--green); }
+
+  .card:hover { box-shadow: 0 8px 40px rgba(0,0,0,0.4); }
+  .card.blue:hover  { box-shadow: 0 8px 40px rgba(0,212,255,0.15); }
+  .card.green:hover { box-shadow: 0 8px 40px rgba(0,255,157,0.15); }
+
+  .card-icon {
+    width: 44px; height: 44px;
+    border-radius: 10px;
+    display: grid;
+    place-items: center;
+    border: 1px solid;
+  }
+
+  .card.blue  .card-icon { border-color: rgba(0,212,255,0.3); background: rgba(0,212,255,0.08); }
+  .card.green .card-icon { border-color: rgba(0,255,157,0.3); background: rgba(0,255,157,0.08); }
+
+  .card-name {
+    font-size: 1rem;
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: 0.04em;
+  }
+
+  .card-desc {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--muted);
+    line-height: 1.7;
+  }
+
+  .card-cta {
+    margin-top: 4px;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: gap 0.2s;
+  }
+
+  .card.blue  .card-cta { color: var(--accent); }
+  .card.green .card-cta { color: var(--green); }
+  .card:hover .card-cta { gap: 10px; }
+
+  /* ── App shell ── */
+  #appShell {
+    position: fixed;
+    inset: 0;
+    z-index: 20;
+    display: flex;
+    flex-direction: column;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.35s;
+  }
+
+  #appShell.visible {
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  .app-topbar {
+    height: 44px;
+    background: rgba(8,13,20,0.95);
+    border-bottom: 1px solid var(--border);
+    backdrop-filter: blur(10px);
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    gap: 12px;
+    flex-shrink: 0;
+    z-index: 30;
+  }
+
+  .back-btn {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.08em;
+    padding: 5px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .back-btn:hover { color: var(--text); border-color: var(--muted); }
+
+  .app-tabs {
+    display: flex;
+    gap: 4px;
+    margin-left: 8px;
+  }
+
+  .app-tab {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.08em;
+    padding: 5px 14px;
+    border-radius: 6px;
+    border: 1px solid transparent;
+    background: none;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: var(--muted);
+  }
+
+  .app-tab:hover { color: var(--text); }
+
+  .app-tab.active-blue  { border-color: var(--accent); color: var(--accent); background: rgba(0,212,255,0.08); }
+  .app-tab.active-green { border-color: var(--green);  color: var(--green);  background: rgba(0,255,157,0.08); }
+
+  .iframe-wrapper {
+    flex: 1;
+    position: relative;
+  }
+
+  iframe {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: none;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s;
+  }
+
+  iframe.active {
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(18px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes rotateSlow {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+  }
+</style>
+</head>
+<body>
+
+<!-- Starfield canvas -->
+<canvas id="stars"></canvas>
+
+<!-- Landing menu -->
+<div id="landing">
+  <div class="eyebrow">S24 · Lunar Spaceport Digital Ecosystem</div>
+
+  <h1 class="title">Mission<br>Control <span>Hub</span></h1>
+  <p class="subtitle">SysML v2 · JSON · USD · DES Simulation</p>
+
+  <div class="moon-ring">
+    <svg viewBox="0 0 180 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="90" cy="90" r="86" stroke="#1a2a3d" stroke-width="1"/>
+      <circle cx="90" cy="90" r="86" stroke="url(#arcGrad)" stroke-width="1.5"
+        stroke-dasharray="180 360" stroke-linecap="round"/>
+      <!-- orbit dots -->
+      <circle cx="90" cy="4" r="3" fill="#00d4ff" opacity="0.8"/>
+      <circle cx="176" cy="90" r="2" fill="#00ff9d" opacity="0.6"/>
+      <circle cx="90" cy="176" r="2.5" fill="#00d4ff" opacity="0.4"/>
+      <circle cx="4" cy="90" r="1.5" fill="#ff6b35" opacity="0.5"/>
+      <defs>
+        <linearGradient id="arcGrad" x1="0" y1="0" x2="180" y2="180" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#00d4ff"/>
+          <stop offset="100%" stop-color="#00ff9d"/>
+        </linearGradient>
+      </defs>
+    </svg>
+    <div class="moon-core"></div>
+    <div class="moon-label">
+      <span>S24</span>
+      <span>Lunar Base</span>
+    </div>
+  </div>
+
+  <div class="cards">
+    <div class="card blue" onclick="openApp('builder')">
+      <div class="card-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#00d4ff" stroke-width="1.5">
+          <rect x="3" y="3" width="7" height="7" rx="1"/>
+          <rect x="14" y="3" width="7" height="7" rx="1"/>
+          <rect x="3" y="14" width="7" height="7" rx="1"/>
+          <path d="M17.5 14v6M14.5 17h6"/>
+        </svg>
+      </div>
+      <div class="card-name">Assembly Builder</div>
+      <div class="card-desc">Register STEP files, define metadata, and generate SysML v2 models for the USD pipeline.</div>
+      <div class="card-cta">Open tool →</div>
+    </div>
+
+    <div class="card green" onclick="openApp('des')">
+      <div class="card-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#00ff9d" stroke-width="1.5">
+          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+        </svg>
+      </div>
+      <div class="card-name">DES Simulation</div>
+      <div class="card-desc">Load discrete-event simulation logs and visualize time-series data for any entity and attribute.</div>
+      <div class="card-cta">Open plots →</div>
+    </div>
+  </div>
+</div>
+
+<!-- App shell with iframes -->
+<div id="appShell">
+  <div class="app-topbar">
+    <button class="back-btn" onclick="goBack()">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+      Back
+    </button>
+    <div class="app-tabs">
+      <button class="app-tab" id="tabBuilder" onclick="switchApp('builder')">Assembly Builder</button>
+      <button class="app-tab" id="tabDes" onclick="switchApp('des')">DES Simulation</button>
+    </div>
+  </div>
+  <div class="iframe-wrapper">
+    <iframe id="frameBuilder" src="assembly_builder.html"></iframe>
+    <iframe id="frameDes"     src="lunar_spaceport_plotter.html"></iframe>
+  </div>
+</div>
+
+<script>
+// ── Starfield ────────────────────────────────────────────────────────────────
+const canvas = document.getElementById('stars');
+const ctx = canvas.getContext('2d');
+let stars = [];
+
+function resizeCanvas() {
+  canvas.width  = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+
+function initStars() {
+  stars = Array.from({ length: 180 }, () => ({
+    x: Math.random() * canvas.width,
+    y: Math.random() * canvas.height,
+    r: Math.random() * 1.2 + 0.2,
+    a: Math.random(),
+    speed: Math.random() * 0.003 + 0.001,
+    phase: Math.random() * Math.PI * 2,
+  }));
+}
+
+function drawStars(t) {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  stars.forEach(s => {
+    const alpha = s.a * (0.5 + 0.5 * Math.sin(t * s.speed + s.phase));
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(255,255,255,${alpha})`;
+    ctx.fill();
+  });
+  requestAnimationFrame(drawStars);
+}
+
+resizeCanvas();
+initStars();
+requestAnimationFrame(drawStars);
+window.addEventListener('resize', () => { resizeCanvas(); initStars(); });
+
+// ── Navigation ───────────────────────────────────────────────────────────────
+let currentApp = null;
+
+function openApp(which) {
+  currentApp = which;
+  document.getElementById('landing').classList.add('hidden');
+  const shell = document.getElementById('appShell');
+  shell.classList.add('visible');
+  switchApp(which);
+}
+
+function switchApp(which) {
+  currentApp = which;
+
+  const frameBuilder = document.getElementById('frameBuilder');
+  const frameDes     = document.getElementById('frameDes');
+  const tabBuilder   = document.getElementById('tabBuilder');
+  const tabDes       = document.getElementById('tabDes');
+
+  // Reset tabs
+  tabBuilder.className = 'app-tab';
+  tabDes.className     = 'app-tab';
+  frameBuilder.classList.remove('active');
+  frameDes.classList.remove('active');
+
+  if (which === 'builder') {
+    frameBuilder.classList.add('active');
+    tabBuilder.className = 'app-tab active-blue';
+  } else {
+    frameDes.classList.add('active');
+    tabDes.className = 'app-tab active-green';
+  }
+}
+
+function goBack() {
+  document.getElementById('landing').classList.remove('hidden');
+  document.getElementById('appShell').classList.remove('visible');
+  currentApp = null;
+}
+</script>
+</body>
+</html>
