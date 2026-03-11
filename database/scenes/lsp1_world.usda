@@ -1,0 +1,66 @@
+#usda 1.0
+(
+    defaultPrim = "World"
+    metersPerUnit = 1
+    upAxis = "Z"
+)
+
+def Xform "World"
+{
+    def Xform "Environment"
+    {
+        def Xform "LunarTerrain" (
+            customData = {
+                dictionary s24 = {
+                    string asset_id = "terrain_001"
+                    string asset_type = "terrain"
+                    string display_name = "Lunar Terrain"
+                    string name = "LunarTerrain"
+                    string role = "environment"
+                    string source_usd = "lunar_terrain500.usda"
+                    string terrain_model = "lunar_terrain500"
+                }
+            }
+            prepend references = @lunar_terrain500.usda@
+        )
+        {
+            float3 xformOp:rotateXYZ = (0, 0, 0)
+            float3 xformOp:scale = (1, 1, 1)
+            double3 xformOp:translate = (0, 0, 0)
+            uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+        }
+    }
+
+    def Xform "Assemblies"
+    {
+        def Xform "LSP1Assembly" (
+            customData = {
+                dictionary s24 = {
+                    string asset_id = "assembly_001"
+                    string asset_type = "assembly"
+                    string display_name = "LSP1 Assembly"
+                    string name = "LSP1Assembly"
+                    string role = "site_layout"
+                    string scenario_class = "lsp1"
+                    string source = "stakeholder_gui"
+                    string source_usd = "assembly.usda"
+                }
+            }
+            prepend references = @assembly.usda@
+        )
+        {
+            float3 xformOp:rotateXYZ = (0, 0, 0)
+            float3 xformOp:scale = (1, 1, 1)
+            double3 xformOp:translate = (0, 0, 0)
+            uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+        }
+    }
+
+    def DistantLight "SunLight"
+    {
+        float inputs:intensity = 50000
+        float3 xformOp:rotateXYZ = (-35, 25, 0)
+        uniform token[] xformOpOrder = ["xformOp:rotateXYZ"]
+    }
+}
+

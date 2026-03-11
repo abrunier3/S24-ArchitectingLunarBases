@@ -1,16 +1,16 @@
 #usda 1.0
 (
-    defaultPrim = "rover_Geom"
+    defaultPrim = "Rover_Geom"
     metersPerUnit = 1
     upAxis = "Z"
 )
 
-def Mesh "rover_Geom"
+def Mesh "Rover_Geom"
 {
-    float3[] extent = [(-0, -0, -0), (0, 0, 0)]
+    float3[] extent = [(-2, -1, -0.75), (2, 1, 0.75)]
     int[] faceVertexCounts = [4, 4, 4, 4, 4, 4]
     int[] faceVertexIndices = [0, 1, 2, 3, 4, 5, 6, 7, 0, 1, 5, 4, 3, 2, 6, 7, 0, 3, 7, 4, 1, 2, 6, 5]
-    point3f[] points = [(-0, -0, -0), (0, -0, -0), (0, 0, -0), (-0, 0, -0), (-0, -0, 0), (0, -0, 0), (0, 0, 0), (-0, 0, 0)]
+    point3f[] points = [(-2, -1, -0.75), (2, -1, -0.75), (2, 1, -0.75), (-2, 1, -0.75), (-2, -1, 0.75), (2, -1, 0.75), (2, 1, 0.75), (-2, 1, 0.75)]
     uniform token subdivisionScheme = "none"
 }
 

@@ -1,0 +1,52 @@
+{
+  "world_usd": "../../scenes/lsp1_world.usda",
+  "stage": {
+    "metersPerUnit": 1.0,
+    "upAxis": "Z"
+  },
+  "environment": [
+    {
+      "name": "LunarTerrain",
+      "asset_id": "terrain_001",
+      "asset_type": "terrain",
+      "role": "environment",
+      "display_name": "Lunar Terrain",
+      "usd": "../../scenes/lunar_terrain500.usda",
+      "units": "m",
+      "xform": {
+        "translate": [0, 0, 0],
+        "rotateXYZ": [0, 0, 0],
+        "scale": [1, 1, 1]
+      },
+      "metadata": {
+        "terrain_model": "lunar_terrain500"
+      }
+    }
+  ],
+  "assemblies": [
+    {
+      "name": "LSP1Assembly",
+      "asset_id": "assembly_001",
+      "asset_type": "assembly",
+      "role": "site_layout",
+      "display_name": "LSP1 Assembly",
+      "usd": "../../scenes/assembly.usda",
+      "units": "m",
+      "xform": {
+        "translate": [0, 0, 0],
+        "rotateXYZ": [0, 0, 0],
+        "scale": [1, 1, 1]
+      },
+      "metadata": {
+        "source": "stakeholder_gui",
+        "scenario_class": "lsp1"
+      }
+    }
+  ],
+  "lighting": {
+    "enableSun": true,
+    "sunIntensity": 50000.0,
+    "sunRotateXYZ": [-35.0, 25.0, 0.0]
+  },
+  "metadata_required_keys": []
+}
