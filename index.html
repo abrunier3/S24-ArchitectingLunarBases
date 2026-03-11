@@ -335,7 +335,7 @@
   }
 </style>
 </head>
-<body>
+<body tabindex="-1">
 
 <!-- Starfield canvas -->
 <canvas id="stars"></canvas>
@@ -503,12 +503,21 @@ function switchApp(which) {
 }
 
 function goBack() {
-  document.getElementById('landing').classList.remove('hidden');
+  // Unload iframes FIRST to release focus
+  const fb = document.getElementById('frameBuilder');
+  const fd = document.getElementById('frameDes');
+  fb.src = '';
+  fd.src = '';
+  fb.classList.remove('active');
+  fd.classList.remove('active');
+
   document.getElementById('appShell').classList.remove('visible');
-  // Unload iframes so they don't intercept events
-  document.getElementById('frameBuilder').src = '';
-  document.getElementById('frameDes').src = '';
+  document.getElementById('landing').classList.remove('hidden');
   currentApp = null;
+
+  // Force focus back to parent window
+  window.focus();
+  document.body.focus();
 }
 </script>
 </body>
