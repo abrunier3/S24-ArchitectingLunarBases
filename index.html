@@ -229,100 +229,7 @@
   .card.green .card-cta { color: var(--green); }
   .card:hover .card-cta { gap: 10px; }
 
-  /* ── App shell ── */
-  #appShell {
-    position: fixed;
-    inset: 0;
-    z-index: 20;
-    display: flex;
-    flex-direction: column;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.35s;
-    visibility: hidden;
-  }
 
-  #appShell.visible {
-    opacity: 1;
-    pointer-events: all;
-    visibility: visible;
-  }
-
-  .app-topbar {
-    height: 44px;
-    background: rgba(8,13,20,0.95);
-    border-bottom: 1px solid var(--border);
-    backdrop-filter: blur(10px);
-    display: flex;
-    align-items: center;
-    padding: 0 16px;
-    gap: 12px;
-    flex-shrink: 0;
-    z-index: 30;
-  }
-
-  .back-btn {
-    background: none;
-    border: 1px solid var(--border);
-    color: var(--muted);
-    font-family: 'Space Mono', monospace;
-    font-size: 0.65rem;
-    letter-spacing: 0.08em;
-    padding: 5px 12px;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: all 0.2s;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-
-  .back-btn:hover { color: var(--text); border-color: var(--muted); }
-
-  .app-tabs {
-    display: flex;
-    gap: 4px;
-    margin-left: 8px;
-  }
-
-  .app-tab {
-    font-family: 'Space Mono', monospace;
-    font-size: 0.65rem;
-    letter-spacing: 0.08em;
-    padding: 5px 14px;
-    border-radius: 6px;
-    border: 1px solid transparent;
-    background: none;
-    cursor: pointer;
-    transition: all 0.2s;
-    color: var(--muted);
-  }
-
-  .app-tab:hover { color: var(--text); }
-
-  .app-tab.active-blue  { border-color: var(--accent); color: var(--accent); background: rgba(0,212,255,0.08); }
-  .app-tab.active-green { border-color: var(--green);  color: var(--green);  background: rgba(0,255,157,0.08); }
-
-  .iframe-wrapper {
-    flex: 1;
-    position: relative;
-  }
-
-  iframe {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    border: none;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.25s;
-  }
-
-  iframe.active {
-    opacity: 1;
-    pointer-events: all;
-  }
 
   @keyframes fadeUp {
     from { opacity: 0; transform: translateY(18px); }
@@ -399,23 +306,7 @@
   </div>
 </div>
 
-<!-- App shell with iframes -->
-<div id="appShell">
-  <div class="app-topbar">
-    <button class="back-btn" onclick="goBack()">
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
-      Back
-    </button>
-    <div class="app-tabs">
-      <button class="app-tab" id="tabBuilder" onclick="switchApp('builder')">Assembly Builder</button>
-      <button class="app-tab" id="tabDes" onclick="switchApp('des')">DES Simulation</button>
-    </div>
-  </div>
-  <div class="iframe-wrapper">
-    <iframe id="frameBuilder"></iframe>
-    <iframe id="frameDes"></iframe>
-  </div>
-</div>
+
 
 <script>
 // ── Starfield ────────────────────────────────────────────────────────────────
@@ -459,65 +350,12 @@ window.addEventListener('resize', () => { resizeCanvas(); initStars(); });
 // ── Navigation ───────────────────────────────────────────────────────────────
 let currentApp = null;
 
-const SRCS = {
-  builder: 'assembly_builder.html',
-  des: 'lunar_spaceport_plotter.html'
-};
-
 function openApp(which) {
-  currentApp = which;
-  document.getElementById('landing').classList.add('hidden');
-  document.getElementById('appShell').classList.add('visible');
-  switchApp(which);
-}
-
-function switchApp(which) {
-  currentApp = which;
-
-  const frameBuilder = document.getElementById('frameBuilder');
-  const frameDes     = document.getElementById('frameDes');
-  const tabBuilder   = document.getElementById('tabBuilder');
-  const tabDes       = document.getElementById('tabDes');
-
-  // Load src if not already loaded
-  if (which === 'builder' && !frameBuilder.src.includes('assembly_builder')) {
-    frameBuilder.src = SRCS.builder;
-  }
-  if (which === 'des' && !frameDes.src.includes('plotter')) {
-    frameDes.src = SRCS.des;
-  }
-
-  // Reset tabs and visibility
-  tabBuilder.className = 'app-tab';
-  tabDes.className     = 'app-tab';
-  frameBuilder.classList.remove('active');
-  frameDes.classList.remove('active');
-
   if (which === 'builder') {
-    frameBuilder.classList.add('active');
-    tabBuilder.className = 'app-tab active-blue';
+    window.location.href = 'assembly_builder.html';
   } else {
-    frameDes.classList.add('active');
-    tabDes.className = 'app-tab active-green';
+    window.location.href = 'lunar_spaceport_plotter.html';
   }
-}
-
-function goBack() {
-  // Unload iframes FIRST to release focus
-  const fb = document.getElementById('frameBuilder');
-  const fd = document.getElementById('frameDes');
-  fb.src = '';
-  fd.src = '';
-  fb.classList.remove('active');
-  fd.classList.remove('active');
-
-  document.getElementById('appShell').classList.remove('visible');
-  document.getElementById('landing').classList.remove('hidden');
-  currentApp = null;
-
-  // Force focus back to parent window
-  window.focus();
-  document.body.focus();
 }
 </script>
 </body>
