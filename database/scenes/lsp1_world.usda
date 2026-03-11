@@ -1,5 +1,31 @@
 #usda 1.0
 (
+    customLayerData = {
+        dictionary cameraSettings = {
+            dictionary Front = {
+                double3 position = (500, 0, 0)
+                double radius = 500
+            }
+            dictionary Perspective = {
+                double3 position = (356.3098557521364, -477.67359516806954, 170.3940061466491)
+                double3 target = (121.94963435640028, -202.7913237432117, 87.06205704909337)
+            }
+            dictionary Right = {
+                double3 position = (0, -500, 0)
+                double radius = 500
+            }
+            dictionary Top = {
+                double3 position = (0, 0, 500)
+                double radius = 500
+            }
+            string boundCamera = "/OmniverseKit_Persp"
+        }
+        dictionary omni_layer = {
+            string authoring_layer = "./lsp1_world.usda"
+        }
+        dictionary renderSettings = {
+        }
+    }
     defaultPrim = "World"
     metersPerUnit = 1
     upAxis = "Z"
@@ -7,7 +33,9 @@
 
 def Xform "World"
 {
-    def Xform "Environment"
+    def Xform "Environment" (
+        references = @../../../database/scenes/lunar_terrain500.usda@
+    )
     {
         def Xform "LunarTerrain" (
             customData = {
@@ -28,6 +56,41 @@ def Xform "World"
             float3 xformOp:scale = (1, 1, 1)
             double3 xformOp:translate = (0, 0, 0)
             uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+        }
+
+        def "lunar_terrain500" (
+            prepend payload = @../../../database/scenes/lunar_terrain500.usda@
+        )
+        {
+            float3 xformOp:rotateXYZ = (0, 0, 0)
+            float3 xformOp:scale = (1, 1, -0.12627876)
+            double3 xformOp:translate = (0, 0, 0)
+            uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+            over "LunarTerrain" (
+                prepend apiSchemas = ["MaterialBindingAPI"]
+            )
+            {
+                uniform bool doubleSided = 1
+                rel material:binding = </World/Looks/Regolitg> (
+                    bindMaterialAs = "weakerThanDescendants"
+                )
+                bool primvars:disableAutoLod = 0
+                bool primvars:doNotCastShadows = 0
+                bool primvars:enableFastRefractionShadow = 1
+                int refinementLevel = 4
+                float3 xformOp:rotateXYZ = (0, 0, 0)
+                float3 xformOp:scale = (1, 1, 2.2098634)
+                double3 xformOp:translate = (0, 0, 10)
+                uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+            }
+
+            over "SunLight"
+            {
+                float inputs:colorTemperature = 20
+                float inputs:exposure = -11.8
+                float inputs:intensity = 20
+            }
         }
     }
 
@@ -53,14 +116,321 @@ def Xform "World"
             float3 xformOp:scale = (1, 1, 1)
             double3 xformOp:translate = (0, 0, 0)
             uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+            over "Rover"
+            {
+                double3 xformOp:translate = (40, 0, 0)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+            }
         }
     }
 
     def DistantLight "SunLight"
     {
+        float inputs:angle = 14.8
+        float inputs:colorTemperature = 35.3
+        float inputs:diffuse = 5.5
+        float inputs:exposure = 3.6000001
         float inputs:intensity = 50000
+        float inputs:specular = 21.7
+        uniform token purpose = "render"
+        token visibility = "inherited"
         float3 xformOp:rotateXYZ = (-35, 25, 0)
+        float3 xformOp:scale = (8.451271, 6.1480002, 6.1480002)
+        double3 xformOp:translate = (-100, 100, 100)
         uniform token[] xformOpOrder = ["xformOp:rotateXYZ"]
     }
+
+    def Xform "Telemetry"
+    {
+        def Cube "PlantMarker" (
+            delete apiSchemas = ["MaterialBindingAPI"]
+            instanceable = false
+        )
+        {
+            float3[] extent = [(-1, -1, -1), (1, 1, 1)]
+            rel material:binding = None (
+                bindMaterialAs = "weakerThanDescendants"
+            )
+            color3f[] primvars:displayColor = [(0.2, 0.6, 1)]
+            bool primvars:invisibleToSecondaryRays = 0
+            int primvars:multimatte_id = -11
+            double size = 2
+            token visibility = "invisible"
+            float3 xformOp:scale = (2, 2, 2)
+            double3 xformOp:translate = (10, 0, 8)
+            uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:scale"]
+        }
+
+        def Cube "PowerMarker"
+        {
+            color3f[] primvars:displayColor = [(1, 0.8, 0.2)]
+            token visibility = "invisible"
+            float3 xformOp:scale = (2, 2, 2)
+            double3 xformOp:translate = (30, 0, 8)
+            uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:scale"]
+        }
+    }
+
+    def Scope "UI"
+    {
+        token visibility = "invisible"
+
+        def OmniUILabel "Label" (
+            prepend apiSchemas = ["OMNIUIAPI"]
+        )
+        {
+            custom token omni:ui:Label:alignment = "LEFT_TOP" (
+                allowedTokens = ["UNDEFINED", "LEFT_TOP", "LEFT_CENTER", "LEFT_BOTTOM", "CENTER_TOP", "CENTER", "CENTER_BOTTOM", "RIGHT_TOP", "RIGHT_CENTER", "RIGHT_BOTTOM", "LEFT", "RIGHT", "H_CENTER", "TOP", "BOTTOM", "V_CENTER"]
+            )
+            custom string omni:ui:Label:text = "Label" (
+                customData = {
+                    string default = "Label"
+                }
+            )
+            custom rel omni:ui:Style:binding
+            custom float omni:ui:Widget:computed_height
+            custom float omni:ui:Widget:computed_width
+            custom float omni:ui:Widget:height = 5 (
+                customData = {
+                    double default = -1
+                }
+            )
+            custom string omni:ui:Widget:name
+            custom float omni:ui:Widget:screen_position_x
+            custom float omni:ui:Widget:screen_position_y
+            custom bool omni:ui:Widget:selected = 0
+            custom string omni:ui:Widget:tooltip
+            custom bool omni:ui:Widget:visible = 1 (
+                customData = {
+                    bool default = 1
+                }
+            )
+            custom float omni:ui:Widget:width = 5 (
+                customData = {
+                    double default = -1
+                }
+            )
+        }
+    }
+
+    def Scope "Looks"
+    {
+        def Material "Regolitg" (
+            references = @../../../database/scenes/pngtree-lunar-surface-texture-a-bird-s-eye-view-of-the-moon-image_13618335.png@</World/Looks/Regolith>
+        )
+        {
+            token outputs:mdl:displacement.connect = </World/Looks/Regolitg/Shader.outputs:out>
+            token outputs:mdl:surface.connect = </World/Looks/Regolitg/Shader.outputs:out>
+            token outputs:mdl:volume.connect = </World/Looks/Regolitg/Shader.outputs:out>
+
+            def Shader "Shader"
+            {
+                uniform token info:implementationSource = "sourceAsset"
+                uniform asset info:mdl:sourceAsset = @../../../../../Desktop/pngtree-lunar-surface-texture-a-bird-s-eye-view-of-the-moon-image_13618335.png@
+                uniform token info:mdl:sourceAsset:subIdentifier = ""
+                float inputs:albedo_add = 15.7
+                float inputs:albedo_brightness = 12.1
+                float inputs:albedo_desaturation = 11.2
+                float inputs:ao_to_diffuse = 0.03
+                float inputs:bump_factor = 10.400001
+                float inputs:detail_bump_factor = 13.5
+                asset inputs:detail_normalmap_texture = @@ (
+                    colorSpace = "raw"
+                )
+                color3f inputs:emissive_color = (2, 2, 2)
+                float inputs:emissive_intensity = 27.6
+                bool inputs:enable_opacity_texture = 1
+                bool inputs:flip_tangent_u = 0
+                bool inputs:flip_tangent_v = 0
+                float inputs:geometry_normal_roughness_strength = 12.7
+                float inputs:metallic_constant = -18.2
+                float inputs:metallic_texture_influence = 11.8
+                asset inputs:normalmap_texture = @@ (
+                    colorSpace = "raw"
+                )
+                float inputs:opacity_constant = 0.65
+                float inputs:opacity_threshold = 3.6000001
+                float inputs:reflection_roughness_constant = 1
+                float inputs:reflection_roughness_texture_influence = 0.34
+                float inputs:round_edges_radius = 0
+                float inputs:round_edges_roundness = 0.52
+                float inputs:specular_level = 0.45999998
+                int inputs:uv_space_index = -1
+                token outputs:out (
+                    renderType = "material"
+                )
+            }
+        }
+    }
+}
+
+def "Render" (
+    hide_in_stage_window = true
+    no_delete = true
+)
+{
+    def "OmniverseKit"
+    {
+        def "HydraTextures" (
+            hide_in_stage_window = true
+            no_delete = true
+        )
+        {
+            def RenderProduct "omni_kit_widget_viewport_ViewportTexture_0" (
+                prepend apiSchemas = ["OmniRtxSettingsCommonAdvancedAPI_1", "OmniRtxSettingsRtAdvancedAPI_1", "OmniRtxSettingsPtAdvancedAPI_1", "OmniRtxPostColorGradingAPI_1", "OmniRtxPostChromaticAberrationAPI_1", "OmniRtxPostBloomPhysicalAPI_1", "OmniRtxPostMatteObjectAPI_1", "OmniRtxPostCompositingAPI_1", "OmniRtxPostDofAPI_1", "OmniRtxPostMotionBlurAPI_1", "OmniRtxPostTvNoiseAPI_1", "OmniRtxPostTonemapIrayReinhardAPI_1", "OmniRtxPostDebugSettingsAPI_1", "OmniRtxDebugSettingsAPI_1"]
+                hide_in_stage_window = true
+                no_delete = true
+            )
+            {
+                rel camera = </OmniverseKit_Persp>
+                token omni:rtx:ambientOcclusion:denoiserMode = "none"
+                token omni:rtx:background:source:texture:textureMode = "repeatMirrored"
+                token omni:rtx:background:source:type = "domeLight"
+                bool omni:rtx:debug:view:pixelDebug:enableFixedTextPos = 1
+                token omni:rtx:directLighting:sampledLighting:denoisingTechnique = "None"
+                bool omni:rtx:dlss:frameGeneration = 1
+                bool omni:rtx:indirectDiffuse:denoiser:enabled = 0
+                bool omni:rtx:post:registeredCompositing:invertColorCorrection = 1
+                bool omni:rtx:post:registeredCompositing:invertToneMap = 1
+                int omni:rtx:pt:maxSamplesPerLaunch = 2073600
+                int omni:rtx:pt:mgpu:maxPixelsPerRegionExponent = 12
+                bool omni:rtx:reflections:denoiser:enabled = 0
+                token omni:rtx:rendermode = "RealTimePathTracing"
+                color3f omni:rtx:rt:ambientLight:color = (0.1, 0.1, 0.1)
+                bool omni:rtx:rt:demoire = 0
+                bool omni:rtx:rt:lightcache:spatialCache:dontResolveConflicts = 1
+                int omni:rtx:rt:sss:samples = 1
+                int omni:rtx:rtpt:maxVolumeBounces = 15
+                float omni:rtx:rtpt:modulatingRoughnessThreshold = 0.08
+                bool omni:rtx:scene:useViewLightingMode
+                uint omni:rtx:viewTile:limit = 4294967295
+                rel orderedVars = </Render/Vars/LdrColor>
+                custom bool overrideClipRange = 0
+                uniform int2 resolution = (1343, 585)
+            }
+        }
+    }
+
+    def RenderSettings "OmniverseGlobalRenderSettings" (
+        prepend apiSchemas = ["OmniRtxSettingsGlobalRtAdvancedAPI_1", "OmniRtxSettingsGlobalPtAdvancedAPI_1"]
+        no_delete = true
+    )
+    {
+        rel products = </Render/OmniverseKit/HydraTextures/omni_kit_widget_viewport_ViewportTexture_0>
+    }
+
+    def "Vars"
+    {
+        def RenderVar "LdrColor" (
+            hide_in_stage_window = true
+            no_delete = true
+        )
+        {
+            uniform string sourceName = "LdrColor"
+        }
+    }
+}
+
+over "OmniverseKit_Persp" (
+    prepend apiSchemas = ["OmniRtxCameraAutoExposureAPI_1", "OmniRtxCameraExposureAPI_1"]
+    customData = {
+        dictionary omni = {
+            dictionary kit = {
+                bool hide_in_stage_window = 1
+                bool no_delete = 1
+            }
+        }
+    }
+    hide_in_stage_window = true
+    kind = "component"
+    no_delete = true
+)
+{
+    float2 clippingRange = (1, 10000000)
+    float exposure:responsivity = 1.1026709
+    float exposure:time = 0.02
+    float focalLength = 18.147562
+    float focusDistance = 400
+    custom uniform vector3d omni:kit:centerOfInterest = (0, 0, -370.7144322207395)
+    float3 xformOp:rotateXYZ = (77.00962, -2.5579538e-13, 760.4504)
+    float3 xformOp:scale = (1, 1, 1)
+    double3 xformOp:translate = (356.3098557521364, -477.67359516806954, 170.3940061466491)
+    uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+}
+
+over "OmniverseKit_Front" (
+    customData = {
+        dictionary omni = {
+            dictionary kit = {
+                bool hide_in_stage_window = 1
+                bool no_delete = 1
+            }
+        }
+    }
+    hide_in_stage_window = true
+    kind = "component"
+    no_delete = true
+)
+{
+    float2 clippingRange = (1, 10000000)
+    float horizontalAperture = 5000
+    custom uniform vector3d omni:kit:centerOfInterest = (0, 0, -500)
+    token projection = "orthographic"
+    float verticalAperture = 5000
+    float3 xformOp:rotateXYZ = (90, -1.2722219e-14, 90)
+    float3 xformOp:scale = (1, 1, 1)
+    double3 xformOp:translate = (500, 0, 0)
+    uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+}
+
+over "OmniverseKit_Right" (
+    customData = {
+        dictionary omni = {
+            dictionary kit = {
+                bool hide_in_stage_window = 1
+                bool no_delete = 1
+            }
+        }
+    }
+    hide_in_stage_window = true
+    kind = "component"
+    no_delete = true
+)
+{
+    float2 clippingRange = (1, 10000000)
+    float horizontalAperture = 5000
+    custom uniform vector3d omni:kit:centerOfInterest = (0, 0, -500)
+    token projection = "orthographic"
+    float verticalAperture = 5000
+    float3 xformOp:rotateXYZ = (90, 7.06225e-31, -1.2722219e-14)
+    float3 xformOp:scale = (1, 1, 1)
+    double3 xformOp:translate = (0, -500, 0)
+    uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+}
+
+over "OmniverseKit_Top" (
+    customData = {
+        dictionary omni = {
+            dictionary kit = {
+                bool hide_in_stage_window = 1
+                bool no_delete = 1
+            }
+        }
+    }
+    hide_in_stage_window = true
+    kind = "component"
+    no_delete = true
+)
+{
+    float2 clippingRange = (1, 10000000)
+    float horizontalAperture = 5000
+    custom uniform vector3d omni:kit:centerOfInterest = (0, 0, -500)
+    token projection = "orthographic"
+    float verticalAperture = 5000
+    float3 xformOp:rotateXYZ = (1.2722219e-14, -7.016709e-15, -90)
+    float3 xformOp:scale = (1, 1, 1)
+    double3 xformOp:translate = (0, 0, 500)
+    uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
 }
 
