@@ -278,9 +278,9 @@ def build_world_from_manifest(manifest_path: str) -> str:
     omni.usd.get_context().close_stage()
 
     if os.path.exists(world_usd):
-        os.remove(world_usd)
-
-    stage = Usd.Stage.CreateNew(world_usd)
+        stage = Usd.Stage.Open(world_usd)
+    else:
+        stage = Usd.Stage.CreateNew(world_usd)
 
     # Stage settings
     UsdGeom.SetStageMetersPerUnit(stage, meters_per_unit)
