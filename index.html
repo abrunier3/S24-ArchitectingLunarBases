@@ -412,8 +412,8 @@
     </div>
   </div>
   <div class="iframe-wrapper">
-    <iframe id="frameBuilder" src="assembly_builder.html"></iframe>
-    <iframe id="frameDes"     src="lunar_spaceport_plotter.html"></iframe>
+    <iframe id="frameBuilder"></iframe>
+    <iframe id="frameDes"></iframe>
   </div>
 </div>
 
@@ -459,11 +459,15 @@ window.addEventListener('resize', () => { resizeCanvas(); initStars(); });
 // ── Navigation ───────────────────────────────────────────────────────────────
 let currentApp = null;
 
+const SRCS = {
+  builder: 'assembly_builder.html',
+  des: 'lunar_spaceport_plotter.html'
+};
+
 function openApp(which) {
   currentApp = which;
   document.getElementById('landing').classList.add('hidden');
-  const shell = document.getElementById('appShell');
-  shell.classList.add('visible');
+  document.getElementById('appShell').classList.add('visible');
   switchApp(which);
 }
 
@@ -475,7 +479,15 @@ function switchApp(which) {
   const tabBuilder   = document.getElementById('tabBuilder');
   const tabDes       = document.getElementById('tabDes');
 
-  // Reset tabs
+  // Load src if not already loaded
+  if (which === 'builder' && !frameBuilder.src.includes('assembly_builder')) {
+    frameBuilder.src = SRCS.builder;
+  }
+  if (which === 'des' && !frameDes.src.includes('plotter')) {
+    frameDes.src = SRCS.des;
+  }
+
+  // Reset tabs and visibility
   tabBuilder.className = 'app-tab';
   tabDes.className     = 'app-tab';
   frameBuilder.classList.remove('active');
@@ -493,6 +505,9 @@ function switchApp(which) {
 function goBack() {
   document.getElementById('landing').classList.remove('hidden');
   document.getElementById('appShell').classList.remove('visible');
+  // Unload iframes so they don't intercept events
+  document.getElementById('frameBuilder').src = '';
+  document.getElementById('frameDes').src = '';
   currentApp = null;
 }
 </script>
