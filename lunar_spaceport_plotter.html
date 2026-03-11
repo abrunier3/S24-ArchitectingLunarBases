@@ -85,9 +85,36 @@
   .empty-state svg { opacity: 0.2; }
   .empty-state h2 { font-size: 1.1rem; color: var(--text); opacity: 0.4; }
   .empty-state p { font-size: 0.8rem; line-height: 1.6; max-width: 320px; }
+
+  .hub-back {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    z-index: 9999;
+    background: rgba(8,13,20,0.9);
+    border: 1px solid #1a2a3d;
+    color: #4a6a85;
+    font-family: monospace;
+    font-size: 11px;
+    padding: 5px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: color 0.2s, border-color 0.2s;
+    backdrop-filter: blur(6px);
+  }
+  .hub-back:hover { color: #cde4f5; border-color: #4a6a85; }
 </style>
 </head>
 <body>
+<a class="hub-back" href="index.html">
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+  Hub
+</a>
+
 <header>
   <div class="logo-mark">
     <svg viewBox="0 0 24 24" fill="none" stroke="#00d4ff" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 2a7 7 0 0 1 0 14 7 7 0 0 0 0 6"/><path d="M2 12h4M18 12h4"/></svg>
