@@ -4,6 +4,16 @@ This repository stores all CAD models (.step files) and their SysML metadata for
 
 ---
 
+## 🚀 Mission Control Hub
+
+👉 **[Open Mission Control Hub](https://abrunier3.github.io/S24-ArchitectingLunarBases/)**
+
+The hub gives access to both tools:
+- **Assembly Builder** — register STEP files, define metadata, generate SysML v2 for the USD pipeline
+- **DES Simulation Explorer** — load simulation logs and visualize time-series data
+
+---
+
 ## 📋 How to register a new CAD model
 
 ### 1. Push your `.step` file
@@ -12,7 +22,6 @@ Place your file in the appropriate subfolder under `models/`:
 
 ```
 models/
-  assembly.sysml        ← shared assembly metadata (all parts)
   HabitationModule/
     HabitationModule.step
   ISRUPlant/
@@ -21,7 +30,7 @@ models/
 
 ### 2. Open the Assembly Builder
 
-👉 **[Open Assembly Builder](https://abrunier3.github.io/S24-ArchitectingLunarBases/assembly_builder.html?assembly=https://raw.githubusercontent.com/abrunier3/S24-ArchitectingLunarBases/main/database/sysml/assembly.sysml)**
+👉 **[Open Assembly Builder directly](https://abrunier3.github.io/S24-ArchitectingLunarBases/assembly_builder.html?assembly=https://raw.githubusercontent.com/abrunier3/S24-ArchitectingLunarBases/main/database/sysml/assembly.sysml)**
 
 > The tool will automatically load the current `database/sysml/assembly.sysml` from this repo.
 
@@ -31,10 +40,10 @@ models/
 - Fill in the dimensions, position, orientation, material, and any custom attributes
 - Click **💾 Save Changes**
 
-### 4. Download and commit
+### 4. Publish or download
 
-- Click **⬇ Download** to get the updated `assembly.sysml`
-- Commit it to `database/sysml/assembly.sysml`
+- Click **☁ Publish to GitHub** to push directly to `database/sysml/assembly.sysml`
+- Or click **⬇ Download** and commit manually:
 
 ```bash
 git add database/sysml/assembly.sysml
@@ -48,28 +57,27 @@ git push
 
 ```
 models/
-  assembly.sysml          ← single source of truth for all part metadata
   <PartName>/
-    <PartName>.step        ← CAD geometry
+    <PartName>.step          ← CAD geometry
+database/
+  sysml/
+    assembly.sysml           ← single source of truth for all part metadata
+    materials.sysml
+  json/                      ← generated JSON (pipeline output)
+  scenes/                    ← generated USD scenes (pipeline output)
+  assets/                    ← generated USD assets (pipeline output)
 ```
 
 ---
 
-## 📄 Generate SysML for a single part
+## 🔧 Tools
 
-If you need to generate a standalone `.sysml` file for a single part (without adding it to the assembly), use the single-part form:
-
-👉 **[Open Single Part Form](https://abrunier3.github.io/S24-ArchitectingLunarBases/sysml_generator.html)**
-
----
-
-## 🔧 Assembly Builder features
-
-- Load existing `assembly.sysml` from GitHub automatically
-- Add, rename, delete, and reorder nodes via drag & drop
-- Edit metadata for any part directly in the tree
-- Import external `.sysml` files via drag & drop or paste
-- Preview, copy, or download the generated SysML
+| Tool | URL |
+|------|-----|
+| Mission Control Hub | https://abrunier3.github.io/S24-ArchitectingLunarBases/ |
+| Assembly Builder | https://abrunier3.github.io/S24-ArchitectingLunarBases/assembly_builder.html |
+| DES Simulation Explorer | https://abrunier3.github.io/S24-ArchitectingLunarBases/lunar_spaceport_plotter.html |
+| Single Part Form | https://abrunier3.github.io/S24-ArchitectingLunarBases/sysml_generator.html |
 
 ---
 
