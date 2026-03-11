@@ -48,7 +48,7 @@
     border-bottom: 1px solid var(--border);
     display: flex;
     align-items: center;
-    padding: 0 24px;
+    padding: 0 24px 0 100px;
     gap: 16px;
   }
 
@@ -775,7 +775,8 @@
     position: fixed;
     top: 10px;
     left: 10px;
-    z-index: 9999;
+    z-index: 99999;
+    isolation: isolate;
     background: rgba(8,13,20,0.9);
     border: 1px solid #1a2a3d;
     color: #4a6a85;
@@ -795,7 +796,7 @@
 </style>
 </head>
 <body>
-<a class="hub-back" href="index.html">
+<a class="hub-back" href="index.html" title="Back to Hub">
   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
   Hub
 </a>
