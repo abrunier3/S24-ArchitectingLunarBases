@@ -21,7 +21,7 @@
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { background: var(--bg); color: var(--text); font-family: 'Syne', sans-serif; min-height: 100vh; overflow-x: hidden; }
   body::before { content: ''; position: fixed; inset: 0; background-image: radial-gradient(1px 1px at 20% 30%, rgba(255,255,255,0.6) 0%, transparent 100%), radial-gradient(1px 1px at 80% 10%, rgba(255,255,255,0.4) 0%, transparent 100%), radial-gradient(1px 1px at 50% 70%, rgba(255,255,255,0.5) 0%, transparent 100%), radial-gradient(1px 1px at 10% 80%, rgba(255,255,255,0.3) 0%, transparent 100%), radial-gradient(1px 1px at 90% 60%, rgba(255,255,255,0.5) 0%, transparent 100%), radial-gradient(1px 1px at 35% 90%, rgba(255,255,255,0.3) 0%, transparent 100%), radial-gradient(1px 1px at 65% 40%, rgba(255,255,255,0.4) 0%, transparent 100%), radial-gradient(1px 1px at 15% 50%, rgba(255,255,255,0.2) 0%, transparent 100%), radial-gradient(1px 1px at 75% 85%, rgba(255,255,255,0.4) 0%, transparent 100%), radial-gradient(1px 1px at 45% 15%, rgba(255,255,255,0.5) 0%, transparent 100%); pointer-events: none; z-index: 0; }
-  header { position: relative; z-index: 10; padding: 28px 40px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 20px; background: rgba(8,13,20,0.85); backdrop-filter: blur(10px); }
+  header { position: relative; z-index: 10; padding: 28px 40px 20px 100px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 20px; background: rgba(8,13,20,0.85); backdrop-filter: blur(10px); }
   .logo-mark { width: 42px; height: 42px; border-radius: 50%; border: 2px solid var(--accent); display: grid; place-items: center; box-shadow: var(--glow); flex-shrink: 0; }
   .logo-mark svg { width: 22px; height: 22px; }
   .header-text h1 { font-size: 1.25rem; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: #fff; }
@@ -90,7 +90,8 @@
     position: fixed;
     top: 10px;
     left: 10px;
-    z-index: 9999;
+    z-index: 99999;
+    isolation: isolate;
     background: rgba(8,13,20,0.9);
     border: 1px solid #1a2a3d;
     color: #4a6a85;
@@ -110,7 +111,7 @@
 </style>
 </head>
 <body>
-<a class="hub-back" href="index.html">
+<a class="hub-back" href="index.html" title="Back to Hub">
   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
   Hub
 </a>
