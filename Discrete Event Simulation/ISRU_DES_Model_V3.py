@@ -24,8 +24,10 @@ from CommunicationModule import CommunicationModule
 from LunarRover import LunarRover
 from RoverChargingStation import RoverChargingStation
 from LandingLaunchZone import LandingLaunchZone
-
-
+from ImportUtility import data_from_json
+from LoggingManager import LoggingManager
+import json
+import time
 
 # -------------------------------------------------
 # Rover Process (Modified to work with new rover system)
@@ -93,6 +95,7 @@ def LOXDeliveryController(system, plant:ISRUPlant, rover: LunarRover, landingZon
 # Example Usage in Main
 # -------------------------------------------------
 def main():
+    start_time = time.perf_counter()
     # Experiment data -----------------------------------------
     experiment = "ISRU Processing Plant with Full Infrastructure"
     roverBatch = 4000          # kg
@@ -105,41 +108,45 @@ def main():
     # Resources
     regolithBuffer = simpy.Container(system, capacity=20_000)
 
+    #Setup Logger
+    logger = LoggingManager(system, time_step=1.0)
+    logger.setup()
+
     # ISRU Plant
-    plant = ISRUPlant(system, 1600, 0.1)
-    
+    isruPlantData = data_from_json("ISRUV2.json")['ISRUPlant']
+    plant = ISRUPlant(system, "ISRU_Plant", isruPlantData.raw['attributes'])
+    logger.add(plant)
+
     # Solar Power System (100 kW output, 500 kWh battery)
-    solarSystem = SolarPowerSystem(
-        system, 
-        powerOutput=100,  # kW
-        batteryCapacity=500,  # kWh
-        batteryDegradationFactor=1.0,
-        powerDegradationFactor=1.0
-    )
-    
+    solarPowerSystemData = data_from_json("SolarPowerSystemV1.json")['SolarPowerSystem']
+    solarSystem = SolarPowerSystem(system, "Solar_Power_System", solarPowerSystemData.raw['attributes'])
+    logger.add(solarSystem)
+
     # Power Manager
     powerManager = PowerManager(system, solarSystem)
-    
+    logger.add(powerManager)
+
     # Habitation Module (5 kW constant)
-    habitat = HabitationModule(system, "Habitat-1", constantPowerRate=5)
+    habitationModuleData = data_from_json("HabitationModuleV1.json")['HabitationModule']
+    habitat = HabitationModule(system, "Habitat-1", habitationModuleData.raw['attributes'])
     habitat.scheduleSpike(10, 20)  # 20 kWh spike at hour 10
     powerManager.registerConsumer(habitat)
-    
+    logger.add(habitat)
+
     # Communication Module (2 kW constant)
-    comms = CommunicationModule(system, "CommArray-1", constantPowerRate=2)
+    communicationModuleData = data_from_json("CommunicationModuleV1.json")['CommunicationModule']
+    comms = CommunicationModule(system, "CommArray-1", communicationModuleData.raw['attributes'])
     comms.scheduleSpike(15, 10)  # 10 kWh spike at hour 15
     powerManager.registerConsumer(comms)
-    
+    logger.add(comms)
+
     # Landing/Launch Zone (10 kW chilling, 3 kW utilities)
-    landingZone = LandingLaunchZone(
-        system, 
-        "LZ-Alpha",
-        loxCapacity=50000,  # kg
-        utilitiesPowerRate=3  # kW
-    )
+    landingZoneData = data_from_json("LaunchLandingZoneV1.json")['LaunchLandingZone']
+    landingZone = LandingLaunchZone(system, "LZ-Alpha", attributeDict=landingZoneData.raw['attributes'])
     landingZone.scheduleSpike(25, 50)  # 50 kWh spike at hour 25
     powerManager.registerConsumer(landingZone)
-    
+    logger.add(landingZone)
+
     # Rover Charging Station
     chargingStation = RoverChargingStation(
         system,
@@ -148,9 +155,13 @@ def main():
         efficiencyFactor=0.85
     )
     powerManager.registerConsumer(chargingStation)
-    
-    regolithCargoRover = LunarRover(system, name="Regolith Cargo Rover", roverType="cargo", maxCapacity=5000, energyPerKmPerKg=3.4*10**-4, batteryCapacity=100, hoursPerKm=5)
-    LOXCargoRover = LunarRover(system, name="LOX Cargo Rover", roverType="cargo", maxCapacity=5000, energyPerKmPerKg=3.4*10**-4, batteryCapacity=100, hoursPerKm=5)
+    logger.add(chargingStation)
+
+    roverData = data_from_json("RoverV1.json")['Rover']
+    regolithCargoRover = LunarRover(system, name="Regolith Cargo Rover", roverType="cargo", attributeDict=roverData.raw['attributes'])
+    LOXCargoRover = LunarRover(system, name="LOX Cargo Rover", roverType="cargo", attributeDict=roverData.raw['attributes'])
+    logger.add(regolithCargoRover)
+    logger.add(LOXCargoRover)
 
     # Start processes
     system.process(regolithRoverController(system, regolithBuffer, roverBatch, 1, regolithCargoRover))
@@ -172,11 +183,18 @@ def main():
     print(f"\nISRU Plant:")
     print(f"  LOX Stored: {plant.LOXStored:.2f} kg")
     print(f"  Energy Consumed: {plant.totalEnergyConsumed:.2f} kWh")
+    print(f"  Total Operational Hours: {plant.processingUptime:.2f} hours")
+    print(f"  Regolith Recieved: {plant.regolithRecieved:.2f} kg")
+    print(f"  Total LOX Production: {plant.totalLOXProduction:.2f} kg")
     
     print(f"\nSolar Power System:")
     print(f"  Total Generated: {solarSystem.totalEnergyGenerated:.2f} kWh")
     print(f"  From Battery: {solarSystem.totalEnergyFromBattery:.2f} kWh")
     print(f"  Battery Charge: {solarSystem.batteryCharge:.2f}/{solarSystem.batteryCapacity:.2f} kWh")
+
+    print(f"\nPower Manager Stats")
+    print(f"  Energy Generated Time Array: {powerManager.powerGeneratedSeries} kWh")
+    print(f"  Total Energy Demand Time Array: {powerManager.totalDemandSeries} kWh")
     
     print(f"\n{habitat.name}:")
     print(f"  Energy Consumed: {habitat.totalEnergyConsumed:.2f} kWh")
@@ -206,8 +224,75 @@ def main():
     print("="*70)
 
     # Output --------------------------------------------------
+    end_time = time.perf_counter()
+    elapsed_time = end_time - start_time
+    print(f"Elapsed time: {elapsed_time:.4f} seconds")
+    #print(logger.logDict)
 
+    # Create the results dictionary
+    final_results = {
+        "Sim_Metrics" : {
+            "Simulation_Run_Time": round(elapsed_time, 4)
+        },
+        "ISRU_Plant": {
+            "LOX_Stored_kg": round(plant.LOXStored, 2),
+            "Energy_Consumed_kWh": round(plant.totalEnergyConsumed, 2),
+            "Total_Operational_Hours": round(plant.processingUptime, 2),
+            "Regolith_Received_kg": round(plant.regolithRecieved, 2),
+            "Total_LOX_Production_kg": round(plant.totalLOXProduction, 2)
+        },
+        "Solar_Power_System": {
+            "Total_Generated_kWh": round(solarSystem.totalEnergyGenerated, 2),
+            "From_Battery_kWh": round(solarSystem.totalEnergyFromBattery, 2),
+            "Battery_Charge_kWh": round(solarSystem.batteryCharge, 2),
+            "Battery_Capacity_kWh": round(solarSystem.batteryCapacity, 2)
+        },
+        "Power_Manager": {
+            "Energy_Generated_Time_Array_kWh": powerManager.powerGeneratedSeries,
+            "Total_Demand_Time_Array_kWh": powerManager.totalDemandSeries
+        },
+        "Habitat": {
+            "Name": habitat.name,
+            "Energy_Consumed_kWh": round(habitat.totalEnergyConsumed, 2)
+        },
+        "Communications": {
+            "Name": comms.name,
+            "Energy_Consumed_kWh": round(comms.totalEnergyConsumed, 2)
+        },
+        "Landing_Zone": {
+            "Name": landingZone.name,
+            "LOX_Stored_kg": round(landingZone.loxStored, 2),
+            "Energy_Consumed_kWh": round(landingZone.totalEnergyConsumed, 2)
+        },
+        "Regolith_Cargo_Rover": {
+            "Name": regolithCargoRover.name,
+            "Total_Distance_km": round(regolithCargoRover.totalDistanceTraveled, 2),
+            "Energy_Consumed_kWh": round(regolithCargoRover.totalEnergyConsumed, 2),
+            "Battery_Charge_kWh": round(regolithCargoRover.batteryCharge, 2),
+            "Battery_Capacity_kWh": round(regolithCargoRover.batteryCapacity, 2),
+            "Current_Load_kg": round(regolithCargoRover.currentLoad, 2)
+        },
+        "LOX_Cargo_Rover": {
+            "Name": LOXCargoRover.name,
+            "Total_Distance_km": round(LOXCargoRover.totalDistanceTraveled, 2),
+            "Energy_Consumed_kWh": round(LOXCargoRover.totalEnergyConsumed, 2),
+            "Battery_Charge_kWh": round(LOXCargoRover.batteryCharge, 2),
+            "Battery_Capacity_kWh": round(LOXCargoRover.batteryCapacity, 2),
+            "Current_Load_kg": round(LOXCargoRover.currentLoad, 2)
+        },
+        "Charging_Station": {
+            "Name": chargingStation.name,
+            "Energy_Consumed_kWh": round(chargingStation.totalEnergyConsumed, 2),
+            "Energy_Delivered_to_Rovers_kWh": round(chargingStation.totalEnergyDelivered, 2)
+        }
+    }
 
+    # Export to JSON file
+    with open('lunar_spaceport_results.json', 'w') as f:
+        json.dump(final_results, f, indent=4)
+    
+    logger.saveToJSON()
+    
 if __name__ == "__main__":
     """ This is a standard block of code used for Python development.
     It means that when this file is run through Python it will run the
