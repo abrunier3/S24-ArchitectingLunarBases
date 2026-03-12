@@ -1,0 +1,35 @@
+#usda 1.0
+(
+    defaultPrim = "moon"
+    metersPerUnit = 1
+    upAxis = "Y"
+)
+
+def Xform "moon"
+{
+    def Xform "geo" (
+        prepend references = @moon_geometry.usda@
+    )
+    {
+        over "Petavius_ZB_LP_1_0" (
+            prepend apiSchemas = ["MaterialBindingAPI"]
+        )
+        {
+            rel material:binding = </moon/materials/surface>
+        }
+
+        over "Petavius_ZB_LP_2_0" (
+            prepend apiSchemas = ["MaterialBindingAPI"]
+        )
+        {
+            rel material:binding = </moon/materials/surface>
+        }
+    }
+
+    def Scope "materials" (
+        prepend references = @moon_material.usda@
+    )
+    {
+    }
+}
+

@@ -1,0 +1,46 @@
+#usda 1.0
+(
+    defaultPrim = "materials"
+    metersPerUnit = 1
+    upAxis = "Y"
+)
+
+def Scope "materials"
+{
+    def Material "surface"
+    {
+        token outputs:surface.connect = </materials/surface/pbr.outputs:surface>
+
+        def Shader "stReader"
+        {
+            uniform token info:id = "UsdPrimvarReader_float2"
+            token inputs:varname = "st"
+            float2 outputs:result
+        }
+
+        def Shader "tex_base"
+        {
+            uniform token info:id = "UsdUVTexture"
+            asset inputs:file = @0/material_0_baseColor.jpg@
+            float2 inputs:st.connect = </materials/surface/stReader.outputs:result>
+            token inputs:wrapS = "repeat"
+            token inputs:wrapT = "repeat"
+            float outputs:a
+            float outputs:r
+            float3 outputs:rgb
+        }
+
+        def Shader "pbr"
+        {
+            uniform token info:id = "UsdPreviewSurface"
+            color3f inputs:diffuseColor.connect = </materials/surface/tex_base.outputs:rgb>
+            color3f inputs:emissiveColor = (0, 0, 0)
+            float inputs:metallic = 0
+            normal3f inputs:normal = (0, 0, 1)
+            float inputs:occlusion = 1
+            float inputs:roughness = 1
+            token outputs:surface
+        }
+    }
+}
+

@@ -1,0 +1,54 @@
+#usda 1.0
+(
+    defaultPrim = "World"
+    metersPerUnit = 1
+    upAxis = "Y"
+)
+
+def Xform "World"
+{
+    def Xform "Moon" (
+        prepend references = @/home/ang/Desktop/scene/assets/moon/curated/moon_component.usda@
+    )
+    {
+        double3 xformOp:translate = (0, 0, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate"]
+    }
+
+    def Xform "Lander" (
+        prepend references = @/home/ang/Desktop/scene/assets/lander/curated/lander_component.usda@
+    )
+    {
+        float3 xformOp:scale = (0.07, 0.07, 0.07)
+        double3 xformOp:translate = (1, 0.03151234417399202, 1)
+        uniform token[] xformOpOrder = ["xformOp:scale", "xformOp:translate"]
+    }
+
+    def Xform "Rover" (
+        prepend references = @/home/ang/Desktop/scene/assets/rover/2/curated/rover2_component.usda@
+    )
+    {
+        float3 xformOp:scale = (0.05, 0.05, 0.05)
+        double3 xformOp:translate = (0.5, -0.022661814292091263, 0.3)
+        uniform token[] xformOpOrder = ["xformOp:scale", "xformOp:translate"]
+    }
+
+    def Xform "Habitat" (
+        prepend references = @/home/ang/Desktop/scene/assets/hab_mod/curated/habmod_component.usda@
+    )
+    {
+        float3 xformOp:scale = (0.15, 0.15, 0.15)
+        double3 xformOp:translate = (-0.7, 0.18132680419201286, 0.2)
+        uniform token[] xformOpOrder = ["xformOp:scale", "xformOp:translate"]
+    }
+
+    def Xform "LandingPad" (
+        prepend references = @/home/ang/Desktop/scene/assets/pad/curated/pad_component.usda@
+    )
+    {
+        float3 xformOp:scale = (0.5, 0.5, 0.5)
+        double3 xformOp:translate = (0, 0.03245032703486217, -0.8)
+        uniform token[] xformOpOrder = ["xformOp:scale", "xformOp:translate"]
+    }
+}
+

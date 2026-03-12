@@ -1,0 +1,85 @@
+#usda 1.0
+(
+    defaultPrim = "materials"
+    metersPerUnit = 1
+    upAxis = "Y"
+)
+
+def Scope "materials"
+{
+    def Material "lander_surface"
+    {
+        token outputs:surface.connect = </materials/lander_surface/pbr.outputs:surface>
+
+        def Shader "stReader"
+        {
+            uniform token info:id = "UsdPrimvarReader_float2"
+            token inputs:varname = "st0"
+            float2 outputs:result
+        }
+
+        def Shader "tex_base"
+        {
+            uniform token info:id = "UsdUVTexture"
+            asset inputs:file = @0/Vikram_baseColor.jpg@
+            float2 inputs:st.connect = </materials/lander_surface/stReader.outputs:result>
+            token inputs:wrapS = "repeat"
+            token inputs:wrapT = "repeat"
+            float outputs:a
+            float outputs:r
+            float3 outputs:rgb
+        }
+
+        def Shader "tex_metallic"
+        {
+            uniform token info:id = "UsdUVTexture"
+            asset inputs:file = @0/Vikram_metallicRoughness_metal.jpg@
+            float2 inputs:st.connect = </materials/lander_surface/stReader.outputs:result>
+            token inputs:wrapS = "repeat"
+            token inputs:wrapT = "repeat"
+            float outputs:a
+            float outputs:r
+            float3 outputs:rgb
+        }
+
+        def Shader "tex_roughness"
+        {
+            uniform token info:id = "UsdUVTexture"
+            asset inputs:file = @0/Vikram_metallicRoughness_rough.jpg@
+            float2 inputs:st.connect = </materials/lander_surface/stReader.outputs:result>
+            token inputs:wrapS = "repeat"
+            token inputs:wrapT = "repeat"
+            float outputs:a
+            float outputs:r
+            float3 outputs:rgb
+        }
+
+        def Shader "tex_normal"
+        {
+            uniform token info:id = "UsdUVTexture"
+            float4 inputs:bias = (-1, -1, -1, -1)
+            asset inputs:file = @0/Vikram_normal.jpg@
+            float4 inputs:scale = (2, 2, 2, 2)
+            token inputs:sourceColorSpace = "raw"
+            float2 inputs:st.connect = </materials/lander_surface/stReader.outputs:result>
+            token inputs:wrapS = "repeat"
+            token inputs:wrapT = "repeat"
+            float outputs:a
+            float outputs:r
+            float3 outputs:rgb
+        }
+
+        def Shader "pbr"
+        {
+            uniform token info:id = "UsdPreviewSurface"
+            color3f inputs:diffuseColor.connect = </materials/lander_surface/tex_base.outputs:rgb>
+            color3f inputs:emissiveColor = (0, 0, 0)
+            float inputs:metallic.connect = </materials/lander_surface/tex_metallic.outputs:r>
+            normal3f inputs:normal.connect = </materials/lander_surface/tex_normal.outputs:rgb>
+            float inputs:occlusion = 1
+            float inputs:roughness.connect = </materials/lander_surface/tex_roughness.outputs:r>
+            token outputs:surface
+        }
+    }
+}
+
