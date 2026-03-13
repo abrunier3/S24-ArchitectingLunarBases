@@ -1,0 +1,2422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>S24 DEE — Unified Mission Workbench</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #080a0f;
+    --bg2: #0d1018;
+    --surface: #111520;
+    --surface2: #161b26;
+    --surface3: #1a2030;
+    --border: #1e2535;
+    --border2: #2a3347;
+    --accent: #00d4ff;
+    --accent2: #0099cc;
+    --accent-dim: rgba(0, 212, 255, 0.08);
+    --accent-dim2: rgba(0, 212, 255, 0.15);
+    --green: #00ff9d;
+    --green-dim: rgba(0, 255, 157, 0.08);
+    --warn: #ffb347;
+    --danger: #ff4d6d;
+    --text: #d4dae8;
+    --text2: #8892a4;
+    --text3: #4a5568;
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'Syne', sans-serif;
+    --r: 6px;
+    --shadow: 0 18px 50px rgba(0,0,0,0.28);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: var(--mono);
+    background: linear-gradient(180deg, #06080d 0%, #090c12 100%);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 14px 26px;
+    background: rgba(9, 12, 18, 0.88);
+    border-bottom: 1px solid var(--border);
+    backdrop-filter: blur(10px);
+  }
+  .brand {
+    font-family: var(--sans);
+    font-weight: 800;
+    color: var(--accent);
+    font-size: 18px;
+    letter-spacing: -0.4px;
+  }
+  .subtitle {
+    color: var(--text2);
+    font-size: 12px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+  }
+  .nav {
+    margin-left: auto;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .nav a, .btn {
+    color: var(--text2);
+    text-decoration: none;
+    border: 1px solid var(--border2);
+    background: transparent;
+    border-radius: var(--r);
+    padding: 8px 12px;
+    font-family: var(--mono);
+    font-size: 11px;
+    cursor: pointer;
+    transition: 0.18s ease;
+  }
+  .nav a:hover, .btn:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-primary {
+    background: var(--accent);
+    color: #000;
+    border-color: var(--accent);
+    font-weight: 700;
+  }
+  .btn-primary:hover { background: #35deff; color: #000; }
+
+  .page {
+    max-width: 1480px;
+    margin: 0 auto;
+    padding: 28px 24px 100px;
+  }
+
+  .hero {
+    padding: 18px 0 24px;
+  }
+  .eyebrow {
+    color: var(--accent);
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .hero h1 {
+    font-family: var(--sans);
+    font-size: clamp(28px, 4vw, 46px);
+    line-height: 1.05;
+    margin-bottom: 10px;
+  }
+  .hero p {
+    color: var(--text2);
+    max-width: 980px;
+    line-height: 1.7;
+    font-size: 13px;
+  }
+
+  .section {
+    margin-top: 26px;
+    padding: 22px;
+    background: linear-gradient(180deg, rgba(17,21,32,0.92) 0%, rgba(11,15,22,0.96) 100%);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+  }
+  .section-head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 18px;
+  }
+  .section-title {
+    font-family: var(--sans);
+    font-size: 24px;
+  }
+  .section-note {
+    color: var(--text2);
+    font-size: 12px;
+    max-width: 760px;
+    line-height: 1.7;
+  }
+
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1.15fr;
+    gap: 18px;
+  }
+  .panel {
+    background: linear-gradient(180deg, var(--surface) 0%, #0f1420 100%);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px;
+    min-height: 200px;
+  }
+  .panel-title {
+    font-size: 11px;
+    color: var(--text3);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+
+  .system-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+  .sys-card {
+    border: 1px solid var(--border2);
+    border-radius: 10px;
+    background: rgba(255,255,255,0.01);
+    padding: 12px;
+    transition: 0.18s ease;
+  }
+  .sys-card.active {
+    border-color: rgba(0,212,255,0.7);
+    background: var(--accent-dim);
+    box-shadow: inset 0 0 0 1px rgba(0,212,255,0.1);
+  }
+  .sys-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+  .sys-name {
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .sys-meta {
+    font-size: 10px;
+    color: var(--text3);
+    line-height: 1.6;
+  }
+  .toggle {
+    appearance: none;
+    width: 42px;
+    height: 22px;
+    border-radius: 999px;
+    border: 1px solid var(--border2);
+    background: #0b1018;
+    position: relative;
+    cursor: pointer;
+    transition: 0.18s ease;
+  }
+  .toggle::after {
+    content: '';
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    position: absolute;
+    top: 2px;
+    left: 3px;
+    background: var(--text3);
+    transition: 0.18s ease;
+  }
+  .toggle:checked {
+    background: rgba(0,212,255,0.15);
+    border-color: var(--accent);
+  }
+  .toggle:checked::after {
+    left: 21px;
+    background: var(--accent);
+  }
+
+  .control-row {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    margin-top: 14px;
+  }
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .field label {
+    color: var(--text3);
+    font-size: 10px;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+  }
+  .field input, .field select {
+    width: 100%;
+    background: #0b1018;
+    color: var(--text);
+    border: 1px solid var(--border2);
+    border-radius: var(--r);
+    padding: 9px 10px;
+    font-family: var(--mono);
+    font-size: 12px;
+    outline: none;
+  }
+  .field input:focus, .field select:focus {
+    border-color: var(--accent2);
+    box-shadow: 0 0 0 2px rgba(0,212,255,0.12);
+  }
+
+  .summary-bar {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+    margin-top: 14px;
+  }
+  .metric {
+    background: #0b1018;
+    border: 1px solid var(--border2);
+    border-radius: 10px;
+    padding: 12px;
+  }
+  .metric-label {
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: 10px;
+    margin-bottom: 8px;
+  }
+  .metric-value {
+    font-family: var(--sans);
+    font-size: 24px;
+  }
+  .metric-sub {
+    color: var(--text2);
+    font-size: 11px;
+    margin-top: 4px;
+  }
+
+  .ops-graph {
+    width: 100%;
+    min-height: 470px;
+    border-radius: 12px;
+    border: 1px solid var(--border2);
+    background:
+      radial-gradient(circle at 20% 10%, rgba(0,212,255,0.08), transparent 24%),
+      radial-gradient(circle at 80% 30%, rgba(0,255,157,0.08), transparent 24%),
+      linear-gradient(180deg, #0c1119 0%, #0a0e15 100%);
+    position: relative;
+    overflow: hidden;
+  }
+  .ops-legend {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+    color: var(--text2);
+    font-size: 11px;
+  }
+  .legend-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 6px;
+  }
+  .node {
+    position: absolute;
+    width: 118px;
+    min-height: 58px;
+    border-radius: 12px;
+    border: 1px solid var(--border2);
+    background: rgba(17,21,32,0.94);
+    padding: 10px 10px 8px;
+    box-shadow: 0 10px 28px rgba(0,0,0,0.32);
+  }
+  .node.active {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px rgba(0,212,255,0.14), 0 10px 28px rgba(0,0,0,0.32);
+  }
+  .node-title {
+    font-size: 11px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .node-tag {
+    color: var(--text3);
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  svg.link-layer {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+  }
+  .ops-caption {
+    margin-top: 12px;
+    color: var(--text2);
+    font-size: 12px;
+    line-height: 1.7;
+  }
+
+  .assembly-wrap {
+    display: grid;
+    grid-template-columns: 370px 1fr;
+    gap: 18px;
+    min-height: 820px;
+  }
+  .assembly-side,
+  .assembly-main {
+    background: linear-gradient(180deg, var(--bg2) 0%, #0a0f17 100%);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .assembly-toolbar {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+  .assembly-toolbar .cluster { display: flex; gap: 8px; flex-wrap: wrap; }
+  .assembly-scroll {
+    max-height: 760px;
+    overflow: auto;
+  }
+  .assembly-scroll::-webkit-scrollbar,
+  .consequence-scroll::-webkit-scrollbar { width: 6px; }
+  .assembly-scroll::-webkit-scrollbar-thumb,
+  .consequence-scroll::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 999px; }
+
+  .tree-box {
+    padding: 14px;
+  }
+  .tree-node-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    margin-bottom: 6px;
+    transition: 0.14s ease;
+  }
+  .tree-node-row:hover,
+  .tree-node-row.selected {
+    background: var(--accent-dim2);
+    border-color: rgba(0,212,255,0.2);
+  }
+  .tree-indent { width: 18px; color: var(--text3); }
+  .tree-bullet {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent2);
+  }
+  .tree-label { font-size: 12px; }
+  .tree-type {
+    margin-left: auto;
+    color: var(--text3);
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .form-grid {
+    padding: 18px;
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: 12px;
+  }
+  .full { grid-column: span 12; }
+  .span-6 { grid-column: span 6; }
+  .span-4 { grid-column: span 4; }
+  .span-3 { grid-column: span 3; }
+  .form-section-title {
+    grid-column: span 12;
+    font-size: 10px;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-top: 10px;
+    padding-top: 6px;
+    border-top: 1px solid var(--border);
+  }
+  .success-banner {
+    grid-column: span 12;
+    display: none;
+    align-items: center;
+    gap: 8px;
+    color: var(--green);
+    background: rgba(0,255,157,0.08);
+    border: 1px solid rgba(0,255,157,0.24);
+    padding: 12px 14px;
+    border-radius: 10px;
+    font-size: 12px;
+  }
+  .success-banner.show { display: flex; }
+  .mini-note {
+    color: var(--text2);
+    font-size: 11px;
+    line-height: 1.7;
+  }
+
+  .custom-attrs {
+    grid-column: span 12;
+    display: grid;
+    gap: 8px;
+  }
+  .attr-row {
+    display: grid;
+    grid-template-columns: 2fr 1.4fr 1fr;
+    gap: 8px;
+  }
+
+  .consequence-layout {
+    display: grid;
+    grid-template-columns: 1.2fr 0.9fr;
+    gap: 18px;
+  }
+  .scenario-grid {
+    display: grid;
+    gap: 12px;
+    margin-top: 14px;
+  }
+  .scenario-card {
+    border: 1px solid var(--border2);
+    border-radius: 12px;
+    padding: 14px;
+    background: #0b1018;
+    cursor: pointer;
+    transition: 0.18s ease;
+  }
+  .scenario-card:hover,
+  .scenario-card.selected {
+    border-color: var(--accent);
+    background: var(--accent-dim);
+  }
+  .scenario-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+  .scenario-name {
+    font-family: var(--sans);
+    font-size: 19px;
+  }
+  .chip {
+    color: var(--accent);
+    border: 1px solid rgba(0,212,255,0.24);
+    background: rgba(0,212,255,0.08);
+    padding: 4px 8px;
+    border-radius: 999px;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  .scenario-meta {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px;
+    margin-top: 10px;
+  }
+  .scenario-meta .mini {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px;
+    background: rgba(255,255,255,0.015);
+  }
+  .mini .k { color: var(--text3); font-size: 9px; text-transform: uppercase; letter-spacing: 1px; }
+  .mini .v { font-size: 14px; margin-top: 5px; }
+
+  .chart-box {
+    background: #0b1018;
+    border: 1px solid var(--border2);
+    border-radius: 12px;
+    padding: 14px;
+    margin-top: 14px;
+  }
+  .bars {
+    display: flex;
+    align-items: flex-end;
+    gap: 14px;
+    min-height: 240px;
+    padding: 20px 6px 10px;
+  }
+  .bar-wrap { flex: 1; text-align: center; }
+  .bar {
+    width: 100%;
+    border-radius: 10px 10px 4px 4px;
+    border: 1px solid rgba(0,212,255,0.3);
+    background: linear-gradient(180deg, rgba(0,212,255,0.7) 0%, rgba(0,212,255,0.15) 100%);
+    min-height: 18px;
+    transition: height 0.25s ease;
+  }
+  .bar.secondary {
+    border-color: rgba(0,255,157,0.25);
+    background: linear-gradient(180deg, rgba(0,255,157,0.7) 0%, rgba(0,255,157,0.14) 100%);
+  }
+  .bar.warn {
+    border-color: rgba(255,179,71,0.25);
+    background: linear-gradient(180deg, rgba(255,179,71,0.75) 0%, rgba(255,179,71,0.14) 100%);
+  }
+  .bar-label {
+    margin-top: 10px;
+    color: var(--text2);
+    font-size: 11px;
+  }
+  .bar-value {
+    color: var(--text);
+    font-size: 11px;
+    margin-bottom: 8px;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  th, td {
+    padding: 11px 10px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+    font-size: 11px;
+    vertical-align: top;
+  }
+  th {
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: 10px;
+  }
+  td { color: var(--text2); }
+  td strong { color: var(--text); }
+
+  .footer-note {
+    color: var(--text3);
+    font-size: 11px;
+    margin-top: 14px;
+    line-height: 1.7;
+  }
+
+  @media (max-width: 1150px) {
+    .grid-2, .assembly-wrap, .consequence-layout { grid-template-columns: 1fr; }
+    .summary-bar, .scenario-meta { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  @media (max-width: 760px) {
+    .page { padding: 18px 14px 90px; }
+    .system-grid, .control-row, .summary-bar, .scenario-meta { grid-template-columns: 1fr; }
+    .form-grid { grid-template-columns: repeat(1, minmax(0, 1fr)); }
+    .full, .span-6, .span-4, .span-3, .form-section-title, .custom-attrs, .success-banner { grid-column: span 1; }
+    .attr-row { grid-template-columns: 1fr; }
+    .nav { display: none; }
+  }
+</style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="brand">S24 DEE</div>
+    <div class="subtitle">Unified Mission Workbench</div>
+    <div class="nav">
+      <a href="#activation">Activation + Ops Graph</a>
+      <a href="#assembly">Assembly Builder</a>
+      <a href="#consequence">Mission Consequence Explorer</a>
+      <button class="btn btn-primary" onclick="generatePlans()">Generate Feasible Plans</button>
+    </div>
+  </div>
+
+  <div class="page">
+    <div class="hero">
+      <div class="eyebrow">Single-page stakeholder workflow</div>
+      <h1>Activate systems → define assembly → evaluate feasible mission consequences</h1>
+      <p>
+        This mockup keeps everything on one continuous page. The first section captures which systems are online and shows a mission operations graph,
+        the middle section is the assembly-builder workspace, and the final section is the mission consequence explorer that surfaces DES-generated scenario options.
+      </p>
+    </div>
+
+    <section class="section" id="activation">
+      <div class="section-head">
+        <div>
+          <div class="section-title">1. Activate Systems + Mission Operations Graph</div>
+          <div class="section-note">The user is not hard-coding the event sequence here. They are activating available assets, setting high-level operational constraints, and defining the mission configuration that the DES can use to generate feasible sequences.</div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="panel">
+          <div class="panel-title">Activate Systems</div>
+          <div class="system-grid" id="systemGrid"></div>
+
+          <div class="control-row">
+            <div class="field">
+              <label># of Rovers</label>
+              <input id="roverCount" type="number" min="0" value="2">
+            </div>
+            <div class="field">
+              <label># of ISRU Plants</label>
+              <input id="plantCount" type="number" min="0" value="1">
+            </div>
+            <div class="field">
+              <label>Staging Distance (km)</label>
+              <input id="distanceKm" type="number" min="0" value="14">
+            </div>
+          </div>
+
+          <div class="control-row">
+            <div class="field">
+              <label>Mission Window (days)</label>
+              <input id="missionDays" type="number" min="1" value="30">
+            </div>
+            <div class="field">
+              <label>Priority Objective</label>
+              <select id="priorityObjective">
+                <option value="resilience">Resilience</option>
+                <option value="cost">Lowest Cost</option>
+                <option value="speed">Fastest Completion</option>
+                <option value="output">Highest Output</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Scenario Mode</label>
+              <select id="scenarioMode">
+                <option value="nominal">Nominal</option>
+                <option value="contingency">Contingency-aware</option>
+                <option value="surge">Surge operations</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="summary-bar">
+            <div class="metric">
+              <div class="metric-label">Active Systems</div>
+              <div class="metric-value" id="activeSystemsMetric">5</div>
+              <div class="metric-sub">Assets currently available to the DES</div>
+            </div>
+            <div class="metric">
+              <div class="metric-label">Network Edges</div>
+              <div class="metric-value" id="networkEdgesMetric">8</div>
+              <div class="metric-sub">Potential operational interactions</div>
+            </div>
+            <div class="metric">
+              <div class="metric-label">Feasible Plans</div>
+              <div class="metric-value" id="planCountMetric">3</div>
+              <div class="metric-sub">Dummy DES outputs ready for screening</div>
+            </div>
+            <div class="metric">
+              <div class="metric-label">Mission Score</div>
+              <div class="metric-value" id="missionScoreMetric">78</div>
+              <div class="metric-sub">Composite cost / throughput / risk proxy</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-title">Mission Operations Graph</div>
+          <div class="ops-legend">
+            <span><span class="legend-dot" style="background:#00d4ff"></span>Active logistics or production node</span>
+            <span><span class="legend-dot" style="background:#00ff9d"></span>Surface support / crew node</span>
+            <span><span class="legend-dot" style="background:#ffb347"></span>Transport or transfer path</span>
+          </div>
+          <div class="ops-graph" id="opsGraph">
+            <svg class="link-layer" id="linkLayer" viewBox="0 0 1000 520" preserveAspectRatio="none"></svg>
+          </div>
+          <div class="ops-caption" id="opsCaption">
+            Graph updates when systems are turned on or off. This is the stakeholder-facing systems view that constrains what the DES is allowed to sequence downstream.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="assembly">
+      <div class="section-head">
+        <div>
+          <div class="section-title">2. Assembly Builder</div>
+          <div class="section-note">This section keeps the assembly tree + editable part metadata layout from your uploaded Assembly Builder structure, but reformats it into the single-page flow beneath the activation section. The original file uses a left tree / right form composition with tree rendering, import, metadata fields, and preview actions. fileciteturn1file0 fileciteturn1file3</div>
+        </div>
+      </div>
+
+      <div class="assembly-wrap">
+        <div class="assembly-side">
+          <div class="assembly-toolbar">
+            <div>
+              <div class="panel-title" style="margin-bottom:4px;">Assembly Tree</div>
+              <div class="mini-note">Select a node to edit or create a new child.</div>
+            </div>
+            <div class="cluster">
+              <button class="btn" onclick="addNode('root')">+ Root</button>
+              <button class="btn" onclick="addNode('child')">+ Child</button>
+            </div>
+          </div>
+          <div class="assembly-scroll">
+            <div class="tree-box" id="assemblyTree"></div>
+          </div>
+        </div>
+
+        <div class="assembly-main">
+          <div class="assembly-toolbar">
+            <div>
+              <div class="panel-title" style="margin-bottom:4px;">Part / Assembly Metadata</div>
+              <div class="mini-note" id="selectedPath">Selected path: /LSP1Assembly</div>
+            </div>
+            <div class="cluster">
+              <button class="btn" onclick="previewAssembly()">Preview SysML</button>
+              <button class="btn" onclick="pushToConsequence()">Push Downstream</button>
+            </div>
+          </div>
+          <div class="assembly-scroll consequence-scroll">
+            <div class="form-grid">
+              <div class="form-section-title">Identity</div>
+              <div class="field span-6">
+                <label>STEP Filename</label>
+                <input id="stepFileName" value="lsp1_assembly.step">
+              </div>
+              <div class="field span-6">
+                <label>Part Name</label>
+                <input id="partName" value="LSP1Assembly">
+              </div>
+              <div class="field span-6">
+                <label>Material</label>
+                <select id="materialRef">
+                  <option>Aluminum_2219_T87</option>
+                  <option>Titanium_Ti6Al4V</option>
+                  <option>Composite_Shell</option>
+                  <option>Regolith_Shielded</option>
+                </select>
+              </div>
+              <div class="field span-6">
+                <label>Category</label>
+                <select id="partCategory">
+                  <option>Assembly</option>
+                  <option>Vehicle</option>
+                  <option>Processing Plant</option>
+                  <option>Infrastructure</option>
+                  <option>Power</option>
+                  <option>Habitat</option>
+                </select>
+              </div>
+
+              <div class="form-section-title">Dimensions</div>
+              <div class="field span-4"><label>Length (m)</label><input id="dimLength" type="number" value="16"></div>
+              <div class="field span-4"><label>Width (m)</label><input id="dimWidth" type="number" value="9"></div>
+              <div class="field span-4"><label>Height (m)</label><input id="dimHeight" type="number" value="6"></div>
+
+              <div class="form-section-title">Transform — Position</div>
+              <div class="field span-4"><label>X (m)</label><input id="posX" type="number" value="0"></div>
+              <div class="field span-4"><label>Y (m)</label><input id="posY" type="number" value="0"></div>
+              <div class="field span-4"><label>Z (m)</label><input id="posZ" type="number" value="0"></div>
+
+              <div class="form-section-title">Transform — Orientation</div>
+              <div class="field span-4"><label>rX (deg)</label><input id="rotX" type="number" value="0"></div>
+              <div class="field span-4"><label>rY (deg)</label><input id="rotY" type="number" value="0"></div>
+              <div class="field span-4"><label>rZ (deg)</label><input id="rotZ" type="number" value="0"></div>
+
+              <div class="form-section-title">Units</div>
+              <div class="field span-3"><label>metersPerUnit</label><input id="metersPerUnit" type="number" value="1"></div>
+              <div class="field span-3"><label>upAxis</label><select id="upAxis"><option>Z</option><option>Y</option><option>X</option></select></div>
+              <div class="field span-3"><label>angleUnit</label><select id="angleUnit"><option>deg</option><option>rad</option></select></div>
+              <div class="field span-3"><label>massUnit</label><select id="massUnit"><option>kg</option><option>g</option><option>lb</option></select></div>
+              <div class="field span-6"><label>pressureUnit</label><select id="pressureUnit"><option>kPa</option><option>Pa</option><option>bar</option></select></div>
+              <div class="field span-6"><label>lengthUnit</label><select id="lengthUnit"><option>m</option><option>cm</option><option>mm</option></select></div>
+
+              <div class="form-section-title">Custom Attributes</div>
+              <div class="custom-attrs" id="customAttrs"></div>
+              <div class="field full"><button class="btn" onclick="addCustomAttrRow()">+ Add Attribute</button></div>
+
+              <div class="form-section-title">Actions</div>
+              <div class="field span-4"><button class="btn btn-primary" onclick="saveSelectedNode()">Save Selected Node</button></div>
+              <div class="field span-4"><button class="btn" onclick="duplicateSelectedNode()">Duplicate Node</button></div>
+              <div class="field span-4"><button class="btn" onclick="deleteSelectedNode()">Delete Node</button></div>
+              <div class="success-banner" id="saveBanner">✓ Assembly metadata saved and ready to feed downstream logic.</div>
+
+              <div class="form-section-title">SysML Preview</div>
+              <div class="field full">
+                <div class="chart-box" style="margin-top:0;">
+                  <pre id="sysmlPreview" style="white-space:pre-wrap; color:var(--text); font-size:11px; line-height:1.7;">package LSP1 {
+  part LSP1Assembly {
+    attribute geometry = "assets/geom/lsp1_assembly_geom.usda";
+    attribute materialRef = "Aluminum_2219_T87";
+  }
+}</pre>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="consequence">
+      <div class="section-head">
+        <div>
+          
+      </div>
+
+
+ 
+              </div>
+            </div>
+          </div>
+
+          <div class="chart-box">
+
+          </div>
+          <div class="footer-note">This page is wired with dummy data, but it is structured so that your actual DES outputs could replace the scenario array and metrics without changing the user flow.</div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+<script>
+  const systems = [
+    { id: 'lander', name: 'Lander', meta: 'Entry point for cargo / crew', active: true, type: 'logistics' },
+    { id: 'habitat', name: 'Habitat', meta: 'Crew support and shelter', active: true, type: 'support' },
+    { id: 'power', name: 'Power Grid', meta: 'Primary surface distribution', active: true, type: 'support' },
+    { id: 'isru', name: 'ISRU Plant', meta: 'Resource extraction and processing', active: true, type: 'production' },
+    { id: 'depot', name: 'Propellant Depot', meta: 'Storage and dispatch node', active: true, type: 'logistics' },
+    { id: 'rover', name: 'Rover Fleet', meta: 'Surface mobility and transfer', active: true, type: 'transport' },
+    { id: 'reactor', name: 'Nuclear Reactor', meta: 'High-stability power source', active: false, type: 'support' },
+    { id: 'rail', name: 'Train System', meta: 'Bulk haul surface logistics', active: false, type: 'transport' }
+  ];
+
+  const graphPositions = {
+    lander: { x: 110, y: 110 },
+    habitat: { x: 325, y: 80 },
+    power: { x: 300, y: 275 },
+    isru: { x: 560, y: 120 },
+    depot: { x: 790, y: 110 },
+    rover: { x: 540, y: 320 },
+    reactor: { x: 120, y: 330 },
+    rail: { x: 785, y: 300 }
+  };
+
+  const links = [
+    ['lander','habitat'], ['lander','power'], ['habitat','power'], ['power','isru'],
+    ['isru','depot'], ['rover','isru'], ['rover','depot'], ['reactor','power'], ['rail','depot'], ['rail','isru']
+  ];
+
+let assemblyTree = [
+  {
+    id: 'root',
+    name: 'LSP1Assembly',
+    type: 'assembly',
+    data: defaultNodeData('LSP1Assembly', 'lsp1_assembly.step', 'Assembly'),
+    children: []
+  }
+];
+let selectedNodeId = 'root';
+let nodeCounter = 0;
+  let scenarioData = [];
+  let selectedScenarioId = null;
+
+  function defaultNodeData(name, step, category) {
+    return {
+      stepFileName: step,
+      partName: name,
+      materialRef: 'Aluminum_2219_T87',
+      partCategory: category,
+      dimLength: 16,
+      dimWidth: 9,
+      dimHeight: 6,
+      posX: 0,
+      posY: 0,
+      posZ: 0,
+      rotX: 0,
+      rotY: 0,
+      rotZ: 0,
+      metersPerUnit: 1,
+      upAxis: 'Z',
+      angleUnit: 'deg',
+      massUnit: 'kg',
+      pressureUnit: 'kPa',
+      lengthUnit: 'm',
+      customAttrs: [
+        { name: 'verificationMethod', value: 'Analysis', unit: '' },
+        { name: 'opsMode', value: 'Nominal', unit: '' }
+      ]
+    };
+  }
+
+  const systemNodeMap = {
+  lander: {
+    name: 'Lander',
+    type: 'part',
+    category: 'Vehicle',
+    step: 'lander.step'
+  },
+  habitat: {
+    name: 'Habitat',
+    type: 'part',
+    category: 'Habitat',
+    step: 'habitat.step'
+  },
+  power: {
+    name: 'PowerGrid',
+    type: 'part',
+    category: 'Power',
+    step: 'power_grid.step'
+  },
+  isru: {
+    name: 'ISRUPlant',
+    type: 'part',
+    category: 'Processing Plant',
+    step: 'isru.step'
+  },
+  depot: {
+    name: 'PropellantDepot',
+    type: 'part',
+    category: 'Infrastructure',
+    step: 'propellant_depot.step'
+  },
+  rover: {
+    name: 'RoverFleet',
+    type: 'part',
+    category: 'Vehicle',
+    step: 'rover.step'
+  },
+  reactor: {
+    name: 'NuclearReactor',
+    type: 'part',
+    category: 'Power',
+    step: 'reactor.step'
+  },
+  rail: {
+    name: 'TrainSystem',
+    type: 'part',
+    category: 'Infrastructure',
+    step: 'train_system.step'
+  }
+};
+
+function buildAssemblyTreeFromActiveSystems() {
+  const root = assemblyTree[0];
+  const existingById = {};
+
+  root.children.forEach(child => {
+    existingById[child.id] = child;
+  });
+
+  const activeChildren = systems
+    .filter(sys => sys.active)
+    .map(sys => {
+      const mapped = systemNodeMap[sys.id];
+      const existing = existingById[sys.id];
+
+      if (existing) return existing;
+
+      return {
+        id: sys.id,
+        name: mapped.name,
+        type: mapped.type,
+        data: defaultNodeData(mapped.name, mapped.step, mapped.category),
+        children: []
+      };
+    });
+
+  root.children = activeChildren;
+
+  if (!findNode(selectedNodeId)) {
+    selectedNodeId = 'root';
+  }
+
+  renderAssemblyTree();
+  loadNodeIntoForm();
+}
+  function renderSystems() {
+    const wrap = document.getElementById('systemGrid');
+    wrap.innerHTML = '';
+    systems.forEach(sys => {
+      const card = document.createElement('div');
+      card.className = 'sys-card' + (sys.active ? ' active' : '');
+      card.innerHTML = `
+        <div class="sys-head">
+          <div class="sys-name">${sys.name}</div>
+          <input class="toggle" type="checkbox" ${sys.active ? 'checked' : ''} onchange="toggleSystem('${sys.id}')">
+        </div>
+        <div class="sys-meta">${sys.meta}</div>
+      `;
+      wrap.appendChild(card);
+    });
+    updateTopMetrics();
+    renderOpsGraph();
+  }
+
+function toggleSystem(id) {
+  const sys = systems.find(s => s.id === id);
+  if (!sys) return;
+  sys.active = !sys.active;
+  renderSystems();
+  buildAssemblyTreeFromActiveSystems();
+  generatePlans();
+}
+
+  function renderOpsGraph() {
+    const graph = document.getElementById('opsGraph');
+    const svg = document.getElementById('linkLayer');
+    graph.querySelectorAll('.node').forEach(n => n.remove());
+    svg.innerHTML = '';
+
+    links.forEach(([a, b]) => {
+      const sa = systems.find(s => s.id === a);
+      const sb = systems.find(s => s.id === b);
+      if (!sa?.active || !sb?.active) return;
+      const pa = graphPositions[a];
+      const pb = graphPositions[b];
+      const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      line.setAttribute('x1', pa.x + 55);
+      line.setAttribute('y1', pa.y + 30);
+      line.setAttribute('x2', pb.x + 55);
+      line.setAttribute('y2', pb.y + 30);
+      line.setAttribute('stroke', '#ffb347');
+      line.setAttribute('stroke-width', '2.2');
+      line.setAttribute('stroke-opacity', '0.65');
+      line.setAttribute('stroke-dasharray', '8 7');
+      svg.appendChild(line);
+    });
+
+    systems.forEach(sys => {
+      if (!sys.active) return;
+      const pos = graphPositions[sys.id];
+      const div = document.createElement('div');
+      div.className = 'node active';
+      div.style.left = pos.x + 'px';
+      div.style.top = pos.y + 'px';
+      div.innerHTML = `<div class="node-title">${sys.name}</div><div class="node-tag">${sys.type}</div>`;
+      graph.appendChild(div);
+    });
+
+    const activeNames = systems.filter(s => s.active).map(s => s.name).join(' → ');
+    document.getElementById('opsCaption').textContent = activeNames
+      ? `Current active mission interaction space: ${activeNames}. DES should only build event sequences across this online system set.`
+      : 'No systems active. Turn on at least one system so the operations graph can define the DES state space.';
+  }
+
+  function updateTopMetrics() {
+    const activeCount = systems.filter(s => s.active).length;
+    const activeEdges = links.filter(([a,b]) => systems.find(s => s.id === a)?.active && systems.find(s => s.id === b)?.active).length;
+    const roverCount = Math.max(0, Number(document.getElementById('roverCount')?.value || 0));
+    const plantCount = Math.max(0, Number(document.getElementById('plantCount')?.value || 0));
+    const distance = Math.max(0, Number(document.getElementById('distanceKm')?.value || 0));
+    const score = Math.max(0, Math.min(99, Math.round(52 + activeCount * 4 + roverCount * 3 + plantCount * 5 - distance * 0.6)));
+
+    document.getElementById('activeSystemsMetric').textContent = activeCount;
+    document.getElementById('networkEdgesMetric').textContent = activeEdges;
+    document.getElementById('missionScoreMetric').textContent = score;
+  }
+
+  function flattenTree(nodes, depth = 0, path = []) {
+    let rows = [];
+    nodes.forEach(node => {
+      rows.push({ node, depth, path: [...path, node.name] });
+      if (node.children?.length) rows = rows.concat(flattenTree(node.children, depth + 1, [...path, node.name]));
+    });
+    return rows;
+  }
+
+  function renderAssemblyTree() {
+    const box = document.getElementById('assemblyTree');
+    box.innerHTML = '';
+    flattenTree(assemblyTree).forEach(({ node, depth, path }) => {
+      const row = document.createElement('div');
+      row.className = 'tree-node-row' + (node.id === selectedNodeId ? ' selected' : '');
+      row.onclick = () => selectNode(node.id);
+      row.innerHTML = `
+        <div class="tree-indent">${'· '.repeat(depth)}</div>
+        <div class="tree-bullet"></div>
+        <div class="tree-label">${node.name}</div>
+        <div class="tree-type">${node.type}</div>
+      `;
+      box.appendChild(row);
+    });
+    updateSelectedPath();
+  }
+
+  function findNode(id, nodes = assemblyTree, parent = null) {
+    for (const node of nodes) {
+      if (node.id === id) return { node, parent };
+      if (node.children?.length) {
+        const res = findNode(id, node.children, node);
+        if (res) return res;
+      }
+    }
+    return null;
+  }
+
+  function selectNode(id) {
+    selectedNodeId = id;
+    renderAssemblyTree();
+    loadNodeIntoForm();
+  }
+
+  function updateSelectedPath() {
+    const row = flattenTree(assemblyTree).find(r => r.node.id === selectedNodeId);
+    document.getElementById('selectedPath').textContent = 'Selected path: /' + (row ? row.path.join('/') : 'LSP1Assembly');
+  }
+
+  function loadNodeIntoForm() {
+    const res = findNode(selectedNodeId);
+    if (!res) return;
+    const data = res.node.data;
+    [
+      'stepFileName','partName','materialRef','partCategory','dimLength','dimWidth','dimHeight',
+      'posX','posY','posZ','rotX','rotY','rotZ','metersPerUnit','upAxis','angleUnit','massUnit','pressureUnit','lengthUnit'
+    ].forEach(id => {
+      const el = document.getElementById(id);
+      if (el && data[id] !== undefined) el.value = data[id];
+    });
+    const wrap = document.getElementById('customAttrs');
+    wrap.innerHTML = '';
+    (data.customAttrs || []).forEach(attr => addCustomAttrRow(attr));
+    previewAssembly();
+  }
+
+  function readFormData() {
+    const data = {};
+    [
+      'stepFileName','partName','materialRef','partCategory','dimLength','dimWidth','dimHeight',
+      'posX','posY','posZ','rotX','rotY','rotZ','metersPerUnit','upAxis','angleUnit','massUnit','pressureUnit','lengthUnit'
+    ].forEach(id => data[id] = document.getElementById(id).value);
+    data.customAttrs = [...document.querySelectorAll('.attr-row')].map(row => ({
+      name: row.querySelector('.attr-name').value,
+      value: row.querySelector('.attr-value').value,
+      unit: row.querySelector('.attr-unit').value
+    })).filter(a => a.name || a.value || a.unit);
+    return data;
+  }
+
+  function saveSelectedNode() {
+    const res = findNode(selectedNodeId);
+    if (!res) return;
+    const data = readFormData();
+    res.node.name = data.partName || res.node.name;
+    res.node.data = data;
+    renderAssemblyTree();
+    previewAssembly();
+    const banner = document.getElementById('saveBanner');
+    banner.classList.add('show');
+    setTimeout(() => banner.classList.remove('show'), 2000);
+  }
+
+  function addNode(mode) {
+    const name = prompt(mode === 'root' ? 'New root node name:' : 'New child node name:', mode === 'root' ? 'NewAssembly' : 'NewPart');
+    if (!name) return;
+    const newNode = {
+      id: 'n' + (++nodeCounter),
+      name,
+      type: 'part',
+      data: defaultNodeData(name, `${name.toLowerCase()}.step`, 'Infrastructure'),
+      children: []
+    };
+    if (mode === 'root' || !selectedNodeId) {
+      assemblyTree.push(newNode);
+    } else {
+      const res = findNode(selectedNodeId);
+      if (res?.node) {
+        res.node.type = 'assembly';
+        res.node.children.push(newNode);
+      }
+    }
+    selectedNodeId = newNode.id;
+    renderAssemblyTree();
+    loadNodeIntoForm();
+  }
+
+  function duplicateSelectedNode() {
+    const res = findNode(selectedNodeId);
+    if (!res) return;
+    const clone = JSON.parse(JSON.stringify(res.node));
+    clone.id = 'n' + (++nodeCounter);
+    clone.name = clone.name + '_Copy';
+    if (res.parent) {
+      res.parent.children.push(clone);
+    } else {
+      assemblyTree.push(clone);
+    }
+    selectedNodeId = clone.id;
+    renderAssemblyTree();
+    loadNodeIntoForm();
+  }
+
+  function deleteSelectedNode() {
+    if (selectedNodeId === 'root') {
+      alert('Keep the root assembly and edit it instead.');
+      return;
+    }
+    function removeNode(id, nodes) {
+      const idx = nodes.findIndex(n => n.id === id);
+      if (idx >= 0) return nodes.splice(idx, 1);
+      for (const n of nodes) if (n.children?.length && removeNode(id, n.children)) return true;
+      return false;
+    }
+    removeNode(selectedNodeId, assemblyTree);
+    selectedNodeId = 'root';
+    renderAssemblyTree();
+    loadNodeIntoForm();
+  }
+
+  function addCustomAttrRow(attr = { name: '', value: '', unit: '' }) {
+    const wrap = document.getElementById('customAttrs');
+    const row = document.createElement('div');
+    row.className = 'attr-row';
+    row.innerHTML = `
+      <input class="attr-name" placeholder="Attribute name" value="${attr.name || ''}">
+      <input class="attr-value" placeholder="Value" value="${attr.value || ''}">
+      <input class="attr-unit" placeholder="Unit" value="${attr.unit || ''}">
+    `;
+    wrap.appendChild(row);
+  }
+
+  function buildPreviewText() {
+    const data = readFormData();
+    const attrs = (data.customAttrs || []).map(a => `    attribute ${a.name} = "${a.value}";${a.unit ? ` // ${a.unit}` : ''}`).join('\n');
+    return `package LSP1 {\n  part ${data.partName || 'Part'} {\n    attribute geometry = "assets/geom/${(data.stepFileName || 'part.step').replace(/\.(step|stp)$/i, '')}_geom.usda";\n    attribute materialRef = "${data.materialRef}";\n    attribute category = "${data.partCategory}";\n    part ${data.partName || 'Part'}_dims {\n      attribute length = ${data.dimLength};\n      attribute width = ${data.dimWidth};\n      attribute height = ${data.dimHeight};\n      attribute X = ${data.posX};\n      attribute Y = ${data.posY};\n      attribute Z = ${data.posZ};\n      attribute rX_deg = ${data.rotX};\n      attribute rY_deg = ${data.rotY};\n      attribute rZ_deg = ${data.rotZ};\n      attribute metersPerUnit = ${data.metersPerUnit};\n      attribute upAxis = "${data.upAxis}";\n    }${attrs ? `\n${attrs}` : ''}\n  }\n}`;
+  }
+
+  function previewAssembly() {
+    document.getElementById('sysmlPreview').textContent = buildPreviewText();
+  }
+
+  function pushToConsequence() {
+    saveSelectedNode();
+    document.getElementById('consequence').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function computeScenario(seed, priority, mode) {
+    const activeCount = systems.filter(s => s.active).length;
+    const rovers = Number(document.getElementById('roverCount').value || 0);
+    const plants = Number(document.getElementById('plantCount').value || 0);
+    const distance = Number(document.getElementById('distanceKm').value || 0);
+    const days = Number(document.getElementById('missionDays').value || 0);
+
+    const baseCost = 70 + distance * 2.8 + plants * 18 + rovers * 9 + seed * 11 - activeCount * 4;
+    const throughput = Math.max(18, Math.round(38 + activeCount * 5 + plants * 12 + rovers * 7 - seed * 4));
+    const risk = Math.max(12, Math.round(58 - activeCount * 3 + distance * 0.9 + seed * 5 - plants * 4));
+    const timeline = Math.max(8, Math.round(days * 0.7 + distance * 0.25 + seed * 2 - rovers * 1.5 - plants * 2));
+
+    let viability = Math.round(100 - (baseCost * 0.18 + risk * 0.44 + timeline * 0.55) + throughput * 0.72);
+    if (priority === 'cost') viability += seed === 0 ? 8 : 0;
+    if (priority === 'speed') viability += seed === 1 ? 8 : 0;
+    if (priority === 'output') viability += seed === 2 ? 8 : 0;
+    if (priority === 'resilience') viability += activeCount > 5 ? 6 : 0;
+    if (mode === 'contingency') viability += 5 - seed;
+    if (mode === 'surge') viability += seed === 2 ? 6 : -1;
+    viability = Math.max(25, Math.min(96, viability));
+
+    const scenarioNames = ['Alpha Traverse Chain', 'Beta Depot Relay', 'Gamma Parallel Harvest'];
+    const tags = ['Lowest overhead', 'Fastest route closure', 'Highest production'];
+    const sequenceTemplates = [
+      ['Unload cargo', 'Activate power', 'Initialize habitat', 'Dispatch rover convoy', 'Process ISRU batch', 'Transfer to depot'],
+      ['Deploy power backbone', 'Stand up depot first', 'Cycle rover shuttles', 'Buffer consumables', 'Execute crew excursion'],
+      ['Activate dual production loop', 'Run simultaneous rover legs', 'Bulk transfer to storage', 'Close mission objectives']
+    ];
+
+    return {
+      id: 's' + seed,
+      name: scenarioNames[seed],
+      tag: tags[seed],
+      cost: Math.round(baseCost),
+      throughput,
+      risk,
+      timeline,
+      viability,
+      sequence: sequenceTemplates[seed],
+      rovers,
+      plants,
+      distance
+    };
+  }
+
+  function generatePlans() {
+    updateTopMetrics();
+    const priority = document.getElementById('priorityObjective').value;
+    const mode = document.getElementById('scenarioMode').value;
+    scenarioData = [0,1,2].map(i => computeScenario(i, priority, mode)).sort((a,b) => b.viability - a.viability);
+    document.getElementById('planCountMetric').textContent = scenarioData.length;
+    renderScenarios();
+    if (!selectedScenarioId || !scenarioData.find(s => s.id === selectedScenarioId)) selectedScenarioId = scenarioData[0].id;
+    selectScenario(selectedScenarioId);
+  }
+
+  function renderScenarios() {
+    const grid = document.getElementById('scenarioGrid');
+    grid.innerHTML = '';
+    scenarioData.forEach(s => {
+      const card = document.createElement('div');
+      card.className = 'scenario-card' + (s.id === selectedScenarioId ? ' selected' : '');
+      card.onclick = () => selectScenario(s.id);
+      card.innerHTML = `
+        <div class="scenario-head">
+          <div class="scenario-name">${s.name}</div>
+          <div class="chip">${s.tag}</div>
+        </div>
+        <div class="mini-note">${s.sequence.join(' → ')}</div>
+        <div class="scenario-meta">
+          <div class="mini"><div class="k">Viability</div><div class="v">${s.viability}</div></div>
+          <div class="mini"><div class="k">Cost</div><div class="v">${s.cost}</div></div>
+          <div class="mini"><div class="k">Timeline</div><div class="v">${s.timeline}d</div></div>
+          <div class="mini"><div class="k">Risk</div><div class="v">${s.risk}</div></div>
+        </div>
+      `;
+      grid.appendChild(card);
+    });
+  }
+
+  function selectScenario(id) {
+    selectedScenarioId = id;
+    renderScenarios();
+    const s = scenarioData.find(x => x.id === id) || scenarioData[0];
+    if (!s) return;
+    document.getElementById('selScenarioName').textContent = s.name.split(' ')[0];
+    document.getElementById('selScenarioScore').textContent = s.viability;
+    document.getElementById('selScenarioCost').textContent = s.cost;
+    document.getElementById('selScenarioTime').textContent = s.timeline + 'd';
+    document.getElementById('costBar').style.height = Math.min(100, Math.max(18, s.cost / 2)) + '%';
+    document.getElementById('throughputBar').style.height = Math.min(100, Math.max(18, s.throughput)) + '%';
+    document.getElementById('riskBar').style.height = Math.min(100, Math.max(18, s.risk)) + '%';
+    document.getElementById('costBarValue').textContent = s.cost;
+    document.getElementById('throughputBarValue').textContent = s.throughput;
+    document.getElementById('riskBarValue').textContent = s.risk;
+
+    const tbody = document.getElementById('consequenceTableBody');
+    tbody.innerHTML = `
+      <tr><td><strong>Activated assets</strong></td><td>${systems.filter(x => x.active).map(x => x.name).join(', ')}</td><td>These are the only nodes the DES was allowed to use when constructing this candidate plan.</td></tr>
+      <tr><td><strong>Operational configuration</strong></td><td>${s.rovers} rover(s), ${s.plants} ISRU plant(s), ${s.distance} km staging distance</td><td>User-entered top-level constraints shift the feasible trade space before scenario selection.</td></tr>
+      <tr><td><strong>Mission sequence style</strong></td><td>${s.sequence.join(' → ')}</td><td>Represents the selected DES-generated ordering logic for this dummy scenario.</td></tr>
+      <tr><td><strong>Cost / throughput / risk</strong></td><td>Cost ${s.cost}, throughput ${s.throughput}, risk ${s.risk}</td><td>Used to compare minimal viable mission paths across multiple generated options.</td></tr>
+      <tr><td><strong>Stakeholder interpretation</strong></td><td>Viability score ${s.viability}</td><td>${interpretScenario(s)}</td></tr>
+    `;
+  }
+
+  function interpretScenario(s) {
+    if (s.viability >= 85) return 'Strong candidate for nominal mission selection with favorable balance across speed, output, and mission burden.';
+    if (s.viability >= 72) return 'Viable mission option with manageable trade-offs. Good for comparison against cost- or resilience-driven alternatives.';
+    return 'Marginal but feasible path. Useful as a backup or contingency scenario rather than the primary recommended plan.';
+  }
+
+['roverCount','plantCount','distanceKm','missionDays','priorityObjective','scenarioMode'].forEach(id => {
+  document.addEventListener('input', (e) => {
+    if (e.target && e.target.id === id) {
+      if (id === 'roverCount' || id === 'plantCount') {
+        buildAssemblyTreeFromActiveSystems();
+      }
+      generatePlans();
+    }
+  });
+  document.addEventListener('change', (e) => {
+    if (e.target && e.target.id === id) {
+      if (id === 'roverCount' || id === 'plantCount') {
+        buildAssemblyTreeFromActiveSystems();
+      }
+      generatePlans();
+    }
+  });
+});
+
+renderSystems();
+buildAssemblyTreeFromActiveSystems();
+generatePlans();
+</script>
+</body>
+</html>
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Mission Workbench</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+
+body{
+    margin:0;
+    background:#070b12;
+    color:white;
+    font-family:Inter,system-ui;
+}
+
+.section{
+    padding:60px 40px;
+}
+
+.section-title{
+    font-size:28px;
+    margin-bottom:20px;
+}
+
+.row{
+    display:flex;
+    gap:30px;
+}
+
+.card{
+    flex:1;
+    background:#111827;
+    padding:20px;
+    border-radius:14px;
+}
+
+.generate-wrapper{
+    display:flex;
+    justify-content:center;
+    padding:80px 0;
+}
+
+.generate-btn{
+    font-size:26px;
+    padding:26px 60px;
+    border-radius:16px;
+    background:#4cc9f0;
+    color:black;
+    font-weight:700;
+    border:none;
+    cursor:pointer;
+    box-shadow:0 20px 40px rgba(0,0,0,.4);
+}
+
+.generate-btn:hover{
+    transform:scale(1.05);
+}
+
+iframe{
+    width:100%;
+    height:1400px;
+    border:none;
+}
+
+</style>
+</head>
+
+<body>
+
+<section class="section">
+
+
+
+<section class="section">
+
+<div class="section-title">3. Mission Consequence Explorer</div>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mission Consequence Explorer — DES Mockup</title>
+  <style>
+    :root {
+      --bg: #0a0e17;
+      --panel: #111827;
+      --panel-2: #0f172a;
+      --line: #243041;
+      --text: #e5eefb;
+      --muted: #95a3b8;
+      --accent: #4cc9f0;
+      --accent-2: #80ed99;
+      --warn: #ffd166;
+      --danger: #ef476f;
+      --shadow: 0 10px 30px rgba(0,0,0,.25);
+      --radius: 18px;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: radial-gradient(circle at top, #13203a 0%, var(--bg) 30%, #070b12 100%);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+    }
+
+    .app {
+      min-height: 100vh;
+      padding: 18px;
+      display: grid;
+      grid-template-rows: auto auto 1fr auto;
+      gap: 14px;
+    }
+
+    .card {
+      background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01));
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(8px);
+    }
+
+    .header {
+      padding: 18px 22px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .title h1 {
+      margin: 0;
+      font-size: 1.35rem;
+      letter-spacing: .2px;
+    }
+
+    .title p {
+      margin: 5px 0 0;
+      color: var(--muted);
+      font-size: .95rem;
+    }
+
+    .pill-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .pill {
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      color: var(--muted);
+      font-size: .82rem;
+      background: rgba(255,255,255,.02);
+    }
+
+    .scrubber {
+      padding: 16px 20px;
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 18px;
+      align-items: center;
+    }
+
+    .play-group {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    button {
+      background: #162236;
+      color: var(--text);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 10px 14px;
+      cursor: pointer;
+    }
+
+    button:hover { border-color: var(--accent); }
+
+    .time-wrap {
+      display: grid;
+      gap: 8px;
+    }
+
+    .time-top {
+      display: flex;
+      justify-content: space-between;
+      color: var(--muted);
+      font-size: .9rem;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--accent);
+    }
+
+    .markers {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      color: var(--muted);
+      font-size: .78rem;
+    }
+
+    .main {
+      display: grid;
+      grid-template-columns: 320px 1fr 340px;
+      gap: 14px;
+      min-height: 540px;
+    }
+
+    .panel {
+      padding: 16px;
+    }
+
+    .panel h2 {
+      margin: 0 0 6px;
+      font-size: 1rem;
+    }
+
+    .panel .sub {
+      margin: 0 0 16px;
+      color: var(--muted);
+      font-size: .88rem;
+      line-height: 1.35;
+    }
+
+    .control-group {
+      display: grid;
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+
+    .control {
+      padding: 12px;
+      background: rgba(255,255,255,.02);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+    }
+
+    .control-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      font-size: .9rem;
+      margin-bottom: 8px;
+    }
+
+    .control-head span:last-child {
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    .tiny {
+      font-size: .78rem;
+      color: var(--muted);
+      margin-top: 6px;
+      line-height: 1.3;
+    }
+
+    .network-wrap {
+      padding: 16px;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      gap: 10px;
+    }
+
+    .network-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .legend {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      color: var(--muted);
+      font-size: .78rem;
+    }
+
+    .svg-shell {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: linear-gradient(180deg, rgba(76,201,240,.05), rgba(255,255,255,.01));
+      overflow: hidden;
+      min-height: 420px;
+    }
+
+    svg { width: 100%; height: 100%; display: block; }
+
+    .node {
+      fill: #132238;
+      stroke: #3b4e67;
+      stroke-width: 2;
+    }
+
+    .node.active { stroke: var(--accent-2); }
+    .node.warning { stroke: var(--warn); }
+    .node.critical { stroke: var(--danger); }
+
+    .link {
+      fill: none;
+      stroke-linecap: round;
+      opacity: .9;
+    }
+
+    .metric-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .metric {
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: rgba(255,255,255,.02);
+    }
+
+    .metric .k {
+      color: var(--muted);
+      font-size: .78rem;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+    }
+
+    .metric .v {
+      margin-top: 5px;
+      font-size: 1.4rem;
+      font-weight: 700;
+    }
+
+    .metric .delta {
+      margin-top: 4px;
+      font-size: .82rem;
+    }
+
+    .pos { color: var(--accent-2); }
+    .neg { color: var(--danger); }
+    .warn { color: var(--warn); }
+
+    .status-box {
+      margin-top: 12px;
+      padding: 12px;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.02);
+      line-height: 1.45;
+      color: var(--muted);
+      font-size: .88rem;
+    }
+
+    .charts {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+    }
+
+    .chart-card {
+      padding: 14px;
+    }
+
+    .chart-card h3 {
+      margin: 0 0 8px;
+      font-size: .95rem;
+    }
+
+    .chart-card p {
+      margin: 0 0 8px;
+      color: var(--muted);
+      font-size: .8rem;
+    }
+
+    .mini svg {
+      height: 140px;
+      border-radius: 12px;
+      background: rgba(255,255,255,.02);
+      border: 1px solid var(--line);
+    }
+
+    .footer {
+      padding: 14px 18px;
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: center;
+      color: var(--muted);
+      font-size: .85rem;
+    }
+
+    .compare-toggle {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    @media (max-width: 1280px) {
+      .main { grid-template-columns: 1fr; }
+      .charts { grid-template-columns: 1fr 1fr; }
+    }
+
+    @media (max-width: 760px) {
+      .charts { grid-template-columns: 1fr; }
+      .scrubber { grid-template-columns: 1fr; }
+      .header { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <section class="card header">
+      <div class="title">
+        <h1>Mission Consequence Explorer</h1>
+        <p>Interactive mockup for a DES-driven lunar infrastructure dashboard with real-time parameter perturbation.</p>
+      </div>
+      <div class="pill-row">
+        <div class="pill">Scenario: ISRU Processing Plant</div>
+        <div class="pill">Mode: Consequence Explorer</div>
+        <div class="pill">Baseline vs Modified</div>
+      </div>
+    </section>
+
+    <section class="card scrubber">
+      <div class="play-group">
+        <button id="playBtn">▶ Play</button>
+        <button id="resetBtn">Reset</button>
+      </div>
+      <div class="time-wrap">
+        <div class="time-top">
+          <span>Mission Time</span>
+          <strong id="timeLabel">t = 6 hr</strong>
+        </div>
+        <input id="timeSlider" type="range" min="0" max="60" step="1" value="6" />
+        <div class="markers">
+          <span>Rover unload</span>
+          <span>Plant active</span>
+          <span>Threshold</span>
+          <span>Transport</span>
+          <span>Power spike</span>
+        </div>
+      </div>
+      <div>
+        <button id="snapshotBtn">Save Snapshot</button>
+      </div>
+    </section>
+
+    <section class="main">
+      <aside class="card panel">
+        <h2>Parameter Controls</h2>
+        <p class="sub">Stakeholder changes the assumptions here. The visualization then rebalances the operational state and downstream outcomes.</p>
+
+        <div class="control-group">
+          <div class="control">
+            <div class="control-head">
+              <span># of regolith rovers</span>
+              <span id="roverCountValue">1</span>
+            </div>
+            <input id="roverCountSlider" type="range" min="1" max="10" step="1" value="1" />
+            <div class="tiny">Assumes multiple rovers are collocated and contribute parallel haul capacity to the same regolith delivery loop.</div>
+          </div>
+
+          <div class="control">
+            <div class="control-head">
+              <span># of ISRU plants</span>
+              <span id="plantCountValue">1</span>
+            </div>
+            <input id="plantCountSlider" type="range" min="1" max="6" step="1" value="1" />
+            <div class="tiny">Assumes multiple ISRU plants are collocated and act like parallel processing units with shared local support infrastructure.</div>
+          </div>
+          <div class="control">
+            <div class="control-head">
+              <span>Regolith haul distance</span>
+              <span id="regolithDistanceValue">1.0 km</span>
+            </div>
+            <input id="regolithDistanceSlider" type="range" min="0.5" max="10" step="0.5" value="1" />
+            <div class="tiny">Excavation site → ISRU plant distance. In the real DES, this should feed rover travel time, energy use, and plant starvation risk.</div>
+          </div>
+
+          <div class="control">
+            <div class="control-head">
+              <span>LOX haul distance</span>
+              <span id="loxDistanceValue">1.0 km</span>
+            </div>
+            <input id="loxDistanceSlider" type="range" min="0.5" max="10" step="0.5" value="1" />
+            <div class="tiny">ISRU plant → landing zone distance. This shifts LOX transport timing, rover battery demand, and depot servicing cadence.</div>
+          </div>
+          <div class="control">
+            <div class="control-head">
+              <span>Rover discharge rate</span>
+              <span id="dischargeValue">4000 kg/unload</span>
+            </div>
+            <input id="dischargeSlider" type="range" min="1000" max="6000" step="250" value="4000" />
+            <div class="tiny">Primary driver for regolith availability, plant starvation risk, rover load behavior, and threshold timing.</div>
+          </div>
+
+          <div class="control">
+            <div class="control-head">
+              <span>Rover travel time</span>
+              <span id="travelValue">5 hr/km</span>
+            </div>
+            <input id="travelSlider" type="range" min="1" max="10" step="1" value="5" />
+            <div class="tiny">Longer travel time delays delivery cadence and reduces infrastructure throughput.</div>
+          </div>
+
+          <div class="control">
+            <div class="control-head">
+              <span>Plant processing rate</span>
+              <span id="processValue">1600 kg/hr</span>
+            </div>
+            <input id="processSlider" type="range" min="800" max="2400" step="100" value="1600" />
+            <div class="tiny">Higher plant processing can increase LOX output but also steepen the energy demand curve.</div>
+          </div>
+
+          <div class="control">
+            <div class="control-head">
+              <span>LOX transport threshold</span>
+              <span id="thresholdValue">100 kg</span>
+            </div>
+            <input id="thresholdSlider" type="range" min="25" max="300" step="25" value="100" />
+            <div class="tiny">Determines when the LOX cargo rover is triggered for depot/landing-zone servicing.</div>
+          </div>
+        </div>
+      </aside>
+
+      <section class="card network-wrap">
+        <div class="network-head">
+          <div>
+            <h2 style="margin:0; font-size:1rem;">Coupled Mission State Network</h2>
+            <div class="sub" style="margin:6px 0 0;">Node color = health/utilization. Edge thickness = current flow magnitude. This is what the stakeholder “feels” when a parameter changes.</div>
+          </div>
+          <div class="legend">
+            <span>● healthy</span>
+            <span>● constrained</span>
+            <span>● bottleneck</span>
+          </div>
+        </div>
+
+        <div class="svg-shell">
+          <svg viewBox="0 0 900 500" preserveAspectRatio="xMidYMid meet">
+            <defs>
+              <filter id="glow">
+                <feGaussianBlur stdDeviation="4" result="blur" />
+                <feMerge>
+                  <feMergeNode in="blur" />
+                  <feMergeNode in="SourceGraphic" />
+                </feMerge>
+              </filter>
+            </defs>
+
+            <path id="regolithLink" class="link" d="M160 110 C270 110, 250 210, 360 210" stroke="#4cc9f0" stroke-width="8" />
+            <path id="powerPlantLink" class="link" d="M180 360 C290 350, 290 270, 360 240" stroke="#80ed99" stroke-width="6" />
+            <path id="powerHabLink" class="link" d="M180 360 C250 380, 270 430, 360 420" stroke="#80ed99" stroke-width="4" />
+            <path id="powerCommsLink" class="link" d="M180 360 C250 360, 530 420, 620 410" stroke="#80ed99" stroke-width="3" />
+            <path id="loxLink" class="link" d="M470 210 C570 210, 560 260, 660 260" stroke="#ffd166" stroke-width="4" />
+            <path id="transportLink" class="link" d="M720 260 C780 260, 785 200, 820 180" stroke="#ef476f" stroke-width="2" />
+            <path id="chargeLink" class="link" d="M180 360 C260 330, 505 330, 595 300" stroke="#80ed99" stroke-width="3" stroke-dasharray="7 6" />
+
+            <g>
+              <rect x="70" y="70" width="120" height="70" rx="18" class="node active" />
+              <text x="130" y="98" text-anchor="middle" fill="#e5eefb" font-size="16" font-weight="700">Regolith Rover</text>
+              <text id="roverNodeSub" x="130" y="121" text-anchor="middle" fill="#95a3b8" font-size="12">Load: 4000 kg</text>
+            </g>
+
+            <g>
+              <rect x="320" y="175" width="150" height="80" rx="18" class="node active" />
+              <text x="395" y="206" text-anchor="middle" fill="#e5eefb" font-size="17" font-weight="700">ISRU Plant</text>
+              <text id="plantNodeSub" x="395" y="230" text-anchor="middle" fill="#95a3b8" font-size="12">LOX: 10.1 kg</text>
+            </g>
+
+            <g>
+              <rect x="60" y="320" width="140" height="80" rx="18" class="node" />
+              <text x="130" y="352" text-anchor="middle" fill="#e5eefb" font-size="16" font-weight="700">Solar + Power</text>
+              <text id="powerNodeSub" x="130" y="376" text-anchor="middle" fill="#95a3b8" font-size="12">100 kW available</text>
+            </g>
+
+            <g>
+              <rect x="560" y="230" width="120" height="65" rx="18" class="node warning" />
+              <text x="620" y="257" text-anchor="middle" fill="#e5eefb" font-size="15" font-weight="700">LOX Rover</text>
+              <text id="loxNodeSub" x="620" y="278" text-anchor="middle" fill="#95a3b8" font-size="12">Idle</text>
+            </g>
+
+            <g>
+              <rect x="760" y="145" width="110" height="70" rx="18" class="node" />
+              <text x="815" y="173" text-anchor="middle" fill="#e5eefb" font-size="15" font-weight="700">LZ / Depot</text>
+              <text id="lzNodeSub" x="815" y="195" text-anchor="middle" fill="#95a3b8" font-size="12">0 kg stored</text>
+            </g>
+
+            <g>
+              <rect x="305" y="390" width="115" height="60" rx="18" class="node" />
+              <text x="362" y="416" text-anchor="middle" fill="#e5eefb" font-size="14" font-weight="700">Habitat</text>
+              <text id="habNodeSub" x="362" y="436" text-anchor="middle" fill="#95a3b8" font-size="12">5 kW</text>
+            </g>
+
+            <g>
+              <rect x="580" y="385" width="115" height="60" rx="18" class="node" />
+              <text x="637" y="411" text-anchor="middle" fill="#e5eefb" font-size="14" font-weight="700">Comms</text>
+              <text id="commsNodeSub" x="637" y="431" text-anchor="middle" fill="#95a3b8" font-size="12">2 kW</text>
+            </g>
+
+            <g>
+              <rect x="560" y="300" width="135" height="58" rx="18" class="node" />
+              <text x="627" y="324" text-anchor="middle" fill="#e5eefb" font-size="14" font-weight="700">Charge Station</text>
+              <text id="chargeNodeSub" x="627" y="344" text-anchor="middle" fill="#95a3b8" font-size="12">20 kW</text>
+            </g>
+          </svg>
+        </div>
+
+        <div class="status-box" id="narrativeBox">
+          At the current parameter set, the rover is supplying enough regolith to keep the plant active with low starvation risk. Increasing discharge rate will likely steepen LOX growth, increase plant energy consumption, and move threshold-triggered transport earlier in the mission.
+        </div>
+      </section>
+
+      <aside class="card panel">
+        <h2>Downstream Consequences</h2>
+        <p class="sub">This panel answers the stakeholder question: “If I change one operational knob, what else changes?”</p>
+
+        <div class="metric-grid">
+          <div class="metric">
+            <div class="k">Total LOX by 60 hr</div>
+            <div class="v" id="loxTotalMetric">101.1 kg</div>
+            <div class="delta pos" id="loxDelta">+0% vs baseline</div>
+          </div>
+          <div class="metric">
+            <div class="k">Plant uptime</div>
+            <div class="v" id="uptimeMetric">25.0 hr</div>
+            <div class="delta pos" id="uptimeDelta">Nominal</div>
+          </div>
+          <div class="metric">
+            <div class="k">Rover battery reserve</div>
+            <div class="v" id="batteryMetric">72%</div>
+            <div class="delta warn" id="batteryDelta">Healthy margin</div>
+          </div>
+          <div class="metric">
+            <div class="k">Threshold crossing</div>
+            <div class="v" id="thresholdMetric">50 hr</div>
+            <div class="delta" id="thresholdDelta">No shift</div>
+          </div>
+          <div class="metric">
+            <div class="k">Peak power demand</div>
+            <div class="v" id="powerMetric">30 kW</div>
+            <div class="delta" id="powerDelta">Below supply</div>
+          </div>
+          <div class="metric">
+            <div class="k">Bottleneck</div>
+            <div class="v" id="bottleneckMetric">Plant wait</div>
+            <div class="delta" id="bottleneckDelta">Mild</div>
+          </div>
+          <div class="metric">
+            <div class="k">Scenario cost</div>
+            <div class="v" id="costMetric">$45.0M</div>
+            <div class="delta" id="costDelta">Baseline architecture</div>
+          </div>
+        </div>
+
+        <div class="status-box" id="insightBox">
+          <strong style="color:var(--text)">Interpretation:</strong><br>
+          The modified scenario is currently throughput-limited more by delivery cadence than by plant capacity. If you continue raising rover discharge while keeping travel time fixed, the bottleneck will shift toward energy and charging support rather than regolith availability.
+        </div>
+      </aside>
+    </section>
+
+    <section class="charts">
+      <div class="card chart-card">
+        <h3>LOX Stored vs Time</h3>
+        <p>Shows whether the parameter change increases cumulative oxygen availability.</p>
+        <div class="mini"><svg id="chartLox"></svg></div>
+      </div>
+      <div class="card chart-card">
+        <h3>Power Demand vs Time</h3>
+        <p>Shows secondary energy consequences from plant and rover-side changes.</p>
+        <div class="mini"><svg id="chartPower"></svg></div>
+      </div>
+      <div class="card chart-card">
+        <h3>Rover Battery vs Time</h3>
+        <p>Shows mobility margin and charging stress as throughput is increased.</p>
+        <div class="mini"><svg id="chartBattery"></svg></div>
+      </div>
+      <div class="card chart-card">
+        <h3>Regolith Buffer / Delivery</h3>
+        <p>Shows whether the plant is starved, balanced, or oversupplied.</p>
+        <div class="mini"><svg id="chartRegolith"></svg></div>
+      </div>
+    </section>
+
+    <section class="card footer">
+      <div class="compare-toggle">
+        <input type="checkbox" checked />
+        <span>Show baseline overlay</span>
+      </div>
+      <div>This mockup uses dummy consequence propagation to illustrate the stakeholder experience. In the real system, these updates should be driven by a DES rerun or a surrogate model.</div>
+    </section>
+  </div>
+
+  <script>
+    const timeSlider = document.getElementById('timeSlider');
+    const dischargeSlider = document.getElementById('dischargeSlider');
+    const travelSlider = document.getElementById('travelSlider');
+    const processSlider = document.getElementById('processSlider');
+    const thresholdSlider = document.getElementById('thresholdSlider');
+    const roverCountSlider = document.getElementById('roverCountSlider');
+    const plantCountSlider = document.getElementById('plantCountSlider');
+    const regolithDistanceSlider = document.getElementById('regolithDistanceSlider');
+    const loxDistanceSlider = document.getElementById('loxDistanceSlider');
+
+    const timeLabel = document.getElementById('timeLabel');
+    const dischargeValue = document.getElementById('dischargeValue');
+    const travelValue = document.getElementById('travelValue');
+    const processValue = document.getElementById('processValue');
+    const thresholdValue = document.getElementById('thresholdValue');
+    const roverCountValue = document.getElementById('roverCountValue');
+    const plantCountValue = document.getElementById('plantCountValue');
+    const regolithDistanceValue = document.getElementById('regolithDistanceValue');
+    const loxDistanceValue = document.getElementById('loxDistanceValue');
+
+    const playBtn = document.getElementById('playBtn');
+    const resetBtn = document.getElementById('resetBtn');
+
+    let playing = false;
+    let timer = null;
+
+    const baseline = {
+      discharge: 4000,
+      travel: 5,
+      process: 1600,
+      threshold: 100,
+      roverCount: 1,
+      plantCount: 1,
+      regolithDistance: 1,
+      loxDistance: 1,
+    };
+
+    function fmt(n, digits = 1) {
+      return Number(n).toFixed(digits);
+    }
+
+    function simulateState() {
+      const t = Number(timeSlider.value);
+      const discharge = Number(dischargeSlider.value);
+      const travel = Number(travelSlider.value);
+      const process = Number(processSlider.value);
+      const threshold = Number(thresholdSlider.value);
+      const roverCount = Number(roverCountSlider.value);
+      const plantCount = Number(plantCountSlider.value);
+      const regolithDistance = Number(regolithDistanceSlider.value);
+      const loxDistance = Number(loxDistanceSlider.value);
+
+      const dischargeFactor = discharge / baseline.discharge;
+      const travelPenalty = baseline.travel / travel;
+      const processFactor = process / baseline.process;
+      const thresholdFactor = baseline.threshold / threshold;
+
+      const regolithDistancePenalty = baseline.regolithDistance / regolithDistance;
+      const loxDistancePenalty = baseline.loxDistance / loxDistance;
+      const roverParallelFactor = 0.75 + 0.25 * roverCount;
+      const plantParallelFactor = 0.7 + 0.3 * plantCount;
+      const supplyFactor = dischargeFactor * travelPenalty * regolithDistancePenalty * roverParallelFactor;
+      const throughputFactor = Math.min(supplyFactor, processFactor * 1.08 * plantParallelFactor);
+
+      const loxAtTime = Math.max(0, 10.1 * (t / 6) * throughputFactor * plantCount);
+      const loxTotal = 101.1 * throughputFactor * plantCount;
+      const powerPeak = 30 * (0.7 + 0.3 * processFactor * plantCount + 0.15 * Math.max(0, supplyFactor - 1) + 0.08 * Math.max(0, regolithDistance - 1) + 0.05 * Math.max(0, loxDistance - 1));
+      const roverBattery = Math.max(18, 72 - (dischargeFactor - 1) * 18 - (travel - 5) * 4 + (5 - travel) * 2 - (regolithDistance - 1) * 5 - (loxDistance - 1) * 3 - Math.max(0, roverCount - 1) * 1.5);
+      const uptime = 25 * Math.min(1.8, throughputFactor * 1.02 * plantCount);
+      const thresholdTime = Math.max(8, 50 / Math.max(0.45, throughputFactor * thresholdFactor * loxDistancePenalty));
+      const regolithBuffer = Math.max(0, discharge * roverCount * Math.max(0.25, travelPenalty * regolithDistancePenalty) - process * plantCount * 0.9);
+      const scenarioCost = 18 + roverCount * 4.5 + plantCount * 16 + regolithDistance * 1.2 + loxDistance * 0.8 + Math.max(0, discharge - 4000) / 1000 * 1.5 + Math.max(0, process - 1600) / 100 * 0.6;
+      const bottleneck = supplyFactor < 0.95 ? 'Delivery cadence' : (powerPeak > 90 ? 'Power margin' : (processFactor * plantParallelFactor < 0.95 ? 'Plant throughput' : 'Balanced system'));
+
+      return {
+        t, discharge, travel, process, threshold, roverCount, plantCount, regolithDistance, loxDistance,
+        supplyFactor, throughputFactor,
+        loxAtTime, loxTotal, powerPeak, roverBattery, uptime, thresholdTime, regolithBuffer, scenarioCost, bottleneck,
+      };
+    }
+
+    function updateNarrative(s) {
+      const roverNodeSub = document.getElementById('roverNodeSub');
+      const plantNodeSub = document.getElementById('plantNodeSub');
+      const powerNodeSub = document.getElementById('powerNodeSub');
+      const loxNodeSub = document.getElementById('loxNodeSub');
+      const lzNodeSub = document.getElementById('lzNodeSub');
+      const narrativeBox = document.getElementById('narrativeBox');
+      const insightBox = document.getElementById('insightBox');
+
+      roverNodeSub.textContent = `Count: ${s.roverCount} | Load: ${s.discharge} kg | Haul: ${fmt(s.regolithDistance)} km`;  
+      plantNodeSub.textContent = `Plants: ${s.plantCount} | LOX: ${fmt(s.loxAtTime)} kg @ t=${s.t} hr`; 
+      powerNodeSub.textContent = `${fmt(Math.max(100, s.powerPeak * 1.4), 0)} kW available`;
+      loxNodeSub.textContent = s.loxAtTime >= s.threshold ? 'Triggered' : 'Idle';
+      lzNodeSub.textContent = `${fmt(Math.max(0, s.loxAtTime - s.threshold), 1)} kg stored | ${fmt(s.loxDistance)} km`; 
+
+      narrativeBox.textContent = `At t = ${s.t} hr, using ${s.roverCount} rover(s) and ${s.plantCount} ISRU plant(s), with rover discharge at ${s.discharge} kg/unload, regolith haul distance ${fmt(s.regolithDistance)} km, and LOX haul distance ${fmt(s.loxDistance)} km, produces a throughput factor of ${fmt(s.throughputFactor, 2)} relative to baseline. The architecture currently carries about ${fmt(s.loxAtTime)} kg LOX, while peak power demand trends toward ${fmt(s.powerPeak)} kW, rover battery reserve trends toward ${fmt(s.roverBattery, 0)}%, and rough scenario cost is ${fmt(s.scenarioCost, 1)}M.`;  
+
+      insightBox.innerHTML = `<strong style="color:var(--text)">Interpretation:</strong><br>${
+        s.bottleneck === 'Delivery cadence'
+          ? 'The system is still delivery-limited. More rover throughput or shorter travel time would create the largest mission-level gains.'
+          : s.bottleneck === 'Power margin'
+            ? 'The system is shifting into an energy-constrained regime. More throughput now creates secondary demand on charging and plant-side power support.'
+            : s.bottleneck === 'Plant throughput'
+              ? 'Rover-side increases are now outpacing the plant. Processing capacity is becoming the next constraining layer.'
+              : 'The system is relatively balanced at this operating point. Small parameter changes will redistribute stress without a single dominant bottleneck.'
+      }`;
+    }
+
+    function updateMetrics(s) {
+      const baseLoxTotal = 101.1;
+      const baseCost = 45.0;
+      const loxDeltaPct = ((s.loxTotal - baseLoxTotal) / baseLoxTotal) * 100;
+      const thresholdShift = 50 - s.thresholdTime;
+
+      document.getElementById('loxTotalMetric').textContent = `${fmt(s.loxTotal)} kg`;
+      document.getElementById('loxDelta').textContent = `${loxDeltaPct >= 0 ? '+' : ''}${fmt(loxDeltaPct, 0)}% vs baseline`;
+      document.getElementById('loxDelta').className = `delta ${loxDeltaPct >= 0 ? 'pos' : 'neg'}`;
+
+      document.getElementById('uptimeMetric').textContent = `${fmt(s.uptime)} hr`;
+      document.getElementById('uptimeDelta').textContent = s.uptime > 25 ? 'Improved throughput' : (s.uptime < 24 ? 'More starvation risk' : 'Nominal');
+      document.getElementById('uptimeDelta').className = `delta ${s.uptime > 25 ? 'pos' : (s.uptime < 24 ? 'warn' : '')}`;
+
+      document.getElementById('batteryMetric').textContent = `${fmt(s.roverBattery, 0)}%`;
+      document.getElementById('batteryDelta').textContent = s.roverBattery > 60 ? 'Healthy margin' : (s.roverBattery > 40 ? 'Watch charging' : 'High mobility risk');
+      document.getElementById('batteryDelta').className = `delta ${s.roverBattery > 60 ? 'pos' : (s.roverBattery > 40 ? 'warn' : 'neg')}`;
+
+      document.getElementById('thresholdMetric').textContent = `${fmt(s.thresholdTime, 0)} hr`;
+      document.getElementById('thresholdDelta').textContent = `${thresholdShift > 0 ? fmt(thresholdShift, 0) + ' hr earlier' : (thresholdShift < 0 ? fmt(Math.abs(thresholdShift), 0) + ' hr later' : 'No shift')}`;
+      document.getElementById('thresholdDelta').className = `delta ${thresholdShift > 0 ? 'pos' : (thresholdShift < 0 ? 'warn' : '')}`;
+
+      document.getElementById('powerMetric').textContent = `${fmt(s.powerPeak, 0)} kW`;
+      document.getElementById('powerDelta').textContent = s.powerPeak < 60 ? 'Below supply' : (s.powerPeak < 90 ? 'Approaching limit' : 'Potential energy bottleneck');
+      document.getElementById('powerDelta').className = `delta ${s.powerPeak < 60 ? 'pos' : (s.powerPeak < 90 ? 'warn' : 'neg')}`;
+
+      document.getElementById('bottleneckMetric').textContent = s.bottleneck;
+      document.getElementById('bottleneckDelta').textContent = s.regolithBuffer > 1800 ? 'Inventory building' : (s.regolithBuffer < 200 ? 'Thin margin' : 'Moderate');
+
+      const costDeltaPct = ((s.scenarioCost - baseCost) / baseCost) * 100;
+      document.getElementById('costMetric').textContent = `$${fmt(s.scenarioCost, 1)}M`;
+      document.getElementById('costDelta').textContent = `${costDeltaPct >= 0 ? '+' : ''}${fmt(costDeltaPct, 0)}% vs baseline`;
+      document.getElementById('costDelta').className = `delta ${costDeltaPct <= 10 ? 'pos' : (costDeltaPct <= 35 ? 'warn' : 'neg')}`;
+    }
+
+    function updateLinks(s) {
+      document.getElementById('regolithLink').setAttribute('stroke-width', Math.max(4, Math.min(18, s.discharge / 450)));
+      document.getElementById('powerPlantLink').setAttribute('stroke-width', Math.max(4, Math.min(14, s.powerPeak / 8)));
+      document.getElementById('loxLink').setAttribute('stroke-width', Math.max(3, Math.min(12, s.loxAtTime / 8)));
+      document.getElementById('transportLink').setAttribute('stroke-width', s.loxAtTime >= s.threshold ? 8 : 2);
+      document.getElementById('chargeLink').setAttribute('stroke-width', Math.max(2, Math.min(8, (100 - s.roverBattery) / 8)));
+    }
+
+    function polyline(points, width, height, color, dashed = false) {
+      const maxX = points.length - 1;
+      const values = points.map(p => p.y);
+      const minY = Math.min(...values);
+      const maxY = Math.max(...values);
+      const spanY = Math.max(1, maxY - minY);
+      return points.map((p, i) => {
+        const x = 10 + (i / maxX) * (width - 20);
+        const y = height - 12 - ((p.y - minY) / spanY) * (height - 24);
+        return `${x},${y}`;
+      }).join(' ');
+    }
+
+    function drawMiniChart(svgId, seriesA, seriesB, markerIndex) {
+      const svg = document.getElementById(svgId);
+      const width = 300;
+      const height = 140;
+      svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+
+      const ptsA = seriesA.map((y, i) => ({ x: i, y }));
+      const ptsB = seriesB.map((y, i) => ({ x: i, y }));
+      const a = polyline(ptsA, width, height);
+      const b = polyline(ptsB, width, height);
+      const markerX = 10 + (markerIndex / (seriesA.length - 1)) * (width - 20);
+
+      svg.innerHTML = `
+        <line x1="10" y1="128" x2="290" y2="128" stroke="#334155" stroke-width="1" />
+        <polyline points="${b}" fill="none" stroke="#64748b" stroke-width="2" stroke-dasharray="5 4" opacity="0.9" />
+        <polyline points="${a}" fill="none" stroke="#4cc9f0" stroke-width="3" />
+        <line x1="${markerX}" y1="10" x2="${markerX}" y2="130" stroke="#ffd166" stroke-width="2" opacity="0.85" />
+      `;
+    }
+
+    function renderCharts(s) {
+      const xs = Array.from({ length: 13 }, (_, i) => i * 5);
+      const baseThrough = 1;
+      const modThrough = s.throughputFactor;
+
+      const baseLox = xs.map(x => Math.min(101.1, x * 1.68 * baseThrough));
+      const modLox = xs.map(x => Math.min(101.1 * modThrough * s.plantCount, x * 1.68 * modThrough * s.plantCount));
+
+      const basePower = xs.map(x => 10 + (x > 10 ? 20 : 0));
+      const modPower = xs.map(x => (10 + (x > 10 ? 20 : 0)) * (0.8 + 0.25 * (s.process / 1600) * s.plantCount + 0.1 * (s.discharge / 4000) * s.roverCount));
+
+      const baseBattery = xs.map(x => Math.max(55, 100 - x * 0.45));
+      const modBattery = xs.map(x => Math.max(18, 100 - x * (0.45 + (s.discharge / 4000 - 1) * 0.13 + (s.travel - 5) * 0.03 + (s.roverCount - 1) * 0.02)));
+
+
+      const baseRegolith = xs.map(x => Math.max(0, 4000 * (x / 15) - 1600 * (x / 10)));
+      const modRegolith = xs.map(x => Math.max(0, s.discharge * s.roverCount * (x / (10 + s.travel)) - s.process * s.plantCount * (x / 12)));
+
+      const markerIndex = Math.min(xs.length - 1, Math.round(s.t / 5));
+
+      drawMiniChart('chartLox', modLox, baseLox, markerIndex);
+      drawMiniChart('chartPower', modPower, basePower, markerIndex);
+      drawMiniChart('chartBattery', modBattery, baseBattery, markerIndex);
+      drawMiniChart('chartRegolith', modRegolith, baseRegolith, markerIndex);
+    }
+
+    function syncLabels() {
+      timeLabel.textContent = `t = ${timeSlider.value} hr`;
+      dischargeValue.textContent = `${dischargeSlider.value} kg/unload`;
+      travelValue.textContent = `${travelSlider.value} hr/km`;
+      processValue.textContent = `${processSlider.value} kg/hr`;
+      thresholdValue.textContent = `${thresholdSlider.value} kg`;
+      roverCountValue.textContent = roverCountSlider.value;
+      plantCountValue.textContent = plantCountSlider.value;
+      regolithDistanceValue.textContent = `${Number(regolithDistanceSlider.value).toFixed(1)} km`;
+      loxDistanceValue.textContent = `${Number(loxDistanceSlider.value).toFixed(1)} km`; 
+    }
+
+    function refresh() {
+      syncLabels();
+      const state = simulateState();
+      updateNarrative(state);
+      updateMetrics(state);
+      updateLinks(state);
+      renderCharts(state);
+    }
+
+    [timeSlider, dischargeSlider, travelSlider, processSlider, thresholdSlider, roverCountSlider, plantCountSlider, regolithDistanceSlider, loxDistanceSlider].forEach(el => {
+      el.addEventListener('input', refresh);
+    });
+
+    playBtn.addEventListener('click', () => {
+      playing = !playing;
+      playBtn.textContent = playing ? '❚❚ Pause' : '▶ Play';
+      if (playing) {
+        timer = setInterval(() => {
+          const next = Number(timeSlider.value) + 1;
+          timeSlider.value = next > 60 ? 0 : next;
+          refresh();
+        }, 500);
+      } else {
+        clearInterval(timer);
+      }
+    });
+
+    resetBtn.addEventListener('click', () => {
+      clearInterval(timer);
+      playing = false;
+      playBtn.textContent = '▶ Play';
+      timeSlider.value = 6;
+      roverCountSlider.value = 1;
+      plantCountSlider.value = 1;
+      dischargeSlider.value = 4000;
+      travelSlider.value = 5;
+      processSlider.value = 1600;
+      thresholdSlider.value = 100;
+      regolithDistanceSlider.value = 1;
+      loxDistanceSlider.value = 1;
+      refresh();
+    });
+
+    document.getElementById('snapshotBtn').addEventListener('click', () => {
+      alert('Snapshot captured for concept demo. In the real tool, this would save the current scenario state and linked outputs.');
+    });
+
+    refresh();
+  </script>
+</body>
+</html>
+
+
+<section class="generate-wrapper">
+
+<button class="generate-btn" onclick="generateVisualization()">
+Generate Visualization
+</button>
+
+</section>
+
+<script>
+
+function generateVisualization(){
+    alert("Visualization generation triggered. In the full system this would launch the Omniverse or DES visualization pipeline.");
+}
+
+</script>
+
+</body>
+</html>
