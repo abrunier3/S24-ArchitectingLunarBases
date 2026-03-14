@@ -78,6 +78,7 @@ database/
 | Assembly Builder | https://abrunier3.github.io/S24-ArchitectingLunarBases/assembly_builder.html |
 | DES Simulation Explorer | https://abrunier3.github.io/S24-ArchitectingLunarBases/lunar_spaceport_plotter.html |
 | Single Part Form | https://abrunier3.github.io/S24-ArchitectingLunarBases/sysml_generator.html |
+| Unified Workbench | https://abrunier3.github.io/S24-ArchitectingLunarBases/unified_mission_workbench_r5.html |
 
 ---
 
