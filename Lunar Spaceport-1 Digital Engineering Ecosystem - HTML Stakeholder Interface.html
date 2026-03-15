@@ -1,0 +1,3542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ECLIPSE — Digital Engineering Ecosystem</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Orbitron:wght@500;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #07101d;
+    --bg-deep: #030912;
+    --panel: rgba(9, 20, 36, 0.86);
+    --panel-2: rgba(12, 26, 45, 0.92);
+    --panel-3: rgba(17, 35, 58, 0.95);
+    --line: rgba(132, 176, 231, 0.16);
+    --line-strong: rgba(160, 204, 255, 0.32);
+    --text: #e9f2ff;
+    --muted: #9cb0ca;
+    --muted-2: #6d829f;
+    --ice: #9ad7ff;
+    --team-blue: #57c7ff;
+    --team-blue-strong: #20b7ff;
+    --team-gold: #ffd54a;
+    --team-gold-strong: #ffbf1f;
+    --team-gold-dim: rgba(255, 213, 74, 0.16);
+    --ice-strong: #52b7ff;
+    --ice-dim: rgba(82, 183, 255, 0.14);
+    --solar: #ffd54a;
+    --solar-strong: #ffea8a;
+    --solar-dim: rgba(255, 213, 74, 0.16);
+    --ok: #7ee0b1;
+    --warn: #ffd36e;
+    --danger: #ff7a8a;
+    --shadow: 0 24px 80px rgba(0, 0, 0, 0.42);
+    --radius-xl: 24px;
+    --radius-lg: 18px;
+    --radius-md: 14px;
+    --radius-sm: 10px;
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'Inter', sans-serif;
+    --display: 'Orbitron', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: var(--sans);
+    color: var(--text);
+    min-height: 100vh;
+    background:
+      radial-gradient(circle at 50% 15%, rgba(255, 213, 74, 0.24), transparent 18%),
+      radial-gradient(circle at 50% 18%, rgba(87, 199, 255, 0.18), transparent 24%),
+      radial-gradient(circle at 20% 5%, rgba(82, 183, 255, 0.08), transparent 18%),
+      linear-gradient(180deg, #020711 0%, #07101d 28%, #07101d 68%, #040914 100%);
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  body::before,
+  body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  body::before {
+    background-image:
+      radial-gradient(circle at 14% 18%, rgba(255,255,255,0.6) 0 1px, transparent 1.4px),
+      radial-gradient(circle at 72% 9%, rgba(255,255,255,0.5) 0 1px, transparent 1.5px),
+      radial-gradient(circle at 84% 32%, rgba(255,255,255,0.45) 0 1px, transparent 1.3px),
+      radial-gradient(circle at 28% 72%, rgba(255,255,255,0.45) 0 1px, transparent 1.5px),
+      radial-gradient(circle at 65% 78%, rgba(255,255,255,0.38) 0 1px, transparent 1.2px),
+      radial-gradient(circle at 90% 66%, rgba(255,255,255,0.4) 0 1px, transparent 1.2px);
+    opacity: 0.75;
+  }
+
+  body::after {
+    background:
+      linear-gradient(rgba(140, 191, 255, 0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(140, 191, 255, 0.05) 1px, transparent 1px);
+    background-size: 32px 32px;
+    mask-image: linear-gradient(180deg, rgba(255,255,255,0.72), rgba(255,255,255,0.15));
+    opacity: 0.28;
+  }
+
+  .shell {
+    position: relative;
+    z-index: 1;
+    max-width: 1540px;
+    margin: 0 auto;
+    padding: 22px 22px 90px;
+  }
+
+  .topbar {
+    position: sticky;
+    top: 12px;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 14px 18px;
+    border: 1px solid var(--line-strong);
+    border-radius: 22px;
+    background: linear-gradient(180deg, rgba(7,18,33,0.82), rgba(8,16,28,0.94));
+    backdrop-filter: blur(14px);
+    box-shadow: var(--shadow);
+  }
+
+  .brand-wrap {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-width: 0;
+  }
+
+  .brand-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 160px;
+    padding: 12px 16px;
+    border-radius: 16px;
+    border: 1px solid rgba(154, 215, 255, 0.25);
+    background: linear-gradient(180deg, rgba(31, 53, 82, 0.9), rgba(11, 25, 44, 0.92));
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 12px 32px rgba(0,0,0,0.28);
+    font-family: var(--display);
+    letter-spacing: 1.5px;
+    font-size: 28px;
+    font-weight: 800;
+    color: #b8e5ff;
+  }
+
+  .brand-copy { min-width: 0; }
+  .brand-copy .kicker {
+    color: var(--ice);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 5px;
+  }
+  .brand-copy .title {
+    font-weight: 700;
+    font-size: 18px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .nav {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .nav a,
+  .btn,
+  button,
+  select,
+  input {
+    font: inherit;
+  }
+
+  .nav a,
+  .btn {
+    text-decoration: none;
+    color: var(--text);
+    padding: 11px 14px;
+    border-radius: 12px;
+    border: 1px solid rgba(152, 195, 255, 0.2);
+    background: linear-gradient(180deg, rgba(18, 31, 50, 0.9), rgba(10, 19, 33, 0.95));
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.06);
+    transition: transform 140ms ease, border-color 140ms ease, background 140ms ease, box-shadow 140ms ease;
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  .nav a:hover,
+  .btn:hover {
+    border-color: rgba(154, 215, 255, 0.42);
+    transform: translateY(-1px);
+  }
+
+  .btn:active,
+  .nav a:active {
+    transform: translateY(1px) scale(0.995);
+  }
+
+  .btn-primary {
+    background: linear-gradient(180deg, #ffe06d, #ffc420);
+    color: #fff9f2;
+    border-color: rgba(255, 223, 117, 0.92);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.2), 0 0 0 1px rgba(255, 205, 70, 0.18), 0 14px 30px rgba(126, 92, 8, 0.34);
+  }
+
+  .btn-secondary {
+    background: linear-gradient(180deg, rgba(30, 92, 146, 0.98), rgba(10, 40, 77, 0.98));
+    color: #dff2ff;
+    border-color: rgba(117, 187, 255, 0.46);
+  }
+
+
+  .intro-header {
+    position: relative;
+    min-height: 100vh;
+    margin-top: 18px;
+    border-radius: 30px;
+    overflow: hidden;
+    border: 1px solid rgba(140, 198, 255, 0.22);
+    box-shadow: var(--shadow);
+    background:
+      linear-gradient(180deg, rgba(2, 8, 18, 0.1), rgba(2, 8, 18, 0.72)),
+      linear-gradient(0deg, rgba(3, 11, 21, 0.9), rgba(3, 11, 21, 0.25)),
+      url("e11746b4-dbe0-4e9c-80d5-9fd4d3d6d198.png") center/cover no-repeat;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding: 40px;
+  }
+
+  .intro-header::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(circle at 50% 30%, rgba(255, 213, 74, 0.24), transparent 18%),
+      radial-gradient(circle at 50% 50%, rgba(52, 180, 255, 0.12), transparent 28%);
+    pointer-events: none;
+  }
+
+  .intro-cta {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    padding-top: 60px;
+  }
+
+  .intro-btn {
+    min-width: 340px;
+    max-width: 90%;
+    padding: 18px 26px;
+    border-radius: 18px;
+    border: 1px solid rgba(255, 226, 122, 0.95);
+    background: linear-gradient(180deg, rgba(255, 223, 103, 0.96), rgba(255, 196, 32, 0.95));
+    color: #09111e;
+    font-family: var(--display);
+    font-size: 16px;
+    font-weight: 800;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.28), 0 18px 40px rgba(117, 88, 9, 0.42);
+    cursor: pointer;
+    transition: transform 160ms ease, box-shadow 160ms ease, filter 160ms ease;
+  }
+
+  .intro-btn:hover { transform: translateY(-2px); filter: brightness(1.03); }
+  .intro-btn:active { transform: translateY(1px) scale(0.995); }
+
+  .hero {
+    display: grid;
+    grid-template-columns: 1.05fr 0.95fr;
+    gap: 22px;
+    margin-top: 22px;
+    margin-bottom: 24px;
+  }
+
+  .hero-panel,
+  .status-panel,
+  .section,
+  .panel,
+  .info-card,
+  .scenario-card,
+  .metric,
+  .tree-card,
+  .form-card,
+  .chart-card {
+    background: linear-gradient(180deg, rgba(8, 20, 36, 0.84), rgba(8, 17, 30, 0.95));
+    border: 1px solid var(--line);
+    box-shadow: var(--shadow);
+  }
+
+  .hero-panel {
+    border-radius: 28px;
+    padding: 30px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero-panel::before {
+    content: "";
+    position: absolute;
+    width: 480px;
+    height: 480px;
+    top: -220px;
+    right: -90px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255, 169, 75, 0.65) 0%, rgba(255, 169, 75, 0.18) 32%, rgba(82, 183, 255, 0.11) 45%, transparent 62%);
+    filter: blur(10px);
+    pointer-events: none;
+  }
+
+  .hero-panel::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(120deg, transparent 0%, rgba(255,255,255,0.035) 44%, transparent 62%);
+    pointer-events: none;
+  }
+
+  .hero-kicker {
+    color: var(--ice);
+    text-transform: uppercase;
+    letter-spacing: 2.6px;
+    font-size: 11px;
+    margin-bottom: 14px;
+  }
+
+  .hero h1 {
+    font-family: var(--display);
+    font-size: clamp(32px, 4.4vw, 60px);
+    line-height: 1.03;
+    letter-spacing: 0.02em;
+    max-width: 820px;
+    margin-bottom: 18px;
+  }
+
+  .hero p {
+    max-width: 760px;
+    color: var(--muted);
+    line-height: 1.75;
+    font-size: 15px;
+  }
+
+  .hero-actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 24px;
+  }
+
+  .status-panel {
+    border-radius: 28px;
+    padding: 24px;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+    align-content: start;
+  }
+
+  .info-card {
+    border-radius: 18px;
+    padding: 16px;
+    background: linear-gradient(180deg, rgba(15, 30, 50, 0.92), rgba(10, 21, 37, 0.96));
+  }
+
+  .label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1.9px;
+    color: var(--muted-2);
+    margin-bottom: 8px;
+  }
+
+  .big-number {
+    font-family: var(--display);
+    font-size: 34px;
+    color: var(--text);
+  }
+
+  .subcopy {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 8px;
+    line-height: 1.6;
+  }
+
+  .section {
+    border-radius: 26px;
+    padding: 22px;
+    margin-top: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .section::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 26px;
+    bottom: 26px;
+    width: 4px;
+    border-radius: 999px;
+    background: linear-gradient(180deg, var(--solar), var(--ice-strong));
+    opacity: 0.75;
+  }
+
+  .section-head {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: 18px;
+    margin-bottom: 20px;
+    padding-left: 14px;
+  }
+
+  .section-title {
+    font-size: 29px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    margin-bottom: 6px;
+  }
+
+  .section-note {
+    max-width: 980px;
+    color: var(--muted);
+    line-height: 1.7;
+    font-size: 14px;
+  }
+
+  .grid-activation {
+    display: grid;
+    grid-template-columns: 0.94fr 1.06fr;
+    gap: 18px;
+  }
+
+  .panel {
+    border-radius: 20px;
+    padding: 18px;
+    position: relative;
+  }
+
+  .panel-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+
+  .panel-title {
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--ice);
+  }
+
+  .system-grid {
+    display: grid;
+    gap: 12px;
+  }
+
+  .system-card {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 14px;
+    align-items: center;
+    border-radius: 16px;
+    border: 1px solid rgba(151, 190, 241, 0.16);
+    background: linear-gradient(180deg, rgba(16, 31, 53, 0.95), rgba(10, 21, 37, 0.98));
+    padding: 14px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 150ms ease, transform 150ms ease, box-shadow 150ms ease, background 150ms ease;
+  }
+
+  .system-card::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 10px;
+    bottom: 10px;
+    width: 3px;
+    border-radius: 999px;
+    background: linear-gradient(180deg, transparent, rgba(255, 159, 67, 0.95), transparent);
+    opacity: 0;
+    transition: opacity 150ms ease;
+  }
+
+  .system-card.active {
+    border-color: rgba(162, 208, 255, 0.34);
+    background: linear-gradient(180deg, rgba(18, 37, 62, 0.98), rgba(10, 21, 36, 0.98));
+    box-shadow: inset 0 0 0 1px rgba(111, 196, 255, 0.1), 0 18px 32px rgba(0,0,0,0.22);
+  }
+
+  .system-card.active::before { opacity: 1; }
+  .system-card:hover { transform: translateY(-1px); }
+
+  .system-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
+    display: grid;
+    place-items: center;
+    font-size: 24px;
+    border: 1px solid rgba(156, 214, 255, 0.2);
+    background: linear-gradient(180deg, rgba(38, 70, 109, 0.9), rgba(14, 29, 48, 0.96));
+  }
+
+  .system-name {
+    font-size: 18px;
+    font-weight: 800;
+    margin-bottom: 5px;
+  }
+
+  .system-meta {
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.55;
+  }
+
+  .system-state {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 7px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.4px;
+    text-transform: uppercase;
+    border: 1px solid rgba(126, 224, 177, 0.2);
+    background: rgba(126, 224, 177, 0.08);
+    color: #c7ffe2;
+  }
+
+  .toggle {
+    position: relative;
+    width: 52px;
+    height: 28px;
+  }
+
+  .toggle input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+    position: absolute;
+  }
+
+  .toggle-ui {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border-radius: 999px;
+    border: 1px solid rgba(140, 176, 222, 0.24);
+    background: linear-gradient(180deg, rgba(12, 22, 36, 0.98), rgba(9, 17, 28, 0.98));
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.06);
+    cursor: pointer;
+    transition: background 140ms ease, border-color 140ms ease;
+  }
+
+  .toggle-ui::after {
+    content: "";
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    left: 4px;
+    top: 4px;
+    border-radius: 50%;
+    background: linear-gradient(180deg, #b8c8de, #7a8da9);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    transition: transform 140ms ease, background 140ms ease;
+  }
+
+  .toggle input:checked + .toggle-ui {
+    background: linear-gradient(180deg, rgba(255, 164, 78, 0.28), rgba(82, 183, 255, 0.18));
+    border-color: rgba(255, 192, 131, 0.56);
+  }
+
+  .toggle input:checked + .toggle-ui::after {
+    transform: translateX(24px);
+    background: linear-gradient(180deg, #ffe0b8, #ffb15a);
+  }
+
+  .control-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+    margin-top: 16px;
+  }
+
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+  }
+
+  .field label {
+    font-size: 11px;
+    color: var(--muted-2);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+  }
+
+  .field input,
+  .field select,
+  textarea {
+    border: 1px solid rgba(153, 194, 243, 0.2);
+    border-radius: 12px;
+    background: linear-gradient(180deg, rgba(8, 19, 33, 0.98), rgba(9, 18, 31, 0.98));
+    color: var(--text);
+    padding: 12px 13px;
+    outline: none;
+    transition: border-color 140ms ease, box-shadow 140ms ease;
+  }
+
+  .field input:focus,
+  .field select:focus,
+  textarea:focus {
+    border-color: rgba(160, 214, 255, 0.46);
+    box-shadow: 0 0 0 3px rgba(82, 183, 255, 0.12);
+  }
+
+  .metrics {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+    margin-top: 16px;
+  }
+
+  .metric {
+    border-radius: 16px;
+    padding: 16px;
+    background: linear-gradient(180deg, rgba(11, 24, 39, 0.98), rgba(8, 18, 29, 0.98));
+  }
+
+  .metric .value {
+    font-family: var(--display);
+    font-size: 28px;
+    margin-top: 8px;
+  }
+
+  .metric .desc {
+    margin-top: 8px;
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.55;
+  }
+
+  .graph-shell {
+    border-radius: 18px;
+    min-height: 570px;
+    border: 1px solid rgba(154, 196, 243, 0.18);
+    position: relative;
+    overflow: hidden;
+    background:
+      radial-gradient(circle at 50% 10%, rgba(255, 173, 92, 0.44), transparent 17%),
+      radial-gradient(circle at 50% 12%, rgba(255, 163, 71, 0.2), transparent 26%),
+      radial-gradient(circle at 50% 13%, rgba(82, 183, 255, 0.12), transparent 34%),
+      linear-gradient(180deg, rgba(4, 11, 20, 0.94), rgba(7, 16, 28, 0.98));
+  }
+
+  .graph-shell::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(rgba(144, 190, 247, 0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(144, 190, 247, 0.05) 1px, transparent 1px);
+    background-size: 28px 28px;
+    pointer-events: none;
+  }
+
+  .graph-legend {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 12px;
+  }
+
+  .graph-legend span { display: inline-flex; align-items: center; gap: 8px; }
+  .dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+
+  .link-layer {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+  }
+
+  .node {
+    position: absolute;
+    min-width: 136px;
+    padding: 12px 14px;
+    border-radius: 15px;
+    border: 1px solid rgba(158, 198, 245, 0.18);
+    background: linear-gradient(180deg, rgba(16, 31, 51, 0.98), rgba(10, 20, 33, 0.98));
+    box-shadow: 0 18px 32px rgba(0,0,0,0.28);
+  }
+
+  .node.transport {
+    border-color: rgba(82, 183, 255, 0.34);
+    box-shadow: inset 0 0 0 1px rgba(82, 183, 255, 0.08), 0 18px 32px rgba(0,0,0,0.28);
+  }
+
+  .node.infrastructure {
+    border-color: rgba(255, 169, 75, 0.34);
+    box-shadow: inset 0 0 0 1px rgba(255, 169, 75, 0.08), 0 18px 32px rgba(0,0,0,0.28);
+  }
+
+  .node.support {
+    border-color: rgba(126, 224, 177, 0.34);
+    box-shadow: inset 0 0 0 1px rgba(126, 224, 177, 0.08), 0 18px 32px rgba(0,0,0,0.28);
+  }
+
+  .node-title {
+    font-weight: 800;
+    font-size: 16px;
+    margin-bottom: 3px;
+  }
+
+  .node-sub {
+    color: var(--muted);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+  }
+
+  .assembly-grid,
+  .consequence-grid {
+    display: grid;
+    gap: 18px;
+  }
+
+  .assembly-grid {
+    grid-template-columns: 360px minmax(0, 1fr);
+  }
+
+  .tree-card,
+  .form-card,
+  .chart-card {
+    border-radius: 20px;
+    padding: 18px;
+  }
+
+  .tree-scroll,
+  .form-scroll {
+    max-height: 760px;
+    overflow: auto;
+  }
+
+  .tree-scroll::-webkit-scrollbar,
+  .form-scroll::-webkit-scrollbar,
+  .scenario-list::-webkit-scrollbar { width: 8px; }
+  .tree-scroll::-webkit-scrollbar-thumb,
+  .form-scroll::-webkit-scrollbar-thumb,
+  .scenario-list::-webkit-scrollbar-thumb {
+    background: rgba(154, 196, 243, 0.16);
+    border-radius: 999px;
+  }
+
+  .tree-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    border: 1px solid transparent;
+    margin-bottom: 6px;
+    cursor: pointer;
+    transition: background 140ms ease, border-color 140ms ease, transform 140ms ease;
+  }
+
+  .tree-row:hover,
+  .tree-row.selected {
+    background: rgba(82, 183, 255, 0.08);
+    border-color: rgba(82, 183, 255, 0.2);
+    transform: translateX(2px);
+  }
+
+  .tree-indent {
+    color: var(--muted-2);
+    width: 18px;
+    flex: 0 0 18px;
+    text-align: center;
+  }
+
+  .tree-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: linear-gradient(180deg, var(--solar-strong), var(--ice-strong));
+  }
+
+  .tree-label {
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  .tree-type {
+    margin-left: auto;
+    color: var(--muted-2);
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+  }
+
+  .toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+
+  .toolbar-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .form-grid {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .span-12 { grid-column: span 12; }
+  .span-6 { grid-column: span 6; }
+  .span-4 { grid-column: span 4; }
+  .span-3 { grid-column: span 3; }
+
+  .subsection {
+    grid-column: span 12;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(154, 196, 243, 0.12);
+    color: var(--ice);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+  }
+
+  .attr-list {
+    grid-column: span 12;
+    display: grid;
+    gap: 10px;
+  }
+
+  .attr-row {
+    display: grid;
+    grid-template-columns: 2fr 1.4fr 0.8fr;
+    gap: 10px;
+  }
+
+  textarea {
+    min-height: 120px;
+    resize: vertical;
+  }
+
+  pre {
+    font-family: var(--mono);
+    font-size: 12px;
+    line-height: 1.7;
+    white-space: pre-wrap;
+    color: #d9e9ff;
+  }
+
+  .save-banner {
+    grid-column: span 12;
+    display: none;
+    padding: 12px 14px;
+    border-radius: 14px;
+    border: 1px solid rgba(126, 224, 177, 0.22);
+    background: rgba(126, 224, 177, 0.08);
+    color: #d2ffeb;
+    font-size: 14px;
+  }
+
+  .save-banner.show { display: block; }
+
+  .consequence-grid {
+    grid-template-columns: 1.06fr 0.94fr;
+  }
+
+  .scenario-list {
+    display: grid;
+    gap: 12px;
+    max-height: 640px;
+    overflow: auto;
+    padding-right: 4px;
+  }
+
+  .scenario-card {
+    border-radius: 18px;
+    padding: 16px;
+    cursor: pointer;
+    transition: border-color 150ms ease, transform 150ms ease, background 150ms ease;
+  }
+
+  .scenario-card:hover,
+  .scenario-card.selected {
+    border-color: rgba(255, 180, 102, 0.36);
+    background: linear-gradient(180deg, rgba(18, 33, 53, 0.95), rgba(14, 23, 38, 0.98));
+    transform: translateY(-1px);
+  }
+
+  .scenario-top {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    align-items: start;
+    margin-bottom: 10px;
+  }
+
+  .scenario-name {
+    font-size: 20px;
+    font-weight: 800;
+  }
+
+  .tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 10px;
+    border-radius: 999px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: #ffe9d2;
+    background: rgba(255, 159, 67, 0.12);
+    border: 1px solid rgba(255, 159, 67, 0.22);
+  }
+
+  .scenario-text {
+    color: var(--muted);
+    line-height: 1.65;
+    font-size: 14px;
+  }
+
+  .scenario-metrics {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+    margin-top: 12px;
+  }
+
+  .mini-metric {
+    padding: 10px;
+    border-radius: 14px;
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(158, 198, 245, 0.12);
+  }
+
+  .mini-metric .k {
+    color: var(--muted-2);
+    text-transform: uppercase;
+    letter-spacing: 1.3px;
+    font-size: 10px;
+  }
+
+  .mini-metric .v {
+    margin-top: 7px;
+    font-size: 18px;
+    font-weight: 800;
+  }
+
+  .bar-grid {
+    display: flex;
+    align-items: end;
+    gap: 14px;
+    min-height: 270px;
+    margin-top: 14px;
+  }
+
+  .bar-wrap {
+    flex: 1;
+    text-align: center;
+  }
+
+  .bar-value {
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 10px;
+  }
+
+  .bar {
+    width: 100%;
+    min-height: 24px;
+    border-radius: 14px 14px 6px 6px;
+    border: 1px solid rgba(255,255,255,0.08);
+    transition: height 180ms ease;
+  }
+
+  .bar.cost { background: linear-gradient(180deg, rgba(82,183,255,0.9), rgba(82,183,255,0.18)); }
+  .bar.time { background: linear-gradient(180deg, rgba(255,159,67,0.92), rgba(255,159,67,0.18)); }
+  .bar.risk { background: linear-gradient(180deg, rgba(255,122,138,0.9), rgba(255,122,138,0.2)); }
+  .bar.output { background: linear-gradient(180deg, rgba(126,224,177,0.9), rgba(126,224,177,0.2)); }
+
+  .bar-label {
+    margin-top: 10px;
+    color: var(--muted);
+    font-size: 12px;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 16px;
+  }
+
+  th, td {
+    border-bottom: 1px solid rgba(154, 196, 243, 0.1);
+    padding: 12px 10px;
+    text-align: left;
+    vertical-align: top;
+    font-size: 13px;
+  }
+
+  th {
+    color: var(--muted-2);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    font-size: 11px;
+  }
+
+  td { color: var(--muted); }
+  td strong { color: var(--text); }
+
+  .footer-note {
+    margin-top: 16px;
+    color: var(--muted-2);
+    font-size: 13px;
+    line-height: 1.7;
+  }
+
+  @media (max-width: 1200px) {
+    .hero,
+    .grid-activation,
+    .assembly-grid,
+    .consequence-grid { grid-template-columns: 1fr; }
+    .metrics,
+    .scenario-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+
+  @media (max-width: 760px) {
+    .shell { padding: 12px 12px 70px; }
+    .topbar { top: 8px; padding: 12px; }
+    .brand-badge { min-width: 0; font-size: 22px; }
+    .nav { display: none; }
+    .hero-panel, .status-panel, .section, .panel, .tree-card, .form-card, .chart-card { padding: 16px; }
+    .control-grid,
+    .metrics,
+    .scenario-metrics,
+    .status-panel,
+    .attr-row { grid-template-columns: 1fr; }
+    .form-grid { grid-template-columns: 1fr; }
+    .span-12, .span-6, .span-4, .span-3, .subsection, .attr-list, .save-banner { grid-column: span 1; }
+  }
+</style>
+</head>
+<body>
+  <div class="shell">
+    <header class="topbar">
+      <div class="brand-wrap">
+        <div class="brand-badge">ECLIPSE</div>
+        <div class="brand-copy">
+          <div class="kicker">Collaborative lunar systems engineering</div>
+          <div class="title">Digital Engineering Ecosystem</div>
+        </div>
+
+      </div>
+      <nav class="nav">
+        <a href="#MBSE">1. Build Requirements </a>
+        <a href="#activation">2. Mission Network Activation</a>
+        <a href="#assembly">3. Model Submission</a>
+        <a href="#consequence">4. Mission Tradespace Selection</a>
+        <a href="#Simulation">5. Simulator</a>        
+
+      </nav>
+    </header>
+
+<head>
+
+<style>
+.intro-header {
+  position: relative;
+  height: 100vh;
+  width: 100%;
+
+  background-image: url("https://raw.githubusercontent.com/abrunier3/S24-ArchitectingLunarBases/main/S24_AE6394_Landscape_Badge.png");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* dark overlay so text/button is readable */
+.intro-header::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:rgba(5,10,25,.55);
+}
+
+.intro-cta{
+  position:relative;
+  z-index:2;
+}
+</head>
+</Style>
+
+    <section class="intro-header" id="top">
+      <div class="intro-cta">
+        <button class="intro-btn" onclick="document.getElementById('activation').scrollIntoView({behavior:'smooth'})">Start building your mission now</button>
+      </div>
+    </section>
+
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>S24 DEE — Digital Engineering Ecosystem</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #080a0f;
+    --bg2: #0d1018;
+    --surface: #111520;
+    --surface2: #161b26;
+    --surface3: #1a2030;
+    --border: #1e2535;
+    --border2: #2a3347;
+    --accent: #00d4ff;
+    --accent2: #0099cc;
+    --accent-dim: rgba(0, 212, 255, 0.08);
+    --accent-dim2: rgba(0, 212, 255, 0.15);
+    --green: #00ff9d;
+    --green-dim: rgba(0, 255, 157, 0.08);
+    --warn: #ffb347;
+    --danger: #ff4d6d;
+    --text: #d4dae8;
+    --text2: #8892a4;
+    --text3: #4a5568;
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'Syne', sans-serif;
+    --r: 6px;
+    --shadow: 0 18px 50px rgba(0,0,0,0.28);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: var(--mono);
+    background: linear-gradient(180deg, #06080d 0%, #090c12 100%);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 14px 26px;
+    background: rgba(9, 12, 18, 0.88);
+    border-bottom: 1px solid var(--border);
+    backdrop-filter: blur(10px);
+  }
+  .brand {
+    font-family: var(--sans);
+    font-weight: 800;
+    color: var(--accent);
+    font-size: 18px;
+    letter-spacing: -0.4px;
+  }
+  .subtitle {
+    color: var(--text2);
+    font-size: 12px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+  }
+  .nav {
+    margin-left: auto;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .nav a, .btn {
+    color: var(--text2);
+    text-decoration: none;
+    border: 1px solid var(--border2);
+    background: transparent;
+    border-radius: var(--r);
+    padding: 8px 12px;
+    font-family: var(--mono);
+    font-size: 11px;
+    cursor: pointer;
+    transition: 0.18s ease;
+  }
+  .nav a:hover, .btn:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-primary {
+    background: var(--accent);
+    color: #000;
+    border-color: var(--accent);
+    font-weight: 700;
+  }
+  .btn-primary:hover { background: #35deff; color: #000; }
+
+  .page {
+    max-width: 1480px;
+    margin: 0 auto;
+    padding: 28px 24px 100px;
+  }
+
+  .hero {
+    padding: 18px 0 24px;
+  }
+  .eyebrow {
+    color: var(--accent);
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .hero h1 {
+    font-family: var(--sans);
+    font-size: clamp(28px, 4vw, 46px);
+    line-height: 1.05;
+    margin-bottom: 10px;
+  }
+  .hero p {
+    color: var(--text2);
+    max-width: 980px;
+    line-height: 1.7;
+    font-size: 13px;
+  }
+
+  .section {
+    margin-top: 26px;
+    padding: 22px;
+    background: linear-gradient(180deg, rgba(17,21,32,0.92) 0%, rgba(11,15,22,0.96) 100%);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+  }
+  .section-head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 18px;
+  }
+  .section-title {
+    font-family: var(--sans);
+    font-size: 24px;
+  }
+  .section-note {
+    color: var(--text2);
+    font-size: 12px;
+    max-width: 760px;
+    line-height: 1.7;
+  }
+
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1.15fr;
+    gap: 18px;
+  }
+  .panel {
+    background: linear-gradient(180deg, var(--surface) 0%, #0f1420 100%);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px;
+    min-height: 200px;
+  }
+  .panel-title {
+    font-size: 11px;
+    color: var(--text3);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+
+  .system-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+  .sys-card {
+    border: 1px solid var(--border2);
+    border-radius: 10px;
+    background: rgba(255,255,255,0.01);
+    padding: 12px;
+    transition: 0.18s ease;
+  }
+  .sys-card.active {
+    border-color: rgba(0,212,255,0.7);
+    background: var(--accent-dim);
+    box-shadow: inset 0 0 0 1px rgba(0,212,255,0.1);
+  }
+  .sys-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+  .sys-name {
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .sys-meta {
+    font-size: 10px;
+    color: var(--text3);
+    line-height: 1.6;
+  }
+  .toggle {
+    appearance: none;
+    width: 42px;
+    height: 22px;
+    border-radius: 999px;
+    border: 1px solid var(--border2);
+    background: #0b1018;
+    position: relative;
+    cursor: pointer;
+    transition: 0.18s ease;
+  }
+  .toggle::after {
+    content: '';
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    position: absolute;
+    top: 2px;
+    left: 3px;
+    background: var(--text3);
+    transition: 0.18s ease;
+  }
+  .toggle:checked {
+    background: rgba(0,212,255,0.15);
+    border-color: var(--accent);
+  }
+  .toggle:checked::after {
+    left: 21px;
+    background: var(--accent);
+  }
+
+  .control-row {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    margin-top: 14px;
+  }
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .field label {
+    color: var(--text3);
+    font-size: 10px;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+  }
+  .field input, .field select {
+    width: 100%;
+    background: #0b1018;
+    color: var(--text);
+    border: 1px solid var(--border2);
+    border-radius: var(--r);
+    padding: 9px 10px;
+    font-family: var(--mono);
+    font-size: 12px;
+    outline: none;
+  }
+  .field input:focus, .field select:focus {
+    border-color: var(--accent2);
+    box-shadow: 0 0 0 2px rgba(0,212,255,0.12);
+  }
+
+  .summary-bar {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+    margin-top: 14px;
+  }
+  .metric {
+    background: #0b1018;
+    border: 1px solid var(--border2);
+    border-radius: 10px;
+    padding: 12px;
+  }
+  .metric-label {
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: 10px;
+    margin-bottom: 8px;
+  }
+  .metric-value {
+    font-family: var(--sans);
+    font-size: 24px;
+  }
+  .metric-sub {
+    color: var(--text2);
+    font-size: 11px;
+    margin-top: 4px;
+  }
+
+  .ops-graph {
+    width: 100%;
+    min-height: 470px;
+    border-radius: 12px;
+    border: 1px solid var(--border2);
+    background:
+      radial-gradient(circle at 20% 10%, rgba(0,212,255,0.08), transparent 24%),
+      radial-gradient(circle at 80% 30%, rgba(0,255,157,0.08), transparent 24%),
+      linear-gradient(180deg, #0c1119 0%, #0a0e15 100%);
+    position: relative;
+    overflow: hidden;
+  }
+  .ops-legend {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+    color: var(--text2);
+    font-size: 11px;
+  }
+  .legend-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 6px;
+  }
+  .node {
+    position: absolute;
+    width: 118px;
+    min-height: 58px;
+    border-radius: 12px;
+    border: 1px solid var(--border2);
+    background: rgba(17,21,32,0.94);
+    padding: 10px 10px 8px;
+    box-shadow: 0 10px 28px rgba(0,0,0,0.32);
+  }
+  .node.active {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px rgba(0,212,255,0.14), 0 10px 28px rgba(0,0,0,0.32);
+  }
+  .node-title {
+    font-size: 11px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .node-tag {
+    color: var(--text3);
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  svg.link-layer {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+  }
+  .ops-caption {
+    margin-top: 12px;
+    color: var(--text2);
+    font-size: 12px;
+    line-height: 1.7;
+  }
+
+  .assembly-wrap {
+    display: grid;
+    grid-template-columns: 370px 1fr;
+    gap: 18px;
+    min-height: 820px;
+  }
+  .assembly-side,
+  .assembly-main {
+    background: linear-gradient(180deg, var(--bg2) 0%, #0a0f17 100%);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .assembly-toolbar {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+  .assembly-toolbar .cluster { display: flex; gap: 8px; flex-wrap: wrap; }
+  .assembly-scroll {
+    max-height: 760px;
+    overflow: auto;
+  }
+  .assembly-scroll::-webkit-scrollbar,
+  .consequence-scroll::-webkit-scrollbar { width: 6px; }
+  .assembly-scroll::-webkit-scrollbar-thumb,
+  .consequence-scroll::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 999px; }
+
+  .tree-box {
+    padding: 14px;
+  }
+  .tree-node-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    margin-bottom: 6px;
+    transition: 0.14s ease;
+  }
+  .tree-node-row:hover,
+  .tree-node-row.selected {
+    background: var(--accent-dim2);
+    border-color: rgba(0,212,255,0.2);
+  }
+  .tree-indent { width: 18px; color: var(--text3); }
+  .tree-bullet {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent2);
+  }
+  .tree-label { font-size: 12px; }
+  .tree-type {
+    margin-left: auto;
+    color: var(--text3);
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .form-grid {
+    padding: 18px;
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: 12px;
+  }
+  .full { grid-column: span 12; }
+  .span-6 { grid-column: span 6; }
+  .span-4 { grid-column: span 4; }
+  .span-3 { grid-column: span 3; }
+  .form-section-title {
+    grid-column: span 12;
+    font-size: 10px;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-top: 10px;
+    padding-top: 6px;
+    border-top: 1px solid var(--border);
+  }
+  .success-banner {
+    grid-column: span 12;
+    display: none;
+    align-items: center;
+    gap: 8px;
+    color: var(--green);
+    background: rgba(0,255,157,0.08);
+    border: 1px solid rgba(0,255,157,0.24);
+    padding: 12px 14px;
+    border-radius: 10px;
+    font-size: 12px;
+  }
+  .success-banner.show { display: flex; }
+  .mini-note {
+    color: var(--text2);
+    font-size: 11px;
+    line-height: 1.7;
+  }
+
+  .custom-attrs {
+    grid-column: span 12;
+    display: grid;
+    gap: 8px;
+  }
+  .attr-row {
+    display: grid;
+    grid-template-columns: 2fr 1.4fr 1fr;
+    gap: 8px;
+  }
+
+  .consequence-layout {
+    display: grid;
+    grid-template-columns: 1.2fr 0.9fr;
+    gap: 18px;
+  }
+  .scenario-grid {
+    display: grid;
+    gap: 12px;
+    margin-top: 14px;
+  }
+  .scenario-card {
+    border: 1px solid var(--border2);
+    border-radius: 12px;
+    padding: 14px;
+    background: #0b1018;
+    cursor: pointer;
+    transition: 0.18s ease;
+  }
+  .scenario-card:hover,
+  .scenario-card.selected {
+    border-color: var(--accent);
+    background: var(--accent-dim);
+  }
+  .scenario-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+  .scenario-name {
+    font-family: var(--sans);
+    font-size: 19px;
+  }
+  .chip {
+    color: var(--accent);
+    border: 1px solid rgba(0,212,255,0.24);
+    background: rgba(0,212,255,0.08);
+    padding: 4px 8px;
+    border-radius: 999px;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  .scenario-meta {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px;
+    margin-top: 10px;
+  }
+  .scenario-meta .mini {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px;
+    background: rgba(255,255,255,0.015);
+  }
+  .mini .k { color: var(--text3); font-size: 9px; text-transform: uppercase; letter-spacing: 1px; }
+  .mini .v { font-size: 14px; margin-top: 5px; }
+
+  .chart-box {
+    background: #0b1018;
+    border: 1px solid var(--border2);
+    border-radius: 12px;
+    padding: 14px;
+    margin-top: 14px;
+  }
+  .bars {
+    display: flex;
+    align-items: flex-end;
+    gap: 14px;
+    min-height: 240px;
+    padding: 20px 6px 10px;
+  }
+  .bar-wrap { flex: 1; text-align: center; }
+  .bar {
+    width: 100%;
+    border-radius: 10px 10px 4px 4px;
+    border: 1px solid rgba(0,212,255,0.3);
+    background: linear-gradient(180deg, rgba(0,212,255,0.7) 0%, rgba(0,212,255,0.15) 100%);
+    min-height: 18px;
+    transition: height 0.25s ease;
+  }
+  .bar.secondary {
+    border-color: rgba(0,255,157,0.25);
+    background: linear-gradient(180deg, rgba(0,255,157,0.7) 0%, rgba(0,255,157,0.14) 100%);
+  }
+  .bar.warn {
+    border-color: rgba(255,179,71,0.25);
+    background: linear-gradient(180deg, rgba(255,179,71,0.75) 0%, rgba(255,179,71,0.14) 100%);
+  }
+  .bar-label {
+    margin-top: 10px;
+    color: var(--text2);
+    font-size: 11px;
+  }
+  .bar-value {
+    color: var(--text);
+    font-size: 11px;
+    margin-bottom: 8px;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  th, td {
+    padding: 11px 10px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+    font-size: 11px;
+    vertical-align: top;
+  }
+  th {
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: 10px;
+  }
+  td { color: var(--text2); }
+  td strong { color: var(--text); }
+
+  .footer-note {
+    color: var(--text3);
+    font-size: 11px;
+    margin-top: 14px;
+    line-height: 1.7;
+  }
+
+  @media (max-width: 1150px) {
+    .grid-2, .assembly-wrap, .consequence-layout { grid-template-columns: 1fr; }
+    .summary-bar, .scenario-meta { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  @media (max-width: 760px) {
+    .page { padding: 18px 14px 90px; }
+    .system-grid, .control-row, .summary-bar, .scenario-meta { grid-template-columns: 1fr; }
+    .form-grid { grid-template-columns: repeat(1, minmax(0, 1fr)); }
+    .full, .span-6, .span-4, .span-3, .form-section-title, .custom-attrs, .success-banner { grid-column: span 1; }
+    .attr-row { grid-template-columns: 1fr; }
+    .nav { display: none; }
+  }
+
+  /* special MSOSA button only */
+
+.msosa-btn{
+  background: rgba(30,120,255,0.18);
+  border: 2px solid rgba(80,160,255,0.8);
+  color:#e6f0ff;
+
+  padding:18px 32px;
+  border-radius:12px;
+  font-size:16px;
+
+  backdrop-filter:blur(6px);
+  transition:all .25s ease;
+}
+
+.msosa-btn:hover{
+  background: rgba(30,120,255,0.35);
+  box-shadow:0 0 25px rgba(80,160,255,0.4);
+  transform:translateY(-2px);
+}
+</style>
+</head>
+<body>
+
+
+<div class="page">
+  <section class="section" id="MBSE">
+      <div class="section-head">
+        <div>         
+        <div class="section-title">1. Build Requirements</div>
+        </div>
+      </div>
+
+<div class="intro-cta">
+  <button class="intro-btn msosa-btn"
+    onclick="window.location.href='https://www.3ds.com/products/catia/catia-v5/cloud'">
+    Click here to redirect to MSOSA so you can build your requirements and define your interfaces
+    Note: Instructions TBD
+  </button>
+</div>
+    </section>
+
+    <section class="section" id="activation">
+      <div class="section-head">
+        <div>
+          <div class="section-title">2. Mission Network Activation</div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="panel">
+          <div class="panel-title">Activate Systems (Note: Dummy Elements Displayed for Demo Only) </div>
+          <div class="system-grid" id="systemGrid"></div>
+
+
+
+          <div class="summary-bar">
+            <div class="metric">
+              <div class="metric-label">Active Systems</div>
+              <div class="metric-value" id="activeSystemsMetric">5</div>
+              <div class="metric-sub">Assets currently available to the DES</div>
+            </div>
+            <div class="metric">
+              <div class="metric-label">Network Edges</div>
+              <div class="metric-value" id="networkEdgesMetric">8</div>
+              <div class="metric-sub">Potential operational interactions</div>
+            </div>
+            <div class="metric">
+              <div class="metric-label">Feasible Plans</div>
+              <div class="metric-value" id="planCountMetric">3</div>
+              <div class="metric-sub">Dummy DES outputs ready for screening</div>
+            </div>
+            <div class="metric">
+              <div class="metric-label">Placeholder</div>
+              <div class="metric-value" id="missionScoreMetric">78</div>
+              <div class="metric-sub">Placeholder</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-title">Mission Operations Graph</div>
+          <div class="ops-legend">
+            <span><span class="legend-dot" style="background:#00d4ff"></span>Active logistics or production node</span>
+            <span><span class="legend-dot" style="background:#00ff9d"></span>Crew Node [Exempt]</span>
+            <span><span class="legend-dot" style="background:#ffb347"></span>Transport or transfer path</span>
+          </div>
+          <div class="ops-graph" id="opsGraph">
+            <svg class="link-layer" id="linkLayer" viewBox="0 0 1000 520" preserveAspectRatio="none"></svg>
+          </div>
+          <div class="ops-caption" id="opsCaption">
+            Graph updates when systems are turned on or off. This is the stakeholder-facing systems view that constrains what the DES is allowed to sequence downstream.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="assembly">
+      <div class="section-head">
+        <div>
+          <div class="section-title">3. Model Submission</div>
+        </div>
+      </div>
+
+      <div class="assembly-wrap">
+        <div class="assembly-side">
+          <div class="assembly-toolbar">
+            <div>
+              <div class="panel-title" style="margin-bottom:4px;">Assembly Tree</div>
+              <div class="mini-note">Select activated nodes.</div>
+            </div>
+            <div class="cluster">
+            </div>
+          </div>
+          <div class="assembly-scroll">
+            <div class="tree-box" id="assemblyTree"></div>
+          </div>
+        </div>
+
+        <div class="assembly-main">
+          <div class="assembly-toolbar">
+            <div>
+              <div class="panel-title" style="margin-bottom:4px;">Part / Assembly Metadata</div>
+              <div class="mini-note" id="selectedPath">Selected path: /</div>
+            </div>
+            <div class="cluster">
+
+            </div>
+          </div>
+          <div class="assembly-scroll consequence-scroll">
+            <div class="form-grid">
+              <div class="form-section-title">Identity</div>
+              <div class="field span-6">
+                <label>STEP Filename</label>
+                <input id="stepFileName" value="Lander.step">
+              </div>
+              <div class="field span-6">
+                <label>Part Name</label>
+                <input id="partName" value="Lander">
+              </div>
+              <div class="field span-6">
+                <label>Material</label>
+                <select id="materialRef">
+                  <option>Aluminum_2219_T87</option>
+                  <option>Titanium_Ti6Al4V</option>
+                  <option>Composite_Shell</option>
+                  <option>Regolith_Shielded</option>
+                </select>
+              </div>
+              <div class="field span-6">
+                <label>Category</label>
+                <select id="partCategory">
+                  <option>Assembly</option>
+                  <option>Vehicle</option>
+                  <option>Processing Plant</option>
+                  <option>Infrastructure</option>
+                  <option>Power</option>
+                  <option>Habitat</option>
+                </select>
+              </div>
+
+              <div class="form-section-title">Dimensions</div>
+              <div class="field span-4"><label>Length (m)</label><input id="dimLength" type="number" value="16"></div>
+              <div class="field span-4"><label>Width (m)</label><input id="dimWidth" type="number" value="9"></div>
+              <div class="field span-4"><label>Height (m)</label><input id="dimHeight" type="number" value="6"></div>
+
+              <div class="form-section-title">Transform — Position</div>
+              <div class="field span-4"><label>X (m)</label><input id="posX" type="number" value="0"></div>
+              <div class="field span-4"><label>Y (m)</label><input id="posY" type="number" value="0"></div>
+              <div class="field span-4"><label>Z (m)</label><input id="posZ" type="number" value="0"></div>
+
+              <div class="form-section-title">Transform — Orientation</div>
+              <div class="field span-4"><label>rX (deg)</label><input id="rotX" type="number" value="0"></div>
+              <div class="field span-4"><label>rY (deg)</label><input id="rotY" type="number" value="0"></div>
+              <div class="field span-4"><label>rZ (deg)</label><input id="rotZ" type="number" value="0"></div>
+
+              <div class="form-section-title">Units</div>
+              <div class="field span-3"><label>metersPerUnit</label><input id="metersPerUnit" type="number" value="1"></div>
+              <div class="field span-3"><label>upAxis</label><select id="upAxis"><option>Z</option><option>Y</option><option>X</option></select></div>
+              <div class="field span-3"><label>angleUnit</label><select id="angleUnit"><option>deg</option><option>rad</option></select></div>
+              <div class="field span-3"><label>massUnit</label><select id="massUnit"><option>kg</option><option>g</option><option>lb</option></select></div>
+              <div class="field span-6"><label>pressureUnit</label><select id="pressureUnit"><option>kPa</option><option>Pa</option><option>bar</option></select></div>
+              <div class="field span-6"><label>lengthUnit</label><select id="lengthUnit"><option>m</option><option>cm</option><option>mm</option></select></div>
+
+
+
+              <div class="form-section-title">Actions</div>
+              <div class="field span-4"><button class="btn btn-primary" onclick="saveSelectedNode()">Upload</button></div>
+
+              <div class="field span-4"><button class="btn btn-primary" onclick="saveSelectedNode()">Save </button></div>
+
+              <div class="success-banner" id="saveBanner">✓ Assembly metadata saved and ready to feed downstream logic.</div>
+              <div class="custom-attrs" id="customAttrs" style="display:none;"></div>
+
+<div class="field full" style="display:none;">
+  <div class="chart-box" style="margin-top:0;">
+    <pre id="sysmlPreview"></pre>
+  </div>
+</div>
+</pre><div class="custom-attrs" id="customAttrs" style="display:none;"></div>
+
+<div class="field full" style="display:none;">
+  <div class="chart-box" style="margin-top:0;">
+    <pre id="sysmlPreview"></pre>
+  </div>
+</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+              </div>
+</section>
+
+
+<BODY>
+<script>
+  const systems = [
+    { id: 'lander', name: 'Lander', meta: 'Entry point for cargo / crew', active: true, type: 'logistics' },
+    { id: 'habitat', name: 'Habitat', meta: 'Crew support and shelter', active: true, type: 'support' },
+    { id: 'power', name: 'Power Grid', meta: 'Primary surface distribution', active: true, type: 'support' },
+    { id: 'isru', name: 'ISRU Plant', meta: 'Resource extraction and processing', active: true, type: 'production' },
+    { id: 'depot', name: 'Propellant Depot', meta: 'Storage and dispatch node', active: true, type: 'logistics' },
+    { id: 'rover', name: 'Rover Fleet', meta: 'Surface mobility and transfer', active: true, type: 'transport' },
+    { id: 'reactor', name: 'Nuclear Reactor', meta: 'High-stability power source', active: false, type: 'support' },
+    { id: 'rail', name: 'Train System', meta: 'Bulk haul surface logistics', active: false, type: 'transport' }
+  ];
+
+  const graphPositions = {
+    lander: { x: 110, y: 110 },
+    habitat: { x: 325, y: 80 },
+    power: { x: 300, y: 275 },
+    isru: { x: 560, y: 120 },
+    depot: { x: 790, y: 110 },
+    rover: { x: 540, y: 320 },
+    reactor: { x: 120, y: 330 },
+    rail: { x: 785, y: 300 }
+  };
+
+<!-- THE CONST LINKS SECTION BELOW WILL BE REPLACED BY INTERFACE DEFINITIONS IN MBSE -->
+
+
+  const links = [
+    ['lander','habitat'], ['lander','power'], ['habitat','power'], ['power','isru'],
+    ['isru','depot'], ['rover','isru'], ['rover','depot'], ['reactor','power'], ['rail','depot'], ['rail','isru']
+  ];
+
+let assemblyTree = [
+  {
+    id: 'root',
+    name: 'LSP1Assembly',
+    type: 'assembly',
+    data: defaultNodeData('LSP1Assembly', 'lsp1_assembly.step', 'Assembly'),
+    children: []
+  }
+];
+let selectedNodeId = 'root';
+let nodeCounter = 0;
+  let scenarioData = [];
+  let selectedScenarioId = null;
+
+  function defaultNodeData(name, step, category) {
+    return {
+      stepFileName: step,
+      partName: name,
+      materialRef: 'Aluminum_2219_T87',
+      partCategory: category,
+      dimLength: 16,
+      dimWidth: 9,
+      dimHeight: 6,
+      posX: 0,
+      posY: 0,
+      posZ: 0,
+      rotX: 0,
+      rotY: 0,
+      rotZ: 0,
+      metersPerUnit: 1,
+      upAxis: 'Z',
+      angleUnit: 'deg',
+      massUnit: 'kg',
+      pressureUnit: 'kPa',
+      lengthUnit: 'm',
+      customAttrs: [
+        { name: 'verificationMethod', value: 'Analysis', unit: '' },
+        { name: 'opsMode', value: 'Nominal', unit: '' }
+      ]
+    };
+  }
+
+  const systemNodeMap = {
+  lander: {
+    name: 'Lander',
+    type: 'part',
+    category: 'Vehicle',
+    step: 'lander.step'
+  },
+  habitat: {
+    name: 'Habitat',
+    type: 'part',
+    category: 'Habitat',
+    step: 'habitat.step'
+  },
+  power: {
+    name: 'PowerGrid',
+    type: 'part',
+    category: 'Power',
+    step: 'power_grid.step'
+  },
+  isru: {
+    name: 'ISRUPlant',
+    type: 'part',
+    category: 'Processing Plant',
+    step: 'isru.step'
+  },
+  depot: {
+    name: 'PropellantDepot',
+    type: 'part',
+    category: 'Infrastructure',
+    step: 'propellant_depot.step'
+  },
+  rover: {
+    name: 'RoverFleet',
+    type: 'part',
+    category: 'Vehicle',
+    step: 'rover.step'
+  },
+  reactor: {
+    name: 'NuclearReactor',
+    type: 'part',
+    category: 'Power',
+    step: 'reactor.step'
+  },
+  rail: {
+    name: 'TrainSystem',
+    type: 'part',
+    category: 'Infrastructure',
+    step: 'train_system.step'
+  }
+};
+
+function buildAssemblyTreeFromActiveSystems() {
+  const root = assemblyTree[0];
+  const existingById = {};
+
+  root.children.forEach(child => {
+    existingById[child.id] = child;
+  });
+
+  const activeChildren = systems
+    .filter(sys => sys.active)
+    .map(sys => {
+      const mapped = systemNodeMap[sys.id];
+      const existing = existingById[sys.id];
+
+      if (existing) return existing;
+
+      return {
+        id: sys.id,
+        name: mapped.name,
+        type: mapped.type,
+        data: defaultNodeData(mapped.name, mapped.step, mapped.category),
+        children: []
+      };
+    });
+
+  root.children = activeChildren;
+
+  if (!findNode(selectedNodeId)) {
+    selectedNodeId = 'root';
+  }
+
+  renderAssemblyTree();
+  loadNodeIntoForm();
+}
+  function renderSystems() {
+    const wrap = document.getElementById('systemGrid');
+    wrap.innerHTML = '';
+    systems.forEach(sys => {
+      const card = document.createElement('div');
+      card.className = 'sys-card' + (sys.active ? ' active' : '');
+      card.innerHTML = `
+        <div class="sys-head">
+          <div class="sys-name">${sys.name}</div>
+          <input class="toggle" type="checkbox" ${sys.active ? 'checked' : ''} onchange="toggleSystem('${sys.id}')">
+        </div>
+        <div class="sys-meta">${sys.meta}</div>
+      `;
+      wrap.appendChild(card);
+    });
+    updateTopMetrics();
+    renderOpsGraph();
+  }
+
+function toggleSystem(id) {
+  const sys = systems.find(s => s.id === id);
+  if (!sys) return;
+  sys.active = !sys.active;
+  renderSystems();
+  buildAssemblyTreeFromActiveSystems();
+  generatePlans();
+}
+
+  function renderOpsGraph() {
+    const graph = document.getElementById('opsGraph');
+    const svg = document.getElementById('linkLayer');
+    graph.querySelectorAll('.node').forEach(n => n.remove());
+    svg.innerHTML = '';
+
+    links.forEach(([a, b]) => {
+      const sa = systems.find(s => s.id === a);
+      const sb = systems.find(s => s.id === b);
+      if (!sa?.active || !sb?.active) return;
+      const pa = graphPositions[a];
+      const pb = graphPositions[b];
+      const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      line.setAttribute('x1', pa.x + 55);
+      line.setAttribute('y1', pa.y + 30);
+      line.setAttribute('x2', pb.x + 55);
+      line.setAttribute('y2', pb.y + 30);
+      line.setAttribute('stroke', '#ffb347');
+      line.setAttribute('stroke-width', '2.2');
+      line.setAttribute('stroke-opacity', '0.65');
+      line.setAttribute('stroke-dasharray', '8 7');
+      svg.appendChild(line);
+    });
+
+    systems.forEach(sys => {
+      if (!sys.active) return;
+      const pos = graphPositions[sys.id];
+      const div = document.createElement('div');
+      div.className = 'node active';
+      div.style.left = pos.x + 'px';
+      div.style.top = pos.y + 'px';
+      div.innerHTML = `<div class="node-title">${sys.name}</div><div class="node-tag">${sys.type}</div>`;
+      graph.appendChild(div);
+    });
+
+    const activeNames = systems.filter(s => s.active).map(s => s.name).join(' → ');
+    document.getElementById('opsCaption').textContent = activeNames
+      ? `Current active mission interaction space: ${activeNames}. DES should only build event sequences across this online system set.`
+      : 'No systems active. Turn on at least one system so the operations graph can define the DES state space.';
+  }
+
+  function updateTopMetrics() {
+    const activeCount = systems.filter(s => s.active).length;
+    const activeEdges = links.filter(([a,b]) => systems.find(s => s.id === a)?.active && systems.find(s => s.id === b)?.active).length;
+    const roverCount = Math.max(0, Number(document.getElementById('roverCount')?.value || 0));
+    const plantCount = Math.max(0, Number(document.getElementById('plantCount')?.value || 0));
+    const distance = Math.max(0, Number(document.getElementById('distanceKm')?.value || 0));
+    const score = Math.max(0, Math.min(99, Math.round(52 + activeCount * 4 + roverCount * 3 + plantCount * 5 - distance * 0.6)));
+
+    document.getElementById('activeSystemsMetric').textContent = activeCount;
+    document.getElementById('networkEdgesMetric').textContent = activeEdges;
+    document.getElementById('missionScoreMetric').textContent = score;
+  }
+
+  function flattenTree(nodes, depth = 0, path = []) {
+    let rows = [];
+    nodes.forEach(node => {
+      rows.push({ node, depth, path: [...path, node.name] });
+      if (node.children?.length) rows = rows.concat(flattenTree(node.children, depth + 1, [...path, node.name]));
+    });
+    return rows;
+  }
+
+function renderAssemblyTree() {
+  const box = document.getElementById('assemblyTree');
+  box.innerHTML = '';
+
+  const root = assemblyTree[0];
+  const rows = root ? flattenTree(root.children || [], 0, []) : [];
+
+  rows.forEach(({ node, depth, path }) => {
+    const row = document.createElement('div');
+    row.className = 'tree-node-row' + (node.id === selectedNodeId ? ' selected' : '');
+    row.onclick = () => selectNode(node.id);
+    row.innerHTML = `
+      <div class="tree-indent">${'· '.repeat(depth)}</div>
+      <div class="tree-bullet"></div>
+      <div class="tree-label">${node.name}</div>
+      <div class="tree-type">${node.type}</div>
+    `;
+    box.appendChild(row);
+  });
+
+  updateSelectedPath();
+}
+
+  function findNode(id, nodes = assemblyTree, parent = null) {
+    for (const node of nodes) {
+      if (node.id === id) return { node, parent };
+      if (node.children?.length) {
+        const res = findNode(id, node.children, node);
+        if (res) return res;
+      }
+    }
+    return null;
+  }
+
+  function selectNode(id) {
+    selectedNodeId = id;
+    renderAssemblyTree();
+    loadNodeIntoForm();
+  }
+
+function updateSelectedPath() {
+  if (selectedNodeId === 'root') {
+    document.getElementById('selectedPath').textContent = 'Selected path: /';
+    return;
+  }
+
+  const root = assemblyTree[0];
+  const rows = root ? flattenTree(root.children || [], 0, []) : [];
+  const row = rows.find(r => r.node.id === selectedNodeId);
+
+  document.getElementById('selectedPath').textContent =
+    'Selected path: /' + (row ? row.path.join('/') : '');
+}
+
+  function loadNodeIntoForm() {
+    const res = findNode(selectedNodeId);
+    if (!res) return;
+    const data = res.node.data;
+    [
+      'stepFileName','partName','materialRef','partCategory','dimLength','dimWidth','dimHeight',
+      'posX','posY','posZ','rotX','rotY','rotZ','metersPerUnit','upAxis','angleUnit','massUnit','pressureUnit','lengthUnit'
+    ].forEach(id => {
+      const el = document.getElementById(id);
+      if (el && data[id] !== undefined) el.value = data[id];
+    });
+    const wrap = document.getElementById('customAttrs');
+    wrap.innerHTML = '';
+    (data.customAttrs || []).forEach(attr => addCustomAttrRow(attr));
+    previewAssembly();
+  }
+
+  function readFormData() {
+    const data = {};
+    [
+      'stepFileName','partName','materialRef','partCategory','dimLength','dimWidth','dimHeight',
+      'posX','posY','posZ','rotX','rotY','rotZ','metersPerUnit','upAxis','angleUnit','massUnit','pressureUnit','lengthUnit'
+    ].forEach(id => data[id] = document.getElementById(id).value);
+    data.customAttrs = [...document.querySelectorAll('.attr-row')].map(row => ({
+      name: row.querySelector('.attr-name').value,
+      value: row.querySelector('.attr-value').value,
+      unit: row.querySelector('.attr-unit').value
+    })).filter(a => a.name || a.value || a.unit);
+    return data;
+  }
+
+  function saveSelectedNode() {
+    const res = findNode(selectedNodeId);
+    if (!res) return;
+    const data = readFormData();
+    res.node.name = data.partName || res.node.name;
+    res.node.data = data;
+    renderAssemblyTree();
+    previewAssembly();
+    const banner = document.getElementById('saveBanner');
+    banner.classList.add('show');
+    setTimeout(() => banner.classList.remove('show'), 2000);
+  }
+
+  function addNode(mode) {
+    const name = prompt(mode === 'root' ? 'New root node name:' : 'New child node name:', mode === 'root' ? 'NewAssembly' : 'NewPart');
+    if (!name) return;
+    const newNode = {
+      id: 'n' + (++nodeCounter),
+      name,
+      type: 'part',
+      data: defaultNodeData(name, `${name.toLowerCase()}.step`, 'Infrastructure'),
+      children: []
+    };
+    if (mode === 'root' || !selectedNodeId) {
+      assemblyTree.push(newNode);
+    } else {
+      const res = findNode(selectedNodeId);
+      if (res?.node) {
+        res.node.type = 'assembly';
+        res.node.children.push(newNode);
+      }
+    }
+    selectedNodeId = newNode.id;
+    renderAssemblyTree();
+    loadNodeIntoForm();
+  }
+
+  function duplicateSelectedNode() {
+    const res = findNode(selectedNodeId);
+    if (!res) return;
+    const clone = JSON.parse(JSON.stringify(res.node));
+    clone.id = 'n' + (++nodeCounter);
+    clone.name = clone.name + '_Copy';
+    if (res.parent) {
+      res.parent.children.push(clone);
+    } else {
+      assemblyTree.push(clone);
+    }
+    selectedNodeId = clone.id;
+    renderAssemblyTree();
+    loadNodeIntoForm();
+  }
+
+  function deleteSelectedNode() {
+    if (selectedNodeId === 'root') {
+      alert('Keep the root assembly and edit it instead.');
+      return;
+    }
+    function removeNode(id, nodes) {
+      const idx = nodes.findIndex(n => n.id === id);
+      if (idx >= 0) return nodes.splice(idx, 1);
+      for (const n of nodes) if (n.children?.length && removeNode(id, n.children)) return true;
+      return false;
+    }
+    removeNode(selectedNodeId, assemblyTree);
+    selectedNodeId = 'root';
+    renderAssemblyTree();
+    loadNodeIntoForm();
+  }
+
+  function addCustomAttrRow(attr = { name: '', value: '', unit: '' }) {
+    const wrap = document.getElementById('customAttrs');
+    const row = document.createElement('div');
+    row.className = 'attr-row';
+    row.innerHTML = `
+      <input class="attr-name" placeholder="Attribute name" value="${attr.name || ''}">
+      <input class="attr-value" placeholder="Value" value="${attr.value || ''}">
+      <input class="attr-unit" placeholder="Unit" value="${attr.unit || ''}">
+    `;
+    wrap.appendChild(row);
+  }
+
+  function buildPreviewText() {
+    const data = readFormData();
+    const attrs = (data.customAttrs || []).map(a => `    attribute ${a.name} = "${a.value}";${a.unit ? ` // ${a.unit}` : ''}`).join('\n');
+    return `package LSP1 {\n  part ${data.partName || 'Part'} {\n    attribute geometry = "assets/geom/${(data.stepFileName || 'part.step').replace(/\.(step|stp)$/i, '')}_geom.usda";\n    attribute materialRef = "${data.materialRef}";\n    attribute category = "${data.partCategory}";\n    part ${data.partName || 'Part'}_dims {\n      attribute length = ${data.dimLength};\n      attribute width = ${data.dimWidth};\n      attribute height = ${data.dimHeight};\n      attribute X = ${data.posX};\n      attribute Y = ${data.posY};\n      attribute Z = ${data.posZ};\n      attribute rX_deg = ${data.rotX};\n      attribute rY_deg = ${data.rotY};\n      attribute rZ_deg = ${data.rotZ};\n      attribute metersPerUnit = ${data.metersPerUnit};\n      attribute upAxis = "${data.upAxis}";\n    }${attrs ? `\n${attrs}` : ''}\n  }\n}`;
+  }
+
+  function previewAssembly() {
+    document.getElementById('sysmlPreview').textContent = buildPreviewText();
+  }
+
+  function pushToConsequence() {
+    saveSelectedNode();
+    document.getElementById('consequence').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function computeScenario(seed, priority, mode) {
+    const activeCount = systems.filter(s => s.active).length;
+    const rovers = Number(document.getElementById('roverCount').value || 0);
+    const plants = Number(document.getElementById('plantCount').value || 0);
+    const distance = Number(document.getElementById('distanceKm').value || 0);
+    const days = Number(document.getElementById('missionDays').value || 0);
+
+    const baseCost = 70 + distance * 2.8 + plants * 18 + rovers * 9 + seed * 11 - activeCount * 4;
+    const throughput = Math.max(18, Math.round(38 + activeCount * 5 + plants * 12 + rovers * 7 - seed * 4));
+    const risk = Math.max(12, Math.round(58 - activeCount * 3 + distance * 0.9 + seed * 5 - plants * 4));
+    const timeline = Math.max(8, Math.round(days * 0.7 + distance * 0.25 + seed * 2 - rovers * 1.5 - plants * 2));
+
+    let viability = Math.round(100 - (baseCost * 0.18 + risk * 0.44 + timeline * 0.55) + throughput * 0.72);
+    if (priority === 'cost') viability += seed === 0 ? 8 : 0;
+    if (priority === 'speed') viability += seed === 1 ? 8 : 0;
+    if (priority === 'output') viability += seed === 2 ? 8 : 0;
+    if (priority === 'resilience') viability += activeCount > 5 ? 6 : 0;
+    if (mode === 'contingency') viability += 5 - seed;
+    if (mode === 'surge') viability += seed === 2 ? 6 : -1;
+    viability = Math.max(25, Math.min(96, viability));
+
+    const scenarioNames = ['Alpha Traverse Chain', 'Beta Depot Relay', 'Gamma Parallel Harvest'];
+    const tags = ['Lowest overhead', 'Fastest route closure', 'Highest production'];
+    const sequenceTemplates = [
+      ['Unload cargo', 'Activate power', 'Initialize habitat', 'Dispatch rover convoy', 'Process ISRU batch', 'Transfer to depot'],
+      ['Deploy power backbone', 'Stand up depot first', 'Cycle rover shuttles', 'Buffer consumables', 'Execute crew excursion'],
+      ['Activate dual production loop', 'Run simultaneous rover legs', 'Bulk transfer to storage', 'Close mission objectives']
+    ];
+
+    return {
+      id: 's' + seed,
+      name: scenarioNames[seed],
+      tag: tags[seed],
+      cost: Math.round(baseCost),
+      throughput,
+      risk,
+      timeline,
+      viability,
+      sequence: sequenceTemplates[seed],
+      rovers,
+      plants,
+      distance
+    };
+  }
+
+  function generatePlans() {
+    updateTopMetrics();
+    const priority = document.getElementById('priorityObjective').value;
+    const mode = document.getElementById('scenarioMode').value;
+    scenarioData = [0,1,2].map(i => computeScenario(i, priority, mode)).sort((a,b) => b.viability - a.viability);
+    document.getElementById('planCountMetric').textContent = scenarioData.length;
+    renderScenarios();
+    if (!selectedScenarioId || !scenarioData.find(s => s.id === selectedScenarioId)) selectedScenarioId = scenarioData[0].id;
+    selectScenario(selectedScenarioId);
+  }
+
+  function renderScenarios() {
+    const grid = document.getElementById('scenarioGrid');
+    grid.innerHTML = '';
+    scenarioData.forEach(s => {
+      const card = document.createElement('div');
+      card.className = 'scenario-card' + (s.id === selectedScenarioId ? ' selected' : '');
+      card.onclick = () => selectScenario(s.id);
+      card.innerHTML = `
+        <div class="scenario-head">
+          <div class="scenario-name">${s.name}</div>
+          <div class="chip">${s.tag}</div>
+        </div>
+        <div class="mini-note">${s.sequence.join(' → ')}</div>
+        <div class="scenario-meta">
+          <div class="mini"><div class="k">Viability</div><div class="v">${s.viability}</div></div>
+          <div class="mini"><div class="k">Cost</div><div class="v">${s.cost}</div></div>
+          <div class="mini"><div class="k">Timeline</div><div class="v">${s.timeline}d</div></div>
+          <div class="mini"><div class="k">Risk</div><div class="v">${s.risk}</div></div>
+        </div>
+      `;
+      grid.appendChild(card);
+    });
+  }
+
+  function selectScenario(id) {
+    selectedScenarioId = id;
+    renderScenarios();
+    const s = scenarioData.find(x => x.id === id) || scenarioData[0];
+    if (!s) return;
+    document.getElementById('selScenarioName').textContent = s.name.split(' ')[0];
+    document.getElementById('selScenarioScore').textContent = s.viability;
+    document.getElementById('selScenarioCost').textContent = s.cost;
+    document.getElementById('selScenarioTime').textContent = s.timeline + 'd';
+    document.getElementById('costBar').style.height = Math.min(100, Math.max(18, s.cost / 2)) + '%';
+    document.getElementById('throughputBar').style.height = Math.min(100, Math.max(18, s.throughput)) + '%';
+    document.getElementById('riskBar').style.height = Math.min(100, Math.max(18, s.risk)) + '%';
+    document.getElementById('costBarValue').textContent = s.cost;
+    document.getElementById('throughputBarValue').textContent = s.throughput;
+    document.getElementById('riskBarValue').textContent = s.risk;
+
+    const tbody = document.getElementById('consequenceTableBody');
+    tbody.innerHTML = `
+      <tr><td><strong>Activated assets</strong></td><td>${systems.filter(x => x.active).map(x => x.name).join(', ')}</td><td>These are the only nodes the DES was allowed to use when constructing this candidate plan.</td></tr>
+      <tr><td><strong>Operational configuration</strong></td><td>${s.rovers} rover(s), ${s.plants} ISRU plant(s), ${s.distance} km staging distance</td><td>User-entered top-level constraints shift the feasible trade space before scenario selection.</td></tr>
+      <tr><td><strong>Mission sequence style</strong></td><td>${s.sequence.join(' → ')}</td><td>Represents the selected DES-generated ordering logic for this dummy scenario.</td></tr>
+      <tr><td><strong>Cost / throughput / risk</strong></td><td>Cost ${s.cost}, throughput ${s.throughput}, risk ${s.risk}</td><td>Used to compare minimal viable mission paths across multiple generated options.</td></tr>
+      <tr><td><strong>Stakeholder interpretation</strong></td><td>Viability score ${s.viability}</td><td>${interpretScenario(s)}</td></tr>
+    `;
+  }
+
+  function interpretScenario(s) {
+    if (s.viability >= 85) return 'Strong candidate for nominal mission selection with favorable balance across speed, output, and mission burden.';
+    if (s.viability >= 72) return 'Viable mission option with manageable trade-offs. Good for comparison against cost- or resilience-driven alternatives.';
+    return 'Marginal but feasible path. Useful as a backup or contingency scenario rather than the primary recommended plan.';
+  }
+
+['roverCount','plantCount','distanceKm','missionDays','priorityObjective','scenarioMode'].forEach(id => {
+  document.addEventListener('input', (e) => {
+    if (e.target && e.target.id === id) {
+      if (id === 'roverCount' || id === 'plantCount') {
+        buildAssemblyTreeFromActiveSystems();
+      }
+      generatePlans();
+    }
+  });
+  document.addEventListener('change', (e) => {
+    if (e.target && e.target.id === id) {
+      if (id === 'roverCount' || id === 'plantCount') {
+        buildAssemblyTreeFromActiveSystems();
+      }
+      generatePlans();
+    }
+  });
+});
+
+renderSystems();
+buildAssemblyTreeFromActiveSystems();
+generatePlans();
+</script>
+</body>
+</html>
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title></title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+
+body{
+    margin:0;
+    background:#070b12;
+    color:white;
+    font-family:Inter,system-ui;
+}
+
+.section{
+    padding:60px 40px;
+}
+
+.section-title{
+    font-size:28px;
+    margin-bottom:20px;
+}
+
+.row{
+    display:flex;
+    gap:30px;
+}
+
+.card{
+    flex:1;
+    background:#111827;
+    padding:20px;
+    border-radius:14px;
+}
+
+.generate-wrapper{
+    display:flex;
+    justify-content:center;
+    padding:80px 0;
+}
+
+.generate-btn{
+    font-size:26px;
+    padding:26px 60px;
+    border-radius:16px;
+    background:#4cc9f0;
+    color:black;
+    font-weight:700;
+    border:none;
+    cursor:pointer;
+    box-shadow:0 20px 40px rgba(0,0,0,.4);
+}
+
+.generate-btn:hover{
+    transform:scale(1.05);
+}
+
+iframe{
+    width:100%;
+    height:1400px;
+    border:none;
+}
+
+</style>
+</head>
+
+
+
+<section class="section">
+
+<div class="section-title">4. Mission Tradepace Selection</div>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+
+  <style>
+    :root {
+      --bg: #0a0e17;
+      --panel: #111827;
+      --panel-2: #0f172a;
+      --line: #243041;
+      --text: #e5eefb;
+      --muted: #95a3b8;
+      --accent: #4cc9f0;
+      --accent-2: #80ed99;
+      --warn: #ffd166;
+      --danger: #ef476f;
+      --shadow: 0 10px 30px rgba(0,0,0,.25);
+      --radius: 18px;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: radial-gradient(circle at top, #13203a 0%, var(--bg) 30%, #070b12 100%);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+    }
+
+    .app {
+      min-height: 100vh;
+      padding: 18px;
+      display: grid;
+      grid-template-rows: auto auto 1fr auto;
+      gap: 14px;
+    }
+
+    .card {
+      background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01));
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(8px);
+    }
+
+    .header {
+      padding: 18px 22px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .title h1 {
+      margin: 0;
+      font-size: 1.35rem;
+      letter-spacing: .2px;
+    }
+
+    .title p {
+      margin: 5px 0 0;
+      color: var(--muted);
+      font-size: .95rem;
+    }
+
+    .pill-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .pill {
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      color: var(--muted);
+      font-size: .82rem;
+      background: rgba(255,255,255,.02);
+    }
+
+    .scrubber {
+      padding: 16px 20px;
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 18px;
+      align-items: center;
+    }
+
+    .play-group {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    button {
+      background: #162236;
+      color: var(--text);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 10px 14px;
+      cursor: pointer;
+    }
+
+    button:hover { border-color: var(--accent); }
+
+    .time-wrap {
+      display: grid;
+      gap: 8px;
+    }
+
+    .time-top {
+      display: flex;
+      justify-content: space-between;
+      color: var(--muted);
+      font-size: .9rem;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--accent);
+    }
+
+    .markers {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      color: var(--muted);
+      font-size: .78rem;
+    }
+
+    .main {
+      display: grid;
+      grid-template-columns: 320px 1fr 340px;
+      gap: 14px;
+      min-height: 540px;
+    }
+
+    .panel {
+      padding: 16px;
+    }
+
+    .panel h2 {
+      margin: 0 0 6px;
+      font-size: 1rem;
+    }
+
+    .panel .sub {
+      margin: 0 0 16px;
+      color: var(--muted);
+      font-size: .88rem;
+      line-height: 1.35;
+    }
+
+    .control-group {
+      display: grid;
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+
+    .control {
+      padding: 12px;
+      background: rgba(255,255,255,.02);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+    }
+
+    .control-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      font-size: .9rem;
+      margin-bottom: 8px;
+    }
+
+    .control-head span:last-child {
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    .tiny {
+      font-size: .78rem;
+      color: var(--muted);
+      margin-top: 6px;
+      line-height: 1.3;
+    }
+
+    .network-wrap {
+      padding: 16px;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      gap: 10px;
+    }
+
+    .network-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .legend {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      color: var(--muted);
+      font-size: .78rem;
+    }
+
+    .svg-shell {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: linear-gradient(180deg, rgba(76,201,240,.05), rgba(255,255,255,.01));
+      overflow: hidden;
+      min-height: 420px;
+    }
+
+    svg { width: 100%; height: 100%; display: block; }
+
+    .node {
+      fill: #132238;
+      stroke: #3b4e67;
+      stroke-width: 2;
+    }
+
+    .node.active { stroke: var(--accent-2); }
+    .node.warning { stroke: var(--warn); }
+    .node.critical { stroke: var(--danger); }
+
+    .link {
+      fill: none;
+      stroke-linecap: round;
+      opacity: .9;
+    }
+
+    .metric-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .metric {
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: rgba(255,255,255,.02);
+    }
+
+    .metric .k {
+      color: var(--muted);
+      font-size: .78rem;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+    }
+
+    .metric .v {
+      margin-top: 5px;
+      font-size: 1.4rem;
+      font-weight: 700;
+    }
+
+    .metric .delta {
+      margin-top: 4px;
+      font-size: .82rem;
+    }
+
+    .pos { color: var(--accent-2); }
+    .neg { color: var(--danger); }
+    .warn { color: var(--warn); }
+
+    .status-box {
+      margin-top: 12px;
+      padding: 12px;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.02);
+      line-height: 1.45;
+      color: var(--muted);
+      font-size: .88rem;
+    }
+
+    .charts {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+    }
+
+    .chart-card {
+      padding: 14px;
+    }
+
+    .chart-card h3 {
+      margin: 0 0 8px;
+      font-size: .95rem;
+    }
+
+    .chart-card p {
+      margin: 0 0 8px;
+      color: var(--muted);
+      font-size: .8rem;
+    }
+
+    .mini svg {
+      height: 140px;
+      border-radius: 12px;
+      background: rgba(255,255,255,.02);
+      border: 1px solid var(--line);
+    }
+
+    .footer {
+      padding: 14px 18px;
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: center;
+      color: var(--muted);
+      font-size: .85rem;
+    }
+
+    .compare-toggle {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    @media (max-width: 1280px) {
+      .main { grid-template-columns: 1fr; }
+      .charts { grid-template-columns: 1fr 1fr; }
+    }
+
+    @media (max-width: 760px) {
+      .charts { grid-template-columns: 1fr; }
+      .scrubber { grid-template-columns: 1fr; }
+      .header { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+
+  <div class="app">
+    <section class="card header">
+
+
+
+    </section>
+
+    <section class="card scrubber">
+      <div class="play-group">
+        <button id="playBtn">▶ Play</button>
+        <button id="resetBtn">Reset</button>
+      </div>
+      <div class="time-wrap">
+        <div class="time-top">
+          <span>Mission Time</span>
+          <strong id="timeLabel">t = 6 hr</strong>
+        </div>
+        <input id="timeSlider" type="range" min="0" max="60" step="1" value="6" />
+        <div class="markers">
+          <span>Rover unload</span>
+          <span>Plant active</span>
+          <span>Threshold</span>
+          <span>Transport</span>
+          <span>Power spike</span>
+        </div>
+      </div>
+      <div>
+        <button id="snapshotBtn">Save Snapshot</button>
+      </div>
+    </section>
+
+    <section class="main">
+      <aside class="card panel">
+        <h2>Parameter Controls</h2>
+        <p class="sub">Stakeholder changes the assumptions here. The visualization then rebalances the operational state and downstream outcomes.</p>
+
+        <div class="control-group">
+          <div class="control">
+            <div class="control-head">
+              <span># of regolith rovers</span>
+              <span id="roverCountValue">1</span>
+            </div>
+            <input id="roverCountSlider" type="range" min="1" max="10" step="1" value="1" />
+            <div class="tiny">Assumes multiple rovers are collocated and contribute parallel haul capacity to the same regolith delivery loop.</div>
+          </div>
+
+          <div class="control">
+            <div class="control-head">
+              <span># of ISRU plants</span>
+              <span id="plantCountValue">1</span>
+            </div>
+            <input id="plantCountSlider" type="range" min="1" max="6" step="1" value="1" />
+            <div class="tiny">Assumes multiple ISRU plants are collocated and act like parallel processing units with shared local support infrastructure.</div>
+          </div>
+          <div class="control">
+            <div class="control-head">
+              <span>Regolith haul distance</span>
+              <span id="regolithDistanceValue">1.0 km</span>
+            </div>
+            <input id="regolithDistanceSlider" type="range" min="0.5" max="10" step="0.5" value="1" />
+            <div class="tiny">Excavation site → ISRU plant distance. In the real DES, this should feed rover travel time, energy use, and plant starvation risk.</div>
+          </div>
+
+          <div class="control">
+            <div class="control-head">
+              <span>LOX haul distance</span>
+              <span id="loxDistanceValue">1.0 km</span>
+            </div>
+            <input id="loxDistanceSlider" type="range" min="0.5" max="10" step="0.5" value="1" />
+            <div class="tiny">ISRU plant → landing zone distance. This shifts LOX transport timing, rover battery demand, and depot servicing cadence.</div>
+          </div>
+          <div class="control">
+            <div class="control-head">
+              <span>Rover discharge rate</span>
+              <span id="dischargeValue">4000 kg/unload</span>
+            </div>
+            <input id="dischargeSlider" type="range" min="1000" max="6000" step="250" value="4000" />
+            <div class="tiny">Primary driver for regolith availability, plant starvation risk, rover load behavior, and threshold timing.</div>
+          </div>
+
+          <div class="control">
+            <div class="control-head">
+              <span>Rover travel time</span>
+              <span id="travelValue">5 hr/km</span>
+            </div>
+            <input id="travelSlider" type="range" min="1" max="10" step="1" value="5" />
+            <div class="tiny">Longer travel time delays delivery cadence and reduces infrastructure throughput.</div>
+          </div>
+
+          <div class="control">
+            <div class="control-head">
+              <span>Plant processing rate</span>
+              <span id="processValue">1600 kg/hr</span>
+            </div>
+            <input id="processSlider" type="range" min="800" max="2400" step="100" value="1600" />
+            <div class="tiny">Higher plant processing can increase LOX output but also steepen the energy demand curve.</div>
+          </div>
+
+          <div class="control">
+            <div class="control-head">
+              <span>LOX transport threshold</span>
+              <span id="thresholdValue">100 kg</span>
+            </div>
+            <input id="thresholdSlider" type="range" min="25" max="300" step="25" value="100" />
+            <div class="tiny">Determines when the LOX cargo rover is triggered for depot/landing-zone servicing.</div>
+          </div>
+        </div>
+      </aside>
+
+      <section class="card network-wrap">
+        <div class="network-head">
+          <div>
+            <h2 style="margin:0; font-size:1rem;">Coupled Mission State Network</h2>
+            <div class="sub" style="margin:6px 0 0;">Node color = health/utilization. Edge thickness = current flow magnitude. This is what the stakeholder “feels” when a parameter changes.</div>
+          </div>
+          <div class="legend">
+            <span>● healthy</span>
+            <span>● constrained</span>
+            <span>● bottleneck</span>
+          </div>
+        </div>
+
+        <div class="svg-shell">
+          <svg viewBox="0 0 900 500" preserveAspectRatio="xMidYMid meet">
+            <defs>
+              <filter id="glow">
+                <feGaussianBlur stdDeviation="4" result="blur" />
+                <feMerge>
+                  <feMergeNode in="blur" />
+                  <feMergeNode in="SourceGraphic" />
+                </feMerge>
+              </filter>
+            </defs>
+
+            <path id="regolithLink" class="link" d="M160 110 C270 110, 250 210, 360 210" stroke="#4cc9f0" stroke-width="8" />
+            <path id="powerPlantLink" class="link" d="M180 360 C290 350, 290 270, 360 240" stroke="#80ed99" stroke-width="6" />
+            <path id="powerHabLink" class="link" d="M180 360 C250 380, 270 430, 360 420" stroke="#80ed99" stroke-width="4" />
+            <path id="powerCommsLink" class="link" d="M180 360 C250 360, 530 420, 620 410" stroke="#80ed99" stroke-width="3" />
+            <path id="loxLink" class="link" d="M470 210 C570 210, 560 260, 660 260" stroke="#ffd166" stroke-width="4" />
+            <path id="transportLink" class="link" d="M720 260 C780 260, 785 200, 820 180" stroke="#ef476f" stroke-width="2" />
+            <path id="chargeLink" class="link" d="M180 360 C260 330, 505 330, 595 300" stroke="#80ed99" stroke-width="3" stroke-dasharray="7 6" />
+
+            <g>
+              <rect x="70" y="70" width="120" height="70" rx="18" class="node active" />
+              <text x="130" y="98" text-anchor="middle" fill="#e5eefb" font-size="16" font-weight="700">Regolith Rover</text>
+              <text id="roverNodeSub" x="130" y="121" text-anchor="middle" fill="#95a3b8" font-size="12">Load: 4000 kg</text>
+            </g>
+
+            <g>
+              <rect x="320" y="175" width="150" height="80" rx="18" class="node active" />
+              <text x="395" y="206" text-anchor="middle" fill="#e5eefb" font-size="17" font-weight="700">ISRU Plant</text>
+              <text id="plantNodeSub" x="395" y="230" text-anchor="middle" fill="#95a3b8" font-size="12">LOX: 10.1 kg</text>
+            </g>
+
+            <g>
+              <rect x="60" y="320" width="140" height="80" rx="18" class="node" />
+              <text x="130" y="352" text-anchor="middle" fill="#e5eefb" font-size="16" font-weight="700">Solar + Power</text>
+              <text id="powerNodeSub" x="130" y="376" text-anchor="middle" fill="#95a3b8" font-size="12">100 kW available</text>
+            </g>
+
+            <g>
+              <rect x="560" y="230" width="120" height="65" rx="18" class="node warning" />
+              <text x="620" y="257" text-anchor="middle" fill="#e5eefb" font-size="15" font-weight="700">LOX Rover</text>
+              <text id="loxNodeSub" x="620" y="278" text-anchor="middle" fill="#95a3b8" font-size="12">Idle</text>
+            </g>
+
+            <g>
+              <rect x="760" y="145" width="110" height="70" rx="18" class="node" />
+              <text x="815" y="173" text-anchor="middle" fill="#e5eefb" font-size="15" font-weight="700">LZ / Depot</text>
+              <text id="lzNodeSub" x="815" y="195" text-anchor="middle" fill="#95a3b8" font-size="12">0 kg stored</text>
+            </g>
+
+            <g>
+              <rect x="305" y="390" width="115" height="60" rx="18" class="node" />
+              <text x="362" y="416" text-anchor="middle" fill="#e5eefb" font-size="14" font-weight="700">Habitat</text>
+              <text id="habNodeSub" x="362" y="436" text-anchor="middle" fill="#95a3b8" font-size="12">5 kW</text>
+            </g>
+
+            <g>
+              <rect x="580" y="385" width="115" height="60" rx="18" class="node" />
+              <text x="637" y="411" text-anchor="middle" fill="#e5eefb" font-size="14" font-weight="700">Comms</text>
+              <text id="commsNodeSub" x="637" y="431" text-anchor="middle" fill="#95a3b8" font-size="12">2 kW</text>
+            </g>
+
+            <g>
+              <rect x="560" y="300" width="135" height="58" rx="18" class="node" />
+              <text x="627" y="324" text-anchor="middle" fill="#e5eefb" font-size="14" font-weight="700">Charge Station</text>
+              <text id="chargeNodeSub" x="627" y="344" text-anchor="middle" fill="#95a3b8" font-size="12">20 kW</text>
+            </g>
+          </svg>
+        </div>
+
+        <div class="status-box" id="narrativeBox">
+          At the current parameter set, the rover is supplying enough regolith to keep the plant active with low starvation risk. Increasing discharge rate will likely steepen LOX growth, increase plant energy consumption, and move threshold-triggered transport earlier in the mission.
+        </div>
+      </section>
+
+      <aside class="card panel">
+        <h2>Downstream Consequences</h2>
+        <p class="sub">This panel answers the stakeholder question: “If I change one operational knob, what else changes?”</p>
+
+        <div class="metric-grid">
+          <div class="metric">
+            <div class="k">Total LOX by 60 hr</div>
+            <div class="v" id="loxTotalMetric">101.1 kg</div>
+            <div class="delta pos" id="loxDelta">+0% vs baseline</div>
+            <div class="metric" style="display:none;">
+  <div class="k">Bottleneck</div>
+  <div class="v" id="bottleneckMetric"></div>
+  <div class="delta" id="bottleneckDelta"></div>
+</div>
+          </div>
+          <div class="metric">
+            <div class="k">Plant uptime</div>
+            <div class="v" id="uptimeMetric">25.0 hr</div>
+            <div class="delta pos" id="uptimeDelta">Nominal</div>
+          </div>
+          <div class="metric">
+            <div class="k">Rover battery reserve</div>
+            <div class="v" id="batteryMetric">72%</div>
+            <div class="delta warn" id="batteryDelta">Healthy margin</div>
+          </div>
+          <div class="metric">
+            <div class="k">Threshold crossing</div>
+            <div class="v" id="thresholdMetric">50 hr</div>
+            <div class="delta" id="thresholdDelta">No shift</div>
+          </div>
+          <div class="metric">
+            <div class="k">Peak power demand</div>
+            <div class="v" id="powerMetric">30 kW</div>
+            <div class="delta" id="powerDelta">Below supply</div>
+          </div>
+
+          <div class="metric">
+            <div class="k">Scenario cost</div>
+            <div class="v" id="costMetric">$45.0M</div>
+            <div class="delta" id="costDelta">Baseline architecture</div>
+          </div>
+        </div>
+
+        <div class="status-box" id="insightBox">
+          <strong style="color:var(--text)">Interpretation:</strong><br>
+          The modified scenario is currently throughput-limited more by delivery cadence than by plant capacity. If you continue raising rover discharge while keeping travel time fixed, the bottleneck will shift toward energy and charging support rather than regolith availability.
+        </div>
+      </aside>
+    </section>
+
+    <section class="charts">
+      <div class="card chart-card">
+        <h3>LOX Stored vs Time</h3>
+        <p>Shows whether the parameter change increases cumulative oxygen availability.</p>
+        <div class="mini"><svg id="chartLox"></svg></div>
+      </div>
+      <div class="card chart-card">
+        <h3>Power Demand vs Time</h3>
+        <p>Shows secondary energy consequences from plant and rover-side changes.</p>
+        <div class="mini"><svg id="chartPower"></svg></div>
+      </div>
+      <div class="card chart-card">
+        <h3>Rover Battery vs Time</h3>
+        <p>Shows mobility margin and charging stress as throughput is increased.</p>
+        <div class="mini"><svg id="chartBattery"></svg></div>
+      </div>
+      <div class="card chart-card">
+        <h3>Regolith Buffer / Delivery</h3>
+        <p>Shows whether the plant is starved, balanced, or oversupplied.</p>
+        <div class="mini"><svg id="chartRegolith"></svg></div>
+      </div>
+
+      <div className="mt-8 px-6">
+  <button
+    
+  onClick={handleGenerateScenario}
+    className="w-full rounded-xl border border-blue-400 bg-[#11213b] px-6 py-4 text-sm font-bold uppercase tracking-wide text-slate-100 shadow-[0_0_30px_rgba(255,200,0,0.18)] hover:bg-[#16294a]"
+  >
+    Generate Scenario
+  </button>
+</div>
+    </section>
+
+
+  </div>
+    </div>
+</section>
+
+  <script>
+    const timeSlider = document.getElementById('timeSlider');
+    const dischargeSlider = document.getElementById('dischargeSlider');
+    const travelSlider = document.getElementById('travelSlider');
+    const processSlider = document.getElementById('processSlider');
+    const thresholdSlider = document.getElementById('thresholdSlider');
+    const roverCountSlider = document.getElementById('roverCountSlider');
+    const plantCountSlider = document.getElementById('plantCountSlider');
+    const regolithDistanceSlider = document.getElementById('regolithDistanceSlider');
+    const loxDistanceSlider = document.getElementById('loxDistanceSlider');
+
+    const timeLabel = document.getElementById('timeLabel');
+    const dischargeValue = document.getElementById('dischargeValue');
+    const travelValue = document.getElementById('travelValue');
+    const processValue = document.getElementById('processValue');
+    const thresholdValue = document.getElementById('thresholdValue');
+    const roverCountValue = document.getElementById('roverCountValue');
+    const plantCountValue = document.getElementById('plantCountValue');
+    const regolithDistanceValue = document.getElementById('regolithDistanceValue');
+    const loxDistanceValue = document.getElementById('loxDistanceValue');
+
+    const playBtn = document.getElementById('playBtn');
+    const resetBtn = document.getElementById('resetBtn');
+
+    let playing = false;
+    let timer = null;
+
+    const baseline = {
+      discharge: 4000,
+      travel: 5,
+      process: 1600,
+      threshold: 100,
+      roverCount: 1,
+      plantCount: 1,
+      regolithDistance: 1,
+      loxDistance: 1,
+    };
+
+    function fmt(n, digits = 1) {
+      return Number(n).toFixed(digits);
+    }
+
+    function simulateState() {
+      const t = Number(timeSlider.value);
+      const discharge = Number(dischargeSlider.value);
+      const travel = Number(travelSlider.value);
+      const process = Number(processSlider.value);
+      const threshold = Number(thresholdSlider.value);
+      const roverCount = Number(roverCountSlider.value);
+      const plantCount = Number(plantCountSlider.value);
+      const regolithDistance = Number(regolithDistanceSlider.value);
+      const loxDistance = Number(loxDistanceSlider.value);
+
+      const dischargeFactor = discharge / baseline.discharge;
+      const travelPenalty = baseline.travel / travel;
+      const processFactor = process / baseline.process;
+      const thresholdFactor = baseline.threshold / threshold;
+
+      const regolithDistancePenalty = baseline.regolithDistance / regolithDistance;
+      const loxDistancePenalty = baseline.loxDistance / loxDistance;
+      const roverParallelFactor = 0.75 + 0.25 * roverCount;
+      const plantParallelFactor = 0.7 + 0.3 * plantCount;
+      const supplyFactor = dischargeFactor * travelPenalty * regolithDistancePenalty * roverParallelFactor;
+      const throughputFactor = Math.min(supplyFactor, processFactor * 1.08 * plantParallelFactor);
+
+      const loxAtTime = Math.max(0, 10.1 * (t / 6) * throughputFactor * plantCount);
+      const loxTotal = 101.1 * throughputFactor * plantCount;
+      const powerPeak = 30 * (0.7 + 0.3 * processFactor * plantCount + 0.15 * Math.max(0, supplyFactor - 1) + 0.08 * Math.max(0, regolithDistance - 1) + 0.05 * Math.max(0, loxDistance - 1));
+      const roverBattery = Math.max(18, 72 - (dischargeFactor - 1) * 18 - (travel - 5) * 4 + (5 - travel) * 2 - (regolithDistance - 1) * 5 - (loxDistance - 1) * 3 - Math.max(0, roverCount - 1) * 1.5);
+      const uptime = 25 * Math.min(1.8, throughputFactor * 1.02 * plantCount);
+      const thresholdTime = Math.max(8, 50 / Math.max(0.45, throughputFactor * thresholdFactor * loxDistancePenalty));
+      const regolithBuffer = Math.max(0, discharge * roverCount * Math.max(0.25, travelPenalty * regolithDistancePenalty) - process * plantCount * 0.9);
+      const scenarioCost = 18 + roverCount * 4.5 + plantCount * 16 + regolithDistance * 1.2 + loxDistance * 0.8 + Math.max(0, discharge - 4000) / 1000 * 1.5 + Math.max(0, process - 1600) / 100 * 0.6;
+      const bottleneck = supplyFactor < 0.95 ? 'Delivery cadence' : (powerPeak > 90 ? 'Power margin' : (processFactor * plantParallelFactor < 0.95 ? 'Plant throughput' : 'Balanced system'));
+
+      return {
+        t, discharge, travel, process, threshold, roverCount, plantCount, regolithDistance, loxDistance,
+        supplyFactor, throughputFactor,
+        loxAtTime, loxTotal, powerPeak, roverBattery, uptime, thresholdTime, regolithBuffer, scenarioCost, bottleneck,
+      };
+    }
+
+    function updateNarrative(s) {
+      const roverNodeSub = document.getElementById('roverNodeSub');
+      const plantNodeSub = document.getElementById('plantNodeSub');
+      const powerNodeSub = document.getElementById('powerNodeSub');
+      const loxNodeSub = document.getElementById('loxNodeSub');
+      const lzNodeSub = document.getElementById('lzNodeSub');
+      const narrativeBox = document.getElementById('narrativeBox');
+      const insightBox = document.getElementById('insightBox');
+
+      roverNodeSub.textContent = `Count: ${s.roverCount} | Load: ${s.discharge} kg | Haul: ${fmt(s.regolithDistance)} km`;  
+      plantNodeSub.textContent = `Plants: ${s.plantCount} | LOX: ${fmt(s.loxAtTime)} kg @ t=${s.t} hr`; 
+      powerNodeSub.textContent = `${fmt(Math.max(100, s.powerPeak * 1.4), 0)} kW available`;
+      loxNodeSub.textContent = s.loxAtTime >= s.threshold ? 'Triggered' : 'Idle';
+      lzNodeSub.textContent = `${fmt(Math.max(0, s.loxAtTime - s.threshold), 1)} kg stored | ${fmt(s.loxDistance)} km`; 
+
+      narrativeBox.textContent = `At t = ${s.t} hr, using ${s.roverCount} rover(s) and ${s.plantCount} ISRU plant(s), with rover discharge at ${s.discharge} kg/unload, regolith haul distance ${fmt(s.regolithDistance)} km, and LOX haul distance ${fmt(s.loxDistance)} km, produces a throughput factor of ${fmt(s.throughputFactor, 2)} relative to baseline. The architecture currently carries about ${fmt(s.loxAtTime)} kg LOX, while peak power demand trends toward ${fmt(s.powerPeak)} kW, rover battery reserve trends toward ${fmt(s.roverBattery, 0)}%, and rough scenario cost is ${fmt(s.scenarioCost, 1)}M.`;  
+
+      insightBox.innerHTML = `<strong style="color:var(--text)">Interpretation:</strong><br>${
+        s.bottleneck === 'Delivery cadence'
+          ? 'The system is still delivery-limited. More rover throughput or shorter travel time would create the largest mission-level gains.'
+          : s.bottleneck === 'Power margin'
+            ? 'The system is shifting into an energy-constrained regime. More throughput now creates secondary demand on charging and plant-side power support.'
+            : s.bottleneck === 'Plant throughput'
+              ? 'Rover-side increases are now outpacing the plant. Processing capacity is becoming the next constraining layer.'
+              : 'The system is relatively balanced at this operating point. Small parameter changes will redistribute stress without a single dominant bottleneck.'
+      }`;
+    }
+
+    function updateMetrics(s) {
+      const baseLoxTotal = 101.1;
+      const baseCost = 45.0;
+      const loxDeltaPct = ((s.loxTotal - baseLoxTotal) / baseLoxTotal) * 100;
+      const thresholdShift = 50 - s.thresholdTime;
+
+      document.getElementById('loxTotalMetric').textContent = `${fmt(s.loxTotal)} kg`;
+      document.getElementById('loxDelta').textContent = `${loxDeltaPct >= 0 ? '+' : ''}${fmt(loxDeltaPct, 0)}% vs baseline`;
+      document.getElementById('loxDelta').className = `delta ${loxDeltaPct >= 0 ? 'pos' : 'neg'}`;
+
+      document.getElementById('uptimeMetric').textContent = `${fmt(s.uptime)} hr`;
+      document.getElementById('uptimeDelta').textContent = s.uptime > 25 ? 'Improved throughput' : (s.uptime < 24 ? 'More starvation risk' : 'Nominal');
+      document.getElementById('uptimeDelta').className = `delta ${s.uptime > 25 ? 'pos' : (s.uptime < 24 ? 'warn' : '')}`;
+
+      document.getElementById('batteryMetric').textContent = `${fmt(s.roverBattery, 0)}%`;
+      document.getElementById('batteryDelta').textContent = s.roverBattery > 60 ? 'Healthy margin' : (s.roverBattery > 40 ? 'Watch charging' : 'High mobility risk');
+      document.getElementById('batteryDelta').className = `delta ${s.roverBattery > 60 ? 'pos' : (s.roverBattery > 40 ? 'warn' : 'neg')}`;
+
+      document.getElementById('thresholdMetric').textContent = `${fmt(s.thresholdTime, 0)} hr`;
+      document.getElementById('thresholdDelta').textContent = `${thresholdShift > 0 ? fmt(thresholdShift, 0) + ' hr earlier' : (thresholdShift < 0 ? fmt(Math.abs(thresholdShift), 0) + ' hr later' : 'No shift')}`;
+      document.getElementById('thresholdDelta').className = `delta ${thresholdShift > 0 ? 'pos' : (thresholdShift < 0 ? 'warn' : '')}`;
+
+      document.getElementById('powerMetric').textContent = `${fmt(s.powerPeak, 0)} kW`;
+      document.getElementById('powerDelta').textContent = s.powerPeak < 60 ? 'Below supply' : (s.powerPeak < 90 ? 'Approaching limit' : 'Potential energy bottleneck');
+      document.getElementById('powerDelta').className = `delta ${s.powerPeak < 60 ? 'pos' : (s.powerPeak < 90 ? 'warn' : 'neg')}`;
+
+      document.getElementById('bottleneckMetric').textContent = s.bottleneck;
+      document.getElementById('bottleneckDelta').textContent = s.regolithBuffer > 1800 ? 'Inventory building' : (s.regolithBuffer < 200 ? 'Thin margin' : 'Moderate');
+
+      const costDeltaPct = ((s.scenarioCost - baseCost) / baseCost) * 100;
+      document.getElementById('costMetric').textContent = `$${fmt(s.scenarioCost, 1)}M`;
+      document.getElementById('costDelta').textContent = `${costDeltaPct >= 0 ? '+' : ''}${fmt(costDeltaPct, 0)}% vs baseline`;
+      document.getElementById('costDelta').className = `delta ${costDeltaPct <= 10 ? 'pos' : (costDeltaPct <= 35 ? 'warn' : 'neg')}`;
+    }
+
+    function updateLinks(s) {
+      document.getElementById('regolithLink').setAttribute('stroke-width', Math.max(4, Math.min(18, s.discharge / 450)));
+      document.getElementById('powerPlantLink').setAttribute('stroke-width', Math.max(4, Math.min(14, s.powerPeak / 8)));
+      document.getElementById('loxLink').setAttribute('stroke-width', Math.max(3, Math.min(12, s.loxAtTime / 8)));
+      document.getElementById('transportLink').setAttribute('stroke-width', s.loxAtTime >= s.threshold ? 8 : 2);
+      document.getElementById('chargeLink').setAttribute('stroke-width', Math.max(2, Math.min(8, (100 - s.roverBattery) / 8)));
+    }
+
+    function polyline(points, width, height, color, dashed = false) {
+      const maxX = points.length - 1;
+      const values = points.map(p => p.y);
+      const minY = Math.min(...values);
+      const maxY = Math.max(...values);
+      const spanY = Math.max(1, maxY - minY);
+      return points.map((p, i) => {
+        const x = 10 + (i / maxX) * (width - 20);
+        const y = height - 12 - ((p.y - minY) / spanY) * (height - 24);
+        return `${x},${y}`;
+      }).join(' ');
+    }
+
+    function drawMiniChart(svgId, seriesA, seriesB, markerIndex) {
+      const svg = document.getElementById(svgId);
+      const width = 300;
+      const height = 140;
+      svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+
+      const ptsA = seriesA.map((y, i) => ({ x: i, y }));
+      const ptsB = seriesB.map((y, i) => ({ x: i, y }));
+      const a = polyline(ptsA, width, height);
+      const b = polyline(ptsB, width, height);
+      const markerX = 10 + (markerIndex / (seriesA.length - 1)) * (width - 20);
+
+      svg.innerHTML = `
+        <line x1="10" y1="128" x2="290" y2="128" stroke="#334155" stroke-width="1" />
+        <polyline points="${b}" fill="none" stroke="#64748b" stroke-width="2" stroke-dasharray="5 4" opacity="0.9" />
+        <polyline points="${a}" fill="none" stroke="#4cc9f0" stroke-width="3" />
+        <line x1="${markerX}" y1="10" x2="${markerX}" y2="130" stroke="#ffd166" stroke-width="2" opacity="0.85" />
+      `;
+    }
+
+    function renderCharts(s) {
+      const xs = Array.from({ length: 13 }, (_, i) => i * 5);
+      const baseThrough = 1;
+      const modThrough = s.throughputFactor;
+
+      const baseLox = xs.map(x => Math.min(101.1, x * 1.68 * baseThrough));
+      const modLox = xs.map(x => Math.min(101.1 * modThrough * s.plantCount, x * 1.68 * modThrough * s.plantCount));
+
+      const basePower = xs.map(x => 10 + (x > 10 ? 20 : 0));
+      const modPower = xs.map(x => (10 + (x > 10 ? 20 : 0)) * (0.8 + 0.25 * (s.process / 1600) * s.plantCount + 0.1 * (s.discharge / 4000) * s.roverCount));
+
+      const baseBattery = xs.map(x => Math.max(55, 100 - x * 0.45));
+      const modBattery = xs.map(x => Math.max(18, 100 - x * (0.45 + (s.discharge / 4000 - 1) * 0.13 + (s.travel - 5) * 0.03 + (s.roverCount - 1) * 0.02)));
+
+
+      const baseRegolith = xs.map(x => Math.max(0, 4000 * (x / 15) - 1600 * (x / 10)));
+      const modRegolith = xs.map(x => Math.max(0, s.discharge * s.roverCount * (x / (10 + s.travel)) - s.process * s.plantCount * (x / 12)));
+
+      const markerIndex = Math.min(xs.length - 1, Math.round(s.t / 5));
+
+      drawMiniChart('chartLox', modLox, baseLox, markerIndex);
+      drawMiniChart('chartPower', modPower, basePower, markerIndex);
+      drawMiniChart('chartBattery', modBattery, baseBattery, markerIndex);
+      drawMiniChart('chartRegolith', modRegolith, baseRegolith, markerIndex);
+    }
+
+    function syncLabels() {
+      timeLabel.textContent = `t = ${timeSlider.value} hr`;
+      dischargeValue.textContent = `${dischargeSlider.value} kg/unload`;
+      travelValue.textContent = `${travelSlider.value} hr/km`;
+      processValue.textContent = `${processSlider.value} kg/hr`;
+      thresholdValue.textContent = `${thresholdSlider.value} kg`;
+      roverCountValue.textContent = roverCountSlider.value;
+      plantCountValue.textContent = plantCountSlider.value;
+      regolithDistanceValue.textContent = `${Number(regolithDistanceSlider.value).toFixed(1)} km`;
+      loxDistanceValue.textContent = `${Number(loxDistanceSlider.value).toFixed(1)} km`; 
+    }
+
+    function refresh() {
+      syncLabels();
+      const state = simulateState();
+      updateNarrative(state);
+      updateMetrics(state);
+      updateLinks(state);
+      renderCharts(state);
+    }
+
+    [timeSlider, dischargeSlider, travelSlider, processSlider, thresholdSlider, roverCountSlider, plantCountSlider, regolithDistanceSlider, loxDistanceSlider].forEach(el => {
+      el.addEventListener('input', refresh);
+    });
+
+    playBtn.addEventListener('click', () => {
+      playing = !playing;
+      playBtn.textContent = playing ? '❚❚ Pause' : '▶ Play';
+      if (playing) {
+        timer = setInterval(() => {
+          const next = Number(timeSlider.value) + 1;
+          timeSlider.value = next > 60 ? 0 : next;
+          refresh();
+        }, 500);
+      } else {
+        clearInterval(timer);
+      }
+    });
+
+    resetBtn.addEventListener('click', () => {
+      clearInterval(timer);
+      playing = false;
+      playBtn.textContent = '▶ Play';
+      timeSlider.value = 6;
+      roverCountSlider.value = 1;
+      plantCountSlider.value = 1;
+      dischargeSlider.value = 4000;
+      travelSlider.value = 5;
+      processSlider.value = 1600;
+      thresholdSlider.value = 100;
+      regolithDistanceSlider.value = 1;
+      loxDistanceSlider.value = 1;
+      refresh();
+    });
+
+    document.getElementById('snapshotBtn').addEventListener('click', () => {
+      alert('Snapshot captured for concept demo. In the real tool, this would save the current scenario state and linked outputs.');
+    });
+
+    refresh();
+  </script>
+
+
+
+
+
+<div class="page">
+  
+  <div class="intro-cta">
+  <button class="intro-btn msosa-btn">
+    Generate Scenario
+  </button>
+</div>
+ </body>
+</html> 
+
+
+  <section class="section" id="consquence">
+      <div class="section-head">
+        <div>         
+        <div class="section-title">5. Simulator</div>
+        </div>
+      </div>
+
+<div class="intro-cta">
+  <button class="intro-btn msosa-btn"
+    onclick="window.location.href='https://mycloud.gatech.edu/'">
+    Click here to view simulation of your selected choice
+    Note: Instructions TBD
+  </button>
+</div>
+
+
+    </section>
+</html>
