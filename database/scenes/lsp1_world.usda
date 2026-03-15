@@ -7,8 +7,8 @@
                 double radius = 500
             }
             dictionary Perspective = {
-                double3 position = (356.3098557521364, -477.67359516806954, 170.3940061466491)
-                double3 target = (121.94963435640028, -202.7913237432117, 87.06205704909337)
+                double3 position = (-230.9064212205366, 342.5594346400175, 257.93385986170387)
+                double3 target = (724.4032764159365, -953.4905536167621, -675.4701092307673)
             }
             dictionary Right = {
                 double3 position = (0, -500, 0)
@@ -58,38 +58,40 @@ def Xform "World"
             uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
         }
 
-        def "lunar_terrain500" (
-            prepend payload = @../../../database/scenes/lunar_terrain500.usda@
-        )
+        over "Meshes"
         {
-            float3 xformOp:rotateXYZ = (0, 0, 0)
-            float3 xformOp:scale = (1, 1, -0.12627876)
-            double3 xformOp:translate = (0, 0, 0)
-            uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
-
-            over "LunarTerrain" (
-                prepend apiSchemas = ["MaterialBindingAPI"]
-            )
+            over "Sketchfab_model"
             {
-                uniform bool doubleSided = 1
-                rel material:binding = </World/Looks/Regolitg> (
-                    bindMaterialAs = "weakerThanDescendants"
-                )
-                bool primvars:disableAutoLod = 0
-                bool primvars:doNotCastShadows = 0
-                bool primvars:enableFastRefractionShadow = 1
-                int refinementLevel = 4
-                float3 xformOp:rotateXYZ = (0, 0, 0)
-                float3 xformOp:scale = (1, 1, 2.2098634)
-                double3 xformOp:translate = (0, 0, 10)
-                uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
-            }
+                over "c066cd4c684f4c348f58d709042cedc9_fbx"
+                {
+                    over "RootNode"
+                    {
+                        over "Petavius_ZB_LP"
+                        {
+                            over "Petavius_ZB_LP_1_0"
+                            {
+                                over "Petavius_ZB_LP_1_0"
+                                {
+                                    double3 xformOp:rotateXYZ = (90, 0, 0)
+                                    double3 xformOp:scale
+                                    double3 xformOp:translate
+                                    uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+                                }
+                            }
 
-            over "SunLight"
-            {
-                float inputs:colorTemperature = 20
-                float inputs:exposure = -11.8
-                float inputs:intensity = 20
+                            over "Petavius_ZB_LP_2_0"
+                            {
+                                over "Petavius_ZB_LP_2_0"
+                                {
+                                    double3 xformOp:rotateXYZ = (90, 0, 0)
+                                    double3 xformOp:scale
+                                    double3 xformOp:translate
+                                    uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
     }
@@ -216,47 +218,23 @@ def Xform "World"
 
     def Scope "Looks"
     {
-        def Material "Regolitg" (
-            references = @../../../database/scenes/pngtree-lunar-surface-texture-a-bird-s-eye-view-of-the-moon-image_13618335.png@</World/Looks/Regolith>
-        )
+        def Material "Lunar_Surface_matl"
         {
-            token outputs:mdl:displacement.connect = </World/Looks/Regolitg/Shader.outputs:out>
-            token outputs:mdl:surface.connect = </World/Looks/Regolitg/Shader.outputs:out>
-            token outputs:mdl:volume.connect = </World/Looks/Regolitg/Shader.outputs:out>
+            token outputs:mdl:displacement.connect = </World/Looks/Lunar_Surface_matl/Shader.outputs:out>
+            token outputs:mdl:surface.connect = </World/Looks/Lunar_Surface_matl/Shader.outputs:out>
+            token outputs:mdl:volume.connect = </World/Looks/Lunar_Surface_matl/Shader.outputs:out>
 
             def Shader "Shader"
             {
                 uniform token info:implementationSource = "sourceAsset"
-                uniform asset info:mdl:sourceAsset = @../../../../../Desktop/pngtree-lunar-surface-texture-a-bird-s-eye-view-of-the-moon-image_13618335.png@
-                uniform token info:mdl:sourceAsset:subIdentifier = ""
-                float inputs:albedo_add = 15.7
-                float inputs:albedo_brightness = 12.1
-                float inputs:albedo_desaturation = 11.2
-                float inputs:ao_to_diffuse = 0.03
-                float inputs:bump_factor = 10.400001
-                float inputs:detail_bump_factor = 13.5
-                asset inputs:detail_normalmap_texture = @@ (
+                uniform asset info:mdl:sourceAsset = @OmniPBR.mdl@
+                uniform token info:mdl:sourceAsset:subIdentifier = "OmniPBR"
+                float inputs:albedo_add = -0.39
+                float inputs:albedo_brightness = 0
+                float inputs:albedo_desaturation = 0.41
+                asset inputs:diffuse_texture = @../../../database/scenes/pngtree-lunar-surface-texture-a-bird-s-eye-view-of-the-moon-image_13618335.png@ (
                     colorSpace = "raw"
                 )
-                color3f inputs:emissive_color = (2, 2, 2)
-                float inputs:emissive_intensity = 27.6
-                bool inputs:enable_opacity_texture = 1
-                bool inputs:flip_tangent_u = 0
-                bool inputs:flip_tangent_v = 0
-                float inputs:geometry_normal_roughness_strength = 12.7
-                float inputs:metallic_constant = -18.2
-                float inputs:metallic_texture_influence = 11.8
-                asset inputs:normalmap_texture = @@ (
-                    colorSpace = "raw"
-                )
-                float inputs:opacity_constant = 0.65
-                float inputs:opacity_threshold = 3.6000001
-                float inputs:reflection_roughness_constant = 1
-                float inputs:reflection_roughness_texture_influence = 0.34
-                float inputs:round_edges_radius = 0
-                float inputs:round_edges_roundness = 0.52
-                float inputs:specular_level = 0.45999998
-                int inputs:uv_space_index = -1
                 token outputs:out (
                     renderType = "material"
                 )
@@ -307,7 +285,7 @@ def "Render" (
                 uint omni:rtx:viewTile:limit = 4294967295
                 rel orderedVars = </Render/Vars/LdrColor>
                 custom bool overrideClipRange = 0
-                uniform int2 resolution = (1343, 585)
+                uniform int2 resolution = (1174, 535)
             }
         }
     }
@@ -352,10 +330,10 @@ over "OmniverseKit_Persp" (
     float exposure:time = 0.02
     float focalLength = 18.147562
     float focusDistance = 400
-    custom uniform vector3d omni:kit:centerOfInterest = (0, 0, -370.7144322207395)
-    float3 xformOp:rotateXYZ = (77.00962, -2.5579538e-13, 760.4504)
+    custom uniform vector3d omni:kit:centerOfInterest = (0, 0, -1861.0763444781805)
+    float3 xformOp:rotateXYZ = (59.89807, 8.526513e-14, 576.3937)
     float3 xformOp:scale = (1, 1, 1)
-    double3 xformOp:translate = (356.3098557521364, -477.67359516806954, 170.3940061466491)
+    double3 xformOp:translate = (-230.9064212205366, 342.5594346400175, 257.93385986170387)
     uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
 }
 
