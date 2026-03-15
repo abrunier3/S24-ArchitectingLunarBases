@@ -6,7 +6,8 @@ This repository stores all CAD models (.step files) and their SysML metadata for
 
 ## 🚀 Mission Control Hub
 
-👉 **[Open Mission Control Hub](https://abrunier3.github.io/S24-ArchitectingLunarBases/)**
+UPDATED ---- 👉 **[Open LSP-1 DEE ]([https://abrunier3.github.io/S24-ArchitectingLunarBases/](https://github.com/abrunier3/S24-ArchitectingLunarBases/blob/main/Lunar%20Spaceport-1%20Digital%20Engineering%20Ecosystem%20-%20HTML%20Stakeholder%20Interface.html))**
+OBSOLETE ---- 👉 **[Open Mission Control Hub](https://abrunier3.github.io/S24-ArchitectingLunarBases/)**
 
 The hub gives access to both tools:
 - **Assembly Builder** — register STEP files, define metadata, generate SysML v2 for the USD pipeline
