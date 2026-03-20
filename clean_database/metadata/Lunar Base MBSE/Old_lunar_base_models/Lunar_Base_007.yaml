@@ -1,0 +1,95 @@
+file_name: Lunar_Base_007.mdzip
+title: Lunar Base – SysML Baseline Architecture (v007)
+
+model_identity_and_focus:
+  model_identifier: LUNAR-BASE-007
+  model_title: "Lunar Base Baseline Model (v007)"
+  model_description: "Seventh iteration; steady consolidation of requirement allocation and interface clarity."
+  model_developer: ["Lunar Base Team"]
+  organization_or_sponsor: ["Academic Research"]
+  model_domain_or_discipline: ["Systems Engineering", "Space Habitat Architecture"]
+  model_subsystem_or_focus_area: ["Power", "Thermal", "ECLSS"]
+  associated_mission_program_or_project: ["Lunar surface studies (early phase)"]
+  access_control: "Internal – Research Use"
+  objectives:
+    - "Converge on stable allocation tree."
+    - "Prepare for integration with verification plans."
+  key_phenomena_represented:
+    - "Subsystem service chains and key interfaces."
+  assumptions_and_simplifications:
+    - "Nominal operations; high-level parameters."
+
+model_scope_of_content:
+  spatial_domain: "Lunar habitat"
+  temporal_domain: "Early mission operations"
+  physical_processes_included: ["Power delivery concept", "Thermal management needs", "ECLSS framing"]
+  physical_processes_excluded: ["Detailed physics/controls"]
+  system_interfaces_represented: ["Gen–Storage–Distribution", "Thermal loops", "ECLSS–Habitat"]
+  model_resolution_or_granularity: "Subsystem-level structure/requirements"
+  inputs: ["Load/insolation envelopes"]
+  outputs: ["Allocation/trace artifacts"]
+  external_couplings: { coupled_models_or_systems: [], coupling_methods: [] }
+  fidelity_level:
+    descriptive_fidelity: "SysML views with requirements"
+    computational_fidelity: "None"
+    representation_fidelity: "Traceable artifacts"
+
+model_representation:
+  conceptual_model_representation:
+    - identifier: "SysML Structural & Requirement Model"
+      description: "BDDs/IBDs + requirement links."
+      representation_method: "SysML (MagicDraw/Cameo)"
+      defining_activity: "Architecture refinement"
+  computational_model_representation:
+    - identifier: "N/A"
+      description: "Descriptive only."
+      software_framework_or_language: ["SysML"]
+      verification_approach: ["Cameo checks", "Peer review"]
+  requirements_flat:
+    - "Provide continuous power to designated loads (TBR)."
+    - "Provide thermal control within bounds (TBR)."
+
+model_utility:
+  lifecycle_processes_supported: ["Concept Development", "Architecture Definition", "Verification Planning (early)"]
+  model_purposes_supported: ["Communication", "Allocation/trace"]
+  system_lifecycle_span_supported:
+    base_instance:
+      identifier: "Early Design"
+      description: "Supports planning/trades."
+  decision_support_domain:
+    - identifier: "Architecture/trade planning"
+      description: "Boundary/capacity guidance."
+  perceived_model_complexity:
+    - stakeholder_type: "Engineer"
+      description: "Moderate."
+
+model_assessment:
+  model_verification:
+    methods: ["Validation rules", "Peer review"]
+    tools_used: ["Cameo Systems Modeler"]
+  model_validation:
+    validation_data_sources: ["Internal requirement set"]
+    validation_techniques: ["Traceability review"]
+  model_credibility_assessment:
+    credibility_criteria: ["Internal review"]
+    supporting_evidence: ["Consistent links/views"]
+  model_uncertainty_assessment:
+    uncertainty_sources: ["Evolving assumptions"]
+    quantification_approach: "Qualitative"
+    confidence_level: "Medium"
+
+model_lifecycle_management:
+  development_methodology: ["Iterative SysML refinement"]
+  configuration_control: "Versioned .mdzip"
+  change_tracking: "Manual notes"
+  versioning_and_configuration_management:
+    configuration_management_types:
+      - identifier: "File-based versioning"
+        description: "Sequential iterations"
+    current_version_and_configuration:
+      - identifier: "v007"
+        description: "Allocation/interface consolidation"
+  archiving_and_preservation:
+    archive_location: "Project repository"
+    preservation_plan: "Keep milestone revisions"
+    access_policy: "Internal"

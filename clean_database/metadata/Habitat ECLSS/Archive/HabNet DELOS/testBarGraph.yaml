@@ -1,0 +1,105 @@
+file_name: testBarGraph.m
+file_path: C:\Users\Shalva Begiashvili\OneDrive - Georgia Institute of Technology\Grad
+  School\2025 Fall\AE 8900\digitalCuration\data\Habitat ECLSS\Archive\HabNet DELOS\testBarGraph.m
+rel_path: data\Habitat ECLSS\Archive\HabNet DELOS\testBarGraph.m
+title: testBarGraph
+identity_and_focus: {}
+scope_of_content: {}
+representation:
+  Model Representation:
+  - Conceptual Model Representation:
+    - Conceptual Model:
+      - Identifier: OxygenGenerationModel
+      - Description: Categorical analysis of oxygen production data from mission logs.
+      - Defining Activity: Data categorization and bar plotting of OGS frequency.
+      - Simulation Methods:
+        - Empirical
+        - Data-Driven
+      - Simulation Controls:
+        - Not Applicable
+      - Coupling Modes:
+        - Not Applicable
+      - Communication Mode:
+        - Not Applicable
+      - Physics Domains: []
+utility:
+  Model Utility:
+  - Model Usage: []
+  - Model Purposes Supported: []
+  - System Lifecycle Span Supported: []
+  - Decision Support Domain: []
+  - Perceived Model Complexity: []
+assessment:
+  Model Assessment:
+  - Model Qualification Assessment:
+    - Conceptual Model Assessment Characterization:
+      - Each Conceptual Model Assessment Method:
+        - Access Control: Public
+        - Identifier: DataCategorizationMethod1
+        - Description: Categorizes numeric array A into percentiles using MATLAB categorical
+            function.
+        - Defining Activity: c = categorical(A,2.3*(0:4)/24 * 1e3 / (2*15.999),{'0%','25%','50%','75%','100%'})
+        - Assessment criteria:
+          - Data Integrity
+          - Correctness of Categorization
+        - Criteria characterizations:
+          - Consistency with defined percentile thresholds
+          - Accurate mapping to categorical labels
+        - Conceptual Model Assessment characterization summary: Successful categorization
+            of array A into five percentile bins.
+    - Conceptual Model Application Envelope:
+      - Each Operating Condition Parameter:
+        - Access Control: Public
+        - Identifier: ArrayA_Values
+        - Description: Numeric values used for categorization and plotting.
+        - Defining Activity: A = [2.994978852844970,5.989957705689939,8.98493655853491;
+            2.9950    5.9900    8.9849; 0, 0, 0; 0, 0, 0]
+        - Valid Value Range: Not Applicable
+        - Current Value:
+          - 2.99497885284497
+          - 5.989957705689939
+          - 8.98493655853491; 2.9950    5.9900    8.9849; 0
+          - 0
+          - 0; 0
+          - 0
+          - 0
+        - Validity Status: Valid
+  - Code Verification Assessment:
+    - Code Assumptions & Limitations:
+      - Each Assumption or Limitation:
+        - Access Control: Public
+        - Identifier: ArrayDimensionsAssumption
+        - Description: Assumes array A is a 4x3 matrix with numeric entries.
+        - Defining Activity: Definition of A in code.
+    - Code Verification Assessment Characterization:
+      - Each Code Verification Assessment Method:
+        - Access Control: Public
+        - Identifier: PlotVerificationMethod1
+        - Description: Verifies that bar plot correctly represents categorical data
+            c and array A.
+lifecycle_management:
+  lifecycle_management:
+  - model_versioning_and_configuration_management:
+    - configuration_management_types:
+      - each_type_of_version_and_configuration_management:
+        - access_control: Read-Only
+        - identifier: MATLAB_Script_v1.0
+        - description: Script for processing and visualizing OGS oxygen production
+            data.
+        - defining_activity: Data aggregation, categorical binning, bar plotting.
+        - impacted_stakeholder_types:
+          - es_model_developer
+          - es_model_operator
+        - impacted_user_groups:
+          - none
+    - current_version_and_configuration:
+      - each_deployment_method:
+        - access_control: Read-Only
+        - identifier: MATLAB_Script_v1.0
+        - description: Current deployed version of the data processing script.
+        - defining_activity: Deployment to mission analysis environment.
+        - current_version: '1.0'
+        - current_configuration: Default MATLAB settings
+        - impacted_stakeholder_types:
+          - es_model_developer
+          - es_model_operator

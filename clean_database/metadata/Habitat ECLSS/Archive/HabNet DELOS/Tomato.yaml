@@ -1,0 +1,232 @@
+file_name: Tomato.m
+file_path: C:\Users\Shalva Begiashvili\OneDrive - Georgia Institute of Technology\Grad
+  School\2025 Fall\AE 8900\digitalCuration\data\Habitat ECLSS\Archive\HabNet DELOS\Tomato.m
+rel_path: data\Habitat ECLSS\Archive\HabNet DELOS\Tomato.m
+title: Tomato
+identity_and_focus:
+  identity_and_focus:
+  - Model Identity:
+    - ES Model Identity:
+      - Base Instance:
+        - Access Control: Public
+        - Identifier: Tomato
+        - Description: MATLAB class representing a tomato crop model with parameters
+            for growth, photosynthesis, and yield.
+        - Defining Activity: Simulation of tomato plant development under specified
+            environmental conditions.
+  - Model Purpose:
+    - ES Model Purpose:
+      - Base Instance:
+        - Access Control: Public
+        - Identifier: TomatoCropSimulation
+        - Description: Developmental simulation model for studying tomato growth dynamics
+            and yield outcomes.
+        - Defining Activity: "Run time\u2011step simulations of tomato development\
+            \ stages (organ formation, canopy senescence, maturity)."
+        - Purpose Type:
+          - Developmental
+          - Simulation Method Development
+  - Modeled System of Interest:
+    - System of Interest:
+      - Each Modeled System of Interest:
+        - Access Control: Public
+        - Identifier: TomatoPlant
+        - Description: A single tomato plant represented by the class properties (e.g.,
+            name, type, growth parameters).
+        - Defining Activity: Modeling individual plant growth and yield.
+  - Modeled Environmental Domains:
+    - Modeled Domains:
+      - Each Modeled Domain:
+        - Access Control: Public
+        - Identifier: CropUseDomain
+        - Description: The domain of agricultural use where the tomato crop is cultivated
+            for edible fruit production.
+        - Defining Activity: "Simulation of environmental interactions affecting crop\
+            \ growth (light, CO\u2082, temperature)."
+        - Type: Use
+        - Classification: Nominal
+  - Modeled Scenario:
+    - Modeled Scenarios:
+      - Each Modeled Scenario:
+        - Access Control: Public
+        - Identifier: DefaultGrowthScenario
+        - Description: "Standard growth scenario using default parameter values (e.g.,\
+            \ photoperiod, CO\u2082, temperature)."
+        - Defining Activity: Run the model from germination to maturity under typical
+            environmental conditions.
+        - Model Objectives:
+          - Estimate yield and biomass distribution over time.
+scope_of_content:
+  Model Scoe of Content:
+  - Modeled Stakeholder Value:
+    - Stakeholder Values of Interest:
+      - Each Stakeholder Value of Interest:
+        - Identifier: Tomato Model
+        - Description: Matlab class representing a tomato crop model with defined
+            physiological parameters.
+        - Defining Activity: Simulation of growth and yield under specified environmental
+            conditions.
+    - Stakeholder Groups Impacted (Specify all that apply):
+      - Users
+      - Providers
+    - Coupled External Interactions:
+      - Identifier: Environmental Inputs
+      - Description: "Receives temperature, CO\u2082 concentration, photoperiod, and\
+          \ light cycle data from external sources."
+  - Modeled System External Behavior:
+    - External Interactions:
+      - Each External Interaction of Interest:
+        - Identifier: Temperature Input
+        - Description: "Provides ambient temperature (\xB0C) to the model."
+        - Defining Activity: Update LightCycleTemperature property.
+        - Input-output Exchange: External to Model
+  - Modeled System Internal Behavior:
+    - Internal Interactions:
+      - Each Internal Interaction of Interest:
+        - Identifier: Parameter Initialization
+        - Description: Sets default physiological parameters for the tomato crop.
+        - Defining Activity: Assign values to properties such as Name, Type, taInitialValue,
+            etc.
+        - Quantities of Interest:
+          - Other: Name, Type, taInitialValue, initialPPFValue, CarbonUseEfficiency24,
+              BCF, CUEmax, Photoperiod, TimeAtOrganFormation, N, CQYMin, TimeAtCanopySenescence,
+              TimeAtCropMaturity, OPF, FractionOfEdibleBiomass, CaloriesPerKilogram,
+              EdibleFreshBasisWaterContent, InedibleFreshBasisWaterContent, LightCycleTemperature
+        - Relationships:
+          - Other: Parameters influence growth simulation outputs such as yield and
+              biomass.
+representation: {}
+utility:
+  Model Utility:
+  - Model Usage:
+    - Lifecycle Processes Supported:
+      - Each Lifecycle Process Supported:
+        - Access Control: Public
+        - Identifier: CropGrowth
+        - Description: Simulation of tomato plant growth stages from organ formation
+            to maturity.
+        - Defining Activity: TimeAtOrganFormation, TimeAtCanopySenescence, TimeAtCropMaturity
+        - Reference process list: Not Applicable
+    - Model Purposes Supported:
+      - Each Model Purpose:
+        - Access Control: Public
+        - Identifier: YieldPrediction
+        - Description: Predict tomato yield based on growth parameters.
+        - Defining Activity: FractionOfEdibleBiomass, CaloriesPerKilogram
+        - Reference list of purposes: Not Applicable
+    - System Lifecycle Span Supported:
+      - Base Instance:
+        - Access Control: Public
+        - Identifier: PlantDevelopment
+        - Description: From germination to harvest.
+        - Defining Activity: TimeAtOrganFormation, TimeAtCanopySenescence, TimeAtCropMaturity
+    - Decision Support Domain:
+      - Each Decision Support Domain Method:
+        - Access Control: Public
+        - Identifier: AgriculturalDecisionSupport
+        - Description: Provides decision support for tomato cultivation practices.
+        - Defining Activity: LightCycleTemperature, Photoperiod
+        - Decision Support Domain Assessment Method/Reference: Not Applicable
+        - Characterization of the Domain of Appropriateness:
+          - Not Applicable
+    - Perceived Model Complexity:
+      - Each Applicable Stakeholder Type:
+        - Access Control: Public
+        - Identifier: Researchers
+        - Description: Academic researchers modeling crop systems.
+        - Defining Activity: None
+assessment:
+  Model Assessment:
+  - Conceptual Model Application Envelope:
+    - Each Operating Condition Parameter:
+      - Identifier: Name
+        Description: Crop name
+        Current Value: Tomato
+        Validity Status: Valid
+      - Identifier: Type
+        Description: Crop type
+        Current Value: Planophile
+        Validity Status: Valid
+      - Identifier: taInitialValue
+        Description: "Initial temperature acclimation value (\xB0C)"
+        Current Value: 1200
+        Validity Status: Valid
+      - Identifier: initialPPFValue
+        Description: "Initial photosynthetic photon flux density per m\xB2 of crop\
+          \ area"
+        Current Value: 500
+        Validity Status: Valid
+      - Identifier: initialCO2Value
+        Description: "Initial CO\u2082 concentration (\xB5mol CO\u2082/mole atmosphere)"
+        Current Value: 1200
+        Validity Status: Valid
+      - Identifier: CarbonUseEfficiency24
+        Description: "24\u2011hour carbon use efficiency"
+        Current Value: 0.65
+        Validity Status: Valid
+      - Identifier: BCF
+        Description: Biomass conversion factor
+        Current Value: 0.42
+        Validity Status: Valid
+      - Identifier: CUEmax
+        Description: Maximum carbon use efficiency
+        Current Value: 0.65
+        Validity Status: Valid
+      - Identifier: CUEmin
+        Description: Minimum carbon use efficiency
+        Current Value: 0
+        Validity Status: Valid
+      - Identifier: Photoperiod
+        Description: Day length (days)
+        Current Value: 12
+        Validity Status: Valid
+      - Identifier: NominalPhotoperiod
+        Description: Nominal day length (days)
+        Current Value: 12
+        Validity Status: Valid
+      - Identifier: TimeAtOrganFormation
+        Description: Days to organ formation
+        Current Value: 41
+        Validity Status: Valid
+      - Identifier: N
+        Description: Nitrogen content
+        Current Value: 2.5
+        Validity Status: Valid
+      - Identifier: CQYMin
+        Description: Minimum crop quantum yield
+        Current Value: 0.01
+        Validity Status: Valid
+      - Identifier: TimeAtCanopySenescence
+        Description: Days to canopy senescence
+        Current Value: 56
+        Validity Status: Valid
+      - Identifier: TimeAtCropMaturity
+        Description: Days to crop maturity
+        Current Value: 80
+        Validity Status: Valid
+      - Identifier: OPF
+        Description: Output production factor
+        Current Value: 1.09
+        Validity Status: Valid
+      - Identifier: FractionOfEdibleBiomass
+        Description: Fraction of edible biomass
+        Current Value: 0.7
+        Validity Status: Valid
+      - Identifier: CaloriesPerKilogram
+        Description: Caloric content per kilogram
+        Current Value: (calculated expression)
+        Validity Status: Valid
+      - Identifier: EdibleFreshBasisWaterContent
+        Description: Water content of edible portion
+        Current Value: 0.9452
+        Validity Status: Valid
+      - Identifier: InedibleFreshBasisWaterContent
+        Description: Water content of inedible portion
+        Current Value: 0.9
+        Validity Status: Valid
+      - Identifier: LightCycleTemperature
+        Description: "Temperature during light cycle (\xB0C)"
+        Current Value: 26
+        Validity Status: Valid
+lifecycle_management:
+  lifecycle_management: []

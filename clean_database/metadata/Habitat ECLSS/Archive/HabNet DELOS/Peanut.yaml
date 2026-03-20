@@ -1,0 +1,119 @@
+file_name: Peanut.m
+file_path: C:\Users\Shalva Begiashvili\OneDrive - Georgia Institute of Technology\Grad
+  School\2025 Fall\AE 8900\digitalCuration\data\Habitat ECLSS\Archive\HabNet DELOS\Peanut.m
+rel_path: data\Habitat ECLSS\Archive\HabNet DELOS\Peanut.m
+title: Peanut
+identity_and_focus:
+  identity_and_focus:
+    Model Identity:
+      ES Model Identity:
+        Base Instance:
+          Identifier: Peanut
+          Description: Plant model for the peanut crop (Leguminosae)
+          Defining Activity: Crop growth simulation
+    Model Purpose:
+      ES Model Purpose:
+        Base Instance:
+          Identifier: PeanutCropSimulation
+          Description: Simulation of peanut crop development and yield
+          Defining Activity: Agricultural production modeling
+          Purpose Type:
+          - Simulation Method Development
+          - Production
+    Modeled System of Interest:
+      System of Interest:
+        Each Modeled System of Interest:
+          Identifier: PeanutPlant
+          Description: Legume crop grown for edible seed production
+          Defining Activity: Crop growth and yield estimation
+    Modeled Environmental Domains:
+      Modeled Domains:
+        Each Modeled Domain:
+          Identifier: AgriculturalUse
+          Description: Use domain for agricultural production of peanut
+          Defining Activity: Cultivation and harvest
+          Type: Use
+          Classification: Nominal
+    Modeled Scenario:
+      Modeled Scenarios:
+        Each Modeled Scenario:
+          Identifier: StandardGrowthScenario
+          Description: Typical growth scenario under average environmental conditions
+          Defining Activity: Simulation of peanut development from planting to maturity
+scope_of_content: {}
+representation: {}
+utility:
+  Model Utility:
+  - Model Usage:
+    - Lifecycle Processes Supported:
+      - Each Lifecycle Process Supported:
+        - Access Control: Public
+        - Identifier: PeanutPlantLifecycle
+        - Description: Simulation of phenological events for peanut crop.
+        - Defining Activity: Crop growth and development stages.
+        - Reference process list: Not Applicable
+    - Model Purposes Supported:
+      - Each Model Purpose:
+        - Access Control: Public
+        - Identifier: PeanutYieldPrediction
+        - Description: Estimate yield and biomass of peanut crop.
+        - Defining Activity: Calculation of edible and inedible biomass.
+        - Reference list of purposes: Not Applicable
+    - System Lifecycle Span Supported:
+      - Base Instance:
+        - Access Control: Public
+        - Identifier: PeanutCropLifecycle
+        - Description: From planting to harvest (TimeAtOrganFormation to TimeAtCropMaturity).
+        - Defining Activity: Tracking crop development stages.
+    - Decision Support Domain:
+      - Each Decision Support Domain Method:
+        - Access Control: Public
+        - Identifier: CropManagementDecisionSupport
+        - Description: Provide guidance on planting, fertilization, and harvest timing.
+        - Defining Activity: Integration of environmental parameters (CO2, temperature).
+        - Decision Support Domain Assessment Method/Reference: Not Applicable
+        - Characterization of the Domain of Appropriateness:
+          - Other: Suitable for agronomic decision-making in peanut production systems.
+assessment:
+  Model Assessment:
+  - Model Qualification Assessment:
+    - Conceptual Model Assessment Characterization:
+      - Each Conceptual Model Assessment Method:
+        - Access Control: Public
+        - Identifier: PeanutClass
+        - Description: MATLAB class implementing a legume crop model for peanuts.
+        - Defining Activity: Simulation of peanut growth and yield based on physiological
+            parameters.
+        - Assessment criteria:
+          - Accuracy of parameter values compared to literature (e.g., BCF, CUEmax)
+          - Consistency with documented equations and tables
+        - Criteria characterizations:
+          - Data source verification (values derived from BVAD Table 4.2.x and USDA
+            NDB)
+          - Parameter validation against published crop model tables
+        - Conceptual Model Assessment characterization summary: Validated against
+            literature sources.
+    - Conceptual Model Application Envelope:
+      - Each Operating Condition Parameter:
+        - Access Control: Public
+        - Identifier: LightCycleTemperature
+        - Description: Ambient temperature during the light cycle for peanut growth.
+        - Defining Activity: Temperature setting in simulation environment.
+        - Valid Value Range:
+          - Range: "0\u201340\u202F\xB0C (typical crop growth range)"
+        - Current Value:
+          - Other: "26\u202F\xB0C"
+        - Validity Status:
+          - Valid
+  - Code Verification Assessment:
+    - Code Assumptions & Limitations:
+      - Each Assumption or Limitation:
+        - Access Control: Public
+        - Identifier: InitialPPFValue
+        - Description: "Per\u2011m\xB2 photosynthetic photon flux density assumed\
+            \ constant at initialization."
+        - Defining Activity: Used to calculate initial light interception.
+    - Code Verification Assessment Characterization:
+      - Each Code Verification Assessment Method:
+        - Access Control: Public
+lifecycle_management: {}

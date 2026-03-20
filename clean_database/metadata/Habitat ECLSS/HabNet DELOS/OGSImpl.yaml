@@ -1,0 +1,90 @@
+file_name: OGSImpl.m
+file_path: C:\Users\Shalva Begiashvili\OneDrive - Georgia Institute of Technology\Grad
+  School\2025 Fall\AE 8900\digitalCuration\data\Habitat ECLSS\HabNet DELOS\OGSImpl.m
+rel_path: data\Habitat ECLSS\HabNet DELOS\OGSImpl.m
+title: OGSImpl
+identity_and_focus: {}
+scope_of_content: {}
+representation: {}
+utility:
+  Model Utility:
+  - Model Usage:
+    - Lifecycle Processes Supported:
+      - Each Lifecycle Process Supported:
+        - Reference process list:
+          - Not Applicable
+    - Model Purposes Supported:
+      - Each Model Purpose:
+        - Reference list of purposes:
+          - Not Applicable
+    - System Lifecycle Span Supported:
+      - Base Instance:
+        - Description: None
+    - Decision Support Domain:
+      - Each Decision Support Domain Method:
+        - Decision Support Domain Assessment Method/Reference:
+          - Not Applicable
+assessment:
+  Model Assessment:
+  - Model Qualification Assessment:
+    - Conceptual Model Assessment Characterization:
+      - Each Conceptual Model Assessment Method:
+        - Access Control: Public
+        - Identifier: OGSImpl
+        - Description: Simple implementation of an oxygen generation system using
+            electrolysis with assumed 100% conversion efficiency.
+        - Defining Activity: MATLAB class definition and method implementations.
+        - Assessment criteria:
+          - Other: Functional correctness, Mass conservation adherence
+        - Criteria characterizations:
+          - Other: "Verification against expected power-to-water ratio (75\u202FW\
+              \ per 0.04167\u202FL water)"
+        - Conceptual Model Assessment characterization summary:
+          - Other: Basic functional verification of electrolysis process and resource
+              consumption logic
+    - Conceptual Model Application Envelope:
+      - Each Operating Condition Parameter:
+        - Access Control: Public
+        - Identifier: PowerConsumption
+        - Description: Current power consumed during a tick.
+        - Defining Activity: Calculation in tick() method.
+        - Valid Value Range:
+          - Not Applicable
+        - Current Value:
+          - Other: Derived from PowerConsumerDefinition.MaxFlowRate
+        - Validity Status:
+          - Valid
+  - Code Verification Assessment:
+    - Code Assumptions & Limitations:
+      - Each Assumption or Limitation:
+        - Access Control: Public
+        - Identifier: ConversionEfficiency
+        - Description: Assumes 100% conversion efficiency of electrolysis.
+        - Defining Activity: Implicit in class design; no explicit modeling of inefficiencies.
+    - Code Verification Assessment Characterization:
+      - Each Code Verification Assessment Method:
+        - Access Control: Public
+lifecycle_management:
+  Model Lifecycle Management:
+  - Model Versioning and Configuration Management:
+    - Configuration Management Types:
+      - Each type of Version and Configuration Management:
+        - Access Control: Not Applicable
+        - Identifier: OGSImpl_v1
+        - Description: Simple implementation of an oxygen generation system using
+            electrolysis.
+        - Defining Activity: Code commit
+        - Impacted Stakeholder Types:
+          - ES Model Developer
+        - Impacted User Groups:
+          - All
+    - Current Version and Configuration:
+      - Each Deployment Method:
+        - Access Control: Not Applicable
+        - Identifier: OGSImpl_Deployment
+        - Description: Local MATLAB execution of the OGSImpl class.
+        - Defining Activity: Execution
+        - Current Version: 1.0
+        - Current Configuration: Default
+        - Impacted Stakeholder Types:
+          - ES Model Developer

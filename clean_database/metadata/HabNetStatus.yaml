@@ -1,0 +1,153 @@
+file_name: HabNetStatus.xlsx
+file_path: C:\Users\Shalva Begiashvili\OneDrive - Georgia Institute of Technology\Grad
+  School\2025 Fall\AE 8900\digitalCuration\data\HabNetStatus.xlsx
+rel_path: data\HabNetStatus.xlsx
+title: HabNetStatus
+identity_and_focus:
+  Model Identity and Focus:
+  - Model Identity:
+    - ES Model Identity:
+      - Base Instance:
+        - Access Control: Public
+        - Identifier: LSS-01
+        - Description: "Simulation of a closed\u2011loop life support system integrating\
+            \ oxygen generation, CO\u2082 removal, water recycling, food production,\
+            \ and crew activity."
+        - Defining Activity: Simulation
+  - Model Purpose:
+    - ES Model Purpose:
+      - Base Instance:
+        - Access Control: Public
+        - Identifier: LSS-Purpose-01
+        - Description: Evaluate system performance under various mission scenarios
+            and optimize resource utilization.
+        - Defining Activity: Analysis
+        - Purpose Type:
+          - Simulation Method Development
+  - Modeled System of Interest:
+    - System of Interest:
+      - Each Modeled System of Interest:
+        - Access Control: Public
+        - Identifier: LifeSupportSystem
+        - Description: "Integrated life support system comprising O\u2082 generation,\
+            \ CO\u2082 removal, water recycling, food production, and crew health\
+            \ monitoring."
+        - Defining Activity: Simulation
+  - Modeled Environmental Domains:
+    - Modeled Domains:
+      - Each Modeled Domain:
+        - Access Control: Public
+        - Identifier: Atmosphere
+        - Description: "Atmospheric composition within the habitat, including O\u2082\
+            \ and CO\u2082 levels."
+        - Defining Activity: Monitoring
+        - Type: Distribution
+        - Classification: Nominal
+      - Each Modeled Domain:
+        - Access Control: Public
+        - Identifier: FoodProduction
+        - Description: Production of edible biomass (e.g., lettuce) via controlled
+            growth systems.
+        - Defining Activity: Production
+        - Type: Manufacturing
+        - Classification: Nominal
+      - Each Modeled Domain:
+        - Access Control: Public
+        - Identifier: WaterRecycling
+        - Description: Condensed water removal and greywater storage for reuse.
+        - Defining Activity: Removal
+        - Type: Distribution
+        - Classification: Nominal
+      - Each Modeled Domain:
+        - Access Control: Public
+        - Identifier: CrewHealth
+        - Description: Monitoring of crew activity, diet, and health status.
+        - Defining Activity: Monitoring
+        - Type: Use
+        - Classification: Nominal
+  - Modeled Scenario:
+    - Modeled Scenarios:
+      - Each Modeled Scenario:
+        - Access Control: Public
+        - Identifier: MissionScenario-Alpha
+        - Description: A nominal mission scenario with balanced resource consumption
+            and production.
+        - Defining Activity: null
+scope_of_content: {}
+representation: {}
+utility:
+  Model Utility:
+  - Model Usage:
+    - Lifecycle Processes Supported:
+      - Each Lifecycle Process Supported:
+        - Access Control: Public
+        - Identifier: ActivityImpl
+        - Description: Name, Location, Intensity, Duration
+        - Defining Activity: activity
+        - Reference process list:
+          - Not Applicable
+    - Model Purposes Supported:
+      - Each Model Purpose:
+        - Access Control: Public
+        - Identifier: BiomassPSImpl
+        - Description: responsible for growing plants
+        - Defining Activity: food
+        - Reference list of purposes:
+          - Not Applicable
+    - System Lifecycle Span Supported:
+      - Base Instance:
+        - Access Control: Public
+        - Identifier: O2
+        - Description: AirConsumerDefinitionImpl
+        - Defining Activity: O2
+    - Decision Support Domain:
+      - Each Decision Support Domain Method:
+        - Access Control: Public
+        - Identifier: CO2Injector
+        - Description: Injects CO2 into the plant environment to maintain the ideal
+            molar % fraction
+        - Defining Activity: CO2
+        - Decision Support Domain Assessment Method/Reference:
+          - Not Applicable
+        - Characterization of the Domain of Appropriateness:
+          - Not Applicable
+assessment:
+  Model Assessment:
+  - Model Qualification Assessment:
+    - Conceptual Model Assessment Characterization:
+      - Each Conceptual Model Assessment Method:
+        - Access Control: Public
+        - Identifier: ActivityImpl
+        - Description: Represents activity with name, location, intensity, duration.
+        - Defining Activity: Activity
+        - Assessment criteria:
+          - Other: Completeness of activity attributes
+        - Criteria characterizations:
+          - Other: Attributes are fully specified and non-null
+        - Conceptual Model Assessment characterization summary:
+          - Other: Meets functional requirements for activity modeling
+    - Conceptual Model Application Envelope:
+      - Each Operating Condition Parameter:
+        - Access Control: Public
+        - Identifier: CO2Injector
+        - Description: Injects CO2 into the plant environment to maintain ideal molar
+            fraction.
+        - Defining Activity: CO2 injection
+        - Valid Value Range:
+          - Not Applicable
+        - Current Value:
+          - Other: 0.04% (ambient)
+        - Validity Status:
+          - Valid
+  - Code Verification Assessment:
+    - Code Assumptions & Limitations:
+      - Each Assumption or Limitation:
+        - Access Control: Public
+        - Identifier: CondensedWaterRemover
+        - Description: Removes condensed water from an environment and sends it to
+            a grey water store.
+        - Defining Activity: Water removal
+    - Code Verification Assessment Characterization:
+      - Each Code Verification Assessment Method:
+        - Access Control: Public
+lifecycle_management: {}

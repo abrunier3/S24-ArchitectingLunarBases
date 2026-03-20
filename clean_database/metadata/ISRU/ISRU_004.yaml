@@ -1,0 +1,78 @@
+file_name: ISRU_004.mdzip
+title: Lunar Base – ISRU Architecture (v004)
+
+model_identity_and_focus:
+  model_identifier: LUNAR-BASE-ISRU-004
+  model_title: "Lunar Base – ISRU (v004)"
+  model_description: "Fourth iteration; clarified interfaces and requirement sets across ISRU subsystems."
+  model_developer: ["Lunar Base Team"]
+  organization_or_sponsor: ["Academic Research"]
+  model_domain_or_discipline: ["Systems Engineering", "ISRU"]
+  model_subsystem_or_focus_area: ["Regolith Processing", "O2/Volatiles", "Water Handling", "Utilities Interfaces"]
+  associated_mission_program_or_project: ["Lunar surface studies (early phase)"]
+  access_control: "Internal – Research Use"
+  objectives:
+    - "Stabilize allocation structure."
+    - "Improve interface definitions for storage/distribution."
+  key_phenomena_represented:
+    - "Material and utility flows at subsystem level."
+  assumptions_and_simplifications:
+    - "Nominal ops; no solver."
+
+model_scope_of_content:
+  spatial_domain: "ISRU facility"
+  temporal_domain: "Early ops"
+  physical_processes_included: ["Handling/extraction/conditioning (concept)"]
+  physical_processes_excluded: ["Detailed kinetics", "Control loops"]
+  system_interfaces_represented: ["Power", "Thermal", "Storage/Distribution", "Habitat Ops"]
+  model_resolution_or_granularity: "Subsystem-level blocks/reqs"
+  inputs: ["Feed/utility assumptions"]
+  outputs: ["Allocation/traceability artifacts"]
+  external_couplings: { coupled_models_or_systems: [], coupling_methods: [] }
+  fidelity_level:
+    descriptive_fidelity: "SysML structural/requirements"
+    computational_fidelity: "None"
+    representation_fidelity: "Traceable artifacts"
+
+model_representation:
+  conceptual_model_representation:
+    - identifier: "SysML ISRU Structure & Requirements"
+      description: "Blocks/IBDs with requirement links."
+      representation_method: "SysML (MagicDraw/Cameo)"
+      defining_activity: "Architecture iteration"
+  computational_model_representation:
+    - identifier: "N/A"
+      description: "Descriptive only."
+      software_framework_or_language: ["SysML"]
+      verification_approach: ["Cameo checks", "Peer review"]
+  requirements_flat:
+    - "ISRU shall meet nominal product rate targets within utility envelopes (TBR)."
+
+model_utility:
+  lifecycle_processes_supported: ["Concept Development", "Architecture Definition", "Early Verification Planning"]
+  model_purposes_supported: ["Communication", "Allocation/trace"]
+  system_lifecycle_span_supported:
+    base_instance:
+      identifier: "Early Design"
+      description: "Supports planning/trades."
+  decision_support_domain:
+    - identifier: "Capacity/interface planning"
+      description: "Utility and storage integration."
+  perceived_model_complexity:
+    - stakeholder_type: "Engineer"
+      description: "Moderate."
+
+model_assessment:
+  model_verification: { methods: ["Validation rules", "Peer review"], tools_used: ["Cameo Systems Modeler"] }
+  model_validation: { validation_data_sources: ["Internal ISRU requirements"], validation_techniques: ["Traceability review"] }
+  model_credibility_assessment: { credibility_criteria: ["Internal checklist"], supporting_evidence: ["Consistent links/views"] }
+  model_uncertainty_assessment: { uncertainty_sources: ["Feed variability", "Power/thermal allocations"], quantification_approach: "Qualitative", confidence_level: "Medium" }
+
+model_lifecycle_management:
+  development_methodology: ["Iterative SysML refinement"]
+  configuration_control: "Versioned .mdzip"
+  change_tracking: "Manual notes"
+  versioning_and_configuration_management:
+    configuration_management_types: [{ identifier: "File-based versioning", description: "Sequential iterations" }]
+    current_version_and_configuration: [{ identifier: "v004", description: "Interface/trace refinement" }]
+  archiving_and_preservation: { archive_location: "Project repository", preservation_plan: "Retain milestones", access_policy: "Internal" }

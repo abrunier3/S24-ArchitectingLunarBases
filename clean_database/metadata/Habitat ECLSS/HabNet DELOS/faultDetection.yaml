@@ -1,0 +1,90 @@
+file_name: faultDetection.m
+file_path: C:\Users\Shalva Begiashvili\OneDrive - Georgia Institute of Technology\Grad
+  School\2025 Fall\AE 8900\digitalCuration\data\Habitat ECLSS\HabNet DELOS\faultDetection.m
+rel_path: data\Habitat ECLSS\HabNet DELOS\faultDetection.m
+title: faultDetection
+identity_and_focus: {}
+scope_of_content: {}
+representation: {}
+utility:
+  Model Utility:
+  - Model Usage:
+    - Lifecycle Processes Supported:
+      - Each Lifecycle Process Supported:
+        - Identifier: Fault Detection
+        - Description: Detects subsystem failures based on sensor data and delay estimation.
+        - Reference process list: ISO/IEC/IEEE 15288
+    - Decision Support Domain:
+      - Each Decision Support Domain Method:
+        - Identifier: Failure Analysis
+        - Description: Provides assessment of subsystem degradation and response timing.
+        - Decision Support Domain Assessment Method/Reference: NASA Standard 7009A
+assessment:
+  assessment:
+    Model Assessment:
+    - Model Qualification Assessment:
+      - Conceptual Model Assessment Characterization:
+        - Each Conceptual Model Assessment Method:
+          - Access Control: Public
+          - Identifier: faultDetectionFunction
+          - Description: MATLAB function that evaluates sensor/meter data to determine
+              subsystem degradation and identifies failures within a specified maximum
+              delay.
+          - Defining Activity: Analyze input arrays of failure scenarios and subsystem
+              states to compute status of each subsystem.
+          - Assessment criteria:
+            - Functional correctness
+          - Criteria characterizations:
+            - Input validation
+          - Conceptual Model Assessment characterization summary:
+            - Function correctly identifies degraded subsystems within the specified
+              maxDelay.
+      - Conceptual Model Application Envelope:
+        - Each Operating Condition Parameter:
+          - Access Control: Public
+          - Identifier: failureScenario
+          - Description: List of subsystem failure scenarios to evaluate; each element
+              has a Name field (e.g., 'LabPCA', 'LoftPCA').
+          - Defining Activity: Provided as input array of structs.
+          - Valid Value Range: Not Applicable
+          - Current Value:
+            - Example list includes 'LabPCA', 'LoftPCA', 'PCMPCA', 'SuitlockPCA',
+              'PLMPPRV', 'LabCCAA', 'LoftCCAA', 'PCMCCAA', 'SuitlockCCAA', 'mainvccr',
+              'ogs', 'crs.Compressor', 'crs.Reactor', 'crs.Separator', 'waterRS.WPA',
+              'waterRS.UPA', 'Lab2PCMFan', 'PLM2PCMFan', 'Loft2PCMFan', 'Lab2AirlockFan'.
+          - Validity Status: Valid
+    - Code Verification Assessment:
+      - Code Assumptions & Limitations:
+        - Each Assumption or Limitation:
+          - Access Control: Public
+          - Identifier: maxDelay
+          - Description: Maximum allowable delay for failure detection; must be a
+              non-negative integer.
+          - Defining Activity: Input parameter to function.
+      - Code Verification Assessment Characterization:
+        - Each Code Verification Assessment Method:
+          - Access Control: Public
+lifecycle_management:
+  lifecycle_management:
+    Model Lifecycle Management:
+    - Model Versioning and Configuration Management:
+      - Configuration Management Types:
+        - Each type of Version and Configuration Management:
+          - Access Control: Not Applicable
+          - Identifier: Not Applicable
+          - Description: Not Applicable
+          - Defining Activity: Not Applicable
+          - Impacted Stakeholder Types:
+            - Not Applicable
+          - Impacted User Groups:
+            - None
+      - Current Version and Configuration:
+        - Each Deployment Method:
+          - Access Control: Not Applicable
+          - Identifier: Not Applicable
+          - Description: Not Applicable
+          - Defining Activity: Not Applicable
+          - Current Version: Not Applicable
+          - Current Configuration: Not Applicable
+          - Impacted Stakeholder Types:
+            - Not Applicable

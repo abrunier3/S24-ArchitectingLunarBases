@@ -1,0 +1,168 @@
+file_name: DELOS_Habnet_6.m
+file_path: C:\Users\Shalva Begiashvili\OneDrive - Georgia Institute of Technology\Grad
+  School\2025 Fall\AE 8900\digitalCuration\data\Habitat ECLSS\HabNet DELOS\DELOS_Habnet_6.m
+rel_path: data\Habitat ECLSS\HabNet DELOS\DELOS_Habnet_6.m
+title: DELOS_Habnet_6
+identity_and_focus: {}
+scope_of_content: {}
+representation:
+  Model Representation:
+  - Conceptual Model Representation:
+    - Conceptual Model Representation Types:
+      - Each Conceptual Model:
+        - Access Control: Public
+        - Identifier: DELOS_Habnet_6
+        - Description: "MATLAB simulation of a Habitation Development Unit (HDU) for\
+            \ a 26\u2011month Martian mission, modeling crew life support, plant growth,\
+            \ and system failure scenarios."
+        - Defining Activity: Simulation
+        - Simulation Methods:
+          - Deterministic
+          - Logical
+        - Simulation Controls:
+          - Time Step Strategies
+          - Integration Control
+        - Coupling Modes:
+          - Not Applicable
+        - Communication Mode:
+          - Not Applicable
+        - Physics Domains:
+          - Life Support Systems
+          - Plant Growth Dynamics
+          - Environmental Control and Life Support (ECLSS)
+utility:
+  Model Utility:
+  - Model Usage:
+    - Lifecycle Processes Supported:
+      - Each Lifecycle Process Supported:
+        - Access Control: Public
+        - Identifier: DELOS_Habnet_6
+        - Description: Simulation of a Habitation Development Unit for Mars exploration,
+            modeling crew operations and system failures over a Martian synodic period.
+        - Defining Activity: MATLAB code execution
+        - Reference process list:
+          - Custom "Simulation lifecycle"
+    - Model Purposes Supported:
+      - Each Model Purpose:
+        - Access Control: Public
+        - Identifier: ResupplyRateAnalysis
+        - Description: Determine resupply requirements and crew survival time under
+            system failure scenarios.
+        - Defining Activity: Simulation output analysis
+        - Reference list of purposes:
+          - Custom "Decision support for mission planning"
+    - System Lifecycle Span Supported:
+      - Base Instance:
+        - Access Control: Public
+        - Identifier: MissionPhase
+        - Description: "Operational phase of the Habitation Development Unit during\
+            \ a 26\u2011month Martian period."
+        - Defining Activity: Simulation runtime
+    - Decision Support Domain:
+      - Each Decision Support Domain Method:
+        - Access Control: Public
+        - Identifier: SimulationRiskAssessment
+        - Description: Risk assessment based on simulation outcomes for system failures.
+        - Defining Activity: Failure injection and outcome monitoring
+        - Decision Support Domain Assessment Method/Reference:
+          - Custom "Simulation-based risk model"
+        - Characterization of the Domain of Appropriateness:
+          - Not Applicable
+    - Perceived Model Complexity:
+      - Each Applicable Stakeholder Type:
+        - Engineer
+        - Mission Planner
+        - Systems Analyst
+assessment:
+  Model Assessment:
+  - Model Qualification Assessment:
+    - Conceptual Model Assessment Characterization:
+      - Each Conceptual Model Assessment Method:
+        - Access Control: Public
+        - Identifier: DELOS_Habnet_6
+        - Description: "MATLAB simulation of a Habitation Development Unit (HDU) for\
+            \ a four\u2011crew crew over 26 Martian months, used to estimate resupply\
+            \ rates and survival time under system failures."
+        - Defining Activity: "Simulation of baseline architecture for ICES2015 paper\
+            \ \u201CBenefits of In\u2011Situ Manufacturing for Mars Exploration\u201D\
+            ."
+        - Assessment criteria:
+          - Accuracy
+          - Completeness
+          - Relevance
+        - Criteria characterizations:
+          - Validation against published ICES2015 results
+          - Sensitivity to failure injection timing
+        - Conceptual Model Assessment characterization summary: Validated against
+            literature and internal consistency checks.
+    - Conceptual Model Application Envelope:
+      - Each Operating Condition Parameter:
+        - Access Control: Public
+        - Identifier: CrewDuration
+        - Description: Duration of crew occupancy in the HDU (26 Martian months).
+        - Defining Activity: Simulation time horizon.
+        - Valid Value Range: 26 Martian months
+        - Current Value: 26 Martian months
+        - Validity Status: Valid
+      - Each Operating Condition Parameter:
+        - Access Control: Public
+        - Identifier: PressureBalancerEnabled
+        - Description: Indicates whether the pressure balancer is active during simulation.
+        - Defining Activity: Code update on 4/18/2015.
+        - Valid Value Range: Boolean
+        - Current Value: true
+        - Validity Status: Valid
+      - Each Operating Condition Parameter:
+        - Access Control: Public
+        - Identifier: FailureInjectionEnabled
+        - Description: Flag for injecting a system failure at a specified time.
+        - Defining Activity: Code added on 2/21/2015.
+        - Valid Value Range: Boolean
+        - Current Value: true
+        - Validity Status: Valid
+  - Code Verification Assessment:
+    - Code Assumptions & Limitations:
+      - Each Assumption or Limitation:
+        - Access Control: Public
+        - Identifier: CrewCountAssumption
+        - Description: Assumes a fixed crew of four occupants.
+        - Defining Activity: Simulation setup.
+      - Each Assumption or Limitation:
+        - Access Control: Public
+        - Identifier: PlantModelAccuracy
+        - Description: Uses ShelfImpl3 plant model updated 12/20/2014; accuracy depends
+            on growth profile assumptions.
+        - Defining Activity: Model integration.
+    - Code Verification Assessment Characterization:
+      - Each Code Verification Assessment Method:
+        - Access Control: Public
+        - Identifier: UnitTestSuite
+        - Description: Automated tests for pressure balancer logic, fan control, and
+            failure injection timing.
+lifecycle_management:
+  Model Lifecycle Management:
+  - Model Versioning and Configuration Management:
+    - Configuration Management Types:
+      - Each type of Version and Configuration Management:
+        - Access Control: Public
+        - Identifier: DELOS_Habnet_6.m
+        - Description: MATLAB function modeling baseline architecture for the ICES2015
+            paper on in-situ manufacturing for Mars exploration.
+        - Defining Activity: Code development and simulation execution
+        - Impacted Stakeholder Types:
+          - ES Model Developer
+          - ES Model Operator
+        - Impacted User Groups:
+          - All
+    - Current Version and Configuration:
+      - Each Deployment Method:
+        - Access Control: Public
+        - Identifier: DELOS_Habnet_6.m v1.0
+        - Description: Current release of the simulation model.
+        - Defining Activity: Version control commit on 4/18/2015
+        - Current Version: v1.0
+        - Current Configuration: "Default configuration for 26\u2011month crew habitat\
+            \ simulation"
+        - Impacted Stakeholder Types:
+          - ES Model Developer
+          - ES Model Operator

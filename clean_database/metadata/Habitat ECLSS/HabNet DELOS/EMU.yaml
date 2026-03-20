@@ -1,0 +1,130 @@
+file_name: EMU.m
+file_path: C:\Users\Shalva Begiashvili\OneDrive - Georgia Institute of Technology\Grad
+  School\2025 Fall\AE 8900\digitalCuration\data\Habitat ECLSS\HabNet DELOS\EMU.m
+rel_path: data\Habitat ECLSS\HabNet DELOS\EMU.m
+title: EMU
+identity_and_focus: {}
+scope_of_content: {}
+representation:
+  Model Representation:
+  - Conceptual Model Representation:
+    - Conceptual Model Representation Types:
+      - Each Conceptual Model:
+        - Identifier: EMU
+        - Description: MATLAB class representing an Extravehicular Mobility Unit with
+            urine and CO2 removal technologies.
+        - Defining Activity: Simulation of EVA operations and resource management.
+        - Simulation Methods:
+          - Deterministic
+          - Logical
+        - Simulation Controls:
+          - Not Applicable
+        - Coupling Modes:
+          - Not Applicable
+        - Communication Mode:
+          - Not Applicable
+utility:
+  Model Utility:
+  - Model Usage:
+    - Lifecycle Processes Supported:
+      - Each Lifecycle Process Supported:
+        - Access Control: Public
+        - Identifier: EMU_Simulation_Process
+        - Description: "Simulates the Extravehicular Activity (EVA) environment, managing\
+            \ urine processing, CO\u2082 removal, and thermal control."
+        - Defining Activity: tick method execution
+        - Reference process list: Not Applicable
+    - Model Purposes Supported:
+      - Each Model Purpose:
+        - Access Control: Public
+        - Identifier: EMU_Simulation_Purpose
+        - Description: "Provides a virtual environment for testing EVA life\u2011\
+            support systems."
+        - Defining Activity: Simulation initialization and execution
+        - Reference list of purposes: Not Applicable
+    - System Lifecycle Span Supported:
+      - Base Instance:
+        - Access Control: Public
+        - Identifier: EMU_Base_Instance
+        - Description: Represents a single instance of the EVA simulation model.
+        - Defining Activity: Object construction via constructor
+    - Decision Support Domain:
+      - Each Decision Support Domain Method:
+        - Access Control: Public
+        - Identifier: EMU_Decision_Support_Method
+        - Description: "Supports design decisions for EVA life\u2011support system\
+            \ configurations."
+        - Defining Activity: Parameter selection in constructor
+        - Decision Support Domain Assessment Method/Reference: Not Applicable
+        - Characterization of the Domain of Appropriateness:
+          - Not Applicable
+    - Perceived Model Complexity:
+      - Each Applicable Stakeholder Type:
+        - Access Control: Public
+        - Identifier: EMU_Stakeholder_Type
+        - Description: "Engineers and mission planners using EVA life\u2011support\
+            \ simulations."
+        - Defining Activity: Model usage documentation
+assessment:
+  Model Assessment:
+  - Model Qualification Assessment:
+    - Conceptual Model Assessment Characterization:
+      - Each Conceptual Model Assessment Method:
+        - Access Control: Public
+        - Identifier: EMU-Conceptual
+        - Description: "MATLAB class representing an Extravehicular Mobility Unit\
+            \ (EMU) with urine and CO\u2082 management logic."
+        - Defining Activity: Constructor initialization
+        - Assessment criteria:
+          - Correctness of technology selection logic
+        - Criteria characterizations:
+          - Validity of conditional checks for UrineProcessor and CO2removalTechnology
+        - Conceptual Model Assessment characterization summary:
+          - Successful validation of technology constraints
+    - Conceptual Model Application Envelope:
+      - Each Operating Condition Parameter:
+        - Access Control: Public
+        - Identifier: CO2RemovalType
+        - Description: "Type of CO\u2082 removal technology selected during construction."
+        - Defining Activity: Constructor parameter
+        - Valid Value Range:
+          - Range: METOX or RCA
+        - Current Value:
+          - Other: METOX (example)
+        - Validity Status:
+          - Valid
+  - Code Verification Assessment:
+    - Code Assumptions & Limitations:
+      - Each Assumption or Limitation:
+        - Access Control: Private
+        - Identifier: UrineProcessorAssumption
+        - Description: Only UCTA or MAG supported for urine management.
+        - Defining Activity: Constructor validation
+    - Code Verification Assessment Characterization:
+      - Each Code Verification Assessment Method:
+        - Access Control: Public
+lifecycle_management:
+  Model Lifecycle Management:
+  - Model Versioning and Configuration Management:
+    - Configuration Management Types:
+      - Each type of Version and Configuration Management:
+        - Access Control: Internal
+        - Identifier: EMU MATLAB Class
+        - Description: MATLAB class defining Extravehicular Mobility Unit components.
+        - Defining Activity: Code Development
+        - Impacted Stakeholder Types:
+          - ES Model Developer
+          - ES Model Owner
+        - Impacted User Groups:
+          - All
+    - Current Version and Configuration:
+      - Each Deployment Method:
+        - Access Control: Internal
+        - Identifier: v1.0
+        - Description: Initial release of EMU class.
+        - Defining Activity: Release
+        - Current Version: 1.0
+        - Current Configuration: Default
+        - Impacted Stakeholder Types:
+          - ES Model Developer
+          - ES Model Owner

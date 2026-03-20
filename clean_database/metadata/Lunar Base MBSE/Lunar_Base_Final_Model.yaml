@@ -1,0 +1,136 @@
+file_name: Lunar_Base_Final_Model.mdzip
+title: Lunar Base – SysML Integrated Architecture (Final)
+
+model_identity_and_focus:
+  model_identifier: LUNAR-BASE-FINAL
+  model_title: "Lunar Base Integrated Model (Final)"
+  model_description: "Consolidated SysML/Cameo model of the lunar surface habitat architecture with integrated subsystem packages and requirement traceability."
+  model_developer: ["Lunar Base Team"]
+  organization_or_sponsor: ["Academic Research"]
+  model_domain_or_discipline: ["Systems Engineering", "Space Habitat Architecture", "MBSE"]
+  model_subsystem_or_focus_area: ["Power", "Thermal", "ECLSS", "Structures/Interfaces", "Integration"]
+  associated_mission_program_or_project: ["Lunar surface studies (early phase)"]
+  access_control: "Internal – Research Use"
+  objectives:
+    - "Provide a stable, integrated architecture baseline."
+    - "Offer clear requirement allocation and inter-subsystem interfaces."
+  key_phenomena_represented:
+    - "Resource/service chains across subsystems."
+    - "Habitat operational needs and interfaces."
+  assumptions_and_simplifications:
+    - "Nominal operations; contingency/abnormals not modeled."
+    - "High-level parametric placeholders; no detailed physics or control execution."
+
+model_scope_of_content:
+  spatial_domain: "Lunar surface habitat and supporting systems"
+  temporal_domain: "Early mission operational timeline"
+  physical_processes_included:
+    - "Power generation, storage, and distribution concept"
+    - "Thermal management obligations"
+    - "Air revitalization/ECLSS requirement framing"
+  physical_processes_excluded:
+    - "Detailed device physics"
+    - "Closed-loop controller dynamics"
+  system_interfaces_represented:
+    - "Generation–Storage–Distribution"
+    - "Thermal loops to radiators/heaters"
+    - "ECLSS–Habitat volume/services"
+    - "Cross-subsystem integration interfaces"
+  model_resolution_or_granularity: "Subsystem-level architecture/requirements with integrated package structure"
+  inputs:
+    - "Representative load/insolation envelopes"
+    - "Preliminary mass/power budgets"
+  outputs:
+    - "Integrated allocation and traceability views"
+    - "Subsystem interface summaries"
+  external_couplings:
+    coupled_models_or_systems: []
+    coupling_methods: []
+  fidelity_level:
+    descriptive_fidelity: "SysML logical/physical views with requirements and interfaces"
+    computational_fidelity: "None (descriptive-only)"
+    representation_fidelity: "Traceable requirement and structural artifacts"
+
+model_representation:
+  conceptual_model_representation:
+    - identifier: "SysML Integrated Structure & Requirements"
+      description: "Integrated BDD/IBD and requirement diagrams spanning Power, Thermal, ECLSS, and interface packages."
+      representation_method: "SysML (MagicDraw/Cameo)"
+      defining_activity: "MBSE integration and architecture finalization"
+  computational_model_representation:
+    - identifier: "N/A"
+      description: "Descriptive MBSE model; no executable solver included."
+      software_framework_or_language: ["SysML"]
+      verification_approach:
+        - "Cameo validation/consistency checks"
+        - "Peer review walkthroughs of integrated views"
+  requirements_flat:
+    - "Provide continuous power to designated habitat and payload loads (TBR)."
+    - "Maintain equipment and habitat thermal conditions within defined limits (TBR)."
+    - "Provide ECLSS services to meet nominal crewed habitat requirements (TBR)."
+
+model_utility:
+  lifecycle_processes_supported:
+    - "Concept Development"
+    - "Requirements Definition"
+    - "Architecture Definition"
+    - "Early Verification Planning"
+  model_purposes_supported:
+    - "Architecture communication across stakeholders"
+    - "Allocation and interface traceability"
+    - "Preparation for downstream verification/validation"
+  system_lifecycle_span_supported:
+    base_instance:
+      identifier: "Early Design / Architecture Baseline"
+      description: "Serves as the stable reference model for trades and planning."
+  decision_support_domain:
+    - identifier: "Integrated habitat planning and trades"
+      description: "Guides boundary and capacity decisions across subsystems."
+  perceived_model_complexity:
+    - stakeholder_type: "Engineer"
+      description: "Moderate; SysML and MBSE packaging familiarity recommended."
+    - stakeholder_type: "Project Manager"
+      description: "Low–moderate; rely on summarized views and allocation tables."
+
+model_assessment:
+  model_verification:
+    methods:
+      - "Cameo model validation and dependency checks"
+      - "Peer review of integrated diagrams"
+    tools_used: ["Cameo Systems Modeler"]
+  model_validation:
+    validation_data_sources:
+      - "Internal requirement sets and study objectives"
+    validation_techniques:
+      - "Traceability review against objectives and subsystem packages"
+    comparison_metrics: []
+    validation_results_summary: ""
+  model_credibility_assessment:
+    credibility_criteria:
+      - "Internal integration review checklist completion"
+    supporting_evidence:
+      - "Consistent allocation and cross-links in integrated views"
+    peer_review_status: "Internal review complete (academic)"
+  model_uncertainty_assessment:
+    uncertainty_sources:
+      - "Evolving requirement maturity"
+      - "Simplified assumptions for early-phase architecture"
+    quantification_approach: "Qualitative assessment"
+    confidence_level: "Medium"
+
+model_lifecycle_management:
+  development_methodology:
+    - "MBSE-focused iterative SysML refinement and package integration"
+  configuration_control: "Version-controlled .mdzip in project repository"
+  change_tracking: "Manual revision notes captured at integration milestones"
+  versioning_and_configuration_management:
+    configuration_management_types:
+      - identifier: "File-based versioning"
+        description: "Sequential .mdzip iterations culminating in integrated baseline"
+    current_version_and_configuration:
+      - identifier: "final"
+        description: "Integrated architecture baseline with traceability"
+  archiving_and_preservation:
+    archive_location: "Project repository (final baseline folder)"
+    preservation_plan: "Retain final .mdzip and exported diagrams/CSV for traceability"
+    access_policy: "Internal team access"

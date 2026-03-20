@@ -1,0 +1,95 @@
+file_name: PressureDistribute.m
+file_path: C:\Users\Shalva Begiashvili\OneDrive - Georgia Institute of Technology\Grad
+  School\2025 Fall\AE 8900\digitalCuration\data\Habitat ECLSS\HabNet DELOS\PressureDistribute.m
+rel_path: data\Habitat ECLSS\HabNet DELOS\PressureDistribute.m
+title: PressureDistribute
+identity_and_focus: {}
+scope_of_content: {}
+representation:
+  Model Representation:
+  - Conceptual Model Representation:
+    - Conceptual Model Representation Types:
+      - Each Conceptual Model:
+        - Identifier: PressureDistribute
+        - Description: MATLAB class that balances pressure across habitat modules
+            by solving a system of linear equations.
+        - Defining Activity: "Compute source and sink nodes from an adjacency matrix\
+            \ and adjust module pressures until the difference between each module\u2019\
+            s pressure and the target average is zero."
+        - Simulation Methods:
+          - Deterministic
+          - Logical
+        - Simulation Controls:
+          - Not Applicable
+        - Coupling Modes:
+          - Not Applicable
+        - Communication Mode:
+          - Not Applicable
+        - Physics Domains:
+          - Fluid Dynamics
+utility: {}
+assessment:
+  Model Assessment:
+  - Model Qualification Assessment:
+    - Conceptual Model Assessment Characterization:
+      - Each Conceptual Model Assessment Method:
+        - Access Control: Public
+        - Identifier: PressureDistributionAnalysis
+        - Description: Analysis of pressure distribution across habitat modules using
+            a linear system derived from an adjacency matrix.
+        - Defining Activity: Solving a system of linear equations to determine module
+            pressures relative to the target average pressure.
+        - Assessment criteria:
+          - Accuracy of pressure calculations
+          - Ability to identify source and sink nodes
+          - Handling of non-circular habitat arrangements
+        - Criteria characterizations:
+          - Numerical precision within 0.01 Pa
+          - Correct identification of single-entry rows as sources/sinks
+          - Explicit limitation for circular enclosed modules
+        - Conceptual Model Assessment characterization summary: Valid
+    - Conceptual Model Application Envelope:
+      - Each Operating Condition Parameter:
+        - Access Control: Public
+        - Identifier: TargetPressure
+        - Description: Desired average pressure across the habitat.
+        - Defining Activity: User-specified input parameter.
+        - Valid Value Range: Range 0 Pa to 200 Pa
+        - Current Value: Other 101.3 Pa
+        - Validity Status: Valid
+  - Code Verification Assessment:
+    - Code Assumptions & Limitations:
+      - Each Assumption or Limitation:
+        - Access Control: Public
+        - Identifier: CircularHabitatLimitation
+        - Description: The algorithm does not support circular and enclosed habitat
+            module arrangements without a designated reference module.
+        - Defining Activity: Documentation note in code header.
+    - Code Verification Assessment Characterization:
+      - Each Code Verification Assessment Method:
+        - Access Control: Public
+lifecycle_management:
+  lifecycle_management:
+  - Model Versioning and Configuration Management:
+    - Configuration Management Types:
+      - Each type of Version and Configuration Management:
+        - Access Control: Not Applicable
+        - Identifier: PressureDistribute
+        - Description: MATLAB class for pressure distribution in habitat modules using
+            linear equations.
+        - Defining Activity: Development
+        - Impacted Stakeholder Types:
+          - ES Model Developer
+          - ES Model Operator
+    - Current Version and Configuration:
+      - Each Deployment Method:
+        - Access Control: Not Applicable
+        - Identifier: PressureDistribute
+        - Description: MATLAB class for pressure distribution in habitat modules using
+            linear equations.
+        - Defining Activity: Development
+        - Current Version: 1.0
+        - Current Configuration: Default
+        - Impacted Stakeholder Types:
+          - ES Model Developer
+          - ES Model Operator

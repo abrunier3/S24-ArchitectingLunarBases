@@ -1,0 +1,89 @@
+file_name: randomFailureScenarioGenerator.m
+file_path: C:\Users\Shalva Begiashvili\OneDrive - Georgia Institute of Technology\Grad
+  School\2025 Fall\AE 8900\digitalCuration\data\Habitat ECLSS\Archive\HabNet DELOS\randomFailureScenarioGenerator.m
+rel_path: data\Habitat ECLSS\Archive\HabNet DELOS\randomFailureScenarioGenerator.m
+title: randomFailureScenarioGenerator
+identity_and_focus: {}
+scope_of_content: {}
+representation: {}
+utility:
+  Model Utility:
+  - Model Usage:
+    - Lifecycle Processes Supported:
+      - Each Lifecycle Process Supported:
+        - Access Control: Public
+        - Identifier: FailureScenarioGeneration
+        - Description: Generates random failure scenarios for HabNet simulations.
+        - Defining Activity: Random sampling of Weibull distributions based on UPA
+            data.
+        - Reference process list: ISO/IEC/IEEE 15288
+    - Model Purposes Supported:
+      - Each Model Purpose:
+        - Access Control: Public
+        - Identifier: ScenarioGeneration
+        - Description: Provides input for reliability analysis and mission planning.
+        - Defining Activity: Generate failure start times, durations, impacts.
+        - Reference list of purposes: Not Applicable
+    - System Lifecycle Span Supported:
+      - Base Instance:
+        - Access Control: Public
+        - Identifier: MissionDuration
+        - Description: Applies over the duration of a mission simulation.
+        - Defining Activity: None
+    - Decision Support Domain:
+      - Each Decision Support Domain Method:
+        - Access Control: Public
+        - Identifier: ReliabilityAssessment
+        - Description: Supports reliability assessment through scenario generation.
+        - Defining Activity: Generate scenarios for Monte Carlo analysis.
+        - Decision Support Domain Assessment Method/Reference: NASA Standard 7009A
+        - Characterization of the Domain of Appropriateness:
+          - Not Applicable
+    - Perceived Model Complexity:
+      - Each Applicable Stakeholder Type:
+        - Access Control: Public
+        - Identifier: Engineers
+        - Description: System reliability and mission planners
+        - Defining Activity: Use generated scenarios for decision making
+assessment:
+  Model Assessment:
+  - Code Verification Assessment:
+    - Code Assumptions & Limitations:
+      - Each Assumption or Limitation:
+        - Access Control: Public
+        - Identifier: WeibullDistributionAssumption
+        - Description: All subsystem failures are modeled using Weibull distributions
+            derived from UPA data.
+        - Defining Activity: Failure scenario generation in randomFailureScenarioGenerator.m
+    - Code Verification Assessment Characterization:
+      - Each Code Verification Assessment Method:
+        - Access Control: Public
+lifecycle_management:
+  lifecycle_management:
+  - model_versioning_and_configuration_management:
+    - configuration_management_types:
+      - each_type_of_version_and_configuration_management:
+        - access_control: Read/Write
+        - identifier: randomFailureScenarioGenerator.m
+        - description: MATLAB function that generates random failure scenarios for
+            HabNet simulations.
+        - defining_activity: Generate and store failure scenario structures based
+            on Weibull distributions derived from UPA data.
+        - impacted_stakeholder_types:
+          - es_model_developer
+          - es_model_operator
+          - es_model_owner
+        - impacted_user_groups:
+          - none
+    - current_version_and_configuration:
+      - each_deployment_method:
+        - access_control: Read/Write
+        - identifier: randomFailureScenarioGenerator.m v1.0
+        - description: Current deployed version of the failure scenario generator.
+        - defining_activity: Version control commit in repository.
+        - current_version: 'Custom: 1.0'
+        - current_configuration: 'Custom: Default parameters (missionDuration, failures)'
+        - impacted_stakeholder_types:
+          - es_model_developer
+          - es_model_operator
+          - es_model_owner

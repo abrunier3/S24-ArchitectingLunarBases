@@ -1,0 +1,135 @@
+file_name: Soybean.m
+file_path: C:\Users\Shalva Begiashvili\OneDrive - Georgia Institute of Technology\Grad
+  School\2025 Fall\AE 8900\digitalCuration\data\Habitat ECLSS\Archive\HabNet DELOS\Soybean.m
+rel_path: data\Habitat ECLSS\Archive\HabNet DELOS\Soybean.m
+title: Soybean
+identity_and_focus:
+  identity_and_focus:
+    Model Identity:
+      ES Model Identity:
+        Base Instance:
+          Access Control: Public
+          Identifier: SoybeanCropModel
+          Description: Matlab class representing the soybean crop model used for simulation
+            of growth and yield.
+          Defining Activity: Simulation
+    Model Purpose:
+      ES Model Purpose:
+        Base Instance:
+          Access Control: Public
+          Identifier: SoybeanGrowthSimulation
+          Description: To simulate soybean growth, development stages, and yield under
+            varying environmental conditions.
+          Defining Activity: Simulation
+          Purpose Type:
+          - Production
+          - Simulation Method Development
+    Modeled System of Interest:
+      System of Interest:
+        Each Modeled System of Interest:
+          Access Control: Public
+          Identifier: SoybeanCrop
+          Description: "Soybean (Glycine max) crop grown on a per\u2011square\u2011\
+            meter basis."
+          Defining Activity: Growth
+    Modeled Environmental Domains:
+      Modeled Domains:
+        Each Modeled Domain:
+          Access Control: Public
+          Identifier: CropUse
+          Description: Environmental domain related to the use of soybean as an edible
+            crop.
+          Defining Activity: Use
+          Type: Use
+          Classification: Nominal
+    Modeled Scenario:
+      Modeled Scenarios:
+        Each Modeled Scenario:
+          Access Control: Public
+          Identifier: SoybeanGrowthScenario
+          Description: "Simulation of soybean growth from planting to maturity over\
+            \ a 86\u2011day period."
+          Defining Activity: Simulation
+          Model Objectives:
+          - Predict time to canopy senescence (48 days)
+          - Predict time to crop maturity (86 days)
+          - Estimate yield and edible biomass fraction (0.95)
+scope_of_content:
+  Model Scoe of Content:
+  - Modeled Stakeholder Value:
+    - Stakeholder Values of Interest:
+      - Each Stakeholder Value of Interest:
+        - Access Control: Public
+        - Identifier: SoybeanCropModel
+        - Description: Simulation of soybean crop growth parameters and nutrient dynamics.
+        - Defining Activity: Crop growth simulation
+      - Stakeholder Groups Impacted (Specify all that apply):
+        - Users
+        - Providers
+    - Coupled External Interactions:
+      - Each External Interaction of Interest:
+        - Access Control: Public
+        - Identifier: CO2Exchange
+        - Description: "Exchange of CO\u2082 between atmosphere and soybean canopy\
+            \ during photosynthesis."
+        - Defining Activity: "Photosynthetic CO\u2082 uptake"
+        - Input-output Exchange: "CO\u2082 uptake"
+        - External to Model (Specify One): Atmosphere
+        - External Interface (Specify One): "Atmospheric CO\u2082 concentration"
+    - Coupled Internal Interactions:
+      - Each Internal Interaction of Interest:
+        - Access Control: Private
+        - Identifier: GrowthStageTransition
+        - Description: Transition between key developmental stages of soybean.
+        - Defining Activity: Developmental progression
+        - Quantities of Interest:
+          - TimeAtOrganFormation: 46 days
+          - TimeAtCanopySenescence: 48 days
+          - TimeAtCropMaturity: 86 days
+        - Relationships:
+          - GrowthRate: "function of Photoperiod (12\u202Fdays) and LightCycleTemperature\
+              \ (26\u202F\xB0C)"
+representation:
+  Model Representation:
+  - Conceptual Model Representation:
+    - Each Conceptual Model:
+      - Identifier: Soybean
+      - Description: MATLAB class defining a soybean crop model with properties for
+          growth parameters and nutrient dynamics.
+      - Defining Activity: Modeling soybean phenology, biomass accumulation, and nutrient
+          use efficiency.
+      - Simulation Methods:
+        - Deterministic
+        - Logical
+      - Simulation Controls:
+        - Not Applicable
+      - Coupling Modes:
+        - Not Applicable
+      - Communication Mode:
+        - Not Applicable
+      - Physics Domains:
+        - Plant Growth
+        - Biochemistry
+utility: {}
+assessment: {}
+lifecycle_management:
+  Model Lifecycle Management:
+  - Model Versioning and Configuration Management:
+    - Configuration Management Types:
+      - Each type of Version and Configuration Management:
+        - Access Control: Not Applicable
+        - Identifier: Soybean
+        - Description: MATLAB class defining soybean crop model parameters.
+        - Defining Activity: Class definition
+        - Impacted Stakeholder Types:
+          - ES Model Developer
+          - ES Model Operator
+          - ES Model Owner
+    - Current Version and Configuration:
+      - Each Deployment Method:
+        - Access Control: Not Applicable
+        - Identifier: Soybean
+        - Description: MATLAB class file for soybean model.
+        - Defining Activity: Deployment of model code
+        - Current Version: Not Applicable
+        - Current Configuration: Not Applicable

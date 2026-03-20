@@ -1,0 +1,80 @@
+file_name: ISRU_002.mdzip
+title: Lunar Base – ISRU Architecture (v002)
+
+model_identity_and_focus:
+  model_identifier: LUNAR-BASE-ISRU-002
+  model_title: "Lunar Base – ISRU (v002)"
+  model_description: "Second iteration of ISRU SysML model; refined interfaces and requirement allocation."
+  model_developer: ["Lunar Base Team"]
+  organization_or_sponsor: ["Academic Research"]
+  model_domain_or_discipline: ["Systems Engineering", "ISRU"]
+  model_subsystem_or_focus_area: ["Regolith Processing", "O2/Volatiles", "Water Handling", "Utilities Interfaces"]
+  associated_mission_program_or_project: ["Lunar surface studies (early phase)"]
+  access_control: "Internal – Research Use"
+  objectives:
+    - "Refine product-rate and utility interface requirements."
+    - "Clarify material/energy flow blocks and exchanges."
+  key_phenomena_represented:
+    - "Regolith-to-product flow concept."
+    - "Power/thermal service dependencies."
+  assumptions_and_simplifications:
+    - "Nominal operations; parameter placeholders."
+
+model_scope_of_content:
+  spatial_domain: "Lunar ISRU facility with habitat tie-ins"
+  temporal_domain: "Early operations window"
+  physical_processes_included: ["Excavation/handling (concept)", "Thermal/electrochemical extraction (concept)"]
+  physical_processes_excluded: ["Detailed chemical kinetics", "Controller dynamics"]
+  system_interfaces_represented: ["ISRU–Power", "ISRU–Thermal", "ISRU–Storage/Distribution"]
+  model_resolution_or_granularity: "Subsystem-level"
+  inputs: ["Regolith feed assumptions", "Utility envelopes"]
+  outputs: ["Refined allocations", "Interface/trace views"]
+  external_couplings: { coupled_models_or_systems: [], coupling_methods: [] }
+  fidelity_level:
+    descriptive_fidelity: "SysML architecture with requirements"
+    computational_fidelity: "None"
+    representation_fidelity: "Traceable requirement artifacts"
+
+model_representation:
+  conceptual_model_representation:
+    - identifier: "SysML ISRU Structure & Requirements"
+      description: "Blocks/IBDs for ISRU process chain and utilities links."
+      representation_method: "SysML (MagicDraw/Cameo)"
+      defining_activity: "Architecture refinement"
+  computational_model_representation:
+    - identifier: "N/A"
+      description: "No solver attached."
+      software_framework_or_language: ["SysML"]
+      verification_approach: ["Cameo checks", "Peer review"]
+  requirements_flat:
+    - "ISRU shall maintain product purity thresholds (TBR)."
+    - "ISRU shall remain within allocated power/thermal budgets (TBR)."
+
+model_utility:
+  lifecycle_processes_supported: ["Concept Development", "Architecture Definition"]
+  model_purposes_supported: ["Communication", "Allocation/trace"]
+  system_lifecycle_span_supported:
+    base_instance:
+      identifier: "Early Design"
+      description: "Supports ISRU planning/trades."
+  decision_support_domain:
+    - identifier: "ISRU capacity/interface planning"
+      description: "Guides utility sizing and storage links."
+  perceived_model_complexity:
+    - stakeholder_type: "Engineer"
+      description: "Moderate."
+
+model_assessment:
+  model_verification: { methods: ["Validation rules", "Peer checks"], tools_used: ["Cameo Systems Modeler"] }
+  model_validation: { validation_data_sources: ["Internal ISRU requirements"], validation_techniques: ["Traceability review"] }
+  model_credibility_assessment: { credibility_criteria: ["Internal checklist"], supporting_evidence: ["Consistent links"] }
+  model_uncertainty_assessment: { uncertainty_sources: ["Feedstock variability"], quantification_approach: "Qualitative", confidence_level: "Medium" }
+
+model_lifecycle_management:
+  development_methodology: ["Iterative refinement"]
+  configuration_control: "Versioned .mdzip"
+  change_tracking: "Manual notes"
+  versioning_and_configuration_management:
+    configuration_management_types: [{ identifier: "File-based versioning", description: "Sequential iterations" }]
+    current_version_and_configuration: [{ identifier: "v002", description: "Interface/allocation refinement" }]
+  archiving_and_preservation: { archive_location: "Project repository", preservation_plan: "Retain milestone versions", access_policy: "Internal" }

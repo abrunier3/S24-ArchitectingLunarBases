@@ -1,0 +1,97 @@
+file_name: Lunar_Base_004.mdzip
+title: Lunar Base – SysML Baseline Architecture (v004)
+
+model_identity_and_focus:
+  model_identifier: LUNAR-BASE-004
+  model_title: "Lunar Base Baseline Model (v004)"
+  model_description: "Fourth iteration of the SysML lunar habitat model; emphasis on clearer interfaces and requirement traces."
+  model_developer: ["Lunar Base Team"]
+  organization_or_sponsor: ["Academic Research"]
+  model_domain_or_discipline: ["Systems Engineering", "Space Habitat Architecture"]
+  model_subsystem_or_focus_area: ["Power", "Thermal", "ECLSS"]
+  associated_mission_program_or_project: ["Lunar surface studies (early phase)"]
+  access_control: "Internal – Research Use"
+  objectives:
+    - "Consolidate requirement hierarchy."
+    - "Strengthen interface definitions."
+  key_phenomena_represented:
+    - "Subsystem service chains."
+    - "Habitat operational needs."
+  assumptions_and_simplifications:
+    - "Nominal operations focus."
+    - "No detailed physics models."
+
+model_scope_of_content:
+  spatial_domain: "Habitat and supporting systems on lunar surface"
+  temporal_domain: "Early mission operational period"
+  physical_processes_included: ["Power delivery concept", "Thermal removal obligations", "Air revitalization needs"]
+  physical_processes_excluded: ["Device-level analysis", "Controller tuning"]
+  system_interfaces_represented: ["Gen–Storage–Distribution", "Thermal interfaces", "ECLSS–Habitat"]
+  model_resolution_or_granularity: "Subsystem requirements/blocks"
+  inputs: ["Load/insolation envelopes", "Preliminary budgets"]
+  outputs: ["Allocation tables", "Trace views"]
+  external_couplings: { coupled_models_or_systems: [], coupling_methods: [] }
+  fidelity_level:
+    descriptive_fidelity: "Logical/structural SysML views with requirements"
+    computational_fidelity: "None"
+    representation_fidelity: "Traceable requirement artifacts"
+
+model_representation:
+  conceptual_model_representation:
+    - identifier: "SysML Structural & Requirement Model"
+      description: "BDDs/IBDs + requirement links for key subsystems."
+      representation_method: "SysML (MagicDraw/Cameo)"
+      defining_activity: "Architecture iteration"
+  computational_model_representation:
+    - identifier: "N/A"
+      description: "Descriptive; no execution."
+      software_framework_or_language: ["SysML"]
+      verification_approach: ["Cameo validator", "Peer review"]
+  requirements_flat:
+    - "Support continuous power to designated loads (TBR)."
+    - "Maintain equipment/habitat thermal limits (TBR)."
+
+model_utility:
+  lifecycle_processes_supported: ["Concept Development", "Requirements Definition", "Architecture Definition"]
+  model_purposes_supported: ["Architecture communication", "Allocation/trace"]
+  system_lifecycle_span_supported:
+    base_instance:
+      identifier: "Early Design"
+      description: "Supports early trades and planning."
+  decision_support_domain:
+    - identifier: "Architecture planning"
+      description: "Guides capacity/interface decisions."
+  perceived_model_complexity:
+    - stakeholder_type: "Engineer"
+      description: "Moderate; SysML experience recommended."
+
+model_assessment:
+  model_verification:
+    methods: ["Validation rules", "Peer checks"]
+    tools_used: ["Cameo Systems Modeler"]
+  model_validation:
+    validation_data_sources: ["Internal requirement set"]
+    validation_techniques: ["Traceability checks"]
+  model_credibility_assessment:
+    credibility_criteria: ["Internal review"]
+    supporting_evidence: ["Consistent structure/links"]
+  model_uncertainty_assessment:
+    uncertainty_sources: ["Evolving assumptions"]
+    quantification_approach: "Qualitative"
+    confidence_level: "Medium"
+
+model_lifecycle_management:
+  development_methodology: ["Iterative SysML refinement"]
+  configuration_control: "Version-controlled .mdzip"
+  change_tracking: "Manual notes"
+  versioning_and_configuration_management:
+    configuration_management_types:
+      - identifier: "File-based versioning"
+        description: "Sequential iterations"
+    current_version_and_configuration:
+      - identifier: "v004"
+        description: "Interface/trace consolidation"
+  archiving_and_preservation:
+    archive_location: "Project repository"
+    preservation_plan: "Tag milestone versions"
+    access_policy: "Internal"

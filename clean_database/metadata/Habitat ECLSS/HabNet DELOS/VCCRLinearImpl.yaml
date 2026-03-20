@@ -1,0 +1,106 @@
+file_name: VCCRLinearImpl.m
+file_path: C:\Users\Shalva Begiashvili\OneDrive - Georgia Institute of Technology\Grad
+  School\2025 Fall\AE 8900\digitalCuration\data\Habitat ECLSS\HabNet DELOS\VCCRLinearImpl.m
+rel_path: data\Habitat ECLSS\HabNet DELOS\VCCRLinearImpl.m
+title: VCCRLinearImpl
+identity_and_focus:
+  identity_and_focus:
+    Model Identity:
+      ES Model Identity:
+        Base Instance:
+          Access Control: Public
+          Identifier: VCCRLinearImpl
+          Description: Simplified linear implementation of the Variable Configuration
+            CO2 Removal (VCCR) system, representing a 4BMS with a CO2 store.
+          Defining Activity: Class definition and constructor initialization
+    Model Purpose:
+      ES Model Purpose:
+        Base Instance:
+          Access Control: Public
+          Identifier: VCCRLinearImplPurpose
+          Description: "Provides a linear model for simulating CO\u2082 removal efficiency\
+            \ in a VCCR system."
+          Defining Activity: Method implementation of tick()
+          Purpose Type:
+          - Simulation Method Development
+    Modeled System of Interest:
+      System of Interest:
+        Each Modeled System of Interest:
+          Access Control: Public
+          Identifier: VariableConfigurationCO2RemovalSystem
+          Description: "A variable configuration CO\u2082 removal system (VCCR) that\
+            \ scrubs air and produces CO\u2082, consuming power."
+          Defining Activity: Class methods and resource definitions
+    Modeled Environmental Domains:
+      Modeled Domains:
+        Each Modeled Domain:
+          Access Control: Public
+          Identifier: CO2RemovalDomain
+          Description: "The domain of atmospheric CO\u2082 removal via scrubbing processes."
+          Defining Activity: Resource consumption and production within the VCCR system
+          Type: Use
+          Classification: Nominal
+    Modeled Scenario:
+      Modeled Scenarios:
+        Each Modeled Scenario:
+          Access Control: Public
+          Identifier: LinearVCCRScenario
+          Description: "Simulation scenario using a linear power-to-CO\u2082 removal\
+            \ relationship."
+          Defining Activity: Execution of tick() method over simulation ticks
+          Model Objectives:
+          - "Evaluate CO\u2082 removal efficiency under varying power inputs"
+scope_of_content: {}
+representation: {}
+utility:
+  Model Utility:
+  - Model Usage:
+    - Lifecycle Processes Supported:
+      - Each Lifecycle Process Supported:
+        - Access Control: Public
+        - Identifier: VCCRLinearImpl
+        - Description: "Simplified linear implementation of a Variable Configuration\
+            \ CO\u2082 Removal (VCCR) system."
+        - Defining Activity: Simulation tick method
+        - Reference process list: Not Applicable
+    - Model Purposes Supported:
+      - Each Model Purpose:
+        - Access Control: Public
+        - Identifier: CO2RemovalSimulation
+        - Description: "Simulate CO\u2082 removal efficiency and power consumption\
+            \ of a 4BMS VCCR system."
+        - Defining Activity: tick method
+        - Reference list of purposes: Not Applicable
+    - System Lifecycle Span Supported:
+      - Base Instance:
+        - Access Control: Public
+        - Identifier: VCCRLinearImplInstance
+        - Description: Runtime instance created by the constructor during simulation.
+        - Defining Activity: Constructor
+    - Decision Support Domain:
+      - Each Decision Support Domain Method:
+        - Access Control: Public
+        - Identifier: PowerConsumptionAnalysis
+        - Description: "Evaluate power usage per CO\u2082 removal rate in a linear\
+            \ VCCR model."
+        - Defining Activity: tick method
+        - Decision Support Domain Assessment Method/Reference: Not Applicable
+        - Characterization of the Domain of Appropriateness:
+          - Other: Simulation of linear VCCR behavior for engineering analysis
+    - Perceived Model Complexity:
+      - Each Applicable Stakeholder Type:
+        - Access Control: Public
+        - Identifier: Developer
+        - Description: Software engineer implementing and maintaining the simulation
+            code.
+        - Defining Activity: Code review and modification
+assessment:
+  Model Assessment:
+  - Code Verification Assessment:
+    - Code Assumptions & Limitations:
+      - Each Assumption or Limitation:
+        - Access Control: Public
+        - Identifier: CO2RemovalEfficiencyAssumption
+        - Description: "Assumes 100% CO\u2082 removal efficiency."
+        - Defining Activity: Model definition
+lifecycle_management: {}

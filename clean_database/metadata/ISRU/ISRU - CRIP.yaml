@@ -1,0 +1,78 @@
+file_name: "ISRU - CRIP.mdzip"
+title: Lunar Base – ISRU Variant (CRIP)
+
+model_identity_and_focus:
+  model_identifier: LUNAR-BASE-ISRU-CRIP
+  model_title: "ISRU Variant – CRIP"
+  model_description: "SysML architecture variant for ISRU emphasizing CRIP concept (cryogenic/thermal-heavy processing focus)."
+  model_developer: ["Lunar Base Team"]
+  organization_or_sponsor: ["Academic Research"]
+  model_domain_or_discipline: ["Systems Engineering", "ISRU"]
+  model_subsystem_or_focus_area: ["Cryogenic/thermal processing variant", "Utilities-heavy interfaces"]
+  associated_mission_program_or_project: ["Lunar surface studies (variant exploration)"]
+  access_control: "Internal – Research Use"
+  objectives:
+    - "Capture ISRU variant structure and interfaces under CRIP concept."
+    - "Preserve allocation/trace consistency with baseline."
+  key_phenomena_represented:
+    - "Variant material/thermal flows and utilities dependencies."
+  assumptions_and_simplifications:
+    - "Nominal ops; variant parameters conceptual."
+
+model_scope_of_content:
+  spatial_domain: "ISRU facility variant"
+  temporal_domain: "Early ops"
+  physical_processes_included: ["Cryogenic/thermal processing (concept)", "Conditioning/transfer (concept)"]
+  physical_processes_excluded: ["Detailed cryo/thermal physics"]
+  system_interfaces_represented: ["Power", "Thermal", "Storage/Distribution", "Habitat Ops"]
+  model_resolution_or_granularity: "Subsystem-level variant"
+  inputs: ["Variant utility envelopes", "Feed assumptions"]
+  outputs: ["Variant allocation/trace views"]
+  external_couplings: { coupled_models_or_systems: [], coupling_methods: [] }
+  fidelity_level:
+    descriptive_fidelity: "SysML variant with requirements"
+    computational_fidelity: "None"
+    representation_fidelity: "Traceable variant artifacts"
+
+model_representation:
+  conceptual_model_representation:
+    - identifier: "SysML ISRU Variant (CRIP)"
+      description: "Variant BDD/IBD with requirement links under CRIP assumptions."
+      representation_method: "SysML (MagicDraw/Cameo)"
+      defining_activity: "Variant modeling"
+  computational_model_representation:
+    - identifier: "N/A"
+      description: "Descriptive variant."
+      software_framework_or_language: ["SysML"]
+      verification_approach: ["Cameo checks", "Peer review"]
+  requirements_flat:
+    - "Variant shall maintain target product rate/purity within CRIP utility envelopes (TBR)."
+
+model_utility:
+  lifecycle_processes_supported: ["Concept Development", "Variant Assessment"]
+  model_purposes_supported: ["Comparative analysis", "Allocation/trace"]
+  system_lifecycle_span_supported:
+    base_instance:
+      identifier: "Early Design"
+      description: "Supports CRIP trade exploration."
+  decision_support_domain:
+    - identifier: "Variant trades"
+      description: "Compare with baseline ISRU architecture."
+  perceived_model_complexity:
+    - stakeholder_type: "Engineer"
+      description: "Moderate."
+
+model_assessment:
+  model_verification: { methods: ["Validation rules", "Peer checks"], tools_used: ["Cameo Systems Modeler"] }
+  model_validation: { validation_data_sources: ["Baseline ISRU requirements"], validation_techniques: ["Trace comparison vs. baseline"] }
+  model_credibility_assessment: { credibility_criteria: ["Internal review"], supporting_evidence: ["Consistent variant links"] }
+  model_uncertainty_assessment: { uncertainty_sources: ["Variant parameter uncertainty"], quantification_approach: "Qualitative", confidence_level: "Medium" }
+
+model_lifecycle_management:
+  development_methodology: ["Variant-focused SysML refinement"]
+  configuration_control: "Versioned .mdzip"
+  change_tracking: "Manual notes"
+  versioning_and_configuration_management:
+    configuration_management_types: [{ identifier: "File-based versioning", description: "Variant iterations" }]
+    current_version_and_configuration: [{ identifier: "CRIP", description: "ISRU CRIP variant package" }]
+  archiving_and_preservation: { archive_location: "Project repository", preservation_plan: "Retain baseline + variant", access_policy: "Internal" }

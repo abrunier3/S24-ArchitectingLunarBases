@@ -1,0 +1,104 @@
+file_name: Lunar_Base_001.mdzip
+title: Lunar Base – SysML Baseline Architecture (v001)
+
+model_identity_and_focus:
+  model_identifier: LUNAR-BASE-001
+  model_title: "Lunar Base Baseline Model (v001)"
+  model_description: "Initial SysML model defining the foundational structure of a lunar surface habitat, focusing on interconnections among Power, Thermal, and ECLSS subsystems."
+  model_developer: ["Georgia Tech ASDL", "Lunar Base Team"]
+  organization_or_sponsor: ["NASA", "Georgia Institute of Technology"]
+  model_domain_or_discipline: ["Systems Engineering", "Space Habitat Architecture"]
+  model_subsystem_or_focus_area: ["Power", "Thermal", "ECLSS"]
+  associated_mission_program_or_project: ["Pioneer / DELOS Lunar Architecture Initiative"]
+  access_control: "Internal – Research Use"
+  objectives:
+    - "Define high-level system architecture for the Lunar Base habitat."
+    - "Establish initial requirement allocation across subsystems."
+  key_phenomena_represented:
+    - "Resource generation and recycling loops."
+    - "Thermal control under lunar diurnal cycles."
+    - "Habitat power regulation."
+  assumptions_and_simplifications:
+    - "Nominal operation phase; emergency modes not modeled."
+    - "Steady-state energy balance assumed for initial architecture."
+
+model_scope_of_content:
+  spatial_domain: "Lunar surface – near-equatorial site."
+  temporal_domain: "Mission duration: 30 sol base operations."
+  physical_processes_included: ["Power generation", "Heat rejection", "Air revitalization"]
+  physical_processes_excluded: ["Detailed crew metabolic modeling"]
+  system_interfaces_represented: ["Power–Thermal", "ECLSS–Structure", "Command–Data Handling"]
+  model_resolution_or_granularity: "Subsystem-level parametric definition"
+  inputs:
+    - "Solar insolation profiles"
+    - "Subsystem power loads"
+  outputs:
+    - "Mass and power budgets"
+    - "Subsystem interdependency matrix"
+  external_couplings:
+    coupled_models_or_systems: ["ISRU Power Model (future link)"]
+    coupling_methods: ["Manual parameter linkage"]
+  fidelity_level:
+    descriptive_fidelity: "SysML logical and physical blocks"
+    computational_fidelity: "Conceptual-level parameter linking"
+    representation_fidelity: "Requirement and parametric traceability only"
+
+model_representation:
+  conceptual_model_representation:
+    - identifier: "SysML Structural & Requirement Model"
+      description: "Block, Internal Block, and Requirement Diagrams linking Power, Thermal, and ECLSS systems."
+      representation_method: "SysML (MagicDraw)"
+      defining_activity: "Baseline architecture definition"
+  computational_model_representation:
+    - identifier: "N/A"
+      description: "No executable simulation yet – architecture descriptive only."
+      software_framework_or_language: ["SysML"]
+      verification_approach: ["Model validation via Cameo Consistency Checker"]
+  requirements_flat:
+    - "The system shall provide continuous power availability (TBR)."
+    - "The system shall maintain internal thermal stability (TBR)."
+
+model_utility:
+  lifecycle_processes_supported: ["Concept Development", "Requirements Definition"]
+  model_purposes_supported: ["Architecture Communication", "Subsystem Allocation"]
+  system_lifecycle_span_supported:
+    base_instance:
+      identifier: "Early Concept Phase"
+      description: "Supports early architecture and trade studies."
+  decision_support_domain:
+    - identifier: "Habitat design planning"
+      description: "Provides architecture traceability for system-of-systems studies."
+  perceived_model_complexity:
+    - stakeholder_type: "Engineer"
+      description: "Moderate – requires SysML familiarity."
+
+model_assessment:
+  model_verification:
+    methods: ["MagicDraw model validation", "Peer review"]
+    tools_used: ["Cameo Systems Modeler"]
+  model_validation:
+    validation_data_sources: ["NASA Lunar Architecture Requirements Document"]
+    validation_techniques: ["Traceability matrix verification"]
+  model_credibility_assessment:
+    credibility_criteria: ["Internal review by ASDL"]
+    supporting_evidence: ["Subsystem diagram consistency check"]
+  model_uncertainty_assessment:
+    uncertainty_sources: ["Incomplete requirement set"]
+    quantification_approach: "Qualitative assessment"
+    confidence_level: "Medium"
+
+model_lifecycle_management:
+  development_methodology: ["Iterative SysML architecture refinement"]
+  configuration_control: "Version-controlled in SharePoint repository"
+  change_tracking: "Manual revision logs"
+  versioning_and_configuration_management:
+    configuration_management_types:
+      - identifier: "Internal academic versioning"
+        description: "Each .mdzip increment represents iterative model expansion."
+    current_version_and_configuration:
+      - identifier: "v001"
+        description: "Baseline structure completed"
+  archiving_and_preservation:
+    archive_location: "ASDL SharePoint – Lunar Base Models"
+    preservation_plan: "Retain baseline and final SysML models"
+    access_policy: "Internal use only"

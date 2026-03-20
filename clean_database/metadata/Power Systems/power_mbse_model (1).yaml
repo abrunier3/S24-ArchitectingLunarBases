@@ -1,0 +1,187 @@
+file_name: power_mbse_model (1).mdzip
+file_path: C:\...\digitalCuration\data\Power Systems\power_mbse_model (1).mdzip
+rel_path: data\Power Systems\power_mbse_model (1).mdzip
+title: Lunar Power Subsystem – MBSE Model (Variant)
+
+model_identity_and_focus:
+  Model Identity and Focus:
+  - Model Identity:
+    - Model Identifier: LPS-MBSE-Var
+    - Model Title: Lunar Power Subsystem – MBSE (Variant)
+    - Model Description: >
+      Variant SysML/Cameo project of the lunar power subsystem. Captures the same
+      capability areas (generation, storage, distribution, conditioning/management)
+      with potential differences in structure, allocations, or requirement wording.
+    - Model Developer: []
+    - Organization / Sponsor: []
+    - Model Domain or Discipline:
+      - Systems Engineering
+      - Electrical Power Systems
+    - Model Subsystem or Focus Area:
+      - Power Generation
+      - Energy Storage
+      - Power Distribution
+      - Power Conditioning & Management
+    - Associated Mission, Program, or Project:
+      - Lunar Surface Missions (initial phases)
+    - Access Control: Public
+  - Model Objectives and Questions:
+    - Objective Statements:
+      - Provide an alternative/updated allocation of power subsystem responsibilities.
+      - Maintain traceable requirements to support architecture decisions and verification.
+    - Primary Model Questions:
+      - What differences (if any) exist vs. the baseline subsystem structure or targets?
+      - How do those affect sizing, mass, and interface constraints?
+
+model_scope_of_content:
+  Model Scope of Content:
+  - Model Boundaries:
+    - Spatial Domain: Lunar surface infrastructure
+    - Temporal Domain: Early mission phases; continuous availability
+    - Physical Processes Included:
+      - Generation, storage, distribution, and power conditioning/management requirements
+    - Physical Processes Excluded:
+      - Detailed physics models and closed-loop controls (requirements-level only)
+    - System Interfaces Represented:
+      - Subsystem interfaces across the power chain and to loads
+    - Model Resolution or Granularity: Requirements and allocation
+  - Inputs and Outputs:
+    - Input Variables:
+      - Mission load assumptions, environment context, mass/interface constraints
+    - Output Variables:
+      - Allocated requirements, sizing/throughput targets, interface requirements
+    - Input Sources or Datasets: []
+    - Output Targets or Consumers: [Systems & Power engineering, Architecture/Verification]
+  - External Couplings: { Coupled Models or Systems: [], Coupling Methods: [] }
+  - Model Fidelity Level:
+    - Descriptive Fidelity: Requirements-level with allocation
+    - Computational Fidelity: Not applicable
+    - Representation Fidelity: SysML requirements and structure
+
+model_representation:
+  Model Representation:
+  - Conceptual Model Representation:
+    - Conceptual Model Representation Types:
+      - Each Conceptual Model:
+        - Identifier: SysML-Requirements-and-Structure-Variant
+        - Description: >
+          Variant MagicDraw/Cameo packages with requirements and allocations across
+          the power chain; used to compare architecture options or updated targets.
+        - Access Control: Public
+        - Defining Activity: Requirements engineering & allocation
+        - Representation Method: SysML (requirements, packages, allocations)
+        - Governing Equations / Logic: []
+        - Boundary / Initial Conditions: []
+  - Computational Model Representation:
+    - Computational Implementation:
+      - Software Framework / Language: [SysML (MagicDraw / Cameo)]
+      - Solver or Algorithm Type: []
+      - Mesh or Grid Definition: ""
+      - Time-stepping Method: ""
+      - Numerical Parameters: []
+    - Verification Approach:
+      - Unit Testing: []
+      - Code Review: []
+      - Analytical Comparison: []
+  - Requirements (Flat, paraphrased):
+    - System/Subsystem Focus:
+      - Provide adequate generation for early missions under variant assumptions.
+      - Distribute power to mission loads through a managed distribution subsystem.
+      - Include storage sized to mission profile and thermal constraints.
+      - Condition/manage delivered power characteristics as required by loads.
+      - Address thermal removal obligations for power components.
+    - Power Generation specifics:
+      - Photovoltaic-based generation for initial capability.
+      - Order-of-magnitude capacity target ~90 kW (subject to variant trade space).
+      - Emphasis on minimizing mass vs. performance trade.
+      - Ensure electrical interface into the conditioning/management chain.
+
+model_utility:
+  Model Utility:
+  - Model Usage:
+    - Lifecycle Processes Supported:
+      - Each Lifecycle Process Supported:
+        - Identifier: Requirements Definition & Management
+        - Description: Maintain variant requirement sets for comparison.
+        - Defining Activity: Author, review, change control of variant model.
+        - Reference process list: [ISO/IEC/IEEE 15288]
+      - Each Lifecycle Process Supported:
+        - Identifier: Architecture Definition
+        - Description: Compare alternative allocations/targets vs. baseline.
+        - Defining Activity: Allocation to blocks and interfaces.
+        - Reference process list: [INCOSE SE Handbook]
+      - Each Lifecycle Process Supported:
+        - Identifier: Verification Planning
+        - Description: Adjust verification strategies to variant requirement content.
+        - Defining Activity: Define methods and criteria.
+        - Reference process list: []
+    - Model Purposes Supported:
+      - Each Model Purpose:
+        - Identifier: Variant Assessment
+        - Description: Evaluate architecture options using updated allocations/targets.
+        - Defining Activity: Requirements decomposition & comparison.
+      - Each Model Purpose:
+        - Identifier: Early Sizing Targets
+        - Description: Establish/compare capacity targets under variant assumptions.
+        - Defining Activity: Requirements authoring & review.
+    - System Lifecycle Span Supported:
+      - Base Instance:
+        - Identifier: Concept & Early Design
+        - Description: Supports concept studies and early architecture convergence.
+        - Defining Activity: Requirements capture and allocation.
+    - Decision Support Domain:
+      - Each Decision Support Domain Method:
+        - Identifier: Architecture & Trade Study Support (Variant)
+        - Description: Assess differences vs. baseline across capacity/mass/interfaces.
+        - Defining Activity: Compare variant/baseline impacts.
+        - Decision Support Domain Assessment Method/Reference: []
+        - Characterization of the Domain of Appropriateness:
+          - Suitable for early-stage engineering decisions.
+    - Perceived Model Complexity:
+      - Each Applicable Stakeholder Type:
+        - Identifier: Systems & Power Engineers
+        - Description: Moderate complexity; oriented to variant comparison.
+        - Defining Activity: Author, allocate, trace, and compare requirements.
+
+model_assessment:
+  Model Assessment:
+  - Model Verification: { Methods: [], Tools Used: [], Results Summary: "" }
+  - Model Validation:
+      Validation Data Sources: []
+      Validation Techniques: []
+      Comparison Metrics: []
+      Validation Results Summary: ""
+  - Model Credibility Assessment:
+      Credibility Criteria: []
+      Supporting Evidence: []
+      Peer Review Status: ""
+  - Model Uncertainty Assessment:
+      Uncertainty Sources: []
+      Quantification Approach: []
+      Confidence Level: ""
+
+model_lifecycle_management:
+  Model Lifecycle Management:
+  - Model Development and Maintenance:
+      Development Methodology: [Requirements Engineering (SysML)]
+      Configuration Control: MagicDraw project (.mdzip)
+      Change Tracking: Requirement reviews and diagram updates
+  - Model Versioning and Configuration Management:
+      Configuration Management Types:
+        - Each type of Version and Configuration Management:
+            Identifier: File-based Versioning
+            Description: Managed as .mdzip with periodic snapshots
+            Defining Activity: Save/commit with review checkpoints
+            Impacted Stakeholder Types: [Systems Engineering, Power Subsystem Engineering]
+            Impacted User Groups: [Engineering Teams]
+      Current Version and Configuration:
+        - Each Deployment Method:
+            Identifier: Local Workspace
+            Description: Developer-local .mdzip under project directory
+            Defining Activity: Manual versioning or external VCS integration
+            Current Version: ""
+            Current Configuration: ""
+  - Model Archiving and Preservation:
+      Archive Location: Project repository / OneDrive path
+      Preservation Plan: Retain tagged snapshots at major reviews
+      Access Policy: Project team access

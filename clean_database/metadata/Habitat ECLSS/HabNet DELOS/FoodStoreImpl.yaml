@@ -1,0 +1,114 @@
+file_name: FoodStoreImpl.m
+file_path: C:\Users\Shalva Begiashvili\OneDrive - Georgia Institute of Technology\Grad
+  School\2025 Fall\AE 8900\digitalCuration\data\Habitat ECLSS\HabNet DELOS\FoodStoreImpl.m
+rel_path: data\Habitat ECLSS\HabNet DELOS\FoodStoreImpl.m
+title: FoodStoreImpl
+identity_and_focus:
+  Model Identity and Focus:
+  - Model Identity:
+    - ES Model Identity:
+      - Base Instance:
+        - Access Control: Public
+        - Identifier: FoodStoreImpl
+        - Description: MATLAB class implementing a food storage system for simulation.
+        - Defining Activity: Manage food items, track calories, capacity, resupply.
+  - Model Purpose:
+    - ES Model Purpose:
+      - Base Instance:
+        - Access Control: Public
+        - Identifier: FoodStorageSimulation
+        - Description: Simulates storage and resupply of food items in a virtual environment.
+        - Defining Activity: Provide methods to add food, track levels, handle overflow.
+        - Purpose Type:
+          - Simulation Method Development
+  - Modeled System of Interest:
+    - System of Interest:
+      - Each Modeled System of Interest:
+        - Access Control: Public
+        - Identifier: FoodStorageSystem
+        - Description: The system that stores food items and manages their quantities.
+        - Defining Activity: Storage, resupply, overflow handling.
+  - Modeled Environmental Domains:
+    - Modeled Domains:
+      - Each Modeled Domain:
+        - Access Control: Public
+        - Identifier: FoodSupplyDomain
+        - Description: Domain concerning the supply and management of food resources
+            within a simulation.
+        - Defining Activity: Resupply frequency, amount, overflow.
+        - Type: Use
+        - Classification: Nominal
+  - Modeled Scenario:
+    - Modeled Scenarios:
+      - Each Modeled Scenario:
+        - Access Control: Public
+        - Identifier: FoodResupplyScenario
+        - Description: Scenario where food items are added and resupplied over time.
+        - Defining Activity: Adding food, tracking calories, handling overflow.
+scope_of_content: {}
+representation:
+  representation:
+    Model Representation:
+    - Conceptual Model Representation:
+      - Conceptual Model Representation Types:
+        - Each Conceptual Model:
+          - Identifier: FoodStoreImpl
+          - Description: MATLAB class representing a food storage system with capacity,
+              contents, and methods to manage inventory and caloric content.
+          - Defining Activity: Managing food inventory and caloric content.
+          - Simulation Methods:
+            - Deterministic
+          - Simulation Controls: Not Applicable
+          - Coupling Modes: Not Applicable
+          - Communication Mode: Not Applicable
+utility:
+  Model Utility:
+  - Model Usage:
+    - Lifecycle Processes Supported:
+      - Each Lifecycle Process Supported:
+        - Access Control
+        - Identifier
+        - Description
+        - Defining Activity
+        - Reference process list:
+          - Not Applicable
+assessment:
+  assessment:
+    Model Assessment:
+    - Model Qualification Assessment:
+      - Conceptual Model Assessment Characterization:
+        - Each Conceptual Model Assessment Method:
+          - Access Control: Public
+          - Identifier: FoodStoreImpl
+          - Description: Class that manages a collection of food items and tracks
+              capacity, level, calories, and overflow.
+          - Defining Activity: Initialization of the food store with optional initial
+              capacity and food items.
+          - Assessment criteria:
+            - Correct initialization of properties
+            - Proper validation of input types
+          - Criteria characterizations:
+            - Validated against expected behavior for empty and populated stores
+          - Conceptual Model Assessment characterization summary: Initial validation
+              passed
+      - Conceptual Model Application Envelope:
+        - Each Operating Condition Parameter:
+          - Access Control: Public
+          - Identifier: currentCapacity
+          - Description: Maximum capacity of the food store in mass units.
+          - Defining Activity: Set during construction via constructor argument.
+          - Valid Value Range: Non-negative integer or real number
+          - Current Value: Other (depends on constructor input)
+          - Validity Status: Valid
+    - Code Verification Assessment:
+      - Code Assumptions & Limitations:
+        - Each Assumption or Limitation:
+          - Access Control: Public
+          - Identifier: initialfoodItems type check
+          - Description: The constructor expects the second argument to be of class
+              'FoodMatter'.
+          - Defining Activity: Runtime error thrown if condition not met.
+      - Code Verification Assessment Characterization:
+        - Each Code Verification Assessment Method:
+          - Access Control: Public
+lifecycle_management: {}

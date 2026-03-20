@@ -1,0 +1,111 @@
+file_name: Transportation Syst - Paul version.mdzip
+title: Transportation System – SysML Model (Paul Version)
+
+model_identity_and_focus:
+  model_identifier: TRANSPORT-SYS-PAUL
+  model_title: "Transportation System – SysML Architecture Model"
+  model_description: "MagicDraw/Cameo model describing transportation system architecture and subsystems under Paul’s version."
+  model_developer: ["Paul <TBD>", "Georgia Tech ASDL"]
+  organization_or_sponsor: ["Georgia Institute of Technology", "ASDL"]
+  model_domain_or_discipline: ["Systems Engineering", "Transportation Architecture"]
+  model_subsystem_or_focus_area: ["Vehicle Flow", "Power Distribution", "Passenger Interface"]
+  associated_mission_program_or_project: ["Urban Mobility System Study"]
+  access_control: "Internal – Academic"
+  objectives:
+    - "Represent the logical and physical structure of a transportation system."
+    - "Identify interdependencies between vehicle, infrastructure, and control subsystems."
+    - "Support analysis of power, throughput, and system reliability."
+  key_phenomena_represented:
+    - "Vehicle interactions and flow control."
+    - "Energy management and distribution."
+    - "Operational scheduling logic."
+  assumptions_and_simplifications:
+    - "Nominal environmental conditions assumed."
+    - "Simplified subsystem behavior for simulation scalability."
+    - "Non-critical infrastructure omitted (e.g., ticketing)."
+
+model_scope_of_content:
+  spatial_domain: "Urban transit network"
+  temporal_domain: "Operational day cycle"
+  physical_processes_included: ["Vehicle motion", "Energy transfer", "Passenger flow"]
+  physical_processes_excluded: ["Detailed mechanical degradation", "Weather effects"]
+  system_interfaces_represented: ["Vehicle–Infrastructure", "Power–Control", "Operator–System"]
+  model_resolution_or_granularity: "System and subsystem-level"
+  inputs:
+    - "Demand forecasts"
+    - "Vehicle availability"
+    - "Power supply data"
+  outputs:
+    - "System load balance"
+    - "Energy demand profile"
+    - "Operational throughput metrics"
+  external_couplings:
+    coupled_models_or_systems: ["Urban grid simulation (future link)", "Energy demand forecast model"]
+    coupling_methods: ["Parameter exchange via CSV/XMI", "Manual dependency mapping"]
+  fidelity_level:
+    descriptive_fidelity: "SysML parametric and block definition"
+    computational_fidelity: "None (descriptive-only)"
+    representation_fidelity: "Requirements and structure-level model"
+
+model_representation:
+  conceptual_model_representation:
+    - identifier: "SysML Structural Model"
+      description: "BLock Definition, Internal Block, and Activity Diagrams describe system topology and logical behavior."
+      representation_method: "SysML (MagicDraw)"
+      defining_activity: "System architecture modeling"
+  computational_model_representation:
+    - identifier: "None (descriptive-only)"
+      description: "No numerical solver or executable model implemented."
+      software_framework_or_language: "SysML"
+      verification_approach: "Model review and consistency checks"
+  requirements_flat:
+    - "System shall maintain operational throughput under peak load conditions (TBR)."
+    - "Subsystems shall be interoperable within unified control logic (TBR)."
+    - "Model shall provide logical traceability from requirements to subsystems."
+
+model_utility:
+  lifecycle_processes_supported: ["Concept development", "Requirements analysis", "Architecture definition"]
+  model_purposes_supported: ["Architecture communication", "Subsystem dependency mapping", "Preliminary design validation"]
+  system_lifecycle_span_supported:
+    base_instance:
+      identifier: "Early design and conceptual analysis phase"
+      description: "Supports early evaluation of system performance and design tradeoffs."
+  decision_support_domain:
+    - identifier: "Infrastructure planning"
+      description: "Assesses transportation layout and subsystem coordination impacts."
+  perceived_model_complexity:
+    - stakeholder_type: "Engineer"
+      description: "Moderate – requires SysML proficiency."
+    - stakeholder_type: "Project Manager"
+      description: "Low – relies on summarized visual outputs."
+
+model_assessment:
+  model_verification:
+    methods: ["Manual SysML diagram verification", "Consistency checks via Cameo Validation"]
+    tools_used: ["MagicDraw/Cameo"]
+  model_validation:
+    validation_data_sources: ["Design requirements document", "Stakeholder interviews"]
+    validation_techniques: ["Requirements traceability matrix review"]
+  model_credibility_assessment:
+    credibility_criteria: ["Internal peer review"]
+    supporting_evidence: ["SysML review checklist"]
+  model_uncertainty_assessment:
+    uncertainty_sources: ["Incomplete operational data", "Simplified subsystem logic"]
+    quantification_approach: "Qualitative review"
+    confidence_level: "Medium"
+
+model_lifecycle_management:
+  development_methodology: ["Iterative SysML architecture refinement"]
+  configuration_control: "Versioned .mdzip under internal SharePoint repository"
+  change_tracking: "Manual revision log"
+  versioning_and_configuration_management:
+    configuration_management_types:
+      - identifier: "Internal version control"
+        description: "Incremental versioning by model developer (Paul)"
+    current_version_and_configuration:
+      - identifier: "v2025.01"
+        description: "Initial academic release version"
+  archiving_and_preservation:
+    archive_location: "ASDL internal repository"
+    preservation_plan: "Retain final .mdzip and exported diagrams for educational use"
+    access_policy: "Controlled academic access"

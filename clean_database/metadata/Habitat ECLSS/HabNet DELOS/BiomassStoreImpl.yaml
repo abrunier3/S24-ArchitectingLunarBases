@@ -1,0 +1,168 @@
+file_name: BiomassStoreImpl.m
+file_path: C:\Users\Shalva Begiashvili\OneDrive - Georgia Institute of Technology\Grad
+  School\2025 Fall\AE 8900\digitalCuration\data\Habitat ECLSS\HabNet DELOS\BiomassStoreImpl.m
+rel_path: data\Habitat ECLSS\HabNet DELOS\BiomassStoreImpl.m
+title: BiomassStoreImpl
+identity_and_focus:
+  identity_and_focus:
+    Model Identity:
+      ES Model Identity:
+        Base Instance:
+          Identifier: BiomassStoreImpl
+          Description: 'Class representing a biomass store that holds the output of
+            the Biomass Production system before sending it to a food processor for
+            conversion into edible food.
+
+            '
+    Model Purpose:
+      ES Model Purpose:
+        Base Instance:
+          Identifier: BiomassStoreImplementation
+          Description: 'Implementation of a biomass storage component within a simulation
+            framework, managing capacity and inventory of BioMatter objects.
+
+            '
+          Purpose Type:
+          - Developmental
+          - Simulation Method Development
+    Modeled System of Interest:
+      System of Interest:
+        Each Modeled System of Interest:
+          Identifier: BiomassStore
+          Description: The physical or logical storage unit that accumulates biomass
+            produced by the system, tracking current level, capacity, and overflow.
+scope_of_content: {}
+representation:
+  Model Representation:
+  - Conceptual Model Representation:
+    - Conceptual Model Representation Types:
+      - Each Conceptual Model:
+        - Identifier: BiomassStoreImpl
+        - Description: MATLAB class representing a biomass store that holds the output
+            of the Biomass Production system before conversion into edible food.
+        - Defining Activity: Store and manage biomass inventory, track current level,
+            capacity, overflow, and resupply parameters.
+        - Simulation Methods:
+          - Deterministic
+        - Simulation Controls:
+          - Not Applicable
+        - Coupling Modes:
+          - Not Applicable
+        - Communication Mode:
+          - Not Applicable
+        - Physics Domains:
+          - Biological
+utility:
+  Model Utility:
+  - Model Usage:
+    - Lifecycle Processes Supported:
+      - Each Lifecycle Process Supported:
+        - Access Control: Public
+        - Identifier: BiomassStorageProcess
+        - Description: Handles storage of biomass produced by the Biomass Production
+            system before conversion to edible food.
+        - Defining Activity: Store and manage BioMatter objects within capacity limits.
+        - Reference process list: ISO/IEC/IEEE 15288
+    - Model Purposes Supported:
+      - Each Model Purpose:
+        - Access Control: Public
+        - Identifier: BiomassStorePurpose
+        - Description: Provides a repository for biomass to enable subsequent processing
+            into food products.
+        - Defining Activity: Maintain current level, capacity, and overflow status
+            of stored biomass.
+        - Reference list of purposes: Not Applicable
+    - System Lifecycle Span Supported:
+      - Base Instance:
+        - Access Control: Public
+        - Identifier: BiomassStoreLifecycle
+        - Description: Operational phase from creation to disposal of the biomass
+            store component.
+        - Defining Activity: Monitor and update storage metrics during system operation.
+    - Decision Support Domain:
+      - Each Decision Support Domain Method:
+        - Access Control: Public
+        - Identifier: ResourcePlanningMethod
+        - Description: Supports decisions on resupply frequency and amount for biomass
+            inventory management.
+        - Defining Activity: Evaluate current level against capacity to trigger resupply
+            actions.
+        - Decision Support Domain Assessment Method/Reference: NASA Standard 7009A
+        - Characterization of the Domain of Appropriateness:
+          - Not Applicable
+    - Perceived Model Complexity:
+      - Each Applicable Stakeholder Type:
+        - Access Control: Public
+        - Identifier: Engineer
+        - Description: Engineers responsible for system integration and maintenance.
+        - Defining Activity: Use model to assess storage capacity and resupply needs.
+assessment:
+  Model Assessment:
+  - Model Qualification Assessment:
+    - Conceptual Model Assessment Characterization:
+      - Each Conceptual Model Assessment Method:
+        - Access Control: Public
+        - Identifier: BiomassStoreImpl
+        - Description: Class representing a biomass store that holds the output of
+            the Biomass Production system before sending it to a food processor for
+            conversion into edible food.
+        - Defining Activity: Stores and manages BioMatter objects, tracks current
+            capacity, level, overflow, and resupply parameters.
+        - Assessment criteria:
+          - Custom: Correctness of state management
+          - Custom: Completeness of property definitions
+        - Criteria characterizations:
+          - Custom: Functional correctness
+          - Custom: Data integrity
+        - Conceptual Model Assessment characterization summary:
+          - Custom: The class provides a well-defined interface for storing biomass
+              with clear capacity and level tracking, but requires validation of input
+              types.
+    - Conceptual Model Application Envelope:
+      - Each Operating Condition Parameter:
+        - Access Control: Public
+        - Identifier: currentCapacity
+        - Description: Maximum mass the store can hold.
+        - Defining Activity: Set during construction; used to limit stored biomass.
+        - Valid Value Range:
+          - Custom: Positive real numbers
+        - Current Value:
+          - Other: Depends on constructor argument 'initialcapacity'
+        - Validity Status: Valid
+  - Code Verification Assessment:
+    - Code Assumptions & Limitations:
+      - Each Assumption or Limitation:
+        - Access Control: Public
+        - Identifier: initialfoodItems type check
+        - Description: Constructor expects 'initialfoodItems' to be of class BioMatter;
+            otherwise raises an error.
+        - Defining Activity: Validation performed in constructor.
+    - Code Verification Assessment Characterization:
+      - Each Code Verification Assessment Method:
+        - Access Control: Public
+lifecycle_management:
+  Model Lifecycle Management:
+  - Model Versioning and Configuration Management:
+    - Configuration Management Types:
+      - Each type of Version and Configuration Management:
+        - Access Control - None
+        - Identifier - BiomassStoreImpl
+        - Description - MATLAB class representing a biomass store that holds the output
+          of the Biomass Production system before conversion into edible food.
+        - Defining Activity - Constructor method initializes capacity and optional
+          initial food items, calculates current level, and issues warnings if capacity
+          is exceeded.
+        - Impacted Stakeholder Types:
+          - ES Model Developer
+        - Impacted User Groups:
+          - None
+    - Current Version and Configuration:
+      - Each Deployment Method:
+        - Access Control - None
+        - Identifier - BiomassStoreImpl
+        - Description - MATLAB class file for biomass storage.
+        - Defining Activity - Class definition and constructor logic.
+        - Current Version - Not Applicable
+        - Current Configuration - Not Applicable
+        - Impacted Stakeholder Types:
+          - ES Model Developer

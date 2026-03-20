@@ -1,0 +1,79 @@
+file_name: ShelfImpl2.m
+file_path: C:\Users\Shalva Begiashvili\OneDrive - Georgia Institute of Technology\Grad
+  School\2025 Fall\AE 8900\digitalCuration\data\Habitat ECLSS\Archive\HabNet DELOS\ShelfImpl2.m
+rel_path: data\Habitat ECLSS\Archive\HabNet DELOS\ShelfImpl2.m
+title: ShelfImpl2
+identity_and_focus: {}
+scope_of_content: {}
+representation: {}
+utility: {}
+assessment:
+  assessment:
+  - Model Qualification Assessment:
+    - Conceptual Model Assessment Characterization:
+      - Each Conceptual Model Assessment Method:
+        - Access Control: Public
+        - Identifier: ShelfImpl2
+        - Description: MATLAB class that combines PlantImpl, ShelfImpl, and BiomassPSImpl
+            BioSim Java class files to manage plant growth on a shelf.
+        - Defining Activity: Static code review of class properties and methods.
+        - Assessment criteria:
+          - Code structure consistency
+          - Property initialization correctness
+        - Criteria characterizations:
+          - Proper default values for numeric properties (e.g., ShelfWaterLevel =
+            0)
+          - Clear separation of plant, shelf, and power consumer definitions
+        - Conceptual Model Assessment characterization summary: Provides a unified
+            interface for managing crop growth parameters and resource consumption
+            on a controlled environment shelf.
+    - Conceptual Model Application Envelope:
+      - Each Operating Condition Parameter:
+        - Access Control: Public
+        - Identifier: CropCycleStartTime
+        - Description: The tick at which the crop cycle begins; initialized to 0.
+        - Defining Activity: Set during class instantiation.
+        - Valid Value Range: Not Applicable
+        - Current Value: 0
+        - Validity Status: Valid
+  - Code Verification Assessment:
+    - Code Assumptions & Limitations:
+      - Each Assumption or Limitation:
+        - Access Control: Public
+        - Identifier: CropStartAssumption
+        - Description: The code assumes the crop is planted at mission start (tick
+            1) and does not handle late planting.
+        - Defining Activity: Implicit in class logic; no explicit handling for delayed
+            planting.
+    - Code Verification Assessment Characterization:
+      - Each Code Verification Assessment Method:
+        - Access Control: Public
+        - Identifier: StaticAnalysis
+        - Description: Review of property initializations and method signatures to
+            ensure consistency with BioSim framework.
+lifecycle_management:
+  lifecycle_management:
+    Model Lifecycle Management:
+    - Model Versioning and Configuration Management:
+      - Each type of Version and Configuration Management:
+        - Access Control: Not Applicable
+        - Identifier: ShelfImpl2
+        - Description: MATLAB class combining PlantImpl, ShelfImpl, and BiomassPSImpl
+            for BioSim.
+        - Defining Activity: Class definition in MATLAB.
+        - Impacted Stakeholder Types:
+          - ES Model Developer
+          - ES Model Operator
+        - Impacted User Groups:
+          - All
+    - Current Version and Configuration:
+      - Each Deployment Method:
+        - Access Control: Not Applicable
+        - Identifier: ShelfImpl2
+        - Description: MATLAB class file.
+        - Defining Activity: Class definition in MATLAB.
+        - Current Version: Not Applicable
+        - Current Configuration: Not Applicable
+        - Impacted Stakeholder Types:
+          - ES Model Developer
+          - ES Model Operator

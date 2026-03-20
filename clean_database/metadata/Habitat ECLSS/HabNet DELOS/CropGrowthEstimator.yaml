@@ -1,0 +1,92 @@
+file_name: CropGrowthEstimator.m
+file_path: C:\Users\Shalva Begiashvili\OneDrive - Georgia Institute of Technology\Grad
+  School\2025 Fall\AE 8900\digitalCuration\data\Habitat ECLSS\HabNet DELOS\CropGrowthEstimator.m
+rel_path: data\Habitat ECLSS\HabNet DELOS\CropGrowthEstimator.m
+title: CropGrowthEstimator
+identity_and_focus: {}
+scope_of_content: {}
+representation: {}
+utility:
+  Model Utility:
+  - Model Usage:
+    - Lifecycle Processes Supported:
+      - Each Lifecycle Process Supported:
+        - Access Control: None
+        - Identifier: GrowthProfileGeneration
+        - Description: Generates a time series of crop growth based on daily cycles.
+        - Defining Activity: MATLAB script computing the profile array from tick indices
+            and growth rates.
+        - Reference process list: Not Applicable
+    - Model Purposes Supported:
+      - Each Model Purpose:
+        - Access Control: None
+        - Identifier: YieldPrediction
+        - Description: Provides a yield trajectory over time for simulation or analysis
+            purposes.
+        - Defining Activity: Calculation of `vals` and assignment to the `profile`
+            vector.
+        - Reference list of purposes: Not Applicable
+    - System Lifecycle Span Supported:
+      - Base Instance:
+        - Access Control: None
+        - Identifier: CropGrowthSimulation
+        - Description: Simulates crop growth over a specified number of timesteps
+            (e.g., 19000).
+        - Defining Activity: Execution of the MATLAB script to produce and plot the
+            profile.
+    - Decision Support Domain:
+      - Each Decision Support Domain Method:
+        - Access Control: None
+        - Identifier: AgriculturalYieldAnalysis
+        - Description: Supports decision making on crop yield timing and growth cycles.
+        - Defining Activity: Visualizing the growth profile with plots for interpretation.
+        - Decision Support Domain Assessment Method/Reference: Not Applicable
+        - Characterization of the Domain of Appropriateness:
+          - Other: "Suitable for small\u2011scale agricultural modeling and educational\
+              \ demonstrations."
+    - Perceived Model Complexity:
+      - Each Applicable Stakeholder Type:
+        - Access Control: None
+        - Identifier: UserLevel
+        - Description: Simple MATLAB script; requires basic scripting knowledge but
+            no advanced expertise.
+assessment:
+  Model Assessment:
+  - Model Qualification Assessment:
+    - Conceptual Model Assessment Characterization:
+      - Each Conceptual Model Assessment Method:
+        - Access Control: Public
+        - Identifier: GrowthProfileGeneration
+        - Description: Generation of crop growth profile over time using discrete
+            yield events.
+        - Defining Activity: MATLAB script computing a profile array based on lettuce
+            yield ticks and growth rate.
+        - Assessment criteria:
+          - Accuracy of growth rate representation
+        - Criteria characterizations:
+          - Consistency with specified growthrate and TimeToCropMaturity
+        - Conceptual Model Assessment characterization summary:
+          - Validated against analytical calculation
+    - Conceptual Model Application Envelope:
+      - Each Operating Condition Parameter:
+        - Access Control: Public
+        - Identifier: timesteps
+        - Description: Total simulation time steps.
+        - Defining Activity: Set to 19000.
+        - Valid Value Range:
+          - Range 1-100000
+        - Current Value:
+          - Other: 19000
+        - Validity Status:
+          - Valid
+  - Code Verification Assessment:
+    - Code Assumptions & Limitations:
+      - Each Assumption or Limitation:
+        - Access Control: Public
+        - Identifier: NoCyclesCalculation
+        - Description: Assumes integer number of cycles fits within timesteps.
+        - Defining Activity: floor division of timesteps by (24*TimeToCropMaturity)
+    - Code Verification Assessment Characterization:
+      - Each Code Verification Assessment Method:
+        - Access Control: Public
+lifecycle_management: {}

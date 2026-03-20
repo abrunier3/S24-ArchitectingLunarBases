@@ -1,0 +1,132 @@
+file_name: CrewScheduler.m
+file_path: C:\Users\Shalva Begiashvili\OneDrive - Georgia Institute of Technology\Grad
+  School\2025 Fall\AE 8900\digitalCuration\data\Habitat ECLSS\Archive\HabNet DELOS\CrewScheduler.m
+rel_path: data\Habitat ECLSS\Archive\HabNet DELOS\CrewScheduler.m
+title: CrewScheduler
+identity_and_focus: {}
+scope_of_content: {}
+representation:
+  representation:
+  - Conceptual Model Representation:
+    - Conceptual Model Representation Types:
+      - Each Conceptual Model:
+        - Access Control: Public
+        - Identifier: CrewScheduler
+        - Description: MATLAB function generating crew and EVA schedules for a Mars
+            mission.
+        - Defining Activity: Scheduling of crew activities and EVAs over mission duration.
+        - Simulation Methods:
+          - Deterministic
+          - Logical
+        - Simulation Controls:
+          - Integration Control: None specified
+        - Coupling Modes: Not Applicable
+        - Communication Mode: Not Applicable
+        - Physics Domains:
+          - Human Factors
+          - Operations
+utility:
+  Model Utility:
+  - Model Usage:
+    - Lifecycle Processes Supported:
+      - Each Lifecycle Process Supported:
+        - Access Control: Public
+        - Identifier: CrewScheduler
+        - Description: Generates weekly crew EVA schedules and assigns EVAs to crew
+            members.
+        - Defining Activity: Schedule generation
+        - Reference process list: Not Applicable
+    - Model Purposes Supported:
+      - Each Model Purpose:
+        - Access Control: Public
+        - Identifier: CrewEVAPlanning
+        - Description: Provides mission EVA scheduling for crew and assigns tasks.
+        - Defining Activity: EVA assignment
+        - Reference list of purposes: Not Applicable
+    - System Lifecycle Span Supported:
+      - Base Instance:
+        - Access Control: Public
+        - Identifier: MissionDuration
+        - Description: Covers entire mission duration in weeks.
+        - Defining Activity: Mission timeline
+    - Decision Support Domain:
+      - Each Decision Support Domain Method:
+        - Access Control: Public
+        - Identifier: SchedulingAlgorithm
+        - Description: Algorithmic decision support for EVA scheduling.
+        - Defining Activity: Optimization of crew workload
+        - Decision Support Domain Assessment Method/Reference: Other "NASA Standard
+            7009A"
+        - Characterization of the Domain of Appropriateness: Other "Applicable to
+            mission planning and crew management"
+    - Perceived Model Complexity:
+      - Each Applicable Stakeholder Type:
+        - Access Control: Public
+        - Identifier: MissionPlanner
+        - Description: Engineers and planners using the schedule.
+        - Defining Activity: Review and adjustment
+assessment:
+  assessment:
+  - Model Qualification Assessment:
+    - Conceptual Model Assessment Characterization:
+      - Each Conceptual Model Assessment Method:
+        - Access Control: Public
+        - Identifier: CrewScheduler Function
+        - Description: MATLAB function that generates crew and EVA schedules for a
+            Mars mission.
+        - Defining Activity: Schedule generation based on input parameters such as
+            number of EVA days per week, number of crew members, mission duration,
+            activity list, and random schedule flag.
+        - Assessment criteria:
+          - Correctness
+        - Criteria characterizations:
+          - Validity of scheduling logic
+        - Conceptual Model Assessment characterization summary: Function implements
+            the specified scheduling algorithm correctly.
+    - Conceptual Model Application Envelope:
+      - Each Operating Condition Parameter:
+        - Access Control: Public
+        - Identifier: numberOfEVAdaysPerWeek
+        - Description: Number of EVA days allocated each week.
+        - Defining Activity: Input parameter for schedule generation.
+        - Valid Value Range: "Integer \u2265 0"
+        - Current Value: Provided by user input
+        - Validity Status: Valid
+  - Code Verification Assessment:
+    - Code Assumptions & Limitations:
+      - Each Assumption or Limitation:
+        - Access Control: Public
+        - Identifier: MATLAB Runtime
+        - Description: Requires a MATLAB environment to execute.
+    - Code Verification Assessment Characterization:
+      - Each Code Verification Assessment Method:
+        - Access Control: Public
+        - Identifier: Unit Tests
+        - Description: Test cases that validate schedule outputs for various input
+            scenarios.
+lifecycle_management:
+  lifecycle_management:
+  - Model Versioning and Configuration Management:
+    - Configuration Management Types:
+      - Each type of Version and Configuration Management:
+        - Access Control: Not Applicable
+        - Identifier: CrewScheduler
+        - Description: MATLAB function for scheduling crew EVAs and daily activities.
+        - Defining Activity: Code development and maintenance by Sydney Do.
+        - Impacted Stakeholder Types:
+          - ES Model Developer
+          - ES Model Operator
+        - Impacted User Groups:
+          - All
+    - Current Version and Configuration:
+      - Each Deployment Method:
+        - Access Control: Not Applicable
+        - Identifier: CrewScheduler
+        - Description: Current deployed version of the scheduling function.
+        - Defining Activity: Version control via Git repository.
+        - Current Version: v1.0
+        - Current Configuration: Default parameters for mission duration and crew
+            size.
+        - Impacted Stakeholder Types:
+          - ES Model Developer
+          - ES Model Operator

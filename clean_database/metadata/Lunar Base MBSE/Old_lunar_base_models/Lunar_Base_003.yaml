@@ -1,0 +1,103 @@
+file_name: Lunar_Base_003.mdzip
+title: Lunar Base – SysML Baseline Architecture (v003)
+
+model_identity_and_focus:
+  model_identifier: LUNAR-BASE-003
+  model_title: "Lunar Base Baseline Model (v003)"
+  model_description: "SysML architecture model for lunar habitat; third iteration emphasizing requirement allocation and interfaces."
+  model_developer: ["Lunar Base Team"]
+  organization_or_sponsor: ["Academic Research"]
+  model_domain_or_discipline: ["Systems Engineering", "Space Habitat Architecture"]
+  model_subsystem_or_focus_area: ["Power", "Thermal", "ECLSS"]
+  associated_mission_program_or_project: ["Lunar surface studies (early phase)"]
+  access_control: "Internal – Research Use"
+  objectives:
+    - "Tighten requirement wording and allocation."
+    - "Clarify subsystem boundaries and exchanges."
+  key_phenomena_represented:
+    - "Power/thermal/air service chains."
+    - "Habitat load interfacing."
+  assumptions_and_simplifications:
+    - "Nominal operation scenarios."
+    - "High-level parametric placeholders; no detailed physics."
+
+model_scope_of_content:
+  spatial_domain: "Lunar habitat system context"
+  temporal_domain: "Early mission duty cycles"
+  physical_processes_included: ["Power distribution concept", "Thermal management objectives", "ECLSS requirements"]
+  physical_processes_excluded: ["Control loop stability analysis"]
+  system_interfaces_represented: ["Generation–Storage–Distribution", "Thermal loops to radiators/heaters", "ECLSS to habitat volume"]
+  model_resolution_or_granularity: "Subsystem-level requirements/blocks"
+  inputs:
+    - "Representative load profiles"
+    - "Environment assumptions"
+  outputs:
+    - "Allocation/trace views"
+    - "Preliminary capacity targets"
+  external_couplings:
+    coupled_models_or_systems: []
+    coupling_methods: []
+  fidelity_level:
+    descriptive_fidelity: "Logical/physical SysML views with requirements"
+    computational_fidelity: "None"
+    representation_fidelity: "Requirements with traceability"
+
+model_representation:
+  conceptual_model_representation:
+    - identifier: "SysML Structural & Requirement Model"
+      description: "BDDs/IBDs with requirement links across subsystems."
+      representation_method: "SysML (MagicDraw/Cameo)"
+      defining_activity: "Architecture/requirements refinement"
+  computational_model_representation:
+    - identifier: "N/A"
+      description: "No numerical solver included."
+      software_framework_or_language: ["SysML"]
+      verification_approach: ["Cameo validation", "Peer walkthrough"]
+  requirements_flat:
+    - "Provide continuous power to critical loads (TBR)."
+    - "Provide thermal control for equipment and habitat (TBR)."
+
+model_utility:
+  lifecycle_processes_supported: ["Concept Development", "Architecture Definition"]
+  model_purposes_supported: ["Communication of architecture", "Interface definition"]
+  system_lifecycle_span_supported:
+    base_instance:
+      identifier: "Early Design"
+      description: "Supports early trades and verification planning."
+  decision_support_domain:
+    - identifier: "Subsystem allocation decisions"
+      description: "Guides boundaries and capacity targets."
+  perceived_model_complexity:
+    - stakeholder_type: "Engineer"
+      description: "Moderate complexity; SysML literacy needed."
+
+model_assessment:
+  model_verification:
+    methods: ["Model validation rules", "Peer review"]
+    tools_used: ["Cameo Systems Modeler"]
+  model_validation:
+    validation_data_sources: ["Working requirement set"]
+    validation_techniques: ["Trace review against objectives"]
+  model_credibility_assessment:
+    credibility_criteria: ["Internal checklist"]
+    supporting_evidence: ["Consistent element links"]
+  model_uncertainty_assessment:
+    uncertainty_sources: ["Evolving mission concept"]
+    quantification_approach: "Qualitative"
+    confidence_level: "Medium"
+
+model_lifecycle_management:
+  development_methodology: ["Iterative refinement"]
+  configuration_control: "Versioned .mdzip"
+  change_tracking: "Manual notes"
+  versioning_and_configuration_management:
+    configuration_management_types:
+      - identifier: "File-based versioning"
+        description: "Incremental iterations"
+    current_version_and_configuration:
+      - identifier: "v003"
+        description: "Allocation refinements"
+  archiving_and_preservation:
+    archive_location: "Project repository"
+    preservation_plan: "Preserve milestone versions"
+    access_policy: "Internal"

@@ -1,0 +1,78 @@
+file_name: "ISRU - CRIP_001.mdzip"
+title: Lunar Base – ISRU Variant (CRIP_001)
+
+model_identity_and_focus:
+  model_identifier: LUNAR-BASE-ISRU-CRIP-001
+  model_title: "ISRU Variant – CRIP (rev 001)"
+  model_description: "First revision of the CRIP ISRU variant; refined interfaces and requirement links."
+  model_developer: ["Lunar Base Team"]
+  organization_or_sponsor: ["Academic Research"]
+  model_domain_or_discipline: ["Systems Engineering", "ISRU"]
+  model_subsystem_or_focus_area: ["Cryogenic/thermal processing variant", "Utilities-heavy interfaces"]
+  associated_mission_program_or_project: ["Lunar surface studies (variant exploration)"]
+  access_control: "Internal – Research Use"
+  objectives:
+    - "Refine variant allocation and interfaces."
+    - "Preserve traceability against baseline ISRU."
+  key_phenomena_represented:
+    - "Variant-specific service chains."
+  assumptions_and_simplifications:
+    - "Conceptual variant parameters; no solver."
+
+model_scope_of_content:
+  spatial_domain: "ISRU facility – CRIP variant"
+  temporal_domain: "Early ops"
+  physical_processes_included: ["Cryogenic/thermal processing concept", "Conditioning/transfer concept"]
+  physical_processes_excluded: ["Detailed physics/controls"]
+  system_interfaces_represented: ["Power", "Thermal", "Storage/Distribution"]
+  model_resolution_or_granularity: "Subsystem-level variant"
+  inputs: ["Variant envelopes", "Feed assumptions"]
+  outputs: ["Allocation/trace variant views"]
+  external_couplings: { coupled_models_or_systems: [], coupling_methods: [] }
+  fidelity_level:
+    descriptive_fidelity: "SysML + requirements (variant)"
+    computational_fidelity: "None"
+    representation_fidelity: "Traceable artifacts"
+
+model_representation:
+  conceptual_model_representation:
+    - identifier: "SysML ISRU Variant – CRIP_001"
+      description: "Variant BDD/IBD with requirement links."
+      representation_method: "SysML (MagicDraw/Cameo)"
+      defining_activity: "Variant refinement"
+  computational_model_representation:
+    - identifier: "N/A"
+      description: "Descriptive."
+      software_framework_or_language: ["SysML"]
+      verification_approach: ["Cameo checks", "Peer review"]
+  requirements_flat:
+    - "Variant shall meet product rate/purity within CRIP_001 utility envelopes (TBR)."
+
+model_utility:
+  lifecycle_processes_supported: ["Concept Development", "Variant Assessment"]
+  model_purposes_supported: ["Comparative analysis", "Allocation/trace"]
+  system_lifecycle_span_supported:
+    base_instance:
+      identifier: "Early Design"
+      description: "Supports variant trade exploration."
+  decision_support_domain:
+    - identifier: "Variant trades"
+      description: "Compare against baseline and CRIP initial."
+  perceived_model_complexity:
+    - stakeholder_type: "Engineer"
+      description: "Moderate."
+
+model_assessment:
+  model_verification: { methods: ["Validation rules", "Peer checks"], tools_used: ["Cameo Systems Modeler"] }
+  model_validation: { validation_data_sources: ["Baseline/variant requirement sets"], validation_techniques: ["Trace comparison"] }
+  model_credibility_assessment: { credibility_criteria: ["Internal review"], supporting_evidence: ["Consistent variant links"] }
+  model_uncertainty_assessment: { uncertainty_sources: ["Variant parameter assumptions"], quantification_approach: "Qualitative", confidence_level: "Medium" }
+
+model_lifecycle_management:
+  development_methodology: ["Variant refinement"]
+  configuration_control: "Versioned .mdzip"
+  change_tracking: "Manual notes"
+  versioning_and_configuration_management:
+    configuration_management_types: [{ identifier: "File-based versioning", description: "Variant iterations" }]
+    current_version_and_configuration: [{ identifier: "CRIP_001", description: "ISRU CRIP rev 001" }]
+  archiving_and_preservation: { archive_location: "Project repository", preservation_plan: "Keep baseline + variant", access_policy: "Internal" }
