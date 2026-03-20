@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>S24 DEE — Digital Engineering Environment</title>
+
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./styles/app.css">
+
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+    <div class="topbar-logo">S24 DEE</div>
+    <div class="topbar-sep">·</div>
+    <div class="topbar-title">Digital Engineering Environment</div>
+</div>
+
+
+<!-- MAIN CONTENT -->
+<div style="margin-top:52px; padding:80px; max-width:1200px;">
+
+    <h1 style="font-size:36px; margin-bottom:20px;">
+        SysML → JSON → USD Pipeline
+    </h1>
+
+    <p style="color:var(--text2); max-width:720px; line-height:1.6; margin-bottom:60px;">
+        The S24 Digital Engineering Environment enables structured system modeling 
+        using SysML, automatic conversion to structured JSON artifacts, 
+        and downstream USD scene generation for digital twin and simulation workflows.
+    </p>
+
+    <!-- TOOL CARDS -->
+    <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(320px,1fr)); gap:28px;">
+
+        <!-- Assembly Builder -->
+        <a href="./assembly_builder.html" style="text-decoration:none;">
+            <div style="
+                background: var(--surface);
+                border: 1px solid var(--border);
+                padding: 32px;
+                border-radius: var(--radius);
+                transition: 0.25s;
+            "
+            onmouseover="this.style.borderColor='var(--accent)'"
+            onmouseout="this.style.borderColor='var(--border)'"
+            >
+
+                <h2 style="margin-bottom:12px;">Assembly Builder</h2>
+                <p style="color:var(--text3); font-size:14px; line-height:1.6;">
+                    Graphical editor for hierarchical SysML assembly structures.
+                    Supports metadata editing, drag-drop hierarchy management,
+                    and direct GitHub publishing.
+                </p>
+
+            </div>
+        </a>
+
+
+        <!-- SysML Generator -->
+        <a href="./sysml_generator.html" style="text-decoration:none;">
+            <div style="
+                background: var(--surface);
+                border: 1px solid var(--border);
+                padding: 32px;
+                border-radius: var(--radius);
+                transition: 0.25s;
+            "
+            onmouseover="this.style.borderColor='var(--accent)'"
+            onmouseout="this.style.borderColor='var(--border)'"
+            >
+
+                <h2 style="margin-bottom:12px;">SysML Generator</h2>
+                <p style="color:var(--text3); font-size:14px; line-height:1.6;">
+                    Lightweight SysML generation utility for structured part definitions.
+                    Intended for rapid model prototyping and testing.
+                </p>
+
+            </div>
+        </a>
+
+
+        <!-- Placeholder for Future Tool -->
+        <div style="
+            background: var(--surface);
+            border: 1px dashed var(--border2);
+            padding: 32px;
+            border-radius: var(--radius);
+            opacity:0.5;
+        ">
+
+            <h2 style="margin-bottom:12px;">Coming Soon</h2>
+            <p style="color:var(--text3); font-size:14px;">
+                JSON visualizer, USD previewer, model diff tools,
+                resilience validation modules.
+            </p>
+
+        </div>
+
+    </div>
+
+</div>
+
+</body>
+</html>

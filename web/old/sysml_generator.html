@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>S24 DEE — Model Definition</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0c0e12;
+    --surface: #14171e;
+    --surface-hover: #1a1e27;
+    --border: #2a2f3a;
+    --border-focus: #4a9eff;
+    --text: #e2e6ed;
+    --text-dim: #7a8194;
+    --accent: #4a9eff;
+    --accent-dim: rgba(74, 158, 255, 0.12);
+    --success: #34d399;
+    --success-dim: rgba(52, 211, 153, 0.12);
+    --warn: #fbbf24;
+    --danger: #f87171;
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'DM Sans', sans-serif;
+    --radius: 6px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    line-height: 1.5;
+  }
+
+  .container {
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 40px 24px 80px;
+  }
+
+  /* Header */
+  .header {
+    margin-bottom: 48px;
+  }
+
+  .header-tag {
+    font-family: var(--mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--accent);
+    margin-bottom: 12px;
+  }
+
+  .header h1 {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    letter-spacing: -0.5px;
+  }
+
+  .header p {
+    color: var(--text-dim);
+    font-size: 15px;
+  }
+
+  /* Sections */
+  .section {
+    margin-bottom: 36px;
+  }
+
+  .section-title {
+    font-family: var(--mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--text-dim);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* Form elements */
+  .field {
+    margin-bottom: 16px;
+  }
+
+  .field-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+
+  .field-row-2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  label {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-dim);
+    margin-bottom: 6px;
+    font-family: var(--mono);
+  }
+
+  label .unit-hint {
+    color: var(--accent);
+    font-weight: 400;
+    font-size: 11px;
+  }
+
+  input, select {
+    width: 100%;
+    padding: 10px 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 14px;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    outline: none;
+  }
+
+  input:focus, select:focus {
+    border-color: var(--border-focus);
+    box-shadow: 0 0 0 3px var(--accent-dim);
+  }
+
+  input::placeholder {
+    color: var(--text-dim);
+    opacity: 0.5;
+  }
+
+  select {
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%237a8194' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10l-5 5z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 32px;
+  }
+
+  /* Custom attributes */
+  .custom-attr-row {
+    display: grid;
+    grid-template-columns: 2fr 1.5fr 1fr 36px;
+    gap: 8px;
+    align-items: end;
+    margin-bottom: 10px;
+    animation: fadeIn 0.2s ease;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .btn-remove {
+    width: 36px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text-dim);
+    cursor: pointer;
+    font-size: 18px;
+    transition: all 0.15s;
+  }
+
+  .btn-remove:hover {
+    border-color: var(--danger);
+    color: var(--danger);
+    background: rgba(248, 113, 113, 0.08);
+  }
+
+  .btn-add {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    background: var(--accent-dim);
+    border: 1px dashed var(--accent);
+    border-radius: var(--radius);
+    color: var(--accent);
+    font-family: var(--mono);
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .btn-add:hover {
+    background: rgba(74, 158, 255, 0.2);
+  }
+
+  /* Generate button */
+  .btn-generate {
+    width: 100%;
+    padding: 14px;
+    background: var(--accent);
+    border: none;
+    border-radius: var(--radius);
+    color: #000;
+    font-family: var(--sans);
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    letter-spacing: 0.3px;
+    margin-top: 12px;
+  }
+
+  .btn-generate:hover {
+    background: #5eadff;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 20px rgba(74, 158, 255, 0.3);
+  }
+
+  .btn-generate:active {
+    transform: translateY(0);
+  }
+
+  /* Output */
+  .output-container {
+    margin-top: 36px;
+    display: none;
+  }
+
+  .output-container.visible {
+    display: block;
+    animation: fadeIn 0.3s ease;
+  }
+
+  .output-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+
+  .output-actions {
+    display: flex;
+    gap: 8px;
+  }
+
+  .btn-copy, .btn-download {
+    padding: 6px 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .btn-copy:hover, .btn-download:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .btn-copy.copied {
+    border-color: var(--success);
+    color: var(--success);
+    background: var(--success-dim);
+  }
+
+  pre {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.6;
+    overflow-x: auto;
+    color: var(--text);
+    white-space: pre;
+  }
+
+  /* Validation */
+  input:invalid:not(:placeholder-shown) {
+    border-color: var(--danger);
+  }
+
+  .step-name-display {
+    font-family: var(--mono);
+    color: var(--accent);
+    font-size: 14px;
+    padding: 10px 12px;
+    background: var(--accent-dim);
+    border: 1px solid rgba(74, 158, 255, 0.2);
+    border-radius: var(--radius);
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <div class="header">
+    <div class="header-tag">S24 DEE</div>
+    <h1>Model Definition Form</h1>
+    <p>Fill in the attributes for your CAD model. A properly formatted SysML file will be generated automatically.</p>
+  </div>
+
+  <!-- IDENTITY -->
+  <div class="section">
+    <div class="section-title">Identity</div>
+    <div class="field">
+      <label>STEP File <span class="unit-hint">(filename with extension)</span></label>
+      <input type="text" id="stepFileName" placeholder="e.g. LunarRover.step" oninput="syncPartName(this.value)">
+    </div>
+    <div class="field-row-2">
+      <div class="field">
+        <label>Part Name</label>
+        <input type="text" id="partName" placeholder="auto-filled from STEP filename" required>
+      </div>
+      <div class="field">
+        <label>Material</label>
+        <select id="materialRef">
+          <option value="Aluminum_2219_T87">Aluminum 2219-T87</option>
+          <option value="Titanium_Ti6Al4V">Titanium Ti-6Al-4V</option>
+        </select>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- DIMENSIONS -->
+  <div class="section">
+    <div class="section-title">Dimensions</div>
+    <div class="field-row">
+      <div class="field">
+        <label>Length <span class="unit-hint">(m)</span></label>
+        <input type="number" id="dimLength" step="any" placeholder="0.0" required>
+      </div>
+      <div class="field">
+        <label>Width <span class="unit-hint">(m)</span></label>
+        <input type="number" id="dimWidth" step="any" placeholder="0.0" required>
+      </div>
+      <div class="field">
+        <label>Height <span class="unit-hint">(m)</span></label>
+        <input type="number" id="dimHeight" step="any" placeholder="0.0" required>
+      </div>
+    </div>
+  </div>
+
+  <!-- TRANSFORM -->
+  <div class="section">
+    <div class="section-title">Transform — Position</div>
+    <div class="field-row">
+      <div class="field">
+        <label>X <span class="unit-hint">(m)</span></label>
+        <input type="number" id="posX" step="any" value="0">
+      </div>
+      <div class="field">
+        <label>Y <span class="unit-hint">(m)</span></label>
+        <input type="number" id="posY" step="any" value="0">
+      </div>
+      <div class="field">
+        <label>Z <span class="unit-hint">(m)</span></label>
+        <input type="number" id="posZ" step="any" value="0">
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Transform — Orientation</div>
+    <div class="field-row">
+      <div class="field">
+        <label>rX <span class="unit-hint">(deg)</span></label>
+        <input type="number" id="rotX" step="any" value="0">
+      </div>
+      <div class="field">
+        <label>rY <span class="unit-hint">(deg)</span></label>
+        <input type="number" id="rotY" step="any" value="0">
+      </div>
+      <div class="field">
+        <label>rZ <span class="unit-hint">(deg)</span></label>
+        <input type="number" id="rotZ" step="any" value="0">
+      </div>
+    </div>
+  </div>
+
+  <!-- UNITS -->
+  <div class="section">
+    <div class="section-title">Units</div>
+    <div class="field-row">
+      <div class="field">
+        <label>metersPerUnit</label>
+        <input type="number" id="metersPerUnit" step="any" value="1">
+      </div>
+      <div class="field">
+        <label>upAxis</label>
+        <select id="upAxis">
+          <option value="Z" selected>Z</option>
+          <option value="Y">Y</option>
+          <option value="X">X</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>angleUnit</label>
+        <select id="angleUnit">
+          <option value="deg" selected>deg</option>
+          <option value="rad">rad</option>
+        </select>
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>pressureUnit</label>
+        <select id="pressureUnit">
+          <option value="kPa" selected>kPa</option>
+          <option value="Pa">Pa</option>
+          <option value="bar">bar</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>massUnit</label>
+        <select id="massUnit">
+          <option value="kg" selected>kg</option>
+          <option value="g">g</option>
+          <option value="lb">lb</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>lengthUnit</label>
+        <select id="lengthUnit">
+          <option value="m" selected>m</option>
+          <option value="cm">cm</option>
+          <option value="mm">mm</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- CUSTOM ATTRIBUTES -->
+  <div class="section">
+    <div class="section-title">Custom Attributes</div>
+    <div id="customAttrs"></div>
+    <button class="btn-add" onclick="addCustomAttr()">+ Add Attribute</button>
+  </div>
+
+  <!-- GENERATE -->
+  <div class="section">
+    <button class="btn-generate" onclick="generateSysML()">Generate SysML</button>
+  </div>
+
+  <!-- OUTPUT -->
+  <div class="output-container" id="outputContainer">
+    <div class="output-header">
+      <div class="section-title" style="margin-bottom:0">Generated SysML</div>
+      <div class="output-actions">
+        <button class="btn-copy" onclick="copySysML()">Copy</button>
+        <button class="btn-download" onclick="downloadSysML()">Download .sysml</button>
+      </div>
+    </div>
+    <pre id="sysmlOutput"></pre>
+  </div>
+
+</div>
+
+<script>
+// --- Materials list (extend this as you add materials to materials.sysml) ---
+const MATERIALS = [
+  "Aluminum_2219_T87",
+  "Titanium_Ti6Al4V"
+];
+
+// --- URL params: auto-fill from ?step= when arriving via link ---
+const params = new URLSearchParams(window.location.search);
+const stepParam = params.get("step") || "";
+if (stepParam) {
+  const baseName = stepParam.replace(/\.(step|stp)$/i, "").trim();
+  document.getElementById("stepFileName").value = stepParam;
+  document.getElementById("partName").value = baseName;
+}
+
+// --- Sync Part Name from STEP filename as user types ---
+function syncPartName(value) {
+  const baseName = value.replace(/\.(step|stp)$/i, "").trim();
+  if (baseName) document.getElementById("partName").value = baseName;
+}
+
+// --- Custom attributes ---
+let attrCounter = 0;
+
+function addCustomAttr() {
+  attrCounter++;
+  const container = document.getElementById("customAttrs");
+  const row = document.createElement("div");
+  row.className = "custom-attr-row";
+  row.id = `attr-row-${attrCounter}`;
+  row.innerHTML = `
+    <div class="field">
+      ${attrCounter === 1 ? '<label>Name</label>' : ''}
+      <input type="text" placeholder="e.g. dryMass" class="attr-name">
+    </div>
+    <div class="field">
+      ${attrCounter === 1 ? '<label>Value</label>' : ''}
+      <input type="text" placeholder="e.g. 400" class="attr-value">
+    </div>
+    <div class="field">
+      ${attrCounter === 1 ? '<label>Unit</label>' : ''}
+      <input type="text" placeholder="e.g. kg" class="attr-unit">
+    </div>
+    <button class="btn-remove" onclick="removeAttr(${attrCounter})">×</button>
+  `;
+  container.appendChild(row);
+}
+
+function removeAttr(id) {
+  const row = document.getElementById(`attr-row-${id}`);
+  if (row) row.remove();
+}
+
+// --- Generate SysML ---
+function generateSysML() {
+  const name = document.getElementById("partName").value.trim();
+  if (!name) {
+    alert("Please enter a Part Name.");
+    return;
+  }
+
+  const mat = document.getElementById("materialRef").value;
+  const length = document.getElementById("dimLength").value || "0";
+  const width = document.getElementById("dimWidth").value || "0";
+  const height = document.getElementById("dimHeight").value || "0";
+  const posX = document.getElementById("posX").value || "0";
+  const posY = document.getElementById("posY").value || "0";
+  const posZ = document.getElementById("posZ").value || "0";
+  const rotX = document.getElementById("rotX").value || "0";
+  const rotY = document.getElementById("rotY").value || "0";
+  const rotZ = document.getElementById("rotZ").value || "0";
+  const mpu = document.getElementById("metersPerUnit").value || "1";
+  const upAxis = document.getElementById("upAxis").value;
+  const angleUnit = document.getElementById("angleUnit").value;
+  const pressureUnit = document.getElementById("pressureUnit").value;
+  const massUnit = document.getElementById("massUnit").value;
+  const lengthUnit = document.getElementById("lengthUnit").value;
+
+  const geomPath = `assets/geom/${name}_geom.usda`;
+
+  // Collect custom attributes
+  const customAttrs = [];
+  document.querySelectorAll(".custom-attr-row").forEach(row => {
+    const attrName = row.querySelector(".attr-name").value.trim();
+    const attrValue = row.querySelector(".attr-value").value.trim();
+    const attrUnit = row.querySelector(".attr-unit").value.trim();
+    if (attrName && attrValue) {
+      customAttrs.push({ name: attrName, value: attrValue, unit: attrUnit });
+    }
+  });
+
+  // Build SysML
+  let sysml = `package '${name}' {\n`;
+  sysml += `\n`;
+  sysml += `    private import SysML::*;\n`;
+  sysml += `    private import SI::*;\n`;
+  sysml += `    private import ISQBase::*;\n`;
+  sysml += `    private import ScalarValues::*;\n`;
+  sysml += `\n`;
+  sysml += `    part ${name} {\n`;
+  sysml += `        part ${name}_dims {\n`;
+  sysml += `            attribute length = ${length};\n`;
+  sysml += `            attribute width = ${width};\n`;
+  sysml += `            attribute height = ${height};\n`;
+  sysml += `\n`;
+  sysml += `            attribute metersPerUnit = ${mpu};\n`;
+  sysml += `            attribute upAxis = "${upAxis}";\n`;
+  sysml += `            attribute angleUnit = "${angleUnit}";\n`;
+  sysml += `            attribute pressureUnit = "${pressureUnit}";\n`;
+  sysml += `            attribute massUnit = "${massUnit}";\n`;
+  sysml += `            attribute lengthUnit = "${lengthUnit}";\n`;
+  sysml += `\n`;
+  sysml += `            attribute X = ${posX};\n`;
+  sysml += `            attribute Y = ${posY};\n`;
+  sysml += `            attribute Z = ${posZ};\n`;
+  sysml += `            attribute rX_deg = ${rotX};\n`;
+  sysml += `            attribute rY_deg = ${rotY};\n`;
+  sysml += `            attribute rZ_deg = ${rotZ};\n`;
+  sysml += `        }\n`;
+  sysml += `\n`;
+
+  // Volume calculation
+  sysml += `        attribute ${name}_volume = (${name}_dims.length * ${name}_dims.width * ${name}_dims.height) * ${name}_dims.metersPerUnit^3 * 1000;\n`;
+  sysml += `\n`;
+
+  // Custom attributes
+  if (customAttrs.length > 0) {
+    customAttrs.forEach(attr => {
+      const isNumeric = !isNaN(parseFloat(attr.value)) && isFinite(attr.value);
+      if (isNumeric) {
+        sysml += `        attribute ${name}_${attr.name} = ${attr.value};`;
+        if (attr.unit) sysml += ` // ${attr.unit}`;
+        sysml += `\n`;
+      } else {
+        sysml += `        attribute ${name}_${attr.name} = "${attr.value}";`;
+        if (attr.unit) sysml += ` // ${attr.unit}`;
+        sysml += `\n`;
+      }
+    });
+    sysml += `\n`;
+  }
+
+  sysml += `        attribute geometry = "${geomPath}";\n`;
+  sysml += `        attribute materialRef = "${mat}";\n`;
+  sysml += `    }\n`;
+  sysml += `}\n`;
+
+  // Show output
+  document.getElementById("sysmlOutput").textContent = sysml;
+  document.getElementById("outputContainer").classList.add("visible");
+  document.getElementById("outputContainer").scrollIntoView({ behavior: "smooth" });
+}
+
+// --- Copy ---
+function copySysML() {
+  const text = document.getElementById("sysmlOutput").textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.querySelector(".btn-copy");
+    btn.textContent = "Copied!";
+    btn.classList.add("copied");
+    setTimeout(() => {
+      btn.textContent = "Copy";
+      btn.classList.remove("copied");
+    }, 2000);
+  });
+}
+
+// --- Download ---
+function downloadSysML() {
+  const text = document.getElementById("sysmlOutput").textContent;
+  const name = document.getElementById("partName").value.trim() || "part";
+  const blob = new Blob([text], { type: "text/plain" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `${name}.sysml`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+</script>
+
+</body>
+</html>

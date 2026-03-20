@@ -1,0 +1,295 @@
+/* ============================================
+   TREE SYSTEM
+   Advanced hierarchical UI for Assembly Tree
+   Handles:
+   - Node layout
+   - Expand / collapse visuals
+   - Indentation guides
+   - Hover actions
+   - Drag & drop
+   - Inline rename
+   - Empty state
+============================================ */
+
+
+/* =================================================
+   BASIC TREE NODE WRAPPER
+   Container for each logical node
+================================================= */
+
+.tree-node {
+  user-select: none; /* Prevent accidental text selection while dragging */
+}
+
+
+/* =================================================
+   TREE NODE ROW
+   The clickable horizontal row representing a node
+================================================= */
+
+.tree-node-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  padding: 5px 8px;
+  border-radius: var(--r);
+
+  cursor: pointer;
+  transition: background 0.1s;
+
+  position: relative;
+}
+
+/* Hover highlight */
+.tree-node-row:hover {
+  background: var(--surface2);
+}
+
+/* Selected state (JS adds .selected) */
+.tree-node-row.selected {
+  background: var(--accent-dim2);
+}
+
+/* Accent node name when selected */
+.tree-node-row.selected .node-name {
+  color: var(--accent);
+}
+
+
+/* =================================================
+   TREE INDENTATION STRUCTURE
+   Visual hierarchy lines and spacing
+================================================= */
+
+.tree-indent {
+  display: flex;
+  align-items: center;
+}
+
+/* Vertical connector line */
+.tree-line {
+  width: 16px;
+  height: 100%;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  color: var(--border2);
+  font-size: 10px;
+
+  flex-shrink: 0;
+}
+
+
+/* =================================================
+   NODE TOGGLE (Expand / Collapse Arrow)
+================================================= */
+
+.node-toggle {
+  width: 14px;
+  height: 14px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  color: var(--text3);
+  font-size: 9px;
+
+  flex-shrink: 0;
+  transition: transform 0.15s;
+}
+
+/* Rotates arrow when open */
+.node-toggle.open {
+  transform: rotate(90deg);
+}
+
+/* Hide arrow for leaf nodes */
+.node-toggle.leaf {
+  color: transparent;
+}
+
+
+/* =================================================
+   NODE ICON + NAME
+================================================= */
+
+.node-icon {
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+.node-name {
+  font-size: 12px;
+  color: var(--text);
+  flex: 1;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+
+/* =================================================
+   CHILDREN CONTAINER
+   Collapsible content container
+================================================= */
+
+.tree-children {
+  overflow: hidden;
+  transition: height 0.2s ease;
+}
+
+
+/* =================================================
+   EMPTY STATE
+================================================= */
+
+.tree-empty {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--text3);
+  font-size: 11px;
+  line-height: 1.8;
+}
+
+.tree-empty .big {
+  font-size: 28px;
+  margin-bottom: 8px;
+}
+
+
+/* =================================================
+   NODE ACTION BUTTONS (Visible on Hover)
+================================================= */
+
+.node-actions {
+  display: flex;
+  gap: 4px;
+  margin-left: auto;
+
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+/* Show action buttons on hover */
+.tree-node-row:hover .node-actions {
+  opacity: 1;
+}
+
+
+/* Individual small action button */
+.node-btn {
+  width: 18px;
+  height: 18px;
+
+  background: transparent;
+  border: 1px solid var(--border2);
+  border-radius: 2px;
+
+  color: var(--text3);
+  font-size: 10px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  cursor: pointer;
+  transition: all 0.1s;
+}
+
+/* Delete */
+.node-btn:hover {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+/* Add child */
+.node-btn.add:hover {
+  border-color: var(--accent2);
+  color: var(--accent);
+}
+
+/* Rename */
+.node-btn.rename:hover {
+  border-color: var(--warn);
+  color: var(--warn);
+}
+
+
+/* =================================================
+   INLINE RENAME INPUT
+================================================= */
+
+.node-name-input {
+  background: var(--surface2);
+  border: 1px solid var(--accent2);
+  border-radius: 2px;
+
+  color: var(--accent);
+  font-family: var(--mono);
+  font-size: 12px;
+
+  padding: 1px 6px;
+  flex: 1;
+
+  outline: none;
+}
+
+
+/* =================================================
+   DRAG & DROP SYSTEM
+================================================= */
+
+/* Cursor behavior */
+.tree-node-row[draggable="true"] {
+  cursor: grab;
+}
+
+.tree-node-row[draggable="true"]:active {
+  cursor: grabbing;
+}
+
+/* Node being dragged */
+.tree-node-row.dragging {
+  opacity: 0.35;
+}
+
+/* Drag target highlight */
+.tree-node-row.drag-over {
+  background: var(--accent-dim2);
+  outline: 1px dashed var(--accent);
+  outline-offset: -1px;
+}
+
+.tree-node-row.drag-over .node-name {
+  color: var(--accent);
+}
+
+
+/* =================================================
+   FILE DROP ZONE (Import SysML)
+================================================= */
+
+.tree-container.file-drag-over {
+  outline: 2px dashed var(--green);
+  outline-offset: -4px;
+  background: rgba(0,255,157,0.04);
+}
+
+/* Drop hint text */
+.drop-hint {
+  text-align: center;
+  padding: 16px;
+  color: var(--green);
+  font-size: 11px;
+  display: none;
+}
+
+/* Show hint when dragging file */
+.tree-container.file-drag-over .drop-hint {
+  display: block;
+}
