@@ -4,7 +4,10 @@ import json
 from typing import Any, Dict, List, Optional
 
 from S24.sysml.ast import Model, PartNode
-from S24.sysml.evaluator import evaluate_attributes, build_part_json, parse_sysml
+
+from S24.sysml.parser import parse_sysml
+from S24.sysml.evaluator import evaluate_attributes
+from S24.jsonio.json_parser import build_part_json
 
 def sysml_to_json(sysml_text: str, *, namespace: str = "lunarspaceport1") -> List[Dict[str, Any]]:
     """
@@ -39,14 +42,14 @@ def sysml_to_json(sysml_text: str, *, namespace: str = "lunarspaceport1") -> Lis
     return results
 
 
-def write_json(parts: List[Dict[str, Any]], output_path: str) -> str:
-    """
-    Write a parts list to disk as pretty JSON.
-    Returns output_path.
-    """
-    with open(output_path, "w", encoding="utf-8") as f:
-        json.dump(parts, f, indent=2)
-    return output_path
+# def write_json(parts: List[Dict[str, Any]], output_path: str) -> str:
+#     """
+#     Write a parts list to disk as pretty JSON.
+#     Returns output_path.
+#     """
+#     with open(output_path, "w", encoding="utf-8") as f:
+#         json.dump(parts, f, indent=2)
+#     return output_path
 
 # ----------------------------------------------------------------------------------------------------------------------------------------
 
