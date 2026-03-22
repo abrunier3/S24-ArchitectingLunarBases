@@ -2,9 +2,13 @@ import re
 from typing import Any, Dict, List, Optional
 
 from S24.sysml.ast import Model, PartNode
+from S24.validation.validator import validate_connections
 
 def parse_sysml(text: str, verbose: int = 0) -> Model:
     text = _normalize_multiline_attributes(text)
+
+    if verbose == 2:
+        validate_connections(model)
 
     model = Model()
     current_stack: List[PartNode] = []
@@ -74,14 +78,25 @@ def parse_sysml(text: str, verbose: int = 0) -> Model:
             continue
 
         m = re.match(
-            r"interface\s+(\w+)(?:\s*:\s*[\w:]+)?\s+connect\s+([\w\.]+)\s+to\s+([\w\.]+);",
+            r"interface\s+(\w+)\s*:\s*([\w:]+)\s+connect\s+([\w\.]+)\s+to\s+([\w\.]+);",
             line
         )
         if m:
+            iface_name = m.group(1)
+            iface_type = m.group(2)
+            src = m.group(3)
+            dst = m.group(4)
+
+            flow = None
+            if "LOX" in iface_type.upper():
+                flow = "LOX"
+
             model.interfaces.append({
-                "name": m.group(1),
-                "from": m.group(2),
-                "to": m.group(3),
+                "name": iface_name,
+                "type": iface_type,
+                "flow": flow,
+                "from": src,
+                "to": dst,
             })
             continue
 

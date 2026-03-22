@@ -1,0 +1,258 @@
+{
+  "metadata": {
+    "package": "ECLIPSE_LSP1",
+    "num_parts": 5,
+    "num_connections": 2,
+    "validation_errors": []
+  },
+  "parts": [
+    {
+      "type": "Part",
+      "id": "urn:lunarspaceport1:part:HabitationModule:001",
+      "name": "HabitationModule",
+      "dimensions": {
+        "size_m": {
+          "length": 6.0,
+          "width": 3.0,
+          "height": 2.5
+        },
+        "metersPerUnit": 1,
+        "upAxis": "Z",
+        "angleUnit": "deg",
+        "pressureUnit": "kPa",
+        "massUnit": "kg",
+        "lengthUnit": "m"
+      },
+      "transform": {
+        "position_m": [
+          30.0,
+          0.0,
+          0.0
+        ],
+        "rotation_deg": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "attributes": {
+        "HabitationModule_volume_m3": 45.0
+      },
+      "metadata": {},
+      "materialRef": "Titanium_Ti6Al4V",
+      "ports": []
+    },
+    {
+      "type": "Part",
+      "id": "urn:lunarspaceport1:part:ISRU_PLANT:001",
+      "name": "ISRU_PLANT",
+      "dimensions": {
+        "size_m": {
+          "length": 5.0,
+          "width": 4.0,
+          "height": 2.0
+        },
+        "metersPerUnit": 1,
+        "upAxis": "Z",
+        "angleUnit": "deg",
+        "pressureUnit": "kPa",
+        "massUnit": "kg",
+        "lengthUnit": "m"
+      },
+      "transform": {
+        "position_m": [
+          10.0,
+          0.0,
+          0.0
+        ],
+        "rotation_deg": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "attributes": {
+        "ISRU_PLANT_volume_m3": 40.0
+      },
+      "metadata": {
+        "geometryRef": "assets/geom/ISRU_PLANT_geom.usda"
+      },
+      "materialRef": "Aluminum_2219_T87",
+      "ports": [
+        {
+          "name": "ISRU_LOXPortOut",
+          "direction": [
+            "out"
+          ],
+          "items": [
+            "LOXOut"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "Part",
+      "id": "urn:lunarspaceport1:part:landing_site:001",
+      "name": "landing_site",
+      "dimensions": {
+        "size_m": {
+          "length": 1.0,
+          "width": 1.0,
+          "height": 0.5
+        },
+        "metersPerUnit": 1,
+        "upAxis": "Z",
+        "angleUnit": "deg",
+        "pressureUnit": "kPa",
+        "massUnit": "kg",
+        "lengthUnit": "m"
+      },
+      "transform": {
+        "position_m": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_deg": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "attributes": {
+        "landing_site_volume_m3": 0.5
+      },
+      "metadata": {
+        "geometryRef": "assets/geom/landing_site_geom.usda"
+      },
+      "materialRef": "Aluminum_2219_T87",
+      "ports": []
+    },
+    {
+      "type": "Part",
+      "id": "urn:lunarspaceport1:part:Propellant_Depot:001",
+      "name": "Propellant_Depot",
+      "dimensions": {
+        "size_m": {
+          "length": 4.0,
+          "width": 4.0,
+          "height": 2.5
+        },
+        "metersPerUnit": 1,
+        "upAxis": "Z",
+        "angleUnit": "deg",
+        "pressureUnit": "kPa",
+        "massUnit": "kg",
+        "lengthUnit": "m"
+      },
+      "transform": {
+        "position_m": [
+          0.0,
+          5.0,
+          0.0
+        ],
+        "rotation_deg": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "attributes": {
+        "Propellant_Depot_volume_m3": 40.0
+      },
+      "metadata": {
+        "geometryRef": "assets/geom/Propellant_Depot_geom.usda"
+      },
+      "materialRef": "Aluminum_2219_T87",
+      "ports": [
+        {
+          "name": "Propellant_LOXPortIn",
+          "direction": [
+            "in"
+          ],
+          "items": [
+            "LOXIn"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "Part",
+      "id": "urn:lunarspaceport1:part:Rover:001",
+      "name": "Rover",
+      "dimensions": {
+        "size_m": {
+          "length": 4.0,
+          "width": 2.0,
+          "height": 1.5
+        },
+        "metersPerUnit": 1,
+        "upAxis": "Z",
+        "angleUnit": "deg",
+        "pressureUnit": "kPa",
+        "massUnit": "kg",
+        "lengthUnit": "m"
+      },
+      "transform": {
+        "position_m": [
+          9.0,
+          0.0,
+          0.0
+        ],
+        "rotation_deg": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "attributes": {
+        "Rover_volume_m3": 12.0
+      },
+      "metadata": {
+        "geometryRef": "assets/geom/Rover_geom.usda"
+      },
+      "materialRef": "Aluminum_2219_T87",
+      "ports": [
+        {
+          "name": "RoverFleet_LOXPortInOut",
+          "direction": [
+            "out",
+            "in"
+          ],
+          "items": [
+            "LOXOut",
+            "LOXIn"
+          ]
+        }
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "name": "ISRUPlantToRover",
+      "type": "LOXMovement",
+      "flow": "LOX",
+      "from": {
+        "part": "ISRU_PLANT",
+        "port": "ISRU_LOXPortOut"
+      },
+      "to": {
+        "part": "Rover",
+        "port": "RoverFleet_LOXPortInOut"
+      }
+    },
+    {
+      "name": "RoverToPropellantDepot",
+      "type": "LOXMovement",
+      "flow": "LOX",
+      "from": {
+        "part": "Rover",
+        "port": "RoverFleet_LOXPortInOut"
+      },
+      "to": {
+        "part": "Propellant_Depot",
+        "port": "Propellant_LOXPortIn"
+      }
+    }
+  ]
+}

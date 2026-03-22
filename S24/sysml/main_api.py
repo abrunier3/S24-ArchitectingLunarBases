@@ -9,15 +9,24 @@ from S24.sysml.parser import parse_sysml
 from S24.sysml.evaluator import evaluate_attributes
 from S24.jsonio.json_parser import build_part_json
 
-def sysml_to_json(sysml_text: str, *, namespace: str = "lunarspaceport1") -> List[Dict[str, Any]]:
-    """
-    High-level API:
-      SysML text -> parsed model -> evaluated -> flat list JSON with parent/children.
-    """
+from S24.jsonio.json_parser import build_part_json, build_connections_json
+from S24.validation.validator import validate_connections
+
+def sysml_to_json(
+    sysml_text: str,
+    *,
+    namespace: str = "lunarspaceport1",
+    validate: bool = True,
+) -> Dict[str, Any]:
+
     model: Model = parse_sysml(sysml_text)
     evaluate_attributes(model)
 
-    results: List[Dict[str, Any]] = []
+    validation_errors = []
+    if validate:
+        validation_errors = validate_connections(model)
+
+    parts: List[Dict[str, Any]] = []
 
     def emit_part(part: PartNode, parent: Optional[PartNode] = None) -> None:
         obj = build_part_json(part, namespace=namespace)
@@ -25,11 +34,14 @@ def sysml_to_json(sysml_text: str, *, namespace: str = "lunarspaceport1") -> Lis
         if parent is not None:
             obj["parent"] = parent.name
 
-        child_names = [n for n in part.children.keys() if not n.lower().endswith("dims")]
+        child_names = [
+            n for n in part.children.keys()
+            if not n.lower().endswith("dims")
+        ]
         if child_names:
             obj["children"] = child_names
 
-        results.append(obj)
+        parts.append(obj)
 
         for child_name, child in part.children.items():
             if child_name.lower().endswith("dims"):
@@ -39,17 +51,18 @@ def sysml_to_json(sysml_text: str, *, namespace: str = "lunarspaceport1") -> Lis
     for top in model.parts.values():
         emit_part(top, parent=None)
 
-    return results
+    connections = build_connections_json(model)
 
-
-# def write_json(parts: List[Dict[str, Any]], output_path: str) -> str:
-#     """
-#     Write a parts list to disk as pretty JSON.
-#     Returns output_path.
-#     """
-#     with open(output_path, "w", encoding="utf-8") as f:
-#         json.dump(parts, f, indent=2)
-#     return output_path
+    return {
+        "metadata": {
+            "package": model.package_name,
+            "num_parts": len(parts),
+            "num_connections": len(connections),
+            "validation_errors": validation_errors,
+        },
+        "parts": parts,
+        "connections": connections,
+    }
 
 # ----------------------------------------------------------------------------------------------------------------------------------------
 
@@ -98,11 +111,4 @@ def sysml_to_json(sysml_text: str, *, namespace: str = "lunarspaceport1") -> Lis
 #     return materials
 
 
-# def write_materials_json(materials: List[Dict[str, Any]], output_path: str) -> str:
-#     """
-#     Write materials list to disk as pretty JSON.
-#     Returns output_path.
-#     """
-#     with open(output_path, "w", encoding="utf-8") as f:
-#         json.dump({"materials": materials}, f, indent=2)
-#     return output_path
+

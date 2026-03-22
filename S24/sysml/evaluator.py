@@ -189,21 +189,15 @@ def _collect_env(part: PartNode, parent_chain: Optional[List[str]] = None) -> Di
             env[f"{local_prefix}.{name}"] = v
             env[f"{full_prefix}.{name}"] = v
 
-    # Children attributes 
     for child_name, child in part.children.items():
         child_prefix = f"{part.name}.{child_name}"
 
         for attr_name, val in child.attributes_val.items():
             if isinstance(val, (int, float)):
                 v = float(val)
-
-                # allow: HabitationModule_dims.length
                 env[f"{child_name}.{attr_name}"] = v
-
-                # allow: HabitationModule.HabitationModule_dims.length
                 env[f"{child_prefix}.{attr_name}"] = v
 
-    # Recurse
     for child in part.children.values():
         env.update(_collect_env(child, parent_chain=full_chain))
 

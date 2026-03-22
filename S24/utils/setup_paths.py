@@ -79,7 +79,6 @@ def setup_paths(sysml_file: str, use_repo: bool = True):
 
     # core directories
     SYSML_DIR = _database_dir / "sysml"
-    JSON_DIR = _database_dir / "json"
     CAD_DIR = _database_dir / "cad_models"
     METADATA_DIR = _database_dir / "metadata"
 
@@ -93,6 +92,12 @@ def setup_paths(sysml_file: str, use_repo: bool = True):
     GEOM_DIR = _asset_dir / "geoms"
     MATERIAL_DIR = _asset_dir / "material"
 
+    # extra JSON directories
+    JSON_DIR = _database_dir / "json"
+    JSON_FILE_DIR = JSON_DIR / f"{Path(sysml_file).stem}"
+    JSON_ASSETS = JSON_FILE_DIR / "assets"
+    JSON_FILE = JSON_FILE_DIR / f"{Path(sysml_file).stem}.json"
+
     # mkdir all the directories
     all_dirs = [
         SYSML_DIR,
@@ -105,6 +110,7 @@ def setup_paths(sysml_file: str, use_repo: bool = True):
         COMPONENTS_DIR,
         GEOM_DIR,
         MATERIAL_DIR,
+        JSON_ASSETS
     ]
 
     for d in all_dirs:
@@ -112,7 +118,6 @@ def setup_paths(sysml_file: str, use_repo: bool = True):
 
     # handling of sysml file
     SYSML_FILE = _resolve_sysml_file(sysml_file, SYSML_DIR)
-    JSON_FILE = JSON_DIR / f"{Path(sysml_file).stem}.json"
 
     return {
         "ROOT"           : ROOT,
@@ -128,5 +133,6 @@ def setup_paths(sysml_file: str, use_repo: bool = True):
         "GEOM_DIR"       : GEOM_DIR,
         "MATERIAL_DIR"   : MATERIAL_DIR,
         "SYSML_FILE"     : SYSML_FILE,
-        "JSON_FILE"      : JSON_FILE
+        "JSON_FILE"      : JSON_FILE,
+        "JSON_ASSETS"    : JSON_ASSETS
     }
