@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 import ast
+import re 
 from typing import Any, Dict, List, Optional, Union
 
-from .parser import Model, PartNode, parse_literal_token
+from S24.sysml.ast import Model, PartNode
+from S24.sysml.utils import convert_numeric_with_units, parse_literal_token, strip_comment
 
 
 Number = Union[int, float]
@@ -167,3 +169,121 @@ def evaluate_attributes(model: Model, *, max_passes: int = 10) -> None:
 
         if not changed:
             break
+
+
+def build_part_json(part: PartNode, *, namespace: str) -> Dict[str, Any]:
+    """
+    Convert one PartNode to JSON object (no parent/children linking here).
+    """
+    part_id = f"urn:{namespace}:part:{part.name}:001"
+    attrs = part.attributes_val
+
+    dimensions: Dict[str, Any] = {}
+    attributes: Dict[str, Any] = {}
+    metadata: Dict[str, Any] = {}
+
+    # dimensions from *dims child of THIS part
+    dims_part = next((c for n, c in part.children.items() if n.lower().endswith("dims")), None)
+    if dims_part:
+        dp = dims_part.attributes_val
+        la, wa, ha = dp.get("length"), dp.get("width"), dp.get("height")
+        mpu = dp.get("metersPerUnit", 1)
+
+        if all(isinstance(v, (int, float)) for v in [la, wa, ha, mpu]):
+            dimensions["dims_m"] = [float(la) * float(mpu), float(wa) * float(mpu), float(ha) * float(mpu)]
+
+        for k, v in dp.items():
+            if k in ("length", "width", "height"):
+                continue
+            dimensions[k] = v
+
+    # numeric -> attributes (with SI conversion where known)
+    for k, v in attrs.items():
+        if isinstance(v, (int, float)):
+            nk, nv = convert_numeric_with_units(k, float(v))
+            attributes[nk] = nv
+
+    # non-numeric -> metadata
+    for k, v in attrs.items():
+        if not isinstance(v, (int, float)) and k not in ("material", "materialRef"):
+            metadata[k] = v
+
+    material_ref = attrs.get("materialRef")
+    if isinstance(material_ref, str) and material_ref.strip():
+        obj_material_ref = material_ref.strip()
+    else:
+        obj_material_ref = None
+
+
+    return {
+        "type": "Part",
+        "id": part_id,
+        "name": part.name,
+        "dimensions": dimensions,
+        "attributes": attributes,
+        "metadata": metadata,
+        "materialRef": obj_material_ref,
+    }
+
+
+def parse_sysml(text: str) -> Model:
+    model = Model()
+    current_stack: List[PartNode] = []
+    brace_stack: List[str] = []
+
+    for raw_line in text.splitlines():
+        line = strip_comment(raw_line).strip()
+        if not line:
+            continue
+
+        # package (with or without quotes)
+        m = re.match(r"package\s+(?:'([^']+)'|(\w+))\s*\{", line)
+        if m:
+            model.package_name = m.group(1) or m.group(2)
+            brace_stack.append("package")
+            continue
+
+        # ignore private import lines
+        if line.startswith("private import"):
+            continue
+
+        # ignore requirement blocks
+        if re.match(r"requirement\s+\w+\s*\{", line):
+            brace_stack.append("ignore_req")
+            continue
+
+        # ignore satisfy statements
+        if re.match(r"satisfy\s+\w+\s+by\s+\w+;", line):
+            continue
+
+        # part (top-level or nested), with optional 'def' and inheritance
+        m = re.match(r"part\s+(?:def\s+)?(\w+)(?:\s*:\s*\w+)?\s*\{", line)
+        if m:
+            part_name = m.group(1)
+            node = PartNode(name=part_name)
+            if current_stack:
+                current_stack[-1].children[part_name] = node
+            else:
+                model.parts[part_name] = node
+            current_stack.append(node)
+            brace_stack.append("part")
+            continue
+
+        # closing brace
+        if line == "}":
+            if brace_stack:
+                ctx = brace_stack.pop()
+                if ctx == "part" and current_stack:
+                    current_stack.pop()
+            continue
+
+        # attributes
+        if current_stack:
+            m = re.match(r"attribute\s+(\w+)\s*=\s*(.+);", line)
+            if m:
+                attr_name = m.group(1)
+                raw_val = m.group(2).strip().rstrip(";")
+                current_stack[-1].attributes_raw[attr_name] = raw_val
+                continue
+
+    return model

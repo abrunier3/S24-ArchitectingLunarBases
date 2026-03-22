@@ -14,3 +14,5 @@ class PartNode:
 class Model:
     package_name: Optional[str] = None
     parts: Dict[str, PartNode] = field(default_factory=dict)
+    # relationships: List[Connection]
+    # constraints: List[Constraint]

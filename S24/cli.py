@@ -45,7 +45,7 @@ from pathlib import Path
 from S24.usd.builder import USDBuilder
 from S24.jsonio.vetting import VettingProc
 from S24.usd.material_library import generate_material_library
-from S24.sysml.exporter import sysml_to_json, write_json, sysml_to_materials, write_materials_json
+from S24.sysml.main_api import sysml_to_json, write_json, sysml_to_materials, write_materials_json
 
 
 # -------------------------
