@@ -5,74 +5,83 @@ package ECLIPSE_LSP1 {
     private import ScalarValues::*;
     part HabitationModule {
         part HabitationModule_dims {
-            attribute length = 6;
-            attribute width = 3;
-            attribute height = 2.5;
+            attribute length = 20;
+            attribute width = 10;
+            attribute height = 8;
             attribute metersPerUnit = 1;
             attribute upAxis = "Z";
-            attribute angleUnit = "deg";
-            attribute pressureUnit = "kPa";
-            attribute massUnit = "kg";
-            attribute lengthUnit = "m";
-            attribute X = 30;
-            attribute Y = 0;
-            attribute Z = 0;
-            attribute rX_deg = 0;
-            attribute rY_deg = 0;
-            attribute rZ_deg = 0;
-        }
-        attribute HabitationModule_volume = HabitationModule_dims.length * HabitationModule_dims.width * HabitationModule_dims.height *
-                                                  HabitationModule_dims.metersPerUnit ^ 3 * 1000;
-
-        attribute materialRef = "Titanium_Ti6Al4V";
-        metadata def material_used;
-    }
-    part ISRU_PLANT {
-        part ISRU_PLANT_dims {
-            attribute length = 5;
-            attribute width = 4;
-            attribute height = 2;
-            attribute metersPerUnit = 1;
-            attribute upAxis = "Z";
-            attribute angleUnit = "deg";
-            attribute pressureUnit = "kPa";
-            attribute massUnit = "kg";
-            attribute lengthUnit = "m";
-            attribute X = 10;
-            attribute Y = 0;
-            attribute Z = 0;
-            attribute rX_deg = 0;
-            attribute rY_deg = 0;
-            attribute rZ_deg = 0;
-        }
-        attribute ISRU_PLANT_volume = ISRU_PLANT_dims.length * ISRU_PLANT_dims.width * ISRU_PLANT_dims.height * ISRU_PLANT_dims.metersPerUnit ^ 3 * 1000;
-        attribute geometry = "assets/geom/ISRU_PLANT_geom.usda";
-        attribute materialRef = "Aluminum_2219_T87";
-        port ISRU_LOXPortOut {
-            out item LOXOut;
-        }
-    }
-    part landing_site {
-        part landing_site_dims {
-            attribute length = 1;
-            attribute width = 1;
-            attribute height = 0.5;
-            attribute metersPerUnit = 1;
-            attribute upAxis = "Z";
-            attribute angleUnit = "deg";
-            attribute pressureUnit = "kPa";
-            attribute massUnit = "kg";
-            attribute lengthUnit = "m";
             attribute X = 0;
             attribute Y = 0;
             attribute Z = 0;
-            attribute rX_deg = 0;
-            attribute rY_deg = 0;
-            attribute rZ_deg = 0;
         }
-        attribute landing_site_volume = landing_site_dims.length * landing_site_dims.width * landing_site_dims.height * landing_site_dims.metersPerUnit ^ 3 * 1000;
-        attribute geometry = "assets/geom/landing_site_geom.usda";
-        attribute materialRef = "Aluminum_2219_T87";
+        attribute constantPowerRate = 5;
+        attribute totalEnergyConsumed = 0;
+        attribute HabitationModule_volume = HabitationModule_dims.length * HabitationModule_dims.width * HabitationModule_dims.height *
+                                                   HabitationModule_dims.metersPerUnit ^ 3 * 1000;
+
+        attribute geometry = "assets/geom/HabitationModule_geom.usda";
+        attribute material = "assets/mtl/steel.usda";
+        port Habitation_PowerPortIn {
+            in item PowerIn;
+        }
+    }
+    part ISRUPlant {
+        part ISRUPlant_dims {
+            attribute length = 20;
+            attribute width = 15;
+            attribute height = 8;
+            attribute metersPerUnit = 1;
+            attribute upAxis = "Z";
+            attribute X = 0;
+            attribute Y = 0;
+            attribute Z = 0;
+        }
+        attribute processingRate = 1600;
+        attribute regHeadGrade = 0.1;
+        attribute lunarGravity = 1.62;
+        attribute LOXStored = 0;
+        attribute totalEnergyConsumed = 0;
+        attribute ISRUPlant_volume = ISRUPlant_dims.length * ISRUPlant_dims.width * ISRUPlant_dims.height * ISRUPlant_dims.metersPerUnit ^ 3 * 1000;
+        attribute geometry = "assets/geom/ISRUPlant_geom.usda";
+        attribute material = "assets/mtl/steel.usda";
+        attribute excavationEnergyCoeff = 6.5E-6;
+        attribute transportEnergyCoeff = 3.6E-4;
+        attribute liftHeight = 1;
+        attribute gangueTransportDist = 1;
+        attribute reactorEnergyCoeff = 0.385;
+        attribute electrolysisEnergyCoeff = 8.26;
+        attribute liquefactionEnergyCoeff = 1.17;
+        port ISRU_LOXPortOut {
+            out item LOXOut;
+        }
+        port ISRU_PowerPortIn {
+            in item LOXIn;
+        }
+    }
+    part LaunchLandingZone {
+        part LaunchLandingZone_dims {
+            attribute length = 50;
+            attribute width = 50;
+            attribute height = 10;
+            attribute metersPerUnit = 1;
+            attribute upAxis = "Z";
+            attribute X = 0;
+            attribute Y = 0;
+            attribute Z = 0;
+        }
+        attribute loxCapacity = 50000;
+        attribute loxStored = 0;
+        attribute utilitiesPowerRate = 3;
+        attribute totalEnergyConsumed = 0;
+        attribute chillingPowerPerKgLox = 0.31;
+        attribute LaunchLandingZone_volume = LaunchLandingZone_dims.length * LaunchLandingZone_dims.width * LaunchLandingZone_dims.height *
+                                                    LaunchLandingZone_dims.metersPerUnit ^ 3 * 1000;
+
+        attribute geometry = "assets/geom/LaunchLandingZone_geom.usda";
+        attribute material = "assets/mtl/steel.usda";
+        port LaunchZone_PowerPortIn {
+            in item PowerIn;
+        }
     }
     part Propellant_Depot {
         part Propellant_Depot_dims {
@@ -100,40 +109,98 @@ package ECLIPSE_LSP1 {
         port Propellant_LOXPortIn {
             in item LOXIn;
         }
+        port Propellant_PowerPortIn {
+            in item PowerIn;
+        }
     }
     part Rover {
         part Rover_dims {
-            attribute length = 4;
-            attribute width = 2;
-            attribute height = 1.5;
+            attribute length = 5;
+            attribute width = 3;
+            attribute height = 3;
             attribute metersPerUnit = 1;
             attribute upAxis = "Z";
-            attribute angleUnit = "deg";
-            attribute pressureUnit = "kPa";
-            attribute massUnit = "kg";
-            attribute lengthUnit = "m";
-            attribute X = 9;
+            attribute X = 0;
             attribute Y = 0;
             attribute Z = 0;
-            attribute rX_deg = 0;
-            attribute rY_deg = 0;
-            attribute rZ_deg = 0;
         }
+        attribute batteryCapacity = 100;
+        attribute maxCapacity = 5000;
+        attribute energyPerKmPerKg = 3.4E-4;
+        attribute batteryCharge = 100;
+        attribute totalDistanceTraveled = 0;
+        attribute totalEnergyConsumed = 0;
+        attribute hoursPerKm = 5;
         attribute Rover_volume = Rover_dims.length * Rover_dims.width * Rover_dims.height * Rover_dims.metersPerUnit ^ 3 * 1000;
         attribute geometry = "assets/geom/Rover_geom.usda";
-        attribute materialRef = "Aluminum_2219_T87";
-        port RoverFleet_LOXPortInOut {
+        attribute material = "assets/mtl/steel.usda";
+        port Rover_LOXPortInOut {
             out item LOXOut;
             in item LOXIn;
+        }
+        port Rover_PowerPortIn {
+            in item PowerIn;
+        }
+    }
+    part SolarPowerSystem {
+        part SolarPowerSystem_dims {
+            attribute length = 25;
+            attribute width = 25;
+            attribute height = 4;
+            attribute metersPerUnit = 1;
+            attribute upAxis = "Z";
+            attribute X = 0;
+            attribute Y = 0;
+            attribute Z = 0;
+        }
+        attribute powerOutput = 100;
+        attribute powerDegradationFactor = 1;
+        attribute batteryCapacity = 500;
+        attribute batteryDegradationFactor = 1;
+        attribute batteryCharge = 500;
+        attribute totalEnergyGenerated = 0;
+        attribute totalEnergyFromBattery = 0;
+        attribute SolarPowerSystem_volume = SolarPowerSystem_dims.length * SolarPowerSystem_dims.width * SolarPowerSystem_dims.height *
+                                                   SolarPowerSystem_dims.metersPerUnit ^ 3 * 1000;
+
+        attribute geometry = "assets/geom/SolarPowerSystem_geom.usda";
+        attribute material = "assets/mtl/steel.usda";
+        port Power_PowerPortOutToRover {
+            out item PowerOut;
+        }
+        port Power_PowerPortOutToPropellantDepot {
+            out item PowerOut;
+        }
+        port Power_PowerPortOutToISRUPlant {
+            out item PowerOut;
+        }
+        port Power_PowerPortOutToHabitationModule {
+            out item PowerOut;
+        }
+        port Power_PowerPortOutToLaunchLandingZone {
+            out item PowerOut;
         }
     }
     interface def LOXMovement {
         end suppliedBy;
         end consumedBy;
     }
-    interface ISRUPlantToRover : LOXMovement connect Rover.RoverFleet_LOXPortInOut to ISRU_PLANT.ISRU_LOXPortOut;
-    interface RoverToPropellantDepot : LOXMovement connect Rover.RoverFleet_LOXPortInOut to Propellant_Depot.Propellant_LOXPortIn;
-    view ECLIPSE_LSP1 : DS_Views::SymbolicViews::gv;
+    interface def RegolithMovement {
+        end suppliedBy;
+        end consumedBy;
+    }
+    interface def PowerMovement {
+        end suppliedBy;
+        end consumedBy;
+    }
+    interface ISRUPlantToRover : LOXMovement connect Rover.Rover_LOXPortInOut to ISRUPlant.ISRU_LOXPortOut;
+    interface RoverToPropellantDepot : LOXMovement connect Rover.Rover_LOXPortInOut to Propellant_Depot.Propellant_LOXPortIn;
+    interface PowerGenToPropellant : PowerMovement connect SolarPowerSystem.Power_PowerPortOutToPropellantDepot to Propellant_Depot.Propellant_PowerPortIn;
+    interface PowerGenToISRUPlant : PowerMovement connect SolarPowerSystem.Power_PowerPortOutToISRUPlant to ISRUPlant.ISRU_PowerPortIn;
+    interface PowerGenToHabMod : PowerMovement connect SolarPowerSystem.Power_PowerPortOutToHabitationModule to HabitationModule.Habitation_PowerPortIn;
+    interface PowerGenToLaunch : PowerMovement connect SolarPowerSystem.Power_PowerPortOutToLaunchLandingZone to LaunchLandingZone.LaunchZone_PowerPortIn;
+    interface PowerGenToRover : PowerMovement connect SolarPowerSystem.Power_PowerPortOutToRover to Rover.Rover_PowerPortIn;
+    view ECLIPSE_LSP1 : DS_Views::SymbolicViews::iv;
 }
 package MissionRequirements {
     private import SysML::*;
@@ -199,190 +266,44 @@ package MissionRequirements {
         expose MissionRequirements::**;
     }
 }
-package 'Vehicle Requirements' {
+package SubsystemRequirements {
     private import SysML::*;
     private import SI::*;
     private import ISQBase::*;
     private import ScalarValues::*;
-    requirement LSP_2 {
+    requirement <LSP_1> 'ISRU Plant' {
         doc 
-        /* The spaceport shall support safe, controlled extraction, processing,
-         * storage, and distribution of lunar resources. */
+        /* Lunar Spaceport-1 architecture shall have an ISRU processing plant to convert lunar regolith and extracted volatiles into usable propellants and consumables.*/
     }
-    requirement LSP_2_1 :> LSP_2 {
-        doc /* The spaceport shall support extraction of lunar resources. */
-    }
-    requirement LSP_2_1_1 :> LSP_2_1 {
+    requirement <LSP_2> 'Regolith Rover' {
         doc 
-        /* The spaceport shall support mechanized excavation and collection
-         * of lunar regolith sufficient to supply continuous ISRU operations. */
+        /* Lunar Spaceport-1 architecture shall have a regolith rover to transport excavated regolith from the ISRU excavation site to the ISRU processing plant.*/
     }
-    requirement LSP_2_1_1_1 :> LSP_2_1_1 {
+    requirement <LSP_3> 'LOX Rover' {
         doc 
-        /* The excavation system shall support regolith collection sufficient
-         * to enable ≥ 1 kg O2/hr production at the ISRU extraction system. */
-        attribute o2ProductionSupported : MassFlowRateValue;
-        attribute o2ProductionRequired : MassFlowRateValue;
-        require constraint {
-            o2ProductionSupported >= o2ProductionRequired
-        }
+        /* Lunar Spaceport-1 architecture shall have a LOX rover to transport produced liquid oxygen from theISRU processing plant to the propellant depot or landing and launch site.*/
     }
-    requirement LSP_2_1_2 :> LSP_2_1 {
+    requirement <LSP_4> 'Propellant Depot' {
         doc 
-        /* The spaceport shall support excavation throughput matched to
-         * downstream ISRU mass-flow demand. */
+        /* Lunar Spaceport-1 architecture shall have a propellant depot to store produced propellants for use by visiting spacecraft.*/
     }
-    requirement LSP_2_1_2_1 :> LSP_2_1_2 {
-        doc /* The spaceport shall support simultaneous operation of ≥ 5 excavators. */
-        attribute excavatorsActual : Integer;
-        attribute excavatorsRequired : Integer;
-        require constraint {
-            excavatorsActual >= excavatorsRequired
-        }
-    }
-    requirement LSP_2_1_3 :> LSP_2_1 {
-        doc /* The spaceport shall support mobile excavation operations. */
-    }
-    requirement LSP_2_1_3_1 :> LSP_2_1_3 {
-        doc /* The spaceport shall support excavation power demand of at least 1 kW per excavator. */
-        attribute powerAvailable : PowerValue;
-        attribute powerRequired : PowerValue;
-        require constraint {
-            powerAvailable >= powerRequired
-        }
-    }
-    requirement LSP_2_1_4 :> LSP_2_1 {
+    requirement <LSP_5> 'ISRU Excavation' {
         doc 
-        /* The spaceport shall support electrical energy provision, storage,
-         * and recharge for sustained excavation operations. */
+        /* Lunar Spaceport-1 architecture shall have an ISRU excavation site to extract regolith or volatile-bearing material for processing.*/
     }
-    requirement LSP_2_2 :> LSP_2 {
-        doc /* The spaceport shall process extracted materials into usable products. */
+    requirement <LSP_6> 'Power Generation' {
+        doc 
+        /* Lunar Spaceport-1 architecture shall have a solar power generation system to provide electrical power to surface infrastructure and operations.*/
     }
-    requirement LSP_2_2_1 :> LSP_2_2 {
-        doc /* The spaceport shall support chemical or electrochemical conversion of regolith. */
+    requirement <LSP_7> 'Launch and Landing Site' {
+        doc 
+        /* Lunar Spaceport-1 architecture shall have a landing and launch site to support spacecraft landing, refueling, and launch operations.*/
     }
-    requirement LSP_2_2_1_1 :> LSP_2_2_1 {
-        doc /* The ISRU subsystem shall produce ≥ 1 kg O2/hr under nominal conditions. */
-        attribute o2Produced : MassFlowRateValue;
-        attribute o2Required : MassFlowRateValue;
-        require constraint {
-            o2Produced >= o2Required
-        }
+    requirement <LSP_8> 'Habitation Module' {
+        doc 
+        /* Lunar Spaceport-1 architecture shall have a habitation module to support crew living and operational activities during lunar surface missions.*/
     }
-    requirement LSP_2_2_1_1_1 :> LSP_2_2_1_1 {
-        doc /* ISRU excavation operations shall be compatible with local regolith properties. */
-    }
-    requirement LSP_2_2_1_1_2 :> LSP_2_2_1_1 {
-        doc /* ISRU excavation system placement shall account for spatial variability of regolith properties. */
-    }
-    requirement LSP_2_2_2 :> LSP_2_2 {
-        doc /* The spaceport shall support multiple ISRU extraction pathways. */
-    }
-    requirement LSP_2_2_2_1 :> LSP_2_2_2 {
-        doc /* Hydrogen-reduction extraction shall be supported at 13 kW thermal per 1 kg O2/hr. */
-        attribute thermalPowerProvided : PowerValue;
-        attribute thermalPowerRequired : PowerValue;
-        require constraint {
-            thermalPowerProvided >= thermalPowerRequired
-        }
-    }
-    requirement LSP_2_2_2_2 :> LSP_2_2_2 {
-        doc /* Carbothermal extraction shall be supported at 28.6 kW thermal per 1 kg O2/hr. */
-        attribute thermalPowerProvided : PowerValue;
-        attribute thermalPowerRequired : PowerValue;
-        require constraint {
-            thermalPowerProvided >= thermalPowerRequired
-        }
-    }
-    requirement LSP_2_2_2_3 :> LSP_2_2_2 {
-        doc /* Molten-regolith electrolysis shall be supported at 30.1 kW electrical per 1 kg O2/hr. */
-        attribute electricalPowerProvided : PowerValue;
-        attribute electricalPowerRequired : PowerValue;
-        require constraint {
-            electricalPowerProvided >= electricalPowerRequired
-        }
-    }
-    requirement LSP_2_2_3 :> LSP_2_2 {
-        doc /* The spaceport shall support electrolysis of produced water. */
-    }
-    requirement LSP_2_2_4 :> LSP_2_2 {
-        doc /* The spaceport shall support scaling of extraction output based on available power and regolith supply. */
-    }
-    requirement LSP_2_3 :> LSP_2 {
-        doc /* The spaceport shall safely store processed resources in lunar environmental conditions. */
-    }
-    requirement LSP_2_3_1 :> LSP_2_3 {
-        doc /* The spaceport shall support cryogenic storage of oxygen products. */
-    }
-    requirement LSP_2_3_1_1 :> LSP_2_3_1 {
-        doc /* Liquid oxygen shall be stored at 90 K using active cryogenic cooling. */
-        attribute temperatureActual : TemperatureValue;
-        attribute temperatureRequired : TemperatureValue;
-        require constraint {
-            temperatureActual <= temperatureRequired
-        }
-    }
-    requirement LSP_2_3_2 :> LSP_2_3 {
-        doc /* The spaceport shall support cryogenic storage of hydrogen when produced. */
-    }
-    requirement LSP_2_3_2_1 :> LSP_2_3_2 {
-        doc /* Liquid hydrogen shall be stored at 20 K using multi-stage cryogenic cooling. */
-        attribute temperatureActual : TemperatureValue;
-        attribute temperatureRequired : TemperatureValue;
-        require constraint {
-            temperatureActual <= temperatureRequired
-        }
-    }
-    requirement LSP_2_3_3 :> LSP_2_3 {
-        doc /* The spaceport shall support active thermal control and boil-off mitigation. */
-    }
-    requirement LSP_2_4 :> LSP_2 {
-        doc /* The spaceport shall maintain safe separation between ISRU operations and crewed zones. */
-    }
-    requirement LSP_2_4_1 :> LSP_2_4 {
-        doc /* The ISRU subsystem shall limit propagation of dust or debris toward crewed zones. */
-    }
-    requirement LSP_2_4_1_1 :> LSP_2_4_1 {
-        doc /* Airborne dust concentration at crewed zone boundary shall be ≤ 0.1 mg/m3. */
-        attribute dustActual : MassConcentrationValue;
-        attribute dustLimit : MassConcentrationValue;
-        require constraint {
-            dustActual <= dustLimit
-        }
-    }
-    requirement LSP_2_4_2 :> LSP_2_4 {
-        doc /* The ISRU subsystem shall implement keep-out zones. */
-    }
-    requirement LSP_2_4_2_1 :> LSP_2_4_2 {
-        doc /* An exclusion zone with minimum radius of 100 meters shall be established. */
-        attribute radiusActual : LengthValue;
-        attribute radiusRequired : LengthValue;
-        require constraint {
-            radiusActual >= radiusRequired
-        }
-    }
-    requirement LSP_2_4_3 :> LSP_2_4 {
-        doc /* ISRU facilities shall prevent hazardous environmental propagation toward crewed areas. */
-    }
-    requirement LSP_2_5 :> LSP_2 {
-        doc /* The spaceport shall provide rapid, safe shutdown and purge capabilities. */
-    }
-    requirement LSP_2_5_1 :> LSP_2_5 {
-        doc /* The ISRU subsystem abort shall be capable of being commanded by crew or Earth ground systems. */
-    }
-    requirement LSP_2_5_1_1 :> LSP_2_5_1 {
-        doc /* The ISRU subsystem shall transition to a safe shutdown state within 30 seconds of commanded abort. */
-        attribute shutdownTimeActual : TimeValue;
-        attribute shutdownTimeRequired : TimeValue;
-        require constraint {
-            shutdownTimeActual <= shutdownTimeRequired
-        }
-    }
-    requirement LSP_2_5_1_3 :> LSP_2_5_1 {
-        doc /* The ISRU subsystem extraction processes shall abort if thermal limits exceed defined thresholds. */
-    }
-    requirement LSP_2_5_2 :> LSP_2_5 {
-        doc /* The ISRU subsystem shall provide purge or depressurization capability for hazardous process volumes. */
+    view SubsystemRequirementsTable : DS_Views::TabularViews::rt {
+        expose SubsystemRequirements::**;
     }
 }
