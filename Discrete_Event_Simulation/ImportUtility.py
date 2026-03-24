@@ -1,6 +1,7 @@
 import sys
 from pathlib import Path
-
+import json
+from typing import Any, Dict, List, Optional
 # Add the parent directory to the path
 parent_dir = Path(__file__).resolve().parent.parent
 sys.path.append(str(parent_dir))
@@ -10,10 +11,10 @@ import os
 from pathlib import Path
 
 # S24 pipeline
-from S24.sysml import sysml_to_json, write_json
+#from S24.sysml import sysml_to_json, write_json
+from S24.sysml import sysml_to_json
 from S24.jsonio.vetting import VettingProc
 
-print("Hello World!")
 
 #NOTE: SYSML File must be conatined under database/sysml/ and the sysml_filename must only be the name of the sysml file (i.e. "ISRUPlantModelV2.sysml")
 def generate_json_from_sysml(sysml_filename, json_filename):
@@ -50,7 +51,8 @@ def generate_json_from_sysml(sysml_filename, json_filename):
 def data_from_json(json_filename):
     ROOT = Path.cwd().parent
 
-    DATA_JSON  = ROOT / "S24-ArchitectingLunarBases" / "database" / "json"
+    #DATA_JSON  = ROOT / "S24-ArchitectingLunarBases" / "database" / "json"
+    DATA_JSON  = ROOT / "database" / "json"
     JSON_FILE  = DATA_JSON  / json_filename
 
     vetting = VettingProc(source=str(JSON_FILE))
@@ -61,13 +63,24 @@ def data_from_json(json_filename):
 
     return vetted_parts
 
+def write_json(parts: List[Dict[str, Any]], output_path: str) -> str:
+    """
+    Write a parts list to disk as pretty JSON.
+    Returns output_path.
+    """
+    with open(output_path, "w", encoding="utf-8") as f:
+        json.dump(parts, f, indent=2)
+    return output_path
 
-isruPlant = data_from_json("ISRUV2.json")['ISRUPlant']
-print(isruPlant.raw['attributes']["processingRate"])
+# Everything below only runs when this file is executed directly
+if __name__ == "__main__":
+    print("Hello World!")
+    isruPlant = data_from_json("ISRUV2.json")['ISRUPlant']
+    print(isruPlant.raw['attributes']["processingRate"])
 
-#generate_json_from_sysml("ISRUPlantModelV3.sysml", "ISRUV2.json")
-#generate_json_from_sysml("CommunicationModuleV1.sysml", "CommunicationModuleV1.json")
-#generate_json_from_sysml("RoverV1.sysml", "RoverV1.json")
-generate_json_from_sysml("LaunchLandingZoneV1.sysml", "LaunchLandingZoneV1.json")
-#generate_json_from_sysml("SolarPowerSystemV1.sysml", "SolarPowerSystemV1.json")
-#generate_json_from_sysml("HabitationModuleV1.sysml", "HabitationModuleV1.json")
+    #generate_json_from_sysml("ISRUPlantModelV3.sysml", "ISRUV2.json")
+    #generate_json_from_sysml("CommunicationModuleV1.sysml", "CommunicationModuleV1.json")
+    #generate_json_from_sysml("RoverV1.sysml", "RoverV1.json")
+    generate_json_from_sysml("LaunchLandingZoneV1.sysml", "LaunchLandingZoneV1.json")
+    #generate_json_from_sysml("SolarPowerSystemV1.sysml", "SolarPowerSystemV1.json")
+    #generate_json_from_sysml("HabitationModuleV1.sysml", "HabitationModuleV1.json")
