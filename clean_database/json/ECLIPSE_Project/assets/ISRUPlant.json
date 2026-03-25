@@ -1,0 +1,65 @@
+{
+  "type": "Part",
+  "id": "urn:lunarspaceport1:part:ISRUPlant:001",
+  "name": "ISRUPlant",
+  "dimensions": {
+    "size_m": {
+      "length": 20.0,
+      "width": 15.0,
+      "height": 8.0
+    },
+    "metersPerUnit": 1,
+    "upAxis": "Z"
+  },
+  "transform": {
+    "position_m": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "rotation_deg": [
+      0.0,
+      0.0,
+      0.0
+    ]
+  },
+  "attributes": {
+    "processingRate": 1600.0,
+    "regHeadGrade": 0.1,
+    "lunarGravity": 1.62,
+    "LOXStored": 0.0,
+    "totalEnergyConsumed": 0.0,
+    "ISRUPlant_volume_m3": 2400.0,
+    "excavationEnergyCoeff": 6.5e-06,
+    "transportEnergyCoeff": 0.00036,
+    "liftHeight": 1.0,
+    "gangueTransportDist": 1.0,
+    "reactorEnergyCoeff": 0.385,
+    "electrolysisEnergyCoeff": 8.26,
+    "liquefactionEnergyCoeff": 1.17
+  },
+  "metadata": {
+    "geometryRef": "assets/geom/ISRUPlant_geom.usda"
+  },
+  "materialRef": null,
+  "ports": [
+    {
+      "name": "ISRU_LOXPortOut",
+      "direction": [
+        "out"
+      ],
+      "items": [
+        "LOXOut"
+      ]
+    },
+    {
+      "name": "ISRU_PowerPortIn",
+      "direction": [
+        "in"
+      ],
+      "items": [
+        "LOXIn"
+      ]
+    }
+  ]
+}

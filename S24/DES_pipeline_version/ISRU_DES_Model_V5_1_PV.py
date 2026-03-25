@@ -165,7 +165,7 @@ def run_scenario(optionsDict):
     #Setup Logger
     logger = LoggingManager(system, time_step=1.0)
     logger.setup()
-
+    
     # =========================================================
     # MODIFICATION 3: Build a LIST of ISRU plants instead of a
     # single plant.  Every plant is an identical parallel
