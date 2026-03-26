@@ -1,27 +1,29 @@
 from __future__ import annotations
-
 from typing import Any, Dict, List, Optional
 
 from S24.sysml.ast import Model, PartNode
-
-from S24.sysml.parser import parse_sysml, _print_model
-from S24.sysml.evaluator import evaluate_attributes
-from S24.jsonio.json_parser import build_part_json, build_connections_json
-
-from S24.validation.validator import validate_connections
+from S24.sysml.parser import parse_sysml, _print_model_un
+from S24.sysml.evaluator import evaluate_attributes, _print_model_with_values
+#-----
+from S24.jsonio.json_parser import build_part_json_representation, build_connections_json, validate_connections
 
 def sysml_to_json_transformer(
+    verbose: int,
     sysml_text: str,
-    *,
     namespace: str = "lunarspaceport1",
     validate: bool = True,
-    verbose: int = 1
 ) -> Dict[str, Any]:
 
     # parse the sysml text into a structured python object: Model 
     model: Model = parse_sysml(sysml_text)
-    # evaluate expressions
+    # evaluate model's expressions
     evaluate_attributes(model)
+
+    parts: List[Dict[str, Any]] = []
+    for top in model.parts.values():
+        _emit_part_recursive(top, parts, namespace=namespace)
+
+    connections = build_connections_json(model)
 
     # validate connections and interfaces
     validation_errors = []
@@ -30,16 +32,9 @@ def sysml_to_json_transformer(
 
     # print parsed model 
     if verbose>1:
-        _print_model(model=model)
-        print(validation_errors)
-
-    parts: List[Dict[str, Any]] = []
-
-    for top in model.parts.values():
-        emit_part_recursive(top, parts, namespace=namespace)
-
-    connections = build_connections_json(model)
-
+        _print_model_un(model=model)
+        _print_model_with_values(model=model)
+        
     return {
         "metadata": {
             "package": model.package_name,
@@ -51,7 +46,9 @@ def sysml_to_json_transformer(
         "connections": connections,
     }
 
-def emit_part_recursive(
+#-------------------------------------------------------------------------------------------------
+# Helpers
+def _emit_part_recursive(
     part: PartNode,
     parts: List[Dict[str, Any]],
     *,
@@ -59,7 +56,7 @@ def emit_part_recursive(
     parent: Optional[PartNode] = None,
 ) -> None:
 
-    obj = build_part_json(part, namespace=namespace)
+    obj = build_part_json_representation(part, namespace=namespace)
 
     if parent is not None:
         obj["parent"] = parent.name
@@ -76,7 +73,7 @@ def emit_part_recursive(
     for child_name, child in part.children.items():
         if child_name.lower().endswith("dims"):
             continue
-        emit_part_recursive(child, parts, namespace=namespace, parent=part)
+        _emit_part_recursive(child, parts, namespace=namespace, parent=part)
 
 # ----------------------------------------------------------------------------------------------------------------------------------------
 

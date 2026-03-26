@@ -38,7 +38,6 @@ def write_json_assets(
 
 # ----------------------------------------------------------------------------------------------------------------------------------------
 
-
 # def write_materials_json(materials: List[Dict[str, Any]], output_path: str) -> str:
 #     """
 #     Write materials list to disk as pretty JSON.

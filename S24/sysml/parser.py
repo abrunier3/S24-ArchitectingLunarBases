@@ -2,20 +2,20 @@ import re
 from typing import Any, Dict, List, Optional
 
 from S24.sysml.ast import Model, PartNode
-from S24.validation.validator import validate_connections
 
-def parse_sysml(text: str, verbose: int = 0) -> Model:
-    text = _normalize_multiline_attributes(text)
+def parse_sysml(sysml_text: str) -> Model:
+    '''
+    Parses the model to a structured python object: Model with rules such as ingore Requirements blocks etc.
+    '''
 
-    if verbose == 2:
-        validate_connections(model)
+    sysml_text = _normalize_multiline_attributes(sysml_text)
 
     model = Model()
     current_stack: List[PartNode] = []
     brace_stack: List[str] = []
     current_port: Optional[Dict[str, Any]] = None
 
-    for raw_line in text.splitlines():
+    for raw_line in sysml_text.splitlines():
         line = _strip_comment(raw_line).strip()
         if not line:
             continue
@@ -87,14 +87,14 @@ def parse_sysml(text: str, verbose: int = 0) -> Model:
             src = m.group(3)
             dst = m.group(4)
 
-            flow = None
-            if "LOX" in iface_type.upper():
-                flow = "LOX"
+            # flow = None
+            # if "LOX" in iface_type.upper():
+            #     flow = "LOX"
 
             model.interfaces.append({
                 "name": iface_name,
                 "type": iface_type,
-                "flow": flow,
+                "flow": iface_type.upper(),
                 "from": src,
                 "to": dst,
             })
@@ -128,13 +128,10 @@ def parse_sysml(text: str, verbose: int = 0) -> Model:
                 raw_val = m.group(2).strip()
                 current_stack[-1].attributes_raw[attr_name] = raw_val
                 continue
-        
-        if verbose == 2:
-            _print_model(model)
-
     return model
 
-
+#------------------------------------------------------------------------------------
+# Helpers
 def _normalize_multiline_attributes(text: str) -> str:
     lines = text.splitlines()
     new_lines = []
@@ -167,9 +164,9 @@ def _strip_comment(line: str) -> str:
     return line.split("//", 1)[0].rstrip()
 
 
-def _print_model(model: Model):
+def _print_model_un(model: Model):
     '''
-    Debugging-printing def of the model when parsed from SysML to python. 
+    Debugging-printing def of the model when parsed from SysML to python. PRINT UN-EVALUATED MODELS
     '''
     def print_part(part, level=0):
         prefix = "  " * level
@@ -198,8 +195,8 @@ def _print_model(model: Model):
         for child in part.children.values():
             print_part(child, level + 1)
 
-    print("\n================= PARSED MODEL =================")
-    print(f"📁 Package: {model.package_name}\n")
+    print("\n================= PARSED MODEL (EXPRESSIONS NOT EVALUATED)=================")
+    print(f"Package: {model.package_name}\n")
 
     for part in model.parts.values():
         print_part(part)

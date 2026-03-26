@@ -8,10 +8,10 @@ from S24.jsonio.writer import write_json, write_json_assets
 def run_sysml_to_json_pipeline(
     sysml_file: str,
     *,
+    verbose: int,
     use_repo: bool = True,
     namespace: str = "S24_PIPELINE",
     write_individual: bool = True,
-    verbose: int = 1,
     ) -> Dict[str, Any]:
     
     # Automatically set up the paths in the database (right now the default is the clean_database).
@@ -23,8 +23,12 @@ def run_sysml_to_json_pipeline(
     # transform sysml text into ready for json writing python parts.
     with open(SYSML_FILE, "r", encoding="utf-8") as f:
         sysml_text = f.read()
-    data = sysml_to_json_transformer(sysml_text, namespace=namespace)
+    data = sysml_to_json_transformer(verbose=verbose,sysml_text=sysml_text, namespace=namespace)
+    metadata = data['metadata']
     parts = data["parts"]
+    connections = data['connections']
+
+    # write json file 
     output_path = write_json(data, JSON_FILE)
 
     # Write individual json files for each part. 
@@ -38,7 +42,7 @@ def run_sysml_to_json_pipeline(
     if verbose >= 1:
         print(f"\n[WRITE] Full JSON → {output_path}")
         print("\n[METADATA]")
-        print(json.dumps(data["metadata"], indent=2))
+        print(json.dumps(metadata, indent=2))
         print(f"[SUMMARY] Wrote {len(parts)} part files")
 
         for file_path, part in zip(asset_paths, parts):

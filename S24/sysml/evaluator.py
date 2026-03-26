@@ -1,17 +1,10 @@
-from __future__ import annotations
-
-import ast
 import re
+import ast
 from typing import Any, Dict, List, Optional, Union
 
 from S24.sysml.ast import Model, PartNode
 
-
-Number = Union[int, float]
-_STR_RE = re.compile(r'"([^"]*)"')
-_NUM_RE = re.compile(r"^-?\d+(\.\d+)?$")
-
-def evaluate_attributes(model: Model, *, max_passes: int = 10, verbose: int = 0) -> None:
+def evaluate_attributes(model: Model, *, max_passes: int = 10) -> None:
     """
     Fill PartNode.attributes_val by:
       1) initializing literals from attributes_raw
@@ -64,27 +57,10 @@ def evaluate_attributes(model: Model, *, max_passes: int = 10, verbose: int = 0)
         if not changed:
             break
 
-        if verbose == 2:
-            _print_model_with_values(model)
+#----------------------------------------------------------------------------------------------
+# Helpers
 
-def _parse_literal_token(value_str: str) -> Any:
-    """
-    Parse a simple literal token:
-      - "foo" -> "foo"
-      - 1.23 or 42 -> number
-      - otherwise -> raw string (expression or symbol)
-    """
-    s = value_str.strip()
-
-    m = _STR_RE.fullmatch(s)
-    if m:
-        return m.group(1)
-
-    if _NUM_RE.match(s):
-        return float(s) if "." in s else int(s)
-
-    return s
-
+Number = Union[int, float]
 class SafeEvaluator(ast.NodeVisitor):
     """
     Safe evaluator for simple arithmetic and attribute references.
@@ -161,7 +137,27 @@ class SafeEvaluator(ast.NodeVisitor):
         if isinstance(node.op, ast.Pow):
             return l ** r
         raise ValueError("Unsupported binary operator")
+    
+_STR_RE = re.compile(r'"([^"]*)"')
+_NUM_RE = re.compile(r"^-?\d+(\.\d+)?$")
+    
+def _parse_literal_token(value_str: str) -> Any:
+    """
+    Parse a simple literal token:
+      - "foo" -> "foo"
+      - 1.23 or 42 -> number
+      - otherwise -> raw string (expression or symbol)
+    """
+    s = value_str.strip()
 
+    m = _STR_RE.fullmatch(s)
+    if m:
+        return m.group(1)
+
+    if _NUM_RE.match(s):
+        return float(s) if "." in s else int(s)
+
+    return s
 
 def _collect_env(part: PartNode, parent_chain: Optional[List[str]] = None) -> Dict[str, float]:
     """
@@ -206,7 +202,7 @@ def _collect_env(part: PartNode, parent_chain: Optional[List[str]] = None) -> Di
 
 def _print_model_with_values(model: Model):
     '''
-    Debug priting def for observing changes and evaluated expressions.
+    Debug priting def for observing changes and evaluated expressions. PRINT EVALUATED MODEL
     '''
     def print_part(part: PartNode, level=0):
         prefix = "  " * level
@@ -233,7 +229,7 @@ def _print_model_with_values(model: Model):
             print_part(child, level + 1)
 
     print("\n=========== MODEL (WITH EVALUATION) ===========")
-    print(f"📁 Package: {model.package_name}\n")
+    print(f"Package: {model.package_name}\n")
 
     for part in model.parts.values():
         print_part(part)

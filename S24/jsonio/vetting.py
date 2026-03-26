@@ -1,32 +1,8 @@
+import json
+from typing import Dict, Any, Optional, List, Tuple, Union
 from dataclasses import dataclass
-from typing import Dict, Any, Optional, List, Tuple
 
-from .errors import JsonVettingError
-from .loader import load_parts_json
-
-@dataclass
-class VettedPart:
-    raw: Dict[str, Any]
-
-    name: str
-    uid: str
-    ptype: str
-
-    dims_m: Tuple[float, float, float]
-    meters_per_unit: float
-    up_axis: str
-    translate: Tuple[float, float, float]
-    rotation_deg: Tuple[float, float, float]
-    angle_unit: str
-    pressure_unit: str
-    mass_unit: str
-    length_unit: str
-
-    geom_path: str
-    material_ref: str
-
-    parent: Optional[str]
-    children: List[str]
+# --------------------------------------------------------------------------------------------
 
 def _require(d: dict, key: str, ctx: str):
     if key not in d:
@@ -52,6 +28,54 @@ def _validate_asset_path(p: Any, ctx: str) -> str:
     if not p.endswith(".usd") and not p.endswith(".usda"):
         raise JsonVettingError(f"{ctx}: asset path must be .usd/.usda")
     return p
+
+# --------------------------------------------------------------------------------------------
+
+def load_parts_json(source: Union[str, List[dict]]) -> List[dict]:
+    """
+    Load JSON parts either from:
+      - a file path
+      - an already-loaded list of dicts
+    """
+    if isinstance(source, list):
+        return source
+
+    if isinstance(source, str):
+        with open(source, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        return data
+
+    raise TypeError("source must be a file path or list of dicts")
+
+class JsonVettingError(Exception):
+    """Raised when JSON structure or semantics are invalid."""
+    pass
+# --------------------------------------------------------------------------------------------
+
+@dataclass
+class VettedPart:
+    raw: Dict[str, Any]
+
+    name: str
+    uid: str
+    ptype: str
+
+    dims_m: Tuple[float, float, float]
+    meters_per_unit: float
+    up_axis: str
+    translate: Tuple[float, float, float]
+    rotation_deg: Tuple[float, float, float]
+    angle_unit: str
+    pressure_unit: str
+    mass_unit: str
+    length_unit: str
+
+    geom_path: str
+    material_ref: str
+
+    parent: Optional[str]
+    children: List[str]
+
 
 class VettingProc:
     def __init__(self, source):

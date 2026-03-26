@@ -1,10 +1,8 @@
-from typing import Dict, Any, Tuple
-from S24.sysml.ast import PartNode
-
 from typing import Dict, Any, Tuple, List
-from S24.sysml.ast import PartNode, Model
 
-def build_part_json(part: PartNode, *, namespace: str) -> Dict[str, Any]:
+from S24.sysml.ast import Model, PartNode
+
+def build_part_json_representation(part: PartNode, *, namespace: str) -> Dict[str, Any]:
     part_id = f"urn:{namespace}:part:{part.name}:001"
     attrs = part.attributes_val
 
@@ -87,6 +85,62 @@ def build_part_json(part: PartNode, *, namespace: str) -> Dict[str, Any]:
         "ports": ports,
     }
 
+def build_connections_json(model: Model) -> List[Dict[str, Any]]:
+    connections: List[Dict[str, Any]] = []
+
+    for iface in getattr(model, "interfaces", []):
+        conn = {
+            "name": iface.get("name"),
+            "type": iface.get("type"),
+            "flow": iface.get("flow"),
+            "from": _split_endpoint(iface.get("from")),
+            "to": _split_endpoint(iface.get("to")),
+        }
+        connections.append(conn)
+
+    return connections
+
+def validate_connections(model: Model) -> List[str]:
+    errors = []
+
+    for iface in model.interfaces:
+        src = iface["from"].split(".")
+        dst = iface["to"].split(".")
+
+        if len(src) != 2 or len(dst) != 2:
+            errors.append(f"Invalid interface format: {iface}")
+            continue
+
+        src_part, src_port = src
+        dst_part, dst_port = dst
+
+        if src_part not in model.parts:
+            errors.append(f"Unknown source part: {src_part}")
+            continue
+
+        if dst_part not in model.parts:
+            errors.append(f"Unknown target part: {dst_part}")
+            continue
+
+        sp = model.parts[src_part].ports.get(src_port)
+        dp = model.parts[dst_part].ports.get(dst_port)
+
+        if not sp:
+            errors.append(f"Missing source port: {src_port}")
+        if not dp:
+            errors.append(f"Missing target port: {dst_port}")
+
+        if sp and dp:
+            if "out" not in sp["direction"] or "in" not in dp["direction"]:
+                errors.append(
+                    f"Direction mismatch: {src_part}.{src_port} → {dst_part}.{dst_port}"
+                )
+
+    return errors
+
+#--------------------------------------------------------------------------------------------------
+# Helpers
+
 def _convert_numeric_with_units(name: str, value: float) -> Tuple[str, float]:
     """
     Convert known attributes to SI and rename with suffix.
@@ -118,7 +172,6 @@ def _convert_numeric_with_units(name: str, value: float) -> Tuple[str, float]:
 
     return name, v
 
-
 def _split_endpoint(endpoint: str) -> Dict[str, str]:
     """
     "Rover.RoverFleet_LOXPortInOut" →
@@ -129,19 +182,3 @@ def _split_endpoint(endpoint: str) -> Dict[str, str]:
 
     part, port = endpoint.split(".", 1)
     return {"part": part, "port": port}
-
-
-def build_connections_json(model: Model) -> List[Dict[str, Any]]:
-    connections: List[Dict[str, Any]] = []
-
-    for iface in getattr(model, "interfaces", []):
-        conn = {
-            "name": iface.get("name"),
-            "type": iface.get("type"),
-            "flow": iface.get("flow"),
-            "from": _split_endpoint(iface.get("from")),
-            "to": _split_endpoint(iface.get("to")),
-        }
-        connections.append(conn)
-
-    return connections

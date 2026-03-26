@@ -10,7 +10,7 @@
   "parts": [
     {
       "type": "Part",
-      "id": "urn:lunarspaceport1:part:HabitationModule:001",
+      "id": "urn:S24_PIPELINE:part:HabitationModule:001",
       "name": "HabitationModule",
       "dimensions": {
         "size_m": {
@@ -56,7 +56,7 @@
     },
     {
       "type": "Part",
-      "id": "urn:lunarspaceport1:part:ISRUPlant:001",
+      "id": "urn:S24_PIPELINE:part:ISRUPlant:001",
       "name": "ISRUPlant",
       "dimensions": {
         "size_m": {
@@ -121,7 +121,7 @@
     },
     {
       "type": "Part",
-      "id": "urn:lunarspaceport1:part:LaunchLandingZone:001",
+      "id": "urn:S24_PIPELINE:part:LaunchLandingZone:001",
       "name": "LaunchLandingZone",
       "dimensions": {
         "size_m": {
@@ -170,7 +170,7 @@
     },
     {
       "type": "Part",
-      "id": "urn:lunarspaceport1:part:Propellant_Depot:001",
+      "id": "urn:S24_PIPELINE:part:Propellant_Depot:001",
       "name": "Propellant_Depot",
       "dimensions": {
         "size_m": {
@@ -227,7 +227,7 @@
     },
     {
       "type": "Part",
-      "id": "urn:lunarspaceport1:part:Rover:001",
+      "id": "urn:S24_PIPELINE:part:Rover:001",
       "name": "Rover",
       "dimensions": {
         "size_m": {
@@ -289,7 +289,7 @@
     },
     {
       "type": "Part",
-      "id": "urn:lunarspaceport1:part:SolarPowerSystem:001",
+      "id": "urn:S24_PIPELINE:part:SolarPowerSystem:001",
       "name": "SolarPowerSystem",
       "dimensions": {
         "size_m": {
@@ -379,7 +379,7 @@
     {
       "name": "ISRUPlantToRover",
       "type": "LOXMovement",
-      "flow": "LOX",
+      "flow": "LOXMOVEMENT",
       "from": {
         "part": "Rover",
         "port": "Rover_LOXPortInOut"
@@ -392,7 +392,7 @@
     {
       "name": "RoverToPropellantDepot",
       "type": "LOXMovement",
-      "flow": "LOX",
+      "flow": "LOXMOVEMENT",
       "from": {
         "part": "Rover",
         "port": "Rover_LOXPortInOut"
@@ -405,7 +405,7 @@
     {
       "name": "PowerGenToPropellant",
       "type": "PowerMovement",
-      "flow": null,
+      "flow": "POWERMOVEMENT",
       "from": {
         "part": "SolarPowerSystem",
         "port": "Power_PowerPortOutToPropellantDepot"
@@ -418,7 +418,7 @@
     {
       "name": "PowerGenToISRUPlant",
       "type": "PowerMovement",
-      "flow": null,
+      "flow": "POWERMOVEMENT",
       "from": {
         "part": "SolarPowerSystem",
         "port": "Power_PowerPortOutToISRUPlant"
@@ -431,7 +431,7 @@
     {
       "name": "PowerGenToHabMod",
       "type": "PowerMovement",
-      "flow": null,
+      "flow": "POWERMOVEMENT",
       "from": {
         "part": "SolarPowerSystem",
         "port": "Power_PowerPortOutToHabitationModule"
@@ -444,7 +444,7 @@
     {
       "name": "PowerGenToLaunch",
       "type": "PowerMovement",
-      "flow": null,
+      "flow": "POWERMOVEMENT",
       "from": {
         "part": "SolarPowerSystem",
         "port": "Power_PowerPortOutToLaunchLandingZone"
@@ -457,7 +457,7 @@
     {
       "name": "PowerGenToRover",
       "type": "PowerMovement",
-      "flow": null,
+      "flow": "POWERMOVEMENT",
       "from": {
         "part": "SolarPowerSystem",
         "port": "Power_PowerPortOutToRover"
