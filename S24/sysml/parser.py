@@ -87,14 +87,18 @@ def parse_sysml(sysml_text: str) -> Model:
             src = m.group(3)
             dst = m.group(4)
 
-            # flow = None
-            # if "LOX" in iface_type.upper():
-            #     flow = "LOX"
+            flow = None
+            if "LOX" in iface_type.upper():
+                flow = "LOX"
+            elif "POWER" in iface_type.upper():
+                flow = "Power"
+            elif "REGOLITH" in iface_type.upper():
+                flow = "Regolith"
 
             model.interfaces.append({
                 "name": iface_name,
                 "type": iface_type,
-                "flow": iface_type.upper(),
+                "flow": flow,
                 "from": src,
                 "to": dst,
             })

@@ -28,7 +28,7 @@ def plot_system_graph(G):
         G,
         pos,
         with_labels=True,
-        node_size=3000,
+        node_size=10000,
         node_color="lightblue",
         font_size=10,
         font_weight="bold",
