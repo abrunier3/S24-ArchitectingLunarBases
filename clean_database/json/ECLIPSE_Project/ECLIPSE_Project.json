@@ -3,9 +3,7 @@
     "package": "ECLIPSE_LSP1",
     "num_parts": 6,
     "num_connections": 7,
-    "validation_errors": [
-      "Direction mismatch: Rover.Rover_LOXPortInOut \u2192 ISRUPlant.ISRU_LOXPortOut"
-    ]
+    "validation_errors": []
   },
   "parts": [
     {
@@ -114,7 +112,7 @@
             "in"
           ],
           "items": [
-            "LOXIn"
+            "PowerIn"
           ]
         }
       ]
@@ -381,12 +379,12 @@
       "type": "LOXMovement",
       "flow": "LOX",
       "from": {
-        "part": "Rover",
-        "port": "Rover_LOXPortInOut"
-      },
-      "to": {
         "part": "ISRUPlant",
         "port": "ISRU_LOXPortOut"
+      },
+      "to": {
+        "part": "Rover",
+        "port": "Rover_LOXPortInOut"
       }
     },
     {

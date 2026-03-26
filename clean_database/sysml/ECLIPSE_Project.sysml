@@ -55,7 +55,7 @@ package ECLIPSE_LSP1 {
             out item LOXOut;
         }
         port ISRU_PowerPortIn {
-            in item LOXIn;
+            in item PowerIn;
         }
     }
     part LaunchLandingZone {
@@ -193,7 +193,8 @@ package ECLIPSE_LSP1 {
         end suppliedBy;
         end consumedBy;
     }
-    interface ISRUPlantToRover : LOXMovement connect Rover.Rover_LOXPortInOut to ISRUPlant.ISRU_LOXPortOut;
+
+    interface ISRUPlantToRover : LOXMovement connect ISRUPlant.ISRU_LOXPortOut to Rover.Rover_LOXPortInOut;
     interface RoverToPropellantDepot : LOXMovement connect Rover.Rover_LOXPortInOut to Propellant_Depot.Propellant_LOXPortIn;
     interface PowerGenToPropellant : PowerMovement connect SolarPowerSystem.Power_PowerPortOutToPropellantDepot to Propellant_Depot.Propellant_PowerPortIn;
     interface PowerGenToISRUPlant : PowerMovement connect SolarPowerSystem.Power_PowerPortOutToISRUPlant to ISRUPlant.ISRU_PowerPortIn;
