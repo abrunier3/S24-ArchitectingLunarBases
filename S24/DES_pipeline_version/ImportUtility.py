@@ -12,7 +12,7 @@ from pathlib import Path
 
 # S24 pipeline
 #from S24.sysml import sysml_to_json, write_json
-from S24.sysml import sysml_to_json
+from S24.sysml import sysml_to_json_transformer
 from S24.jsonio.vetting import VettingProc
 
 
@@ -34,7 +34,7 @@ def generate_json_from_sysml(sysml_filename, json_filename):
 
     #print(sysml_text[:500], "...")
 
-    parts_json = sysml_to_json(
+    parts_json = sysml_to_json_transformer(
         sysml_text,
         namespace="lunarspaceport1"
     )

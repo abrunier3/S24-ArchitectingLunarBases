@@ -1,5 +1,5 @@
-from .setup_paths import setup_paths
+from .setup_paths import resolve_database_paths
 
 __all__ = [
-    'setup_paths'
+    'resolve_database_paths'
 ]

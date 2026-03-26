@@ -66,7 +66,7 @@ def _resolve_sysml_file(sysml_file: str, SYSML_DIR: Path) -> Path:
         return destination
 
 
-def setup_paths(sysml_file: str, use_repo: bool = True):
+def resolve_database_paths(sysml_file: str, use_repo: bool = True):
 
     # root direcctory 
     if use_repo:

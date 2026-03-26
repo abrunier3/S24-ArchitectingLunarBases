@@ -15,8 +15,6 @@ def write_json(data: Dict[str, Any], output_path: str) -> str:
 def write_json_assets(
     parts: List[Dict[str, Any]],
     output_dir: str,
-    *,
-    verbose: int = 0
 ) -> List[str]:
     """
     Write each part as a separate JSON file.
@@ -36,14 +34,10 @@ def write_json_assets(
 
         paths.append(file_path)
 
-        if verbose >= 1:
-            print(f"[WRITE] {name} → {file_path}")
-
-    if verbose >= 2:
-        print(f"[SUMMARY] Wrote {len(paths)} part files")
-
     return paths
+
 # ----------------------------------------------------------------------------------------------------------------------------------------
+
 
 # def write_materials_json(materials: List[Dict[str, Any]], output_path: str) -> str:
 #     """

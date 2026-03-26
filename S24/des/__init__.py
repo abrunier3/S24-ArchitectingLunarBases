@@ -1,4 +1,3 @@
-from S24.DES_pipeline_version.SolarPowerSystem import SolarPowerSystem
 from S24.DES_pipeline_version.PowerManager import PowerManager
 from S24.DES_pipeline_version.HabitationModule import HabitationModule
 from S24.DES_pipeline_version.CommunicationModule import CommunicationModule
