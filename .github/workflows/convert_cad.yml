@@ -34,58 +34,63 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install usd-core
+          pip install usd-core trimesh numpy
           pip install -e .
 
-      - name: Convert USD → GLB + extract metadata
+      - name: Convert USD to GLB and extract metadata
         env:
           MODULE_NAME: ${{ github.event.inputs.module_name }}
           USD_PATH: ${{ github.event.inputs.usd_path }}
         run: |
           mkdir -p outputs/cad_previews
           python - <<'EOF'
-          import json, os, time
-          from pxr import Usd, UsdGeom, UsdShade, Gf
+          import json, os, time, zipfile
+          import numpy as np
+          import trimesh
+          from pxr import Usd, UsdGeom, UsdShade
 
           module_name = os.environ['MODULE_NAME']
           usd_path    = os.environ['USD_PATH']
 
-          print(f"[CONVERT] Opening {usd_path}")
-          stage = Usd.Stage.Open(usd_path)
+          # Handle .usdz (zip containing .usdc)
+          actual_usd_path = usd_path
+          if usd_path.endswith('.usdz'):
+              tmp_dir = '/tmp/usd_extract'
+              os.makedirs(tmp_dir, exist_ok=True)
+              with zipfile.ZipFile(usd_path, 'r') as z:
+                  z.extractall(tmp_dir)
+              for root, dirs, files in os.walk(tmp_dir):
+                  for f in files:
+                      if f.endswith('.usdc') or f.endswith('.usda'):
+                          actual_usd_path = os.path.join(root, f)
+                          break
 
-          # --- Bounding box ---
+          print(f"[CONVERT] Opening {actual_usd_path}")
+          stage = Usd.Stage.Open(actual_usd_path)
+
+          # Bounding box
           bbox_cache = UsdGeom.BBoxCache(Usd.TimeCode.Default(), [UsdGeom.Tokens.default_])
           bbox  = bbox_cache.ComputeWorldBound(stage.GetPseudoRoot())
           rng   = bbox.GetRange()
           mn, mx = rng.GetMin(), rng.GetMax()
           size  = mx - mn
-          mpu   = UsdGeom.GetStageMetersPerUnit(stage)  # e.g. 0.01 for cm
-          size_m = [round(abs(size[i]) * mpu, 3) for i in range(3)]
+          mpu   = UsdGeom.GetStageMetersPerUnit(stage)
+          size_m   = [round(abs(size[i]) * mpu, 3) for i in range(3)]
           center_m = [round(((mn[i] + mx[i]) / 2) * mpu, 3) for i in range(3)]
+          print(f"[CONVERT] Size (m): {size_m}")
 
-          print(f"[CONVERT] Size (m): {size_m}, metersPerUnit: {mpu}")
-
-          # --- Materials ---
+          # Materials
           def to_json_val(v):
-              """Convert any USD type to a JSON-serializable Python type."""
-              if v is None:
-                  return None
-              if isinstance(v, (bool, int, str)):
-                  return v
-              if isinstance(v, float):
-                  return round(v, 4)
-              # Vec2f, Vec3f, Vec4f, GfVec* — iterable with floats
+              if v is None: return None
+              if isinstance(v, (bool, int, str)): return v
+              if isinstance(v, float): return round(v, 4)
               try:
                   items = list(v)
                   if all(isinstance(x, (int, float)) for x in items):
                       return [round(float(x), 4) for x in items]
-              except TypeError:
-                  pass
-              # Fallback: cast to float or string
-              try:
-                  return round(float(v), 4)
-              except (TypeError, ValueError):
-                  return str(v)
+              except TypeError: pass
+              try: return round(float(v), 4)
+              except (TypeError, ValueError): return str(v)
 
           materials_found = []
           for prim in stage.Traverse():
@@ -101,35 +106,53 @@ jobs:
                                   mat_data["properties"][key] = to_json_val(v)
                   materials_found.append(mat_data)
 
-          # --- Mesh count ---
-          meshes = [p for p in stage.Traverse() if p.IsA(UsdGeom.Mesh)]
+          # Extract meshes and convert to GLB
+          meshes_data = []
+          for prim in stage.Traverse():
+              if prim.IsA(UsdGeom.Mesh):
+                  m = UsdGeom.Mesh(prim)
+                  pts    = m.GetPointsAttr().Get()
+                  idxs   = m.GetFaceVertexIndicesAttr().Get()
+                  counts = m.GetFaceVertexCountsAttr().Get()
+                  if not (pts and idxs and counts): continue
+                  verts = np.array([[p[0], p[1], p[2]] for p in pts], dtype=np.float32)
+                  faces, idx = [], 0
+                  for c in counts:
+                      face = [idxs[idx + i] for i in range(c)]
+                      for i in range(1, len(face) - 1):
+                          faces.append([face[0], face[i], face[i + 1]])
+                      idx += c
+                  if faces:
+                      meshes_data.append(trimesh.Trimesh(vertices=verts, faces=np.array(faces, dtype=np.int32)))
 
-          # --- Convert to GLB via usdcat ---
-          glb_out = f"outputs/cad_previews/{module_name}.usdz"
-          import shutil
-          shutil.copy(usd_path, glb_out)
-          # Try proper conversion to usda first, then note glb path
-          # usd-core doesn't include glTF export — we store the usdz for model-viewer
-          print(f"[CONVERT] Stored USD preview at {glb_out}")
+          print(f"[CONVERT] Extracted {len(meshes_data)} meshes")
 
-          # --- Write metadata JSON ---
+          glb_path = None
+          if meshes_data:
+              glb_path = f"outputs/cad_previews/{module_name}.glb"
+              scene = trimesh.Scene(meshes_data)
+              glb_bytes = scene.export(file_type='glb')
+              with open(glb_path, 'wb') as f:
+                  f.write(glb_bytes)
+              print(f"[CONVERT] GLB written: {len(glb_bytes)//1024} KB")
+
+          # Write metadata
           meta = {
-              "written_at":   int(time.time() * 1000),
-              "module_name":  module_name,
-              "usd_path":     usd_path,
-              "preview_path": f"outputs/cad_previews/{module_name}.usdz",
-              "up_axis":      UsdGeom.GetStageUpAxis(stage),
+              "written_at":      int(time.time() * 1000),
+              "module_name":     module_name,
+              "usd_path":        usd_path,
+              "glb_path":        glb_path,
+              "up_axis":         UsdGeom.GetStageUpAxis(stage),
               "meters_per_unit": mpu,
-              "size_m":       size_m,
-              "center_m":     center_m,
-              "mesh_count":   len(meshes),
-              "materials":    materials_found,
+              "size_m":          size_m,
+              "center_m":        center_m,
+              "mesh_count":      len(meshes_data),
+              "materials":       materials_found,
           }
           out_path = f"outputs/cad_previews/{module_name}_meta.json"
           with open(out_path, "w") as f:
               json.dump(meta, f, indent=2)
-          print(f"[CONVERT] Metadata written to {out_path}")
-          print(f"[CONVERT] Done — {len(meshes)} meshes, {len(materials_found)} materials")
+          print(f"[CONVERT] Done — metadata written to {out_path}")
           EOF
 
       - name: Commit outputs
