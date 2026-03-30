@@ -1,0 +1,87 @@
+name: Step 2 — Connectivity Graph
+
+on:
+  workflow_dispatch:
+    inputs:
+      active_nodes:
+        description: 'JSON array of active node names, e.g. ["SolarPowerSystem","Rover"]'
+        required: true
+        default: '[]'
+
+jobs:
+  run-graph:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: pip-${{ hashFiles('setup.py', 'setup.cfg', 'pyproject.toml') }}
+
+      - name: Install dependencies
+        run: |
+          pip install -e .
+
+      - name: Run connectivity graph
+        env:
+          ACTIVE_NODES_JSON: ${{ github.event.inputs.active_nodes }}
+        run: |
+          mkdir -p outputs
+          python - <<'EOF'
+          import json, os
+          from S24.pipeline.sysml_pipeline_runner import run_sysml_to_json_pipeline
+          from S24.pipeline.connectivity_graph_runner import run_connectivity_graph
+
+          # Parse active nodes from workflow input
+          active_nodes_raw = os.environ.get("ACTIVE_NODES_JSON", "[]")
+          active_nodes = json.loads(active_nodes_raw)
+          if not active_nodes:
+              active_nodes = None  # None = all nodes active
+
+          # Step 1: parse SysML
+          # ⚠️  REMPLACE CE CHEMIN par le vrai chemin de ton .sysml dans le repo
+          result = run_sysml_to_json_pipeline(
+              sysml_file="clean_database/sysml/ECLIPSE_Project.sysml",
+              verbose=0,
+          )
+
+          # Step 2: run graph
+          asset_paths = result['paths']['assets']
+          graph = run_connectivity_graph(
+              data=result['data'],
+              active_nodes=active_nodes,
+              json_asset_paths=asset_paths,
+              verbose=0,
+          )
+
+          # Build output
+          output = {
+              "active_nodes": graph['active_nodes']['list'],
+              "active_nodes_count": graph['active_nodes']['count'],
+              "connections": graph['connections'],
+          }
+
+          with open("outputs/graph.json", "w") as f:
+              json.dump(output, f, indent=2)
+
+          print(f"[OK] graph.json written — {graph['active_nodes']['count']} nodes, {len(graph['connections'])} connections")
+          EOF
+
+      - name: Commit graph output
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add outputs/graph.json
+          git diff --staged --quiet || git commit -m "chore: update graph.json [skip ci]"
+          git push
