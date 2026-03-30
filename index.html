@@ -2506,10 +2506,10 @@ function updateSelectedPath() {
 
   function computeScenario(seed, priority, mode) {
     const activeCount = systems.filter(s => s.active).length;
-    const rovers = Number(document.getElementById('roverCount').value || 0);
-    const plants = Number(document.getElementById('plantCount').value || 0);
-    const distance = Number(document.getElementById('distanceKm').value || 0);
-    const days = Number(document.getElementById('missionDays').value || 0);
+    const rovers = Number(document.getElementById('roverCount')?.value || 0);
+    const plants = Number(document.getElementById('plantCount')?.value || 0);
+    const distance = Number(document.getElementById('distanceKm')?.value || 0);
+    const days = Number(document.getElementById('missionDays')?.value || 0);
 
     const baseCost = 70 + distance * 2.8 + plants * 18 + rovers * 9 + seed * 11 - activeCount * 4;
     const throughput = Math.max(18, Math.round(38 + activeCount * 5 + plants * 12 + rovers * 7 - seed * 4));
@@ -2551,10 +2551,11 @@ function updateSelectedPath() {
 
   function generatePlans() {
     updateTopMetrics();
-    const priority = document.getElementById('priorityObjective').value;
-    const mode = document.getElementById('scenarioMode').value;
+    const priority = document.getElementById('priorityObjective')?.value ?? 'balanced';
+    const mode = document.getElementById('scenarioMode')?.value ?? 'nominal';
     scenarioData = [0,1,2].map(i => computeScenario(i, priority, mode)).sort((a,b) => b.viability - a.viability);
-    document.getElementById('planCountMetric').textContent = scenarioData.length;
+    const planEl = document.getElementById('planCountMetric');
+    if (planEl) planEl.textContent = scenarioData.length;
     renderScenarios();
     if (!selectedScenarioId || !scenarioData.find(s => s.id === selectedScenarioId)) selectedScenarioId = scenarioData[0].id;
     selectScenario(selectedScenarioId);
@@ -2562,6 +2563,7 @@ function updateSelectedPath() {
 
   function renderScenarios() {
     const grid = document.getElementById('scenarioGrid');
+    if (!grid) return;
     grid.innerHTML = '';
     scenarioData.forEach(s => {
       const card = document.createElement('div');
@@ -2589,18 +2591,21 @@ function updateSelectedPath() {
     renderScenarios();
     const s = scenarioData.find(x => x.id === id) || scenarioData[0];
     if (!s) return;
-    document.getElementById('selScenarioName').textContent = s.name.split(' ')[0];
-    document.getElementById('selScenarioScore').textContent = s.viability;
-    document.getElementById('selScenarioCost').textContent = s.cost;
-    document.getElementById('selScenarioTime').textContent = s.timeline + 'd';
-    document.getElementById('costBar').style.height = Math.min(100, Math.max(18, s.cost / 2)) + '%';
-    document.getElementById('throughputBar').style.height = Math.min(100, Math.max(18, s.throughput)) + '%';
-    document.getElementById('riskBar').style.height = Math.min(100, Math.max(18, s.risk)) + '%';
-    document.getElementById('costBarValue').textContent = s.cost;
-    document.getElementById('throughputBarValue').textContent = s.throughput;
-    document.getElementById('riskBarValue').textContent = s.risk;
+    const setT = (elId, val) => { const el = document.getElementById(elId); if (el) el.textContent = val; };
+    const setS = (elId, prop, val) => { const el = document.getElementById(elId); if (el) el.style[prop] = val; };
+    setT('selScenarioName', s.name.split(' ')[0]);
+    setT('selScenarioScore', s.viability);
+    setT('selScenarioCost', s.cost);
+    setT('selScenarioTime', s.timeline + 'd');
+    setS('costBar', 'height', Math.min(100, Math.max(18, s.cost / 2)) + '%');
+    setS('throughputBar', 'height', Math.min(100, Math.max(18, s.throughput)) + '%');
+    setS('riskBar', 'height', Math.min(100, Math.max(18, s.risk)) + '%');
+    setT('costBarValue', s.cost);
+    setT('throughputBarValue', s.throughput);
+    setT('riskBarValue', s.risk);
 
     const tbody = document.getElementById('consequenceTableBody');
+    if (!tbody) return;
     tbody.innerHTML = `
       <tr><td><strong>Activated assets</strong></td><td>${systems.filter(x => x.active).map(x => x.name).join(', ')}</td><td>These are the only nodes the DES was allowed to use when constructing this candidate plan.</td></tr>
       <tr><td><strong>Operational configuration</strong></td><td>${s.rovers} rover(s), ${s.plants} ISRU plant(s), ${s.distance} km staging distance</td><td>User-entered top-level constraints shift the feasible trade space before scenario selection.</td></tr>
