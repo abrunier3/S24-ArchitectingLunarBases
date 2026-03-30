@@ -1,0 +1,104 @@
+{
+  "active_nodes": [
+    "LaunchLandingZone",
+    "HabitationModule",
+    "SolarPowerSystem",
+    "ISRUPlant",
+    "Propellant_Depot",
+    "Rover"
+  ],
+  "active_nodes_count": 6,
+  "connections": [
+    {
+      "name": "ISRUPlantToRover",
+      "type": "LOXMovement",
+      "flow": "LOX",
+      "from": {
+        "part": "ISRUPlant",
+        "port": "ISRU_LOXPortOut"
+      },
+      "to": {
+        "part": "Rover",
+        "port": "Rover_LOXPortInOut"
+      }
+    },
+    {
+      "name": "RoverToPropellantDepot",
+      "type": "LOXMovement",
+      "flow": "LOX",
+      "from": {
+        "part": "Rover",
+        "port": "Rover_LOXPortInOut"
+      },
+      "to": {
+        "part": "Propellant_Depot",
+        "port": "Propellant_LOXPortIn"
+      }
+    },
+    {
+      "name": "PowerGenToPropellant",
+      "type": "PowerMovement",
+      "flow": "Power",
+      "from": {
+        "part": "SolarPowerSystem",
+        "port": "Power_PowerPortOutToPropellantDepot"
+      },
+      "to": {
+        "part": "Propellant_Depot",
+        "port": "Propellant_PowerPortIn"
+      }
+    },
+    {
+      "name": "PowerGenToISRUPlant",
+      "type": "PowerMovement",
+      "flow": "Power",
+      "from": {
+        "part": "SolarPowerSystem",
+        "port": "Power_PowerPortOutToISRUPlant"
+      },
+      "to": {
+        "part": "ISRUPlant",
+        "port": "ISRU_PowerPortIn"
+      }
+    },
+    {
+      "name": "PowerGenToHabMod",
+      "type": "PowerMovement",
+      "flow": "Power",
+      "from": {
+        "part": "SolarPowerSystem",
+        "port": "Power_PowerPortOutToHabitationModule"
+      },
+      "to": {
+        "part": "HabitationModule",
+        "port": "Habitation_PowerPortIn"
+      }
+    },
+    {
+      "name": "PowerGenToLaunch",
+      "type": "PowerMovement",
+      "flow": "Power",
+      "from": {
+        "part": "SolarPowerSystem",
+        "port": "Power_PowerPortOutToLaunchLandingZone"
+      },
+      "to": {
+        "part": "LaunchLandingZone",
+        "port": "LaunchZone_PowerPortIn"
+      }
+    },
+    {
+      "name": "PowerGenToRover",
+      "type": "PowerMovement",
+      "flow": "Power",
+      "from": {
+        "part": "SolarPowerSystem",
+        "port": "Power_PowerPortOutToRover"
+      },
+      "to": {
+        "part": "Rover",
+        "port": "Rover_PowerPortIn"
+      }
+    }
+  ]
+}
