@@ -159,7 +159,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add outputs/cad_previews/
+          git add -f outputs/cad_previews/
           STASHED=$(git stash 2>&1)
           git pull --rebase origin main
           echo "$STASHED" | grep -q "No local changes" || git stash pop
