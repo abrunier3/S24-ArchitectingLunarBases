@@ -4134,22 +4134,20 @@ iframe{
     function applyCadMeta(data) {
       const status = document.getElementById('cadUploadStatus');
 
-      // Show model-viewer with the USDZ file from GitHub raw URL
-      const previewUrl = `https://raw.githubusercontent.com/${GH_OWNER}/${GH_REPO}/${GH_REF}/${data.preview_path}`;
-      showModelViewer(previewUrl);
+      // Show model-viewer with the GLB file
+      if (data.glb_path) {
+        const glbUrl = `https://raw.githubusercontent.com/${GH_OWNER}/${GH_REPO}/${GH_REF}/${data.glb_path}`;
+        showModelViewer(glbUrl);
+      }
 
-      // Size info
       if (status) status.textContent =
         `✓ ${data.mesh_count} meshes · Size: ${data.size_m[0]}×${data.size_m[1]}×${data.size_m[2]} m · upAxis: ${data.up_axis}`;
 
-      // USD material properties
-      if (data.materials?.length > 0) {
-        const usdMat = data.materials[0];
-        showUsdMaterialProps(usdMat);
-      }
+      if (data.materials?.length > 0) showUsdMaterialProps(data.materials[0]);
 
       // Compute mass if library material selected
-      const selMat = materialLibrary.find(m => m.materialId === document.getElementById('materialSelect')?.value);
+      const selId = document.getElementById('materialSelect')?.value;
+      const selMat = materialLibrary.find(m => m.materialId === selId);
       if (selMat && data.size_m) {
         const vol = data.size_m[0] * data.size_m[1] * data.size_m[2];
         const el = document.getElementById('cadMass');
@@ -4168,8 +4166,11 @@ iframe{
           auto-rotate
           camera-controls
           shadow-intensity="1"
-          style="width:100%;height:340px;border-radius:12px;border:1px solid var(--border2);background:#0c1119;"
-        ></model-viewer>
+          exposure="1"
+          style="width:100%;height:380px;border-radius:12px;border:1px solid var(--border2);background:#0c1119;"
+        >
+          <div slot="progress-bar"></div>
+        </model-viewer>
       `;
     }
 
