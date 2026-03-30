@@ -159,9 +159,9 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add -f outputs/cad_previews/
           STASHED=$(git stash 2>&1)
           git pull --rebase origin main
           echo "$STASHED" | grep -q "No local changes" || git stash pop
+          git add -f outputs/cad_previews/
           git diff --staged --quiet || git commit -m "chore: CAD preview + metadata for ${{ github.event.inputs.module_name }} [skip ci]"
           git push
