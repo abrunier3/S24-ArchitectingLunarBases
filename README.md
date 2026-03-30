@@ -14,6 +14,19 @@ The hub gives access to both tools:
 
 ---
 
+## 🛰 S24 Pipeline Interface (NEW)
+
+👉 **[Open ECLIPSE DEE Pipeline](https://abrunier3.github.io/S24-ArchitectingLunarBases/index.html)**
+
+The full end-to-end pipeline interface. Covers:
+- **Step 1** — Build Requirements (MSOSA)
+- **Step 2** — Mission Network Activation — toggle active nodes and trigger `run_connectivity_graph()` via GitHub Actions
+- **Step 3** — Model Submission — upload CAD models and review SysML metadata per module
+- **Step 4** — DES Tradespace — set simulation parameters and run `run_scenario()`
+- **Step 5** — Simulator — link to Omniverse scene
+
+---
+
 ## 📋 How to register a new CAD model
 
 ### 1. Push your `.step` file
@@ -66,6 +79,15 @@ database/
   json/                      ← generated JSON (pipeline output)
   scenes/                    ← generated USD scenes (pipeline output)
   assets/                    ← generated USD assets (pipeline output)
+outputs/
+  graph.json                 ← connectivity graph output (Step 2, written by GitHub Actions)
+  des_results.json           ← DES simulation output (Step 4, written by GitHub Actions)
+.github/
+  workflows/
+    build_pipeline.yml       ← SysML → JSON → USD
+    deploy_pages.yml         ← Deploy GitHub Pages
+    step_detected.yml        ← Auto-register new STEP files
+    run_graph.yml            ← Step 2: run_connectivity_graph() on demand
 ```
 
 ---
@@ -74,6 +96,7 @@ database/
 
 | Tool | URL |
 |------|-----|
+| **ECLIPSE DEE Pipeline** | https://abrunier3.github.io/S24-ArchitectingLunarBases/index.html |
 | Mission Control Hub | https://abrunier3.github.io/S24-ArchitectingLunarBases/ |
 | Assembly Builder | https://abrunier3.github.io/S24-ArchitectingLunarBases/assembly_builder.html |
 | DES Simulation Explorer | https://abrunier3.github.io/S24-ArchitectingLunarBases/lunar_spaceport_plotter.html |
@@ -107,7 +130,7 @@ This repository is meant to be a clean foundation for a broader digital ecosyste
   The Python package. All core code lives here.
 
 - **`database/`**  
-  Persistent “model database” where generated assets and large datasets live.
+  Persistent "model database" where generated assets and large datasets live.
 
 - **`notebooks/`**  
   Demonstrations and case studies. The main one is `case_study.ipynb`.
