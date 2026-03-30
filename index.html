@@ -4269,28 +4269,31 @@ iframe{
     }
 
     function pollForMeta(moduleName, runTimestamp) {
-      let attempts=0;
-      const poll=setInterval(async()=>{
+      let attempts = 0;
+      let lastSha = null;  // Track SHA to detect actual file change
+      const poll = setInterval(async () => {
         attempts++;
-        if(attempts>20){ clearInterval(poll); return; }
-        const token=sessionStorage.getItem('gh_pat');
+        if (attempts > 25) { clearInterval(poll); return; }
+        const token = sessionStorage.getItem('gh_pat');
         try {
-          const res=await fetch(
+          const res = await fetch(
             `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/outputs/cad_previews/${moduleName}_meta.json`,
-            {headers:{'Authorization':`Bearer ${token}`,'Accept':'application/vnd.github+json'}});
-          if(!res.ok) return;
-          const meta=await res.json();
-          const d=JSON.parse(atob(meta.content.replace(/\n/g,'')));
-          // Only accept fresh result
-          if(d.written_at < runTimestamp) return;
+            { headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github+json' } }
+          );
+          if (!res.ok) return; // file not yet written
+          const meta = await res.json();
+          const currentSha = meta.sha;
+          // On first poll, record the existing SHA
+          if (lastSha === null) { lastSha = currentSha; return; }
+          // If SHA changed → file was updated by the new workflow run
+          if (currentSha === lastSha) return;
           clearInterval(poll);
-          // If this is the currently viewed module, apply immediately
-          if(moduleName===currentModuleName) applyCadMeta(d);
-          // Always update dot to purple
-          updateModuleDot(moduleName,'preview');
-          const pubStatus=document.getElementById('publishStatus');
-          if(pubStatus) pubStatus.textContent=`✓ ${moduleName} 3D preview ready.`;
-        } catch(e){}
+          const d = JSON.parse(atob(meta.content.replace(/\n/g, '')));
+          if (moduleName === currentModuleName) applyCadMeta(d);
+          updateModuleDot(moduleName, 'preview');
+          const pubStatus = document.getElementById('publishStatus');
+          if (pubStatus) pubStatus.textContent = `✓ ${moduleName} 3D preview ready.`;
+        } catch(e) {}
       }, 8000);
     }
 
