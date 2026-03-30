@@ -3702,7 +3702,7 @@ iframe{
               setGraphStatus('Timeout — check the Actions tab on GitHub.', '#ffd36e');
               return;
             }
-            const done = await fetchGraphResult(runTimestamp);
+            const done = await fetchGraphResult(runTimestamp, activeSysmlNames);
             if (done) clearInterval(poll);
           }, 8000);
         } else {
@@ -3721,7 +3721,7 @@ iframe{
       }
     }
 
-    async function fetchGraphResult(runTimestamp) {
+    async function fetchGraphResult(runTimestamp, expectedNodes) {
       const token = sessionStorage.getItem('gh_pat');
       const url = `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/outputs/graph.json`;
       try {
@@ -3735,11 +3735,18 @@ iframe{
         const meta = await res.json();
         const text = atob(meta.content.replace(/\n/g, ''));
         const data = JSON.parse(text);
-        console.log('[POLL] graph.json fetched via API, written_at:', data.written_at, 'runTimestamp:', runTimestamp);
-        if (data.written_at && runTimestamp && data.written_at < runTimestamp) {
-          console.log('[POLL] stale — waiting for fresh commit…');
+
+        // Check that the file contains exactly the nodes we requested
+        const returnedNodes = [...(data.active_nodes || [])].sort().join(',');
+        const sentNodes = [...expectedNodes].sort().join(',');
+        console.log('[POLL] returned:', returnedNodes);
+        console.log('[POLL] expected:', sentNodes);
+
+        if (returnedNodes !== sentNodes) {
+          console.log('[POLL] nodes mismatch — still waiting…');
           return false;
         }
+
         applyGraphResult(data);
         return true;
       } catch (e) {
