@@ -3722,33 +3722,28 @@ iframe{
     }
 
     async function fetchGraphResult(runTimestamp) {
-      // Cache-bust with timestamp to avoid GitHub CDN cache
       const url = `https://raw.githubusercontent.com/${GH_OWNER}/${GH_REPO}/${GH_REF}/outputs/graph.json?t=${Date.now()}`;
       try {
         const res = await fetch(url, { cache: 'no-store' });
         if (!res.ok) return false;
         const data = await res.json();
-        // Only accept if the file was written AFTER this run was triggered
-        if (runTimestamp && data.written_at) {
-          if (data.written_at < runTimestamp) {
-            console.log('[POLL] graph.json is stale (written_at:', data.written_at, '< runTimestamp:', runTimestamp, ')');
-            return false;
-          }
-        }
+        console.log('[POLL] graph.json fetched, written_at:', data.written_at, 'runTimestamp:', runTimestamp);
         applyGraphResult(data);
         return true;
       } catch (e) {
+        console.log('[POLL] fetch failed:', e);
         return false;
       }
     }
 
     function applyGraphResult(data) {
       const btn = document.getElementById('runGraphBtn');
-      btn.textContent = '✓ Graph Updated';
-      btn.disabled = false;
+      if (btn) { btn.textContent = '✓ Graph Updated'; btn.disabled = false; }
 
-      document.getElementById('activeSystemsMetric').textContent = data.active_nodes_count ?? data.active_nodes?.length ?? '—';
-      document.getElementById('networkEdgesMetric').textContent = data.connections?.length ?? '—';
+      const activeSysEl = document.getElementById('activeSystemsMetric');
+      const edgesEl = document.getElementById('networkEdgesMetric');
+      if (activeSysEl) activeSysEl.textContent = data.active_nodes_count ?? data.active_nodes?.length ?? '—';
+      if (edgesEl) edgesEl.textContent = data.connections?.length ?? '—';
 
       const caption = document.getElementById('opsCaption');
       if (caption) caption.textContent = data.active_nodes?.length
