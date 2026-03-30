@@ -69,10 +69,24 @@ jobs:
           import time
 
           output = {
-              "written_at": int(time.time() * 1000),  # timestamp ms, same unit as JS Date.now()
+              "written_at": int(time.time() * 1000),
               "active_nodes": graph['active_nodes']['list'],
               "active_nodes_count": graph['active_nodes']['count'],
               "connections": graph['connections'],
+              # ← ajoute ça
+              "parts": {
+                  p["name"]: {
+                      "id": p["id"],
+                      "dimensions": p["dimensions"],
+                      "transform": p["transform"],
+                      "attributes": p["attributes"],
+                      "materialRef": p["materialRef"],
+                      "ports": p["ports"],
+                      "metadata": p["metadata"],
+                  }
+                  for p in result['data']['parts']
+                  if p["name"] in set(graph['active_nodes']['list'])
+              }
           }
 
           with open("outputs/graph.json", "w") as f:
