@@ -1881,6 +1881,14 @@
           🚀 Save &amp; Publish All
         </button>
         <div id="publishStatus" class="mini-note" style="margin-top:8px;text-align:center;"></div>
+        <!-- Dot legend -->
+        <div style="margin-top:10px;display:flex;flex-direction:column;gap:4px;font-size:10px;color:var(--text2);">
+          <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#4a5568;margin-right:6px;"></span>No file</span>
+          <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#00ff9d;margin-right:6px;"></span>File ready</span>
+          <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#ffd166;margin-right:6px;"></span>Uploading</span>
+          <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#00d4ff;margin-right:6px;"></span>Uploaded</span>
+          <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#a855f7;margin-right:6px;"></span>3D preview ready</span>
+        </div>
       </div>
     </div>
 
@@ -4129,7 +4137,8 @@ iframe{
     }
 
     function updateModuleDot(moduleName, state) {
-      const colors={pending:'#4a5568',ready:'#00ff9d',uploading:'#ffd166',done:'#00d4ff',error:'#ff7a8a',glb:'#00d4ff'};
+      // pending=gray, ready=green(file loaded), uploading=orange, done=blue(uploaded), preview=purple(3D ready), error=red
+      const colors={pending:'#4a5568', ready:'#00ff9d', uploading:'#ffd166', done:'#00d4ff', preview:'#a855f7', error:'#ff7a8a'};
       const dot=document.querySelector(`[data-module="${moduleName}"] .module-dot`);
       if(dot) dot.style.background=colors[state]||colors.pending;
     }
@@ -4206,8 +4215,8 @@ iframe{
         const meta=await res.json();
         const d=JSON.parse(atob(meta.content.replace(/\n/g,'')));
         applyCadMeta(d);
-        // Dot becomes cyan — 3D preview available
-        updateModuleDot(moduleName, 'done');
+        // Dot becomes purple — 3D preview available
+        updateModuleDot(moduleName, 'preview');
         if(!moduleFiles[moduleName]){
           const s=document.getElementById('cadUploadStatus');
           if(s) s.textContent=`✓ 3D preview ready · ${d.mesh_count} meshes · ${d.size_m[0]}×${d.size_m[1]}×${d.size_m[2]} m`;
@@ -4224,6 +4233,7 @@ iframe{
       if(modules.length===0) return;
       btn.disabled=true; btn.textContent='⏳ Publishing…';
       let done=0;
+
       for(const moduleName of modules){
         const file=moduleFiles[moduleName];
         updateModuleDot(moduleName,'uploading');
@@ -4238,17 +4248,50 @@ iframe{
         if(uploaded){
           // 3. Trigger conversion workflow
           const usdPath=`clean_database/cad_models/${moduleName}/${file.name}`;
-          await triggerConvertWorkflow(moduleName,usdPath);
+          const triggered=await triggerConvertWorkflow(moduleName,usdPath);
           updateModuleDot(moduleName,'done');
+
+          if(triggered){
+            // 4. Poll for fresh _meta.json (ignores stale file via runTimestamp)
+            const runTimestamp=Date.now();
+            pollForMeta(moduleName, runTimestamp);
+          }
         } else {
           updateModuleDot(moduleName,'error');
         }
         done++;
       }
+
       btn.textContent='🚀 Save & Publish All'; btn.disabled=false;
-      if(pubStatus) pubStatus.textContent=`✓ ${done} module(s) submitted. Conversions running (~60s each).`;
+      if(pubStatus) pubStatus.textContent=`✓ ${done} module(s) submitted. Visualizations will appear when conversions complete (~60s each).`;
       const banner=document.getElementById('saveBanner');
       if(banner){banner.style.display='flex';banner.textContent=`✓ ${done} CAD file(s) uploaded and JSON assets updated.`;setTimeout(()=>banner.style.display='none',5000);}
+    }
+
+    function pollForMeta(moduleName, runTimestamp) {
+      let attempts=0;
+      const poll=setInterval(async()=>{
+        attempts++;
+        if(attempts>20){ clearInterval(poll); return; }
+        const token=sessionStorage.getItem('gh_pat');
+        try {
+          const res=await fetch(
+            `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/outputs/cad_previews/${moduleName}_meta.json`,
+            {headers:{'Authorization':`Bearer ${token}`,'Accept':'application/vnd.github+json'}});
+          if(!res.ok) return;
+          const meta=await res.json();
+          const d=JSON.parse(atob(meta.content.replace(/\n/g,'')));
+          // Only accept fresh result
+          if(d.written_at < runTimestamp) return;
+          clearInterval(poll);
+          // If this is the currently viewed module, apply immediately
+          if(moduleName===currentModuleName) applyCadMeta(d);
+          // Always update dot to purple
+          updateModuleDot(moduleName,'preview');
+          const pubStatus=document.getElementById('publishStatus');
+          if(pubStatus) pubStatus.textContent=`✓ ${moduleName} 3D preview ready.`;
+        } catch(e){}
+      }, 8000);
     }
 
     function buildAssetJson(moduleName, cadFile) {
