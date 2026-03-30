@@ -3775,6 +3775,7 @@ iframe{
       );
 
       renderLiveGraph(data);
+      if (data.parts) populateStep3(data);
       console.log('[GRAPH RESULT]', data);
     }
 
@@ -3892,6 +3893,128 @@ iframe{
         div.innerHTML  = `<div class="node-title">${label}</div><div class="node-tag">${name}</div>`;
         container.appendChild(div);
       });
+    }
+
+    // ─── Step 3 — Auto-populate metadata from SysML ───────────────────────
+    let sysmlPartsCache = {};
+
+    function populateStep3(data) {
+      sysmlPartsCache = data.parts || {};
+      const nodes = data.active_nodes || [];
+
+      const box = document.getElementById('assemblyTree');
+      if (!box) return;
+      box.innerHTML = '';
+
+      nodes.forEach(name => {
+        const part = sysmlPartsCache[name];
+        if (!part) return;
+        const row = document.createElement('div');
+        row.className = 'tree-node-row';
+        row.innerHTML = `
+          <div class="tree-bullet"></div>
+          <div class="tree-label">${name}</div>
+          <div class="tree-type">${part.ports?.length ?? 0} ports</div>
+        `;
+        row.onclick = () => {
+          box.querySelectorAll('.tree-node-row').forEach(r => r.classList.remove('selected'));
+          row.classList.add('selected');
+          loadSysmlIntoForm(name, part);
+        };
+        box.appendChild(row);
+      });
+
+      if (nodes.length > 0) box.querySelector('.tree-node-row')?.click();
+
+      const pathEl = document.getElementById('selectedPath');
+      if (pathEl) pathEl.textContent = `${nodes.length} active modules loaded from SysML`;
+    }
+
+    function loadSysmlIntoForm(name, part) {
+      const pathEl = document.getElementById('selectedPath');
+      if (pathEl) pathEl.textContent = `Selected: ${name}`;
+
+      const dim = part.dimensions?.size_m || {};
+      setField('omlLength', dim.length ?? '');
+      setField('omlWidth',  dim.width  ?? '');
+      setField('omlHeight', dim.height ?? '');
+
+      const pos = part.transform?.position_m || [0, 0, 0];
+      setField('posX', pos[0] ?? 0);
+      setField('posY', pos[1] ?? 0);
+      setField('posZ', pos[2] ?? 0);
+
+      const rot = part.transform?.rotation_deg || [0, 0, 0];
+      setField('rotX', rot[0] ?? 0);
+      setField('rotY', rot[1] ?? 0);
+      setField('rotZ', rot[2] ?? 0);
+
+      const units = part.dimensions || {};
+      setField('metersPerUnit', units.metersPerUnit ?? 1);
+      setSelectField('upAxis',       units.upAxis       ?? 'Z');
+      setSelectField('angleUnit',    units.angleUnit    ?? 'deg');
+      setSelectField('massUnit',     units.massUnit     ?? 'kg');
+      setSelectField('pressureUnit', units.pressureUnit ?? 'kPa');
+      setSelectField('lengthUnit',   units.lengthUnit   ?? 'm');
+
+      setField('material',    part.materialRef ?? '');
+      setField('pipelineUid', part.id ?? '');
+      setField('cadTitle',    name);
+
+      renderSysmlAttributes(part.attributes || {}, part.ports || []);
+    }
+
+    function setField(id, val) {
+      const el = document.getElementById(id);
+      if (el) el.value = val;
+    }
+
+    function setSelectField(id, val) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      if ([...el.options].find(o => o.value === val)) el.value = val;
+    }
+
+    function renderSysmlAttributes(attributes, ports) {
+      const wrap = document.getElementById('customAttrs');
+      if (!wrap) return;
+      wrap.style.display = 'block';
+      wrap.innerHTML = '';
+
+      const attrHeader = document.createElement('div');
+      attrHeader.className = 'form-section-title';
+      attrHeader.style.cssText = 'grid-column:span 12;margin-top:10px;';
+      attrHeader.textContent = 'SysML Attributes';
+      wrap.appendChild(attrHeader);
+
+      Object.entries(attributes).forEach(([k, v]) => {
+        const row = document.createElement('div');
+        row.className = 'attr-row';
+        row.innerHTML = `
+          <input class="attr-name"  value="${k}" readonly style="opacity:0.7;">
+          <input class="attr-value" value="${v}" readonly style="opacity:0.7;">
+          <input class="attr-unit"  value="" readonly style="opacity:0.7;">
+        `;
+        wrap.appendChild(row);
+      });
+
+      if (ports.length > 0) {
+        const portHeader = document.createElement('div');
+        portHeader.className = 'form-section-title';
+        portHeader.style.cssText = 'grid-column:span 12;margin-top:10px;';
+        portHeader.textContent = 'Ports';
+        wrap.appendChild(portHeader);
+        ports.forEach(port => {
+          const row = document.createElement('div');
+          row.className = 'attr-row';
+          row.innerHTML = `
+            <input class="attr-name"  value="${port.name}" readonly style="opacity:0.7;">
+            <input class="attr-value" value="${port.direction?.join('/')}" readonly style="opacity:0.7;">
+            <input class="attr-unit"  value="${port.items?.join(',')}" readonly style="opacity:0.7;">
+          `;
+          wrap.appendChild(row);
+        });
+      }
     }
   </script>
 
