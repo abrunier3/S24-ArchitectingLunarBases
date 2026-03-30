@@ -1864,41 +1864,46 @@
   </div>
 
   <div class="assembly-wrap">
-    <!-- LEFT: Assembly tree -->
-    <div class="assembly-side">
+    <!-- LEFT: Module list + global publish -->
+    <div class="assembly-side" style="display:flex;flex-direction:column;">
       <div class="assembly-toolbar">
         <div>
-          <div class="panel-title" style="margin-bottom:4px;">Assembly Tree</div>
-          <div class="mini-note">Select a module to review its metadata.</div>
+          <div class="panel-title" style="margin-bottom:4px;">Modules</div>
+          <div class="mini-note" id="step3Counter">Run Graph first.</div>
         </div>
       </div>
-      <div class="assembly-scroll">
+      <div class="assembly-scroll" style="flex:1;">
         <div class="tree-box" id="assemblyTree"></div>
+      </div>
+      <!-- Global publish button at bottom of left panel -->
+      <div style="padding:14px;border-top:1px solid var(--border);">
+        <button id="publishAllBtn" class="btn btn-primary" style="width:100%;padding:13px;" onclick="publishAll()">
+          🚀 Save &amp; Publish All
+        </button>
+        <div id="publishStatus" class="mini-note" style="margin-top:8px;text-align:center;"></div>
       </div>
     </div>
 
-    <!-- RIGHT: Metadata + 3D viewer -->
+    <!-- RIGHT: Module detail -->
     <div class="assembly-main">
       <div class="assembly-toolbar">
         <div>
           <div class="panel-title" style="margin-bottom:4px;">Part Metadata</div>
-          <div class="mini-note" id="selectedPath">Run Graph first to load modules.</div>
+          <div class="mini-note" id="selectedPath">Select a module on the left.</div>
         </div>
       </div>
 
       <div class="assembly-scroll consequence-scroll">
         <div class="form-grid">
 
-          <!-- 3D Viewer — populated after workflow completes -->
-          <div class="full" id="viewer3dWrap" style="display:none;">
-            <!-- model-viewer injected here by showModelViewer() -->
-          </div>
+          <!-- 3D Viewer -->
+          <div class="full" id="viewer3dWrap" style="display:none;"></div>
 
-          <!-- Drag & Drop CAD Upload -->
+          <!-- Drag & Drop -->
           <div class="full">
             <div id="cadDropZone" style="
               border:2px dashed var(--border2); border-radius:12px;
-              padding:28px 20px; text-align:center;
+              padding:24px 20px; text-align:center;
               cursor:pointer; transition:0.2s ease;
               background:rgba(0,212,255,0.03);
             "
@@ -1907,17 +1912,16 @@
               ondrop="handleCadDrop(event)"
               onclick="document.getElementById('cadFileInput').click()"
             >
-              <div style="font-size:28px;margin-bottom:8px;">📦</div>
+              <div style="font-size:24px;margin-bottom:6px;">📦</div>
               <div style="font-size:13px;color:var(--text2);">Drag & drop a USD/USDA/USDC/USDZ file here</div>
-              <div style="font-size:11px;color:var(--text3);margin-top:4px;">or click to browse</div>
+              <div style="font-size:11px;color:var(--text3);margin-top:3px;">or click to browse</div>
               <input id="cadFileInput" type="file" accept=".usd,.usda,.usdc,.usdz" style="display:none;" onchange="handleCadFile(event.target.files[0])">
             </div>
             <div id="cadUploadStatus" class="mini-note" style="margin-top:8px;">No CAD file loaded yet.</div>
           </div>
 
-          <!-- Metadata from SysML (read-only) -->
+          <!-- SysML Metadata -->
           <div class="form-section-title">SysML Metadata</div>
-
           <div class="field span-6">
             <label>Pipeline Unique ID</label>
             <input id="pipelineUid" type="text" readonly>
@@ -1926,35 +1930,27 @@
             <label>CAD Title</label>
             <input id="cadTitle" type="text" readonly>
           </div>
-          <div class="field span-4">
-            <label>Date / Time Uploaded</label>
-            <input id="uploadTimestamp" type="text" readonly>
-          </div>
-          <div class="field span-4">
+          <div class="field span-6">
             <label>Original File Name</label>
             <input id="sourceFileName" type="text" readonly>
           </div>
-          <div class="field span-4">
+          <div class="field span-6">
             <label>Computed Mass (kg)</label>
             <input id="cadMass" type="number" step="any" readonly placeholder="—">
           </div>
 
           <!-- Material -->
           <div class="form-section-title">Material</div>
-
           <div class="field span-12" id="materialFromUsdWrap" style="display:none;">
             <label>Material detected in USD file</label>
             <input id="materialFromUsd" type="text" readonly style="color:var(--accent2);">
           </div>
-
           <div class="field span-12" id="materialLibraryWrap">
             <label>Select from material library</label>
             <select id="materialSelect" onchange="onMaterialSelect(this.value)">
               <option value="">— loading library… —</option>
             </select>
           </div>
-
-          <!-- Material properties (read-only, populated from library or USD) -->
           <div id="materialPropsWrap" style="display:none; grid-column:span 12;">
             <div class="form-section-title">Material Properties</div>
             <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:8px;">
@@ -1967,33 +1963,16 @@
             </div>
           </div>
 
-          <!-- Units (kept — needed for pipeline) -->
+          <!-- Units -->
           <div class="form-section-title">Units</div>
-          <div class="field span-3">
-            <label>metersPerUnit</label>
-            <input id="metersPerUnit" type="number" value="1">
-          </div>
-          <div class="field span-3">
-            <label>upAxis</label>
-            <select id="upAxis"><option>Z</option><option>Y</option><option>X</option></select>
-          </div>
-          <div class="field span-3">
-            <label>massUnit</label>
-            <select id="massUnit"><option>kg</option><option>g</option><option>lb</option></select>
-          </div>
-          <div class="field span-3">
-            <label>lengthUnit</label>
-            <select id="lengthUnit"><option>m</option><option>cm</option><option>mm</option></select>
-          </div>
+          <div class="field span-3"><label>metersPerUnit</label><input id="metersPerUnit" type="number" value="1"></div>
+          <div class="field span-3"><label>upAxis</label><select id="upAxis"><option>Z</option><option>Y</option><option>X</option></select></div>
+          <div class="field span-3"><label>massUnit</label><select id="massUnit"><option>kg</option><option>g</option><option>lb</option></select></div>
+          <div class="field span-3"><label>lengthUnit</label><select id="lengthUnit"><option>m</option><option>cm</option><option>mm</option></select></div>
 
-          <!-- SysML Attributes + Ports (populated by populateStep3) -->
+          <!-- SysML Attributes -->
           <div class="custom-attrs" id="customAttrs" style="display:none;"></div>
 
-          <!-- Save -->
-          <div class="form-section-title">Actions</div>
-          <div class="field span-4">
-            <button class="btn btn-primary" onclick="saveSelectedNode()">💾 Save & Upload to GitHub</button>
-          </div>
           <div class="success-banner" id="saveBanner" style="display:none;">
             ✓ Metadata saved and CAD file uploaded to repo.
           </div>
@@ -3874,7 +3853,10 @@ iframe{
         row.onclick = () => {
           box.querySelectorAll('.tree-node-row').forEach(r => r.classList.remove('selected'));
           row.classList.add('selected');
+          resetStep3View();
           loadSysmlIntoForm(name, part);
+          // Load cached GLB if already converted
+          loadCachedCadMeta(name);
         };
         box.appendChild(row);
       });
@@ -3883,6 +3865,49 @@ iframe{
 
       const pathEl = document.getElementById('selectedPath');
       if (pathEl) pathEl.textContent = `${nodes.length} active modules loaded from SysML`;
+    }
+
+    function resetStep3View() {
+      // Hide 3D viewer
+      const wrap = document.getElementById('viewer3dWrap');
+      if (wrap) { wrap.style.display = 'none'; wrap.innerHTML = ''; }
+      // Reset material section
+      const fromUsdWrap = document.getElementById('materialFromUsdWrap');
+      if (fromUsdWrap) fromUsdWrap.style.display = 'none';
+      const libWrap = document.getElementById('materialLibraryWrap');
+      if (libWrap) libWrap.style.display = 'block';
+      const sel = document.getElementById('materialSelect');
+      if (sel) sel.value = '';
+      const propsWrap = document.getElementById('materialPropsWrap');
+      if (propsWrap) { propsWrap.style.display = 'none'; }
+      document.getElementById('usdPbrBlock')?.remove();
+      // Reset mass and file status
+      const massEl = document.getElementById('cadMass');
+      if (massEl) massEl.value = '';
+      const statusEl = document.getElementById('cadUploadStatus');
+      if (statusEl) statusEl.textContent = 'No CAD file loaded yet.';
+      const fileEl = document.getElementById('sourceFileName');
+      if (fileEl) fileEl.value = '';
+      window._cadSizeM = null;
+      currentCadFile = null;
+    }
+
+    async function loadCachedCadMeta(moduleName) {
+      // Try to load existing _meta.json for this module (from a previous conversion)
+      const token = sessionStorage.getItem('gh_pat');
+      if (!token) return;
+      const url = `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/outputs/cad_previews/${moduleName}_meta.json`;
+      try {
+        const res = await fetch(url, {
+          headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github+json' }
+        });
+        if (!res.ok) return;
+        const meta = await res.json();
+        const data = JSON.parse(atob(meta.content.replace(/\n/g,'')));
+        applyCadMeta(data);
+        const statusEl = document.getElementById('cadUploadStatus');
+        if (statusEl) statusEl.textContent = `✓ CAD previously converted · ${data.mesh_count} meshes · ${data.size_m[0]}×${data.size_m[1]}×${data.size_m[2]} m`;
+      } catch(e) { /* no cached meta — that's fine */ }
     }
 
     function loadSysmlIntoForm(name, part) {
@@ -3977,11 +4002,11 @@ iframe{
   <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
   <script>
     // ─── Step 3 — CAD Upload + Convert + Preview ─────────────────────────
-    let materialLibrary = [];
-    let currentCadFile  = null;
+    let materialLibrary   = [];
+    let currentCadFile    = null;
     let currentModuleName = null;
+    const moduleFiles = {}; // { moduleName: File }
 
-    // Load material library from GitHub
     async function loadMaterialLibrary() {
       try {
         const token = sessionStorage.getItem('gh_pat');
@@ -4010,241 +4035,154 @@ iframe{
     function onMaterialSelect(id) {
       if (!id) return;
       const mat = materialLibrary.find(m => m.materialId === id);
-      if (mat) fillMaterialLibProps(mat);
+      if (!mat) return;
+      fillMaterialLibProps(mat);
+      const sizeM = window._cadSizeM;
+      const vol = sizeM ? sizeM[0]*sizeM[1]*sizeM[2] : (() => {
+        const l = parseFloat(document.getElementById('omlLength')?.value)||0;
+        const w = parseFloat(document.getElementById('omlWidth')?.value)||0;
+        const h = parseFloat(document.getElementById('omlHeight')?.value)||0;
+        return l*w*h;
+      })();
+      if (vol) { const el=document.getElementById('cadMass'); if(el) el.value=(mat.density_kg_m3*vol).toFixed(0); }
     }
 
     function fillMaterialLibProps(mat) {
-      const s = (id,v) => { const el=document.getElementById(id); if(el) el.value=v??''; };
-      s('matDensity',  mat.density_kg_m3);
-      s('matYoung',    mat.youngModulus_Pa    ? (mat.youngModulus_Pa/1e9).toFixed(1) : '');
-      s('matYield',    mat.yieldStrength_Pa   ? (mat.yieldStrength_Pa/1e6).toFixed(0) : '');
-      s('matUltimate', mat.ultimateStrength_Pa ? (mat.ultimateStrength_Pa/1e6).toFixed(0) : '');
-      s('matPoisson',  mat.poissonRatio);
-      s('matThermal',  mat.thermalConductivity_W_mK);
-      const wrap = document.getElementById('materialPropsWrap');
-      if (wrap) wrap.style.display = 'block';
+      const s=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v??'';}; 
+      s('matDensity',mat.density_kg_m3);
+      s('matYoung',mat.youngModulus_Pa?(mat.youngModulus_Pa/1e9).toFixed(1):'');
+      s('matYield',mat.yieldStrength_Pa?(mat.yieldStrength_Pa/1e6).toFixed(0):'');
+      s('matUltimate',mat.ultimateStrength_Pa?(mat.ultimateStrength_Pa/1e6).toFixed(0):'');
+      s('matPoisson',mat.poissonRatio); s('matThermal',mat.thermalConductivity_W_mK);
+      const wrap=document.getElementById('materialPropsWrap'); if(wrap) wrap.style.display='block';
     }
 
-    // ── Drag & Drop ───────────────────────────────────────────────────────
     function handleCadDrop(event) {
       event.preventDefault();
-      document.getElementById('cadDropZone').style.borderColor = 'var(--border2)';
-      const file = event.dataTransfer.files[0];
-      if (file) handleCadFile(file);
+      document.getElementById('cadDropZone').style.borderColor='var(--border2)';
+      const file=event.dataTransfer.files[0]; if(file) handleCadFile(file);
     }
 
     function handleCadFile(file) {
-      if (!file) return;
-      currentCadFile = file;
-      const nameEl = document.getElementById('sourceFileName');
-      if (nameEl) nameEl.value = file.name;
-      const ts = document.getElementById('uploadTimestamp');
-      if (ts) ts.value = new Date().toLocaleString();
-      const status = document.getElementById('cadUploadStatus');
-      if (status) status.textContent = `File ready: ${file.name} (${(file.size/1024).toFixed(0)} KB) — click Save & Upload to process.`;
+      if(!file||!currentModuleName) return;
+      currentCadFile=file;
+      moduleFiles[currentModuleName]=file;
+      updateModuleDot(currentModuleName,'ready');
+      updatePublishCounter();
+      const nameEl=document.getElementById('sourceFileName'); if(nameEl) nameEl.value=file.name;
+      const status=document.getElementById('cadUploadStatus');
+      if(status) status.textContent=`✓ File ready: ${file.name} (${(file.size/1024).toFixed(0)} KB)`;
     }
 
-    // ── Save: upload file → trigger convert workflow → poll meta ─────────
-    async function saveSelectedNode() {
-      const banner = document.getElementById('saveBanner');
-      const btn    = document.querySelector('[onclick="saveSelectedNode()"]');
-      if (btn) { btn.textContent = '⏳ Uploading…'; btn.disabled = true; }
-
-      currentModuleName = document.getElementById('cadTitle')?.value || 'Unknown';
-      const status = document.getElementById('cadUploadStatus');
-
-      if (!currentCadFile) {
-        if (banner) { banner.style.display='flex'; banner.textContent='✓ Metadata saved (no CAD file).'; setTimeout(()=>banner.style.display='none',3000); }
-        if (btn) { btn.textContent='💾 Save & Upload to GitHub'; btn.disabled=false; }
-        return;
-      }
-
-      // Step 1: upload file to repo
-      if (status) status.textContent = `Uploading ${currentCadFile.name} to GitHub…`;
-      const uploaded = await uploadCadToGitHub(currentCadFile, currentModuleName);
-      if (!uploaded) {
-        if (status) status.textContent = '⚠ Upload failed — check console.';
-        if (btn) { btn.textContent='💾 Save & Upload to GitHub'; btn.disabled=false; }
-        return;
-      }
-      if (status) status.textContent = `✓ Uploaded. Triggering conversion workflow…`;
-
-      // Step 2: trigger convert_cad workflow
-      const usdPath = `clean_database/cad_models/${currentModuleName}/${currentCadFile.name}`;
-      const triggered = await triggerConvertWorkflow(currentModuleName, usdPath);
-      if (!triggered) {
-        if (status) status.textContent = '⚠ Workflow trigger failed — check console.';
-        if (btn) { btn.textContent='💾 Save & Upload to GitHub'; btn.disabled=false; }
-        return;
-      }
-
-      if (btn) { btn.textContent = '⏳ Converting…'; }
-      if (status) status.textContent = 'Workflow running — extracting geometry & materials (~60s)…';
-      const runTimestamp = Date.now();
-
-      // Step 3: poll for _meta.json
-      let attempts = 0;
-      const poll = setInterval(async () => {
-        attempts++;
-        if (attempts > 20) {
-          clearInterval(poll);
-          if (status) status.textContent = 'Timeout — check Actions tab on GitHub.';
-          if (btn) { btn.textContent='💾 Save & Upload to GitHub'; btn.disabled=false; }
-          return;
-        }
-        const done = await fetchCadMeta(currentModuleName, runTimestamp);
-        if (done) {
-          clearInterval(poll);
-          if (btn) { btn.textContent='💾 Save & Upload to GitHub'; btn.disabled=false; }
-          if (banner) { banner.style.display='flex'; banner.textContent=`✓ CAD processed for ${currentModuleName}`; setTimeout(()=>banner.style.display='none',4000); }
-        }
-      }, 8000);
+    function updateModuleDot(moduleName, state) {
+      const colors={pending:'#4a5568',ready:'#00ff9d',uploading:'#ffd166',done:'#00d4ff',error:'#ff7a8a'};
+      const dot=document.querySelector(`[data-module="${moduleName}"] .module-dot`);
+      if(dot) dot.style.background=colors[state]||colors.pending;
     }
 
-    async function triggerConvertWorkflow(moduleName, usdPath) {
-      const token = sessionStorage.getItem('gh_pat');
-      if (!token) return false;
-      const res = await fetch(
-        `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/actions/workflows/convert_cad.yml/dispatches`,
-        {
-          method: 'POST',
-          headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github+json', 'Content-Type': 'application/json' },
-          body: JSON.stringify({ ref: GH_REF, inputs: { module_name: moduleName, usd_path: usdPath } }),
-        }
-      );
-      return res.status === 204;
+    function updatePublishCounter() {
+      const total=Object.keys(sysmlPartsCache).length;
+      const ready=Object.keys(moduleFiles).length;
+      const counter=document.getElementById('step3Counter');
+      if(counter) counter.textContent=`${ready} / ${total} files ready`;
+      const btn=document.getElementById('publishAllBtn');
+      if(btn) btn.disabled=ready===0;
     }
 
-    async function fetchCadMeta(moduleName, runTimestamp) {
-      const token = sessionStorage.getItem('gh_pat');
-      const url = `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/outputs/cad_previews/${moduleName}_meta.json`;
-      try {
-        const res = await fetch(url, {
-          headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github+json' }
-        });
-        if (!res.ok) return false;
-        const meta = await res.json();
-        const data = JSON.parse(atob(meta.content.replace(/\n/g,'')));
-        if (data.written_at < runTimestamp) return false; // stale
-        applyCadMeta(data);
-        return true;
-      } catch(e) { return false; }
-    }
-
-    function applyCadMeta(data) {
-      const status = document.getElementById('cadUploadStatus');
-
-      // Show model-viewer with the GLB file
-      if (data.glb_path) {
-        const glbUrl = `https://raw.githubusercontent.com/${GH_OWNER}/${GH_REPO}/${GH_REF}/${data.glb_path}`;
-        showModelViewer(glbUrl);
-      }
-
-      if (status) status.textContent =
-        `✓ ${data.mesh_count} meshes · Size: ${data.size_m[0]}×${data.size_m[1]}×${data.size_m[2]} m · upAxis: ${data.up_axis}`;
-
-      if (data.materials?.length > 0) showUsdMaterialProps(data.materials[0]);
-
-      // Compute mass if library material selected
-      const selId = document.getElementById('materialSelect')?.value;
-      const selMat = materialLibrary.find(m => m.materialId === selId);
-      if (selMat && data.size_m) {
-        const vol = data.size_m[0] * data.size_m[1] * data.size_m[2];
-        const el = document.getElementById('cadMass');
-        if (el) el.value = (selMat.density_kg_m3 * vol).toFixed(0);
-      }
-    }
-
-    function showModelViewer(src) {
-      const wrap = document.getElementById('viewer3dWrap');
-      if (!wrap) return;
-      wrap.style.display = 'block';
-      wrap.innerHTML = `
-        <model-viewer
-          src="${src}"
-          alt="3D preview"
-          auto-rotate
-          camera-controls
-          shadow-intensity="1"
-          exposure="1"
-          style="width:100%;height:380px;border-radius:12px;border:1px solid var(--border2);background:#0c1119;"
-        >
-          <div slot="progress-bar"></div>
-        </model-viewer>
-      `;
-    }
-
-    function showUsdMaterialProps(usdMat) {
-      const props = usdMat.properties || {};
-      const wrap = document.getElementById('materialPropsWrap');
-      if (!wrap) return;
-      wrap.style.display = 'block';
-
-      // Show USD material section
-      const fromUsdWrap = document.getElementById('materialFromUsdWrap');
-      const fromUsdEl   = document.getElementById('materialFromUsd');
-      if (fromUsdWrap) fromUsdWrap.style.display = 'block';
-      if (fromUsdEl)   fromUsdEl.value = usdMat.path || 'USD Material';
-
-      // Populate known fields
-      const s = (id,v) => { const el=document.getElementById(id); if(el&&v!==undefined) el.value=v; };
-
-      // diffuseColor → display as RGB string
-      if (props.diffuseColor) {
-        const c = props.diffuseColor;
-        s('matDensity', '—'); // density not in USD PBR
-        // Add USD PBR fields below existing props
-        let usdBlock = document.getElementById('usdPbrBlock');
-        if (!usdBlock) {
-          usdBlock = document.createElement('div');
-          usdBlock.id = 'usdPbrBlock';
-          usdBlock.style.cssText = 'grid-column:span 12; display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:8px;';
-          wrap.appendChild(usdBlock);
-        }
-        usdBlock.innerHTML = `
-          <div class="field"><label>Diffuse Color (RGB)</label><input value="rgb(${Math.round(c[0]*255)}, ${Math.round(c[1]*255)}, ${Math.round(c[2]*255)})" readonly style="opacity:0.8;"></div>
-          ${props.specularColor ? `<div class="field"><label>Specular Color (RGB)</label><input value="rgb(${Math.round(props.specularColor[0]*255)}, ${Math.round(props.specularColor[1]*255)}, ${Math.round(props.specularColor[2]*255)})" readonly style="opacity:0.8;"></div>` : ''}
-          ${props.glossiness !== undefined ? `<div class="field"><label>Glossiness</label><input value="${props.glossiness}" readonly style="opacity:0.8;"></div>` : ''}
-          ${props.occlusion !== undefined ? `<div class="field"><label>Occlusion</label><input value="${props.occlusion}" readonly style="opacity:0.8;"></div>` : ''}
+    function populateStep3(data) {
+      sysmlPartsCache=data.parts||{};
+      const nodes=data.active_nodes||[];
+      const box=document.getElementById('assemblyTree');
+      if(!box) return;
+      box.innerHTML='';
+      nodes.forEach(name => {
+        const part=sysmlPartsCache[name]; if(!part) return;
+        const row=document.createElement('div');
+        row.className='tree-node-row';
+        row.setAttribute('data-module',name);
+        row.style.cssText='display:flex;align-items:center;';
+        row.innerHTML=`
+          <span class="module-dot" style="display:inline-block;width:10px;height:10px;border-radius:50%;
+            background:${moduleFiles[name]?'#00ff9d':'#4a5568'};margin-right:8px;flex-shrink:0;transition:background 0.3s;"></span>
+          <div class="tree-label" style="flex:1;">${name}</div>
+          <div class="tree-type">${part.ports?.length??0} ports</div>
         `;
-      }
-    }
-
-    // ── GitHub upload helper ──────────────────────────────────────────────
-    async function uploadCadToGitHub(file, moduleName) {
-      const token = sessionStorage.getItem('gh_pat');
-      if (!token) { alert('GitHub token not found. Run Graph first.'); return false; }
-      const path = `clean_database/cad_models/${moduleName}/${file.name}`;
-      return new Promise(resolve => {
-        const reader = new FileReader();
-        reader.onload = async e => {
-          // Chunked base64 encoding — avoids stack overflow on large files
-          const bytes = new Uint8Array(e.target.result);
-          let binary = '';
-          const chunkSize = 8192;
-          for (let i = 0; i < bytes.length; i += chunkSize) {
-            binary += String.fromCharCode(...bytes.subarray(i, i + chunkSize));
+        row.onclick=()=>{
+          box.querySelectorAll('.tree-node-row').forEach(r=>r.classList.remove('selected'));
+          row.classList.add('selected');
+          currentModuleName=name;
+          currentCadFile=moduleFiles[name]||null;
+          resetStep3View();
+          loadSysmlIntoForm(name,part);
+          loadCachedCadMeta(name);
+          if(moduleFiles[name]){
+            const s=document.getElementById('cadUploadStatus'); if(s) s.textContent=`✓ File ready: ${moduleFiles[name].name}`;
+            const n=document.getElementById('sourceFileName'); if(n) n.value=moduleFiles[name].name;
           }
-          const b64 = btoa(binary);
-
-          let sha = null;
-          try {
-            const chk = await fetch(`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${path}`,
-              { headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github+json' }});
-            if (chk.ok) sha = (await chk.json()).sha;
-          } catch {}
-          const body = { message: `feat: upload CAD for ${moduleName} [skip ci]`, content: b64 };
-          if (sha) body.sha = sha;
-          const res = await fetch(`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${path}`, {
-            method: 'PUT',
-            headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github+json', 'Content-Type': 'application/json' },
-            body: JSON.stringify(body),
-          });
-          resolve(res.ok);
         };
-        reader.readAsArrayBuffer(file);
+        box.appendChild(row);
       });
+      currentModuleName=nodes[0]||null;
+      if(nodes.length>0) box.querySelector('.tree-node-row')?.click();
+      const pathEl=document.getElementById('selectedPath'); if(pathEl) pathEl.textContent='Select a module to review its metadata.';
+      updatePublishCounter();
     }
+
+    function resetStep3View() {
+      const wrap=document.getElementById('viewer3dWrap'); if(wrap){wrap.style.display='none';wrap.innerHTML='';}
+      const fu=document.getElementById('materialFromUsdWrap'); if(fu) fu.style.display='none';
+      const lw=document.getElementById('materialLibraryWrap'); if(lw) lw.style.display='block';
+      const sel=document.getElementById('materialSelect'); if(sel) sel.value='';
+      const pw=document.getElementById('materialPropsWrap'); if(pw) pw.style.display='none';
+      document.getElementById('usdPbrBlock')?.remove();
+      const me=document.getElementById('cadMass'); if(me) me.value='';
+      const se=document.getElementById('cadUploadStatus'); if(se) se.textContent='No CAD file loaded yet.';
+      const fe=document.getElementById('sourceFileName'); if(fe) fe.value='';
+      window._cadSizeM=null;
+    }
+
+    async function loadCachedCadMeta(moduleName) {
+      const token=sessionStorage.getItem('gh_pat'); if(!token) return;
+      try {
+        const res=await fetch(`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/outputs/cad_previews/${moduleName}_meta.json`,
+          {headers:{'Authorization':`Bearer ${token}`,'Accept':'application/vnd.github+json'}});
+        if(!res.ok) return;
+        const meta=await res.json();
+        const d=JSON.parse(atob(meta.content.replace(/\n/g,'')));
+        applyCadMeta(d);
+        if(!moduleFiles[moduleName]){
+          const s=document.getElementById('cadUploadStatus');
+          if(s) s.textContent=`Previously converted · ${d.mesh_count} meshes · ${d.size_m[0]}×${d.size_m[1]}×${d.size_m[2]} m`;
+        }
+      } catch(e){}
+    }
+
+    async function publishAll() {
+      const btn=document.getElementById('publishAllBtn');
+      const pubStatus=document.getElementById('publishStatus');
+      const modules=Object.keys(moduleFiles);
+      if(modules.length===0) return;
+      btn.disabled=true; btn.textContent='⏳ Publishing…';
+      let done=0;
+      for(const moduleName of modules){
+        const file=moduleFiles[moduleName];
+        updateModuleDot(moduleName,'uploading');
+        if(pubStatus) pubStatus.textContent=`Uploading ${moduleName}… (${done+1}/${modules.length})`;
+        const uploaded=await uploadCadToGitHub(file,moduleName);
+        if(uploaded){
+          const usdPath=`clean_database/cad_models/${moduleName}/${file.name}`;
+          await triggerConvertWorkflow(moduleName,usdPath);
+          updateModuleDot(moduleName,'done');
+        } else { updateModuleDot(moduleName,'error'); }
+        done++;
+      }
+      btn.textContent='🚀 Save & Publish All'; btn.disabled=false;
+      if(pubStatus) pubStatus.textContent=`✓ ${done} module(s) submitted. Conversions running (~60s each).`;
+      const banner=document.getElementById('saveBanner');
+      if(banner){banner.style.display='flex';banner.textContent=`✓ ${done} CAD file(s) uploaded.`;setTimeout(()=>banner.style.display='none',5000);}
+    }
+
+    function saveSelectedNode() { publishAll(); }
 
     window.addEventListener('load', () => { loadMaterialLibrary(); });
   </script>
