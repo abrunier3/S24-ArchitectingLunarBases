@@ -1828,6 +1828,15 @@
               <div class="metric-sub">Placeholder</div>
             </div>
           </div>
+
+          <!-- Run Graph button -->
+          <div style="margin-top:16px; display:flex; align-items:center; gap:14px; flex-wrap:wrap;">
+            <button id="runGraphBtn" class="msosa-btn" style="padding:12px 24px; font-size:14px;" onclick="triggerGraphWorkflow()">
+              ▶ Run Graph
+            </button>
+            <div id="graphStatus" style="font-size:12px; color:var(--text2); line-height:1.5;"></div>
+          </div>
+
         </div>
 
         <div class="panel">
@@ -3604,6 +3613,140 @@ iframe{
     });
 
     refresh();
+  </script>
+
+  <!-- ============================================================
+       STEP 2 — Run Graph via GitHub Actions
+       ============================================================ -->
+  <script>
+    // ⚠️  À ADAPTER : tes infos de repo
+    const GH_OWNER = "abrunier3";
+    const GH_REPO  = "S24-ArchitectingLunarBases";
+    const GH_REF   = "main";
+
+    // ⚠️  À COMPLÉTER si besoin : mapping HTML id → nom exact dans le SysML
+    const NODE_NAME_MAP = {
+      "lander":  "LaunchLandingZone",
+      "habitat": "HabitationModule",
+      "power":   "SolarPowerSystem",
+      "isru":    "ISRUPlant",
+      "depot":   "Propellant_Depot",
+      "rover":   "Rover",
+      "reactor": null,
+      "rail":    null,
+    };
+
+    function setGraphStatus(msg, color) {
+      const el = document.getElementById('graphStatus');
+      if (el) { el.textContent = msg; el.style.color = color || 'var(--text2)'; }
+    }
+
+    async function triggerGraphWorkflow() {
+      const btn = document.getElementById('runGraphBtn');
+
+      const activeSysmlNames = systems
+        .filter(s => s.active)
+        .map(s => NODE_NAME_MAP[s.id])
+        .filter(Boolean);
+
+      if (activeSysmlNames.length === 0) {
+        setGraphStatus('Aucun nœud actif mappé vers le SysML.', '#ff7a8a');
+        return;
+      }
+
+      let token = sessionStorage.getItem('gh_pat');
+      if (!token) {
+        token = prompt('Entre ton GitHub Personal Access Token (classic) :\n(gardé en mémoire le temps de la session)');
+        if (!token) return;
+        sessionStorage.setItem('gh_pat', token);
+      }
+
+      btn.textContent = '⏳ Triggering…';
+      btn.disabled = true;
+      setGraphStatus('Envoi au workflow GitHub Actions…', 'var(--text2)');
+
+      try {
+        const res = await fetch(
+          `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/actions/workflows/run_graph.yml/dispatches`,
+          {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Accept': 'application/vnd.github+json',
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              ref: GH_REF,
+              inputs: { active_nodes: JSON.stringify(activeSysmlNames) },
+            }),
+          }
+        );
+
+        if (res.status === 204) {
+          btn.textContent = '⏳ Running…';
+          setGraphStatus(`Workflow lancé pour : ${activeSysmlNames.join(', ')}. Résultats dans ~30s…`, '#7ee0b1');
+          let attempts = 0;
+          const poll = setInterval(async () => {
+            attempts++;
+            if (attempts > 15) {
+              clearInterval(poll);
+              btn.textContent = '▶ Run Graph';
+              btn.disabled = false;
+              setGraphStatus('Timeout — vérifie l\'onglet Actions sur GitHub.', '#ffd36e');
+              return;
+            }
+            const done = await fetchGraphResult();
+            if (done) clearInterval(poll);
+          }, 8000);
+        } else {
+          const err = await res.json().catch(() => ({}));
+          btn.textContent = '▶ Run Graph';
+          btn.disabled = false;
+          if (res.status === 401) sessionStorage.removeItem('gh_pat');
+          setGraphStatus(`Erreur ${res.status} : ${err.message || 'voir console'}`, '#ff7a8a');
+          console.error('GitHub API error:', err);
+        }
+      } catch (e) {
+        btn.textContent = '▶ Run Graph';
+        btn.disabled = false;
+        setGraphStatus('Erreur réseau — voir console.', '#ff7a8a');
+        console.error(e);
+      }
+    }
+
+    async function fetchGraphResult() {
+      const url = `https://raw.githubusercontent.com/${GH_OWNER}/${GH_REPO}/${GH_REF}/outputs/graph.json?t=${Date.now()}`;
+      try {
+        const res = await fetch(url);
+        if (!res.ok) return false;
+        const data = await res.json();
+        applyGraphResult(data);
+        return true;
+      } catch (e) {
+        return false;
+      }
+    }
+
+    function applyGraphResult(data) {
+      const btn = document.getElementById('runGraphBtn');
+      btn.textContent = '✓ Graph Updated';
+      btn.disabled = false;
+
+      document.getElementById('activeSystemsMetric').textContent = data.active_nodes_count ?? data.active_nodes?.length ?? '—';
+      document.getElementById('networkEdgesMetric').textContent = data.connections?.length ?? '—';
+
+      const names = (data.active_nodes || []).join(' → ');
+      const caption = document.getElementById('opsCaption');
+      if (caption) caption.textContent = names
+        ? `[Live — SysML] Active nodes: ${names}. ${data.connections?.length ?? 0} connections.`
+        : 'No active nodes returned from pipeline.';
+
+      setGraphStatus(
+        `✓ ${data.active_nodes_count} nœuds · ${data.connections?.length} connexions — données live depuis le SysML`,
+        '#7ee0b1'
+      );
+      console.log('[GRAPH RESULT]', data);
+    }
   </script>
 
 
