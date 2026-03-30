@@ -1,54 +1,13 @@
 {
-  "written_at": 1774897760450,
+  "written_at": 1774897916771,
   "active_nodes": [
     "LaunchLandingZone",
     "HabitationModule",
     "SolarPowerSystem",
-    "ISRUPlant",
-    "Propellant_Depot",
-    "Rover"
+    "ISRUPlant"
   ],
-  "active_nodes_count": 6,
+  "active_nodes_count": 4,
   "connections": [
-    {
-      "name": "ISRUPlantToRover",
-      "type": "LOXMovement",
-      "flow": "LOX",
-      "from": {
-        "part": "ISRUPlant",
-        "port": "ISRU_LOXPortOut"
-      },
-      "to": {
-        "part": "Rover",
-        "port": "Rover_LOXPortInOut"
-      }
-    },
-    {
-      "name": "RoverToPropellantDepot",
-      "type": "LOXMovement",
-      "flow": "LOX",
-      "from": {
-        "part": "Rover",
-        "port": "Rover_LOXPortInOut"
-      },
-      "to": {
-        "part": "Propellant_Depot",
-        "port": "Propellant_LOXPortIn"
-      }
-    },
-    {
-      "name": "PowerGenToPropellant",
-      "type": "PowerMovement",
-      "flow": "Power",
-      "from": {
-        "part": "SolarPowerSystem",
-        "port": "Power_PowerPortOutToPropellantDepot"
-      },
-      "to": {
-        "part": "Propellant_Depot",
-        "port": "Propellant_PowerPortIn"
-      }
-    },
     {
       "name": "PowerGenToISRUPlant",
       "type": "PowerMovement",
@@ -86,19 +45,6 @@
       "to": {
         "part": "LaunchLandingZone",
         "port": "LaunchZone_PowerPortIn"
-      }
-    },
-    {
-      "name": "PowerGenToRover",
-      "type": "PowerMovement",
-      "flow": "Power",
-      "from": {
-        "part": "SolarPowerSystem",
-        "port": "Power_PowerPortOutToRover"
-      },
-      "to": {
-        "part": "Rover",
-        "port": "Rover_PowerPortIn"
       }
     }
   ]
