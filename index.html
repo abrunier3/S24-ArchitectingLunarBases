@@ -3650,20 +3650,20 @@ iframe{
         .filter(Boolean);
 
       if (activeSysmlNames.length === 0) {
-        setGraphStatus('Aucun nœud actif mappé vers le SysML.', '#ff7a8a');
+        setGraphStatus('No active nodes mapped to SysML.', '#ff7a8a');
         return;
       }
 
       let token = sessionStorage.getItem('gh_pat');
       if (!token) {
-        token = prompt('Entre ton GitHub Personal Access Token (classic) :\n(gardé en mémoire le temps de la session)');
+        token = prompt('Enter your GitHub Personal Access Token (classic):\n(stored in memory for this session only)');
         if (!token) return;
         sessionStorage.setItem('gh_pat', token);
       }
 
       btn.textContent = '⏳ Triggering…';
       btn.disabled = true;
-      setGraphStatus('Envoi au workflow GitHub Actions…', 'var(--text2)');
+      setGraphStatus('Dispatching to GitHub Actions workflow…', 'var(--text2)');
 
       try {
         const res = await fetch(
@@ -3684,7 +3684,7 @@ iframe{
 
         if (res.status === 204) {
           btn.textContent = '⏳ Running…';
-          setGraphStatus(`Workflow lancé pour : ${activeSysmlNames.join(', ')}. Résultats dans ~30s…`, '#7ee0b1');
+          setGraphStatus(`Workflow triggered for: ${activeSysmlNames.join(', ')}. Results in ~30s…`, '#7ee0b1');
           let attempts = 0;
           const poll = setInterval(async () => {
             attempts++;
@@ -3692,7 +3692,7 @@ iframe{
               clearInterval(poll);
               btn.textContent = '▶ Run Graph';
               btn.disabled = false;
-              setGraphStatus('Timeout — vérifie l\'onglet Actions sur GitHub.', '#ffd36e');
+              setGraphStatus('Timeout — check the Actions tab on GitHub.', '#ffd36e');
               return;
             }
             const done = await fetchGraphResult();
@@ -3703,13 +3703,13 @@ iframe{
           btn.textContent = '▶ Run Graph';
           btn.disabled = false;
           if (res.status === 401) sessionStorage.removeItem('gh_pat');
-          setGraphStatus(`Erreur ${res.status} : ${err.message || 'voir console'}`, '#ff7a8a');
+          setGraphStatus(`Error ${res.status}: ${err.message || 'see console'}`, '#ff7a8a');
           console.error('GitHub API error:', err);
         }
       } catch (e) {
         btn.textContent = '▶ Run Graph';
         btn.disabled = false;
-        setGraphStatus('Erreur réseau — voir console.', '#ff7a8a');
+        setGraphStatus('Network error — see console.', '#ff7a8a');
         console.error(e);
       }
     }
@@ -3735,17 +3735,103 @@ iframe{
       document.getElementById('activeSystemsMetric').textContent = data.active_nodes_count ?? data.active_nodes?.length ?? '—';
       document.getElementById('networkEdgesMetric').textContent = data.connections?.length ?? '—';
 
-      const names = (data.active_nodes || []).join(' → ');
       const caption = document.getElementById('opsCaption');
-      if (caption) caption.textContent = names
-        ? `[Live — SysML] Active nodes: ${names}. ${data.connections?.length ?? 0} connections.`
+      if (caption) caption.textContent = data.active_nodes?.length
+        ? `[Live — SysML] ${data.active_nodes_count} active nodes · ${data.connections?.length ?? 0} connections.`
         : 'No active nodes returned from pipeline.';
 
       setGraphStatus(
-        `✓ ${data.active_nodes_count} nœuds · ${data.connections?.length} connexions — données live depuis le SysML`,
+        `✓ ${data.active_nodes_count} nodes · ${data.connections?.length} connections — live data from SysML`,
         '#7ee0b1'
       );
+
+      renderLiveGraph(data);
       console.log('[GRAPH RESULT]', data);
+    }
+
+    // Fixed layout positions for each known SysML node name
+    const LIVE_NODE_POSITIONS = {
+      'SolarPowerSystem':  { x: 390, y:  40 },
+      'HabitationModule':  { x:  80, y:  40 },
+      'ISRUPlant':         { x: 680, y: 150 },
+      'LaunchLandingZone': { x:  80, y: 260 },
+      'Propellant_Depot':  { x: 680, y: 300 },
+      'Rover':             { x: 390, y: 260 },
+    };
+
+    const FLOW_COLORS = { 'Power': '#7ee0b1', 'LOX': '#57c7ff' };
+
+    function renderLiveGraph(data) {
+      const container = document.getElementById('opsGraph');
+      const svgLayer  = document.getElementById('linkLayer');
+
+      container.querySelectorAll('.node').forEach(n => n.remove());
+      svgLayer.innerHTML = '<defs></defs>';
+      const defs = svgLayer.querySelector('defs');
+
+      const nodes = data.active_nodes || [];
+      const conns = data.connections  || [];
+
+      // Draw edges
+      conns.forEach(c => {
+        const fromName = c.from?.part || c.from;
+        const toName   = c.to?.part   || c.to;
+        const flow     = c.flow || 'Power';
+        const posA = LIVE_NODE_POSITIONS[fromName];
+        const posB = LIVE_NODE_POSITIONS[toName];
+        if (!posA || !posB) return;
+
+        const color = FLOW_COLORS[flow] || '#ffb347';
+        const markerId = `arrowhead-${flow}`;
+
+        if (!defs.querySelector(`#${markerId}`)) {
+          defs.innerHTML += `<marker id="${markerId}" viewBox="0 0 10 10" refX="8" refY="5"
+            markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M2 1L8 5L2 9" fill="none" stroke="${color}"
+              stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </marker>`;
+        }
+
+        const x1 = posA.x + 60, y1 = posA.y + 28;
+        const x2 = posB.x + 60, y2 = posB.y + 28;
+
+        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        line.setAttribute('x1', x1); line.setAttribute('y1', y1);
+        line.setAttribute('x2', x2); line.setAttribute('y2', y2);
+        line.setAttribute('stroke', color);
+        line.setAttribute('stroke-width', '2');
+        line.setAttribute('stroke-opacity', '0.85');
+        line.setAttribute('marker-end', `url(#${markerId})`);
+        svgLayer.appendChild(line);
+
+        // Flow type label at midpoint
+        const txt = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        txt.setAttribute('x', (x1 + x2) / 2);
+        txt.setAttribute('y', (y1 + y2) / 2 - 7);
+        txt.setAttribute('text-anchor', 'middle');
+        txt.setAttribute('fill', color);
+        txt.setAttribute('font-size', '10');
+        txt.setAttribute('opacity', '0.85');
+        txt.textContent = flow;
+        svgLayer.appendChild(txt);
+      });
+
+      // Draw node boxes
+      nodes.forEach(name => {
+        const pos = LIVE_NODE_POSITIONS[name];
+        if (!pos) return;
+        const label = name
+          .replace('SolarPowerSystem', 'Solar Power')
+          .replace('HabitationModule', 'Habitat')
+          .replace('LaunchLandingZone', 'Launch Zone')
+          .replace('Propellant_Depot', 'Propellant Depot');
+        const div = document.createElement('div');
+        div.className = 'node active';
+        div.style.left = pos.x + 'px';
+        div.style.top  = pos.y + 'px';
+        div.innerHTML  = `<div class="node-title">${label}</div><div class="node-tag">${name}</div>`;
+        container.appendChild(div);
+      });
     }
   </script>
 
