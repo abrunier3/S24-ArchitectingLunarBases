@@ -4168,18 +4168,117 @@ iframe{
         const file=moduleFiles[moduleName];
         updateModuleDot(moduleName,'uploading');
         if(pubStatus) pubStatus.textContent=`Uploading ${moduleName}… (${done+1}/${modules.length})`;
+
+        // 1. Upload CAD file
         const uploaded=await uploadCadToGitHub(file,moduleName);
+
+        // 2. Write updated asset JSON
+        await writeAssetJson(moduleName, file);
+
         if(uploaded){
+          // 3. Trigger conversion workflow
           const usdPath=`clean_database/cad_models/${moduleName}/${file.name}`;
           await triggerConvertWorkflow(moduleName,usdPath);
           updateModuleDot(moduleName,'done');
-        } else { updateModuleDot(moduleName,'error'); }
+        } else {
+          updateModuleDot(moduleName,'error');
+        }
         done++;
       }
       btn.textContent='🚀 Save & Publish All'; btn.disabled=false;
       if(pubStatus) pubStatus.textContent=`✓ ${done} module(s) submitted. Conversions running (~60s each).`;
       const banner=document.getElementById('saveBanner');
-      if(banner){banner.style.display='flex';banner.textContent=`✓ ${done} CAD file(s) uploaded.`;setTimeout(()=>banner.style.display='none',5000);}
+      if(banner){banner.style.display='flex';banner.textContent=`✓ ${done} CAD file(s) uploaded and JSON assets updated.`;setTimeout(()=>banner.style.display='none',5000);}
+    }
+
+    function buildAssetJson(moduleName, cadFile) {
+      // Get SysML base data
+      const part = sysmlPartsCache[moduleName] || {};
+      // Get material info
+      const selId = document.getElementById('materialSelect')?.value || '';
+      const selMat = materialLibrary.find(m => m.materialId === selId) || null;
+      const usdMatName = document.getElementById('materialFromUsd')?.value || null;
+      // Get computed mass
+      const mass = parseFloat(document.getElementById('cadMass')?.value) || null;
+      // Get units
+      const metersPerUnit = parseFloat(document.getElementById('metersPerUnit')?.value) || 1;
+      const upAxis = document.getElementById('upAxis')?.value || 'Z';
+      const massUnit = document.getElementById('massUnit')?.value || 'kg';
+      const lengthUnit = document.getElementById('lengthUnit')?.value || 'm';
+      // Get GLB size from meta if available
+      const sizeM = window._cadSizeM || null;
+
+      const asset = {
+        type: part.type || 'Part',
+        id: part.id || `urn:S24_PIPELINE:part:${moduleName}:001`,
+        name: moduleName,
+        dimensions: {
+          size_m: sizeM ? {
+            length: sizeM[0],
+            width: sizeM[1],
+            height: sizeM[2],
+          } : (part.dimensions?.size_m || {}),
+          metersPerUnit,
+          upAxis,
+          massUnit,
+          lengthUnit,
+        },
+        transform: part.transform || { position_m: [0,0,0], rotation_deg: [0,0,0] },
+        attributes: {
+          ...(part.attributes || {}),
+          ...(mass !== null ? { computed_mass_kg: mass } : {}),
+        },
+        metadata: {
+          geometryRef: `clean_database/cad_models/${moduleName}/${cadFile.name}`,
+          cadFileName: cadFile.name,
+          cadUploadedAt: new Date().toISOString(),
+          glbPreviewRef: `outputs/cad_previews/${moduleName}.glb`,
+        },
+        materialRef: selId || usdMatName || part.materialRef || null,
+        materialProperties: selMat ? {
+          source: 'library',
+          density_kg_m3: selMat.density_kg_m3,
+          youngModulus_Pa: selMat.youngModulus_Pa,
+          poissonRatio: selMat.poissonRatio,
+          yieldStrength_Pa: selMat.yieldStrength_Pa,
+          ultimateStrength_Pa: selMat.ultimateStrength_Pa,
+          thermalConductivity_W_mK: selMat.thermalConductivity_W_mK,
+        } : (usdMatName ? { source: 'usd', name: usdMatName } : null),
+        ports: part.ports || [],
+      };
+      return asset;
+    }
+
+    async function writeAssetJson(moduleName, cadFile) {
+      const token = sessionStorage.getItem('gh_pat');
+      if (!token) return false;
+      const asset = buildAssetJson(moduleName, cadFile);
+      const path = `clean_database/json/ECLIPSE_Project/assets/${moduleName}.json`;
+      const content = btoa(unescape(encodeURIComponent(JSON.stringify(asset, null, 2))));
+      // Check if file exists to get its SHA
+      let sha = null;
+      try {
+        const chk = await fetch(`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${path}`,
+          { headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github+json' }});
+        if (chk.ok) sha = (await chk.json()).sha;
+      } catch {}
+      const body = {
+        message: `feat: update asset JSON for ${moduleName} [skip ci]`,
+        content,
+      };
+      if (sha) body.sha = sha;
+      try {
+        const res = await fetch(`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${path}`, {
+          method: 'PUT',
+          headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github+json', 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        });
+        console.log(`[ASSET JSON] ${moduleName} → ${res.ok ? '✓' : '✗ ' + res.status}`);
+        return res.ok;
+      } catch(e) {
+        console.error('[ASSET JSON] error:', e);
+        return false;
+      }
     }
 
     function saveSelectedNode() { publishAll(); }
@@ -4236,13 +4335,14 @@ iframe{
       const wrap = document.getElementById('viewer3dWrap');
       if (!wrap) return;
       wrap.style.display = 'block';
-      const orientation = (upAxis === 'Y') ? 'orientation="0deg 0deg 0deg"' : '';
       wrap.innerHTML = `
-        <model-viewer src="${src}" alt="3D preview"
-          camera-controls touch-action="pan-y"
-          shadow-intensity="0.5" exposure="1.2"
-          camera-orbit="45deg 75deg auto"
-          ${orientation}
+        <model-viewer
+          src="${src}"
+          alt="3D preview"
+          camera-controls
+          touch-action="none"
+          shadow-intensity="0.5"
+          exposure="1.2"
           style="width:100%;height:380px;border-radius:12px;border:1px solid var(--border2);background:#0c1119;"
         ></model-viewer>`;
     }
