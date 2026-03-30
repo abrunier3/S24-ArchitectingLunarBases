@@ -131,10 +131,16 @@ jobs:
           if meshes_data:
               glb_path = f"outputs/cad_previews/{module_name}.glb"
               scene = trimesh.Scene(meshes_data)
+              # Correct orientation: USD Y-up → GLB/glTF Z-up
+              up_axis = UsdGeom.GetStageUpAxis(stage)
+              if up_axis == 'Y':
+                  import trimesh.transformations as tf
+                  rot = tf.rotation_matrix(-np.pi / 2, [1, 0, 0])
+                  scene.apply_transform(rot)
               glb_bytes = scene.export(file_type='glb')
               with open(glb_path, 'wb') as f:
                   f.write(glb_bytes)
-              print(f"[CONVERT] GLB written: {len(glb_bytes)//1024} KB")
+              print(f"[CONVERT] GLB written: {len(glb_bytes)//1024} KB (up_axis corrected: {up_axis})")
 
           # Write metadata
           meta = {
@@ -159,9 +165,9 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add outputs/cad_previews/
           STASHED=$(git stash 2>&1)
           git pull --rebase origin main
           echo "$STASHED" | grep -q "No local changes" || git stash pop
-          git add -f outputs/cad_previews/
           git diff --staged --quiet || git commit -m "chore: CAD preview + metadata for ${{ github.event.inputs.module_name }} [skip ci]"
           git push
