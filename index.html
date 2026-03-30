@@ -2398,11 +2398,11 @@ function updateSelectedPath() {
     [
       'stepFileName','partName','materialRef','partCategory','dimLength','dimWidth','dimHeight',
       'posX','posY','posZ','rotX','rotY','rotZ','metersPerUnit','upAxis','angleUnit','massUnit','pressureUnit','lengthUnit'
-    ].forEach(id => data[id] = document.getElementById(id).value);
+    ].forEach(id => data[id] = document.getElementById(id)?.value ?? '');
     data.customAttrs = [...document.querySelectorAll('.attr-row')].map(row => ({
-      name: row.querySelector('.attr-name').value,
-      value: row.querySelector('.attr-value').value,
-      unit: row.querySelector('.attr-unit').value
+      name: row.querySelector('.attr-name')?.value ?? '',
+      value: row.querySelector('.attr-value')?.value ?? '',
+      unit: row.querySelector('.attr-unit')?.value ?? ''
     })).filter(a => a.name || a.value || a.unit);
     return data;
   }
