@@ -1973,6 +1973,14 @@
           <!-- SysML Attributes -->
           <div class="custom-attrs" id="customAttrs" style="display:none;"></div>
 
+          <!-- Per-module save -->
+          <div class="form-section-title">Actions</div>
+          <div class="field span-6">
+            <button class="btn btn-secondary" style="width:100%;padding:11px;" onclick="saveModuleMeta()">
+              💾 Save metadata for this module
+            </button>
+          </div>
+
           <div class="success-banner" id="saveBanner" style="display:none;">
             ✓ Metadata saved and CAD file uploaded to repo.
           </div>
@@ -4072,10 +4080,56 @@ iframe{
       const nameEl=document.getElementById('sourceFileName'); if(nameEl) nameEl.value=file.name;
       const status=document.getElementById('cadUploadStatus');
       if(status) status.textContent=`✓ File ready: ${file.name} (${(file.size/1024).toFixed(0)} KB)`;
+      // If this module already had a GLB loaded, reload the viewer with the new file info
+      const wrap=document.getElementById('viewer3dWrap');
+      if(wrap && wrap.style.display!=='none') {
+        // Don't reload viewer — file not yet converted, keep existing preview
+        if(status) status.textContent += ' — Upload & Publish to convert.';
+      }
+    }
+
+    // Per-module saved metadata cache { moduleName: { materialId, mass, ... } }
+    const moduleMetaCache = {};
+
+    function saveModuleMeta() {
+      if (!currentModuleName) return;
+      moduleMetaCache[currentModuleName] = {
+        materialId: document.getElementById('materialSelect')?.value || '',
+        mass: document.getElementById('cadMass')?.value || '',
+        metersPerUnit: document.getElementById('metersPerUnit')?.value || '1',
+        upAxis: document.getElementById('upAxis')?.value || 'Z',
+        massUnit: document.getElementById('massUnit')?.value || 'kg',
+        lengthUnit: document.getElementById('lengthUnit')?.value || 'm',
+      };
+      // Flash the dot orange briefly then back
+      updateModuleDot(currentModuleName, 'uploading');
+      setTimeout(() => updateModuleDot(currentModuleName, moduleFiles[currentModuleName] ? 'ready' : 'pending'), 600);
+      const banner = document.getElementById('saveBanner');
+      if (banner) {
+        banner.style.display = 'flex';
+        banner.textContent = `✓ Metadata saved for ${currentModuleName}`;
+        setTimeout(() => banner.style.display = 'none', 2000);
+      }
+    }
+
+    function restoreModuleMeta(moduleName) {
+      const saved = moduleMetaCache[moduleName];
+      if (!saved) return;
+      const sel = document.getElementById('materialSelect');
+      if (sel && saved.materialId) {
+        sel.value = saved.materialId;
+        if (saved.materialId) onMaterialSelect(saved.materialId);
+      }
+      if (saved.mass) { const el=document.getElementById('cadMass'); if(el) el.value=saved.mass; }
+      const s=(id,v)=>{const el=document.getElementById(id);if(el&&v)el.value=v;};
+      s('metersPerUnit', saved.metersPerUnit);
+      s('upAxis', saved.upAxis);
+      s('massUnit', saved.massUnit);
+      s('lengthUnit', saved.lengthUnit);
     }
 
     function updateModuleDot(moduleName, state) {
-      const colors={pending:'#4a5568',ready:'#00ff9d',uploading:'#ffd166',done:'#00d4ff',error:'#ff7a8a'};
+      const colors={pending:'#4a5568',ready:'#00ff9d',uploading:'#ffd166',done:'#00d4ff',error:'#ff7a8a',glb:'#00d4ff'};
       const dot=document.querySelector(`[data-module="${moduleName}"] .module-dot`);
       if(dot) dot.style.background=colors[state]||colors.pending;
     }
@@ -4119,6 +4173,8 @@ iframe{
             const s=document.getElementById('cadUploadStatus'); if(s) s.textContent=`✓ File ready: ${moduleFiles[name].name}`;
             const n=document.getElementById('sourceFileName'); if(n) n.value=moduleFiles[name].name;
           }
+          // Restore any previously saved metadata for this module
+          restoreModuleMeta(name);
         };
         box.appendChild(row);
       });
@@ -4150,10 +4206,14 @@ iframe{
         const meta=await res.json();
         const d=JSON.parse(atob(meta.content.replace(/\n/g,'')));
         applyCadMeta(d);
+        // Dot becomes cyan — 3D preview available
+        updateModuleDot(moduleName, 'done');
         if(!moduleFiles[moduleName]){
           const s=document.getElementById('cadUploadStatus');
-          if(s) s.textContent=`Previously converted · ${d.mesh_count} meshes · ${d.size_m[0]}×${d.size_m[1]}×${d.size_m[2]} m`;
+          if(s) s.textContent=`✓ 3D preview ready · ${d.mesh_count} meshes · ${d.size_m[0]}×${d.size_m[1]}×${d.size_m[2]} m`;
         }
+        // Restore saved metadata (material selection etc.)
+        restoreModuleMeta(moduleName);
       } catch(e){}
     }
 
@@ -4343,6 +4403,8 @@ iframe{
           touch-action="none"
           shadow-intensity="0.5"
           exposure="1.2"
+          min-camera-orbit="auto -180deg auto"
+          max-camera-orbit="auto 180deg auto"
           style="width:100%;height:380px;border-radius:12px;border:1px solid var(--border2);background:#0c1119;"
         ></model-viewer>`;
     }
