@@ -2247,7 +2247,7 @@ function buildAssemblyTreeFromActiveSystems() {
       wrap.appendChild(card);
     });
     updateTopMetrics();
-    renderOpsGraph();
+    // renderOpsGraph() intentionally removed — graph only renders after Run Graph
   }
 
 function toggleSystem(id) {
@@ -3749,15 +3749,15 @@ iframe{
       console.log('[GRAPH RESULT]', data);
     }
 
-    // Positions in CSS pixels (the opsGraph container is ~100% wide, min-height 470px)
-    // Node width = 118px, so center = x + 59
-    const LIVE_NODE_POSITIONS = {
-      'SolarPowerSystem':  { x: 360, y:  20 },
-      'HabitationModule':  { x:  40, y:  20 },
-      'ISRUPlant':         { x: 590, y: 160 },
-      'LaunchLandingZone': { x:  40, y: 340 },
-      'Propellant_Depot':  { x: 590, y: 340 },
-      'Rover':             { x: 360, y: 220 },
+    // Positions as percentages of container size (avoids pixel overflow on any screen)
+    // Node width = 118px, height = 58px
+    const LIVE_NODE_POSITIONS_PCT = {
+      'SolarPowerSystem':  { px: 0.52, py: 0.05 },
+      'HabitationModule':  { px: 0.04, py: 0.05 },
+      'ISRUPlant':         { px: 0.80, py: 0.30 },
+      'LaunchLandingZone': { px: 0.04, py: 0.72 },
+      'Propellant_Depot':  { px: 0.80, py: 0.72 },
+      'Rover':             { px: 0.52, py: 0.45 },
     };
 
     const FLOW_COLORS = { 'Power': '#7ee0b1', 'LOX': '#57c7ff' };
@@ -3773,28 +3773,42 @@ iframe{
       const nodes = data.active_nodes || [];
       const conns = data.connections  || [];
 
-      // The SVG viewBox is 1000x520, the container is ~100% wide x 470px CSS
-      // We need to map CSS pixel positions → SVG viewBox coordinates
-      const containerW = container.offsetWidth  || 900;
-      const containerH = container.offsetHeight || 470;
-      const vbW = 1000, vbH = 520;
+      const cW = container.offsetWidth  || 700;
+      const cH = container.offsetHeight || 470;
       const NODE_W = 118, NODE_H = 58;
+      const vbW = 1000, vbH = 520;
 
-      function toSVG(cssX, cssY, anchorX = 0.5, anchorY = 0.5) {
+      // Convert percentage position to CSS px (top-left of node)
+      function toPx(pct) {
         return {
-          x: ((cssX + NODE_W * anchorX) / containerW) * vbW,
-          y: ((cssY + NODE_H * anchorY) / containerH) * vbH,
+          x: Math.round(pct.px * (cW - NODE_W)),
+          y: Math.round(pct.py * (cH - NODE_H)),
         };
       }
+
+      // Convert CSS px center to SVG viewBox coords
+      function toSVG(px) {
+        return {
+          x: ((px.x + NODE_W / 2) / cW) * vbW,
+          y: ((px.y + NODE_H / 2) / cH) * vbH,
+        };
+      }
+
+      // Build resolved px positions for all nodes
+      const resolvedPx = {};
+      nodes.forEach(name => {
+        const pct = LIVE_NODE_POSITIONS_PCT[name];
+        if (pct) resolvedPx[name] = toPx(pct);
+      });
 
       // Draw edges
       conns.forEach(c => {
         const fromName = c.from?.part || c.from;
         const toName   = c.to?.part   || c.to;
         const flow     = c.flow || 'Power';
-        const posA = LIVE_NODE_POSITIONS[fromName];
-        const posB = LIVE_NODE_POSITIONS[toName];
-        if (!posA || !posB) return;
+        const pxA = resolvedPx[fromName];
+        const pxB = resolvedPx[toName];
+        if (!pxA || !pxB) return;
 
         const color = FLOW_COLORS[flow] || '#ffb347';
         const markerId = `arrowhead-${flow}`;
@@ -3803,17 +3817,15 @@ iframe{
           const marker = document.createElementNS('http://www.w3.org/2000/svg', 'marker');
           marker.setAttribute('id', markerId);
           marker.setAttribute('viewBox', '0 0 10 10');
-          marker.setAttribute('refX', '8');
-          marker.setAttribute('refY', '5');
-          marker.setAttribute('markerWidth', '6');
-          marker.setAttribute('markerHeight', '6');
+          marker.setAttribute('refX', '8'); marker.setAttribute('refY', '5');
+          marker.setAttribute('markerWidth', '6'); marker.setAttribute('markerHeight', '6');
           marker.setAttribute('orient', 'auto-start-reverse');
           marker.innerHTML = `<path d="M2 1L8 5L2 9" fill="none" stroke="${color}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>`;
           defs.appendChild(marker);
         }
 
-        const a = toSVG(posA.x, posA.y, 0.5, 0.5);
-        const b = toSVG(posB.x, posB.y, 0.5, 0.5);
+        const a = toSVG(pxA);
+        const b = toSVG(pxB);
 
         const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
         line.setAttribute('x1', a.x); line.setAttribute('y1', a.y);
@@ -3824,7 +3836,6 @@ iframe{
         line.setAttribute('marker-end', `url(#${markerId})`);
         svgLayer.appendChild(line);
 
-        // Flow label at midpoint
         const txt = document.createElementNS('http://www.w3.org/2000/svg', 'text');
         txt.setAttribute('x', (a.x + b.x) / 2);
         txt.setAttribute('y', (a.y + b.y) / 2 - 6);
@@ -3836,10 +3847,10 @@ iframe{
         svgLayer.appendChild(txt);
       });
 
-      // Draw node boxes (CSS positioned divs)
+      // Draw node boxes
       nodes.forEach(name => {
-        const pos = LIVE_NODE_POSITIONS[name];
-        if (!pos) return;
+        const px = resolvedPx[name];
+        if (!px) return;
         const label = name
           .replace('SolarPowerSystem', 'Solar Power')
           .replace('HabitationModule', 'Habitat')
@@ -3847,8 +3858,8 @@ iframe{
           .replace('Propellant_Depot', 'Propellant Depot');
         const div = document.createElement('div');
         div.className = 'node active';
-        div.style.left = pos.x + 'px';
-        div.style.top  = pos.y + 'px';
+        div.style.left = px.x + 'px';
+        div.style.top  = px.y + 'px';
         div.innerHTML  = `<div class="node-title">${label}</div><div class="node-tag">${name}</div>`;
         container.appendChild(div);
       });
