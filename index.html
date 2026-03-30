@@ -4218,7 +4218,15 @@ iframe{
       return new Promise(resolve => {
         const reader = new FileReader();
         reader.onload = async e => {
-          const b64 = btoa(String.fromCharCode(...new Uint8Array(e.target.result)));
+          // Chunked base64 encoding — avoids stack overflow on large files
+          const bytes = new Uint8Array(e.target.result);
+          let binary = '';
+          const chunkSize = 8192;
+          for (let i = 0; i < bytes.length; i += chunkSize) {
+            binary += String.fromCharCode(...bytes.subarray(i, i + chunkSize));
+          }
+          const b64 = btoa(binary);
+
           let sha = null;
           try {
             const chk = await fetch(`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${path}`,
