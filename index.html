@@ -1842,9 +1842,9 @@
         <div class="panel">
           <div class="panel-title">Mission Operations Graph</div>
           <div class="ops-legend">
-            <span><span class="legend-dot" style="background:#00d4ff"></span>Active logistics or production node</span>
-            <span><span class="legend-dot" style="background:#00ff9d"></span>Crew Node [Exempt]</span>
-            <span><span class="legend-dot" style="background:#ffb347"></span>Transport or transfer path</span>
+            <span><span class="legend-dot" style="background:#00d4ff"></span>Active node</span>
+            <span><span class="legend-dot" style="background:#7ee0b1"></span>Power flow</span>
+            <span><span class="legend-dot" style="background:#57c7ff"></span>LOX flow</span>
           </div>
           <div class="ops-graph" id="opsGraph">
             <svg class="link-layer" id="linkLayer" viewBox="0 0 1000 520" preserveAspectRatio="none"></svg>
@@ -3752,12 +3752,12 @@ iframe{
     // Positions in CSS pixels (the opsGraph container is ~100% wide, min-height 470px)
     // Node width = 118px, so center = x + 59
     const LIVE_NODE_POSITIONS = {
-      'SolarPowerSystem':  { x: 400, y:  20 },
-      'HabitationModule':  { x:  60, y:  20 },
-      'ISRUPlant':         { x: 740, y: 160 },
-      'LaunchLandingZone': { x:  60, y: 340 },
-      'Propellant_Depot':  { x: 740, y: 340 },
-      'Rover':             { x: 400, y: 220 },
+      'SolarPowerSystem':  { x: 360, y:  20 },
+      'HabitationModule':  { x:  40, y:  20 },
+      'ISRUPlant':         { x: 590, y: 160 },
+      'LaunchLandingZone': { x:  40, y: 340 },
+      'Propellant_Depot':  { x: 590, y: 340 },
+      'Rover':             { x: 360, y: 220 },
     };
 
     const FLOW_COLORS = { 'Power': '#7ee0b1', 'LOX': '#57c7ff' };
