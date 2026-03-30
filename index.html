@@ -4184,6 +4184,134 @@ iframe{
 
     function saveSelectedNode() { publishAll(); }
 
+    // ── Workflow + API helpers ────────────────────────────────────────────
+    async function triggerConvertWorkflow(moduleName, usdPath) {
+      const token = sessionStorage.getItem('gh_pat');
+      if (!token) return false;
+      const res = await fetch(
+        `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/actions/workflows/convert_cad.yml/dispatches`,
+        {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github+json', 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ref: GH_REF, inputs: { module_name: moduleName, usd_path: usdPath } }),
+        }
+      );
+      return res.status === 204;
+    }
+
+    async function fetchCadMeta(moduleName, runTimestamp) {
+      const token = sessionStorage.getItem('gh_pat');
+      const url = `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/outputs/cad_previews/${moduleName}_meta.json`;
+      try {
+        const res = await fetch(url, { headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github+json' } });
+        if (!res.ok) return false;
+        const meta = await res.json();
+        const data = JSON.parse(atob(meta.content.replace(/\n/g,'')));
+        if (data.written_at < runTimestamp) return false;
+        applyCadMeta(data);
+        return true;
+      } catch(e) { return false; }
+    }
+
+    function applyCadMeta(data) {
+      const status = document.getElementById('cadUploadStatus');
+      if (data.glb_path) {
+        const glbUrl = `https://raw.githubusercontent.com/${GH_OWNER}/${GH_REPO}/${GH_REF}/${data.glb_path}`;
+        showModelViewer(glbUrl, data.up_axis);
+      }
+      if (status) status.textContent =
+        `✓ ${data.mesh_count} meshes · ${data.size_m[0]}×${data.size_m[1]}×${data.size_m[2]} m · upAxis: ${data.up_axis}`;
+      if (data.materials?.length > 0) showUsdMaterialProps(data.materials[0]);
+      window._cadSizeM = data.size_m;
+      const selId = document.getElementById('materialSelect')?.value;
+      const selMat = materialLibrary.find(m => m.materialId === selId);
+      if (selMat && data.size_m) {
+        const vol = data.size_m[0] * data.size_m[1] * data.size_m[2];
+        const el = document.getElementById('cadMass');
+        if (el) el.value = (selMat.density_kg_m3 * vol).toFixed(0);
+      }
+    }
+
+    function showModelViewer(src, upAxis) {
+      const wrap = document.getElementById('viewer3dWrap');
+      if (!wrap) return;
+      wrap.style.display = 'block';
+      const orientation = (upAxis === 'Y') ? 'orientation="0deg 0deg 0deg"' : '';
+      wrap.innerHTML = `
+        <model-viewer src="${src}" alt="3D preview"
+          camera-controls touch-action="pan-y"
+          shadow-intensity="0.5" exposure="1.2"
+          camera-orbit="45deg 75deg auto"
+          ${orientation}
+          style="width:100%;height:380px;border-radius:12px;border:1px solid var(--border2);background:#0c1119;"
+        ></model-viewer>`;
+    }
+
+    function showUsdMaterialProps(usdMat) {
+      const props = usdMat.properties || {};
+      const fromUsdWrap = document.getElementById('materialFromUsdWrap');
+      const fromUsdEl   = document.getElementById('materialFromUsd');
+      const wrap        = document.getElementById('materialPropsWrap');
+      if (fromUsdWrap) fromUsdWrap.style.display = 'block';
+      if (fromUsdEl)   fromUsdEl.value = usdMat.path?.split('/').pop() || 'USD Material';
+      if (!wrap) return;
+      wrap.style.display = 'block';
+      document.getElementById('usdPbrBlock')?.remove();
+      const entries = Object.entries(props).filter(([,v]) => v !== null && v !== undefined);
+      if (entries.length === 0) return;
+      const usdBlock = document.createElement('div');
+      usdBlock.id = 'usdPbrBlock';
+      usdBlock.style.cssText = 'grid-column:span 12;display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:8px;';
+      entries.forEach(([key, val]) => {
+        let display = '';
+        if (Array.isArray(val) && val.length === 3 && val.every(x => x >= 0 && x <= 1)) {
+          display = `rgb(${Math.round(val[0]*255)}, ${Math.round(val[1]*255)}, ${Math.round(val[2]*255)})`;
+        } else if (Array.isArray(val)) {
+          display = val.join(', ');
+        } else {
+          display = String(val);
+        }
+        const div = document.createElement('div');
+        div.className = 'field';
+        div.innerHTML = `<label>${key}</label><input value="${display}" readonly style="opacity:0.8;">`;
+        usdBlock.appendChild(div);
+      });
+      wrap.appendChild(usdBlock);
+    }
+
+    async function uploadCadToGitHub(file, moduleName) {
+      const token = sessionStorage.getItem('gh_pat');
+      if (!token) { alert('GitHub token not found. Run Graph first.'); return false; }
+      const path = `clean_database/cad_models/${moduleName}/${file.name}`;
+      return new Promise(resolve => {
+        const reader = new FileReader();
+        reader.onload = async e => {
+          const bytes = new Uint8Array(e.target.result);
+          let binary = '';
+          const chunkSize = 8192;
+          for (let i = 0; i < bytes.length; i += chunkSize) {
+            binary += String.fromCharCode(...bytes.subarray(i, i + chunkSize));
+          }
+          const b64 = btoa(binary);
+          let sha = null;
+          try {
+            const chk = await fetch(`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${path}`,
+              { headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github+json' }});
+            if (chk.ok) sha = (await chk.json()).sha;
+          } catch {}
+          const body = { message: `feat: upload CAD for ${moduleName} [skip ci]`, content: b64 };
+          if (sha) body.sha = sha;
+          const res = await fetch(`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${path}`, {
+            method: 'PUT',
+            headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github+json', 'Content-Type': 'application/json' },
+            body: JSON.stringify(body),
+          });
+          resolve(res.ok);
+        };
+        reader.readAsArrayBuffer(file);
+      });
+    }
+
     window.addEventListener('load', () => { loadMaterialLibrary(); });
   </script>
 
