@@ -1889,21 +1889,9 @@
       <div class="assembly-scroll consequence-scroll">
         <div class="form-grid">
 
-          <!-- 3D Viewer -->
+          <!-- 3D Viewer — populated after workflow completes -->
           <div class="full" id="viewer3dWrap" style="display:none;">
-            <div id="viewer3d" style="
-              width:100%; height:340px; border-radius:12px;
-              border:1px solid var(--border2);
-              background:linear-gradient(180deg,#0c1119,#0a0e15);
-              position:relative; overflow:hidden; cursor:grab;
-            ">
-              <canvas id="threeCanvas" style="width:100%;height:100%;display:block;"></canvas>
-              <div id="viewer3dLabel" style="
-                position:absolute;top:10px;left:12px;
-                font-size:10px;color:var(--text3);
-                text-transform:uppercase;letter-spacing:1px;
-              ">3D Preview — drag to rotate · scroll to zoom</div>
-            </div>
+            <!-- model-viewer injected here by showModelViewer() -->
           </div>
 
           <!-- Drag & Drop CAD Upload -->
@@ -3985,15 +3973,15 @@ iframe{
     }
   </script>
 
-  <!-- Three.js for 3D preview -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <!-- model-viewer for 3D preview -->
+  <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
   <script>
-    // ─── Step 3 — 3D Viewer + Material Library + Upload ──────────────────
-    let threeScene, threeCamera, threeRenderer, threeObject;
+    // ─── Step 3 — CAD Upload + Convert + Preview ─────────────────────────
     let materialLibrary = [];
-    let currentCadFile = null;
-    let currentVolume_m3 = null;
+    let currentCadFile  = null;
+    let currentModuleName = null;
 
+    // Load material library from GitHub
     async function loadMaterialLibrary() {
       try {
         const token = sessionStorage.getItem('gh_pat');
@@ -4006,45 +3994,38 @@ iframe{
         );
         if (!res.ok) return;
         const meta = await res.json();
-        const text = atob(meta.content.replace(/\n/g, ''));
-        const data = JSON.parse(text);
+        const data = JSON.parse(atob(meta.content.replace(/\n/g,'')));
         materialLibrary = data.materials || [];
         const sel = document.getElementById('materialSelect');
         if (!sel) return;
         sel.innerHTML = '<option value="">— select a material —</option>';
         materialLibrary.forEach(m => {
           const opt = document.createElement('option');
-          opt.value = m.materialId;
-          opt.textContent = m.materialId;
+          opt.value = m.materialId; opt.textContent = m.materialId;
           sel.appendChild(opt);
         });
-      } catch (e) { console.warn('[MATERIALS]', e); }
+      } catch(e) { console.warn('[MATERIALS]', e); }
     }
 
     function onMaterialSelect(id) {
+      if (!id) return;
       const mat = materialLibrary.find(m => m.materialId === id);
-      if (!mat) return;
-      fillMaterialProps(mat);
-      if (currentVolume_m3 !== null) computeMass(mat.density_kg_m3, currentVolume_m3);
+      if (mat) fillMaterialLibProps(mat);
     }
 
-    function fillMaterialProps(mat) {
-      const s = (id, v) => { const el = document.getElementById(id); if (el) el.value = v ?? ''; };
+    function fillMaterialLibProps(mat) {
+      const s = (id,v) => { const el=document.getElementById(id); if(el) el.value=v??''; };
       s('matDensity',  mat.density_kg_m3);
-      s('matYoung',    mat.youngModulus_Pa    ? (mat.youngModulus_Pa    / 1e9).toFixed(1) : '');
-      s('matYield',    mat.yieldStrength_Pa   ? (mat.yieldStrength_Pa   / 1e6).toFixed(0) : '');
-      s('matUltimate', mat.ultimateStrength_Pa ? (mat.ultimateStrength_Pa / 1e6).toFixed(0) : '');
+      s('matYoung',    mat.youngModulus_Pa    ? (mat.youngModulus_Pa/1e9).toFixed(1) : '');
+      s('matYield',    mat.yieldStrength_Pa   ? (mat.yieldStrength_Pa/1e6).toFixed(0) : '');
+      s('matUltimate', mat.ultimateStrength_Pa ? (mat.ultimateStrength_Pa/1e6).toFixed(0) : '');
       s('matPoisson',  mat.poissonRatio);
       s('matThermal',  mat.thermalConductivity_W_mK);
       const wrap = document.getElementById('materialPropsWrap');
       if (wrap) wrap.style.display = 'block';
     }
 
-    function computeMass(density_kg_m3, volume_m3) {
-      const el = document.getElementById('cadMass');
-      if (el) el.value = (density_kg_m3 * volume_m3).toFixed(1);
-    }
-
+    // ── Drag & Drop ───────────────────────────────────────────────────────
     function handleCadDrop(event) {
       event.preventDefault();
       document.getElementById('cadDropZone').style.borderColor = 'var(--border2)';
@@ -4055,123 +4036,180 @@ iframe{
     function handleCadFile(file) {
       if (!file) return;
       currentCadFile = file;
-      const ext = file.name.split('.').pop().toLowerCase();
-      const status = document.getElementById('cadUploadStatus');
-      if (status) status.textContent = `File loaded: ${file.name} (${(file.size/1024).toFixed(0)} KB)`;
       const nameEl = document.getElementById('sourceFileName');
       if (nameEl) nameEl.value = file.name;
       const ts = document.getElementById('uploadTimestamp');
       if (ts) ts.value = new Date().toLocaleString();
+      const status = document.getElementById('cadUploadStatus');
+      if (status) status.textContent = `File ready: ${file.name} (${(file.size/1024).toFixed(0)} KB) — click Save & Upload to process.`;
+    }
 
-      const wrap = document.getElementById('viewer3dWrap');
-      if (wrap) wrap.style.display = 'block';
-      initThreeViewer();
+    // ── Save: upload file → trigger convert workflow → poll meta ─────────
+    async function saveSelectedNode() {
+      const banner = document.getElementById('saveBanner');
+      const btn    = document.querySelector('[onclick="saveSelectedNode()"]');
+      if (btn) { btn.textContent = '⏳ Uploading…'; btn.disabled = true; }
 
-      if (ext === 'usdz') {
-        showFallbackBox();
-        if (status) status.textContent += ' — 3D preview uses SysML bounding box (USDZ binary).';
-        checkUsdMaterial(null);
-      } else if (['usd','usda','usdc'].includes(ext)) {
-        const reader = new FileReader();
-        reader.onload = e => {
-          const parsed = parseUsdText(e.target.result);
-          showBoxFromSize(parsed.size);
-          checkUsdMaterial(parsed.materialId);
-          if (status) status.textContent = `File loaded: ${file.name}`;
-        };
-        reader.readAsText(file);
+      currentModuleName = document.getElementById('cadTitle')?.value || 'Unknown';
+      const status = document.getElementById('cadUploadStatus');
+
+      if (!currentCadFile) {
+        if (banner) { banner.style.display='flex'; banner.textContent='✓ Metadata saved (no CAD file).'; setTimeout(()=>banner.style.display='none',3000); }
+        if (btn) { btn.textContent='💾 Save & Upload to GitHub'; btn.disabled=false; }
+        return;
+      }
+
+      // Step 1: upload file to repo
+      if (status) status.textContent = `Uploading ${currentCadFile.name} to GitHub…`;
+      const uploaded = await uploadCadToGitHub(currentCadFile, currentModuleName);
+      if (!uploaded) {
+        if (status) status.textContent = '⚠ Upload failed — check console.';
+        if (btn) { btn.textContent='💾 Save & Upload to GitHub'; btn.disabled=false; }
+        return;
+      }
+      if (status) status.textContent = `✓ Uploaded. Triggering conversion workflow…`;
+
+      // Step 2: trigger convert_cad workflow
+      const usdPath = `clean_database/cad_models/${currentModuleName}/${currentCadFile.name}`;
+      const triggered = await triggerConvertWorkflow(currentModuleName, usdPath);
+      if (!triggered) {
+        if (status) status.textContent = '⚠ Workflow trigger failed — check console.';
+        if (btn) { btn.textContent='💾 Save & Upload to GitHub'; btn.disabled=false; }
+        return;
+      }
+
+      if (btn) { btn.textContent = '⏳ Converting…'; }
+      if (status) status.textContent = 'Workflow running — extracting geometry & materials (~60s)…';
+      const runTimestamp = Date.now();
+
+      // Step 3: poll for _meta.json
+      let attempts = 0;
+      const poll = setInterval(async () => {
+        attempts++;
+        if (attempts > 20) {
+          clearInterval(poll);
+          if (status) status.textContent = 'Timeout — check Actions tab on GitHub.';
+          if (btn) { btn.textContent='💾 Save & Upload to GitHub'; btn.disabled=false; }
+          return;
+        }
+        const done = await fetchCadMeta(currentModuleName, runTimestamp);
+        if (done) {
+          clearInterval(poll);
+          if (btn) { btn.textContent='💾 Save & Upload to GitHub'; btn.disabled=false; }
+          if (banner) { banner.style.display='flex'; banner.textContent=`✓ CAD processed for ${currentModuleName}`; setTimeout(()=>banner.style.display='none',4000); }
+        }
+      }, 8000);
+    }
+
+    async function triggerConvertWorkflow(moduleName, usdPath) {
+      const token = sessionStorage.getItem('gh_pat');
+      if (!token) return false;
+      const res = await fetch(
+        `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/actions/workflows/convert_cad.yml/dispatches`,
+        {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github+json', 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ref: GH_REF, inputs: { module_name: moduleName, usd_path: usdPath } }),
+        }
+      );
+      return res.status === 204;
+    }
+
+    async function fetchCadMeta(moduleName, runTimestamp) {
+      const token = sessionStorage.getItem('gh_pat');
+      const url = `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/outputs/cad_previews/${moduleName}_meta.json`;
+      try {
+        const res = await fetch(url, {
+          headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github+json' }
+        });
+        if (!res.ok) return false;
+        const meta = await res.json();
+        const data = JSON.parse(atob(meta.content.replace(/\n/g,'')));
+        if (data.written_at < runTimestamp) return false; // stale
+        applyCadMeta(data);
+        return true;
+      } catch(e) { return false; }
+    }
+
+    function applyCadMeta(data) {
+      const status = document.getElementById('cadUploadStatus');
+
+      // Show model-viewer with the USDZ file from GitHub raw URL
+      const previewUrl = `https://raw.githubusercontent.com/${GH_OWNER}/${GH_REPO}/${GH_REF}/${data.preview_path}`;
+      showModelViewer(previewUrl);
+
+      // Size info
+      if (status) status.textContent =
+        `✓ ${data.mesh_count} meshes · Size: ${data.size_m[0]}×${data.size_m[1]}×${data.size_m[2]} m · upAxis: ${data.up_axis}`;
+
+      // USD material properties
+      if (data.materials?.length > 0) {
+        const usdMat = data.materials[0];
+        showUsdMaterialProps(usdMat);
+      }
+
+      // Compute mass if library material selected
+      const selMat = materialLibrary.find(m => m.materialId === document.getElementById('materialSelect')?.value);
+      if (selMat && data.size_m) {
+        const vol = data.size_m[0] * data.size_m[1] * data.size_m[2];
+        const el = document.getElementById('cadMass');
+        if (el) el.value = (selMat.density_kg_m3 * vol).toFixed(0);
       }
     }
 
-    function initThreeViewer() {
-      const canvas = document.getElementById('threeCanvas');
-      if (!canvas || threeRenderer) return;
-
-      threeScene = new THREE.Scene();
-      threeScene.background = new THREE.Color(0x0c1119);
-      threeCamera = new THREE.PerspectiveCamera(45, canvas.clientWidth / canvas.clientHeight || 1, 0.01, 10000);
-
-      threeRenderer = new THREE.WebGLRenderer({ canvas, antialias: true });
-      threeRenderer.setPixelRatio(window.devicePixelRatio);
-      threeRenderer.setSize(canvas.clientWidth, canvas.clientHeight, false);
-
-      threeScene.add(new THREE.AmbientLight(0xffffff, 0.6));
-      const d = new THREE.DirectionalLight(0xffffff, 1.2); d.position.set(10,20,10); threeScene.add(d);
-      const d2 = new THREE.DirectionalLight(0x88ccff, 0.4); d2.position.set(-10,-5,-10); threeScene.add(d2);
-      threeScene.add(new THREE.GridHelper(100, 20, 0x223344, 0x1a2a38));
-
-      setupOrbit(canvas);
-      (function loop() { requestAnimationFrame(loop); threeRenderer.render(threeScene, threeCamera); })();
+    function showModelViewer(src) {
+      const wrap = document.getElementById('viewer3dWrap');
+      if (!wrap) return;
+      wrap.style.display = 'block';
+      wrap.innerHTML = `
+        <model-viewer
+          src="${src}"
+          alt="3D preview"
+          auto-rotate
+          camera-controls
+          shadow-intensity="1"
+          style="width:100%;height:340px;border-radius:12px;border:1px solid var(--border2);background:#0c1119;"
+        ></model-viewer>
+      `;
     }
 
-    function setupOrbit(canvas) {
-      let drag = false, lx = 0, ly = 0, theta = 0.6, phi = 0.9, r = 30;
-      const upd = () => {
-        threeCamera.position.set(r*Math.sin(phi)*Math.sin(theta), r*Math.cos(phi), r*Math.sin(phi)*Math.cos(theta));
-        threeCamera.lookAt(0, 0, 0);
-      };
-      upd();
-      canvas.addEventListener('mousedown', e => { drag=true; lx=e.clientX; ly=e.clientY; });
-      window.addEventListener('mouseup', () => drag=false);
-      window.addEventListener('mousemove', e => {
-        if(!drag) return;
-        theta -= (e.clientX-lx)*0.01; phi = Math.max(0.1,Math.min(Math.PI-0.1,phi-(e.clientY-ly)*0.01));
-        lx=e.clientX; ly=e.clientY; upd();
-      });
-      canvas.addEventListener('wheel', e => { r=Math.max(1,Math.min(500,r+e.deltaY*0.05)); upd(); });
-    }
+    function showUsdMaterialProps(usdMat) {
+      const props = usdMat.properties || {};
+      const wrap = document.getElementById('materialPropsWrap');
+      if (!wrap) return;
+      wrap.style.display = 'block';
 
-    function showBoxFromSize(size) {
-      if (threeObject) { threeScene.remove(threeObject); threeObject = null; }
-      const [l,w,h] = size;
-      currentVolume_m3 = l * w * h;
-      const geo = new THREE.BoxGeometry(l, h, w);
-      const mat = new THREE.MeshLambertMaterial({ color: 0x8899aa });
-      const edges = new THREE.LineSegments(new THREE.EdgesGeometry(geo), new THREE.LineBasicMaterial({ color: 0x4cc9f0, transparent: true, opacity: 0.7 }));
-      threeObject = new THREE.Group();
-      threeObject.add(new THREE.Mesh(geo, mat));
-      threeObject.add(edges);
-      threeScene.add(threeObject);
-    }
-
-    function showFallbackBox() {
-      const l = parseFloat(document.getElementById('omlLength')?.value) || 5;
-      const w = parseFloat(document.getElementById('omlWidth')?.value)  || 5;
-      const h = parseFloat(document.getElementById('omlHeight')?.value) || 5;
-      showBoxFromSize([l, w, h]);
-    }
-
-    function checkUsdMaterial(materialId) {
+      // Show USD material section
       const fromUsdWrap = document.getElementById('materialFromUsdWrap');
       const fromUsdEl   = document.getElementById('materialFromUsd');
-      const libWrap     = document.getElementById('materialLibraryWrap');
-      if (materialId) {
-        const found = materialLibrary.find(m => m.materialId === materialId);
-        if (fromUsdWrap) fromUsdWrap.style.display = 'block';
-        if (fromUsdEl)   fromUsdEl.value = materialId;
-        if (libWrap)     libWrap.style.display = 'none';
-        if (found) { fillMaterialProps(found); computeMass(found.density_kg_m3, currentVolume_m3); }
-      } else {
-        if (fromUsdWrap) fromUsdWrap.style.display = 'none';
-        if (libWrap)     libWrap.style.display = 'block';
+      if (fromUsdWrap) fromUsdWrap.style.display = 'block';
+      if (fromUsdEl)   fromUsdEl.value = usdMat.path || 'USD Material';
+
+      // Populate known fields
+      const s = (id,v) => { const el=document.getElementById(id); if(el&&v!==undefined) el.value=v; };
+
+      // diffuseColor → display as RGB string
+      if (props.diffuseColor) {
+        const c = props.diffuseColor;
+        s('matDensity', '—'); // density not in USD PBR
+        // Add USD PBR fields below existing props
+        let usdBlock = document.getElementById('usdPbrBlock');
+        if (!usdBlock) {
+          usdBlock = document.createElement('div');
+          usdBlock.id = 'usdPbrBlock';
+          usdBlock.style.cssText = 'grid-column:span 12; display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:8px;';
+          wrap.appendChild(usdBlock);
+        }
+        usdBlock.innerHTML = `
+          <div class="field"><label>Diffuse Color (RGB)</label><input value="rgb(${Math.round(c[0]*255)}, ${Math.round(c[1]*255)}, ${Math.round(c[2]*255)})" readonly style="opacity:0.8;"></div>
+          ${props.specularColor ? `<div class="field"><label>Specular Color (RGB)</label><input value="rgb(${Math.round(props.specularColor[0]*255)}, ${Math.round(props.specularColor[1]*255)}, ${Math.round(props.specularColor[2]*255)})" readonly style="opacity:0.8;"></div>` : ''}
+          ${props.glossiness !== undefined ? `<div class="field"><label>Glossiness</label><input value="${props.glossiness}" readonly style="opacity:0.8;"></div>` : ''}
+          ${props.occlusion !== undefined ? `<div class="field"><label>Occlusion</label><input value="${props.occlusion}" readonly style="opacity:0.8;"></div>` : ''}
+        `;
       }
     }
 
-    function parseUsdText(text) {
-      const result = { size: [5,5,5], materialId: null };
-      const ext = text.match(/extent\s*=\s*\[\s*\(([^)]+)\)\s*,\s*\(([^)]+)\)/);
-      if (ext) {
-        const mn = ext[1].split(',').map(Number), mx = ext[2].split(',').map(Number);
-        result.size = [Math.abs(mx[0]-mn[0])||5, Math.abs(mx[1]-mn[1])||5, Math.abs(mx[2]-mn[2])||5];
-      }
-      const mm = text.match(/material:binding\s*=\s*<([^>]+)>/) || text.match(/materialRef\s*=\s*"([^"]+)"/);
-      if (mm) {
-        const raw = mm[1].split('/').pop();
-        result.materialId = materialLibrary.find(m => m.materialId === raw)?.materialId || null;
-      }
-      return result;
-    }
-
+    // ── GitHub upload helper ──────────────────────────────────────────────
     async function uploadCadToGitHub(file, moduleName) {
       const token = sessionStorage.getItem('gh_pat');
       if (!token) { alert('GitHub token not found. Run Graph first.'); return false; }
@@ -4183,7 +4221,7 @@ iframe{
           let sha = null;
           try {
             const chk = await fetch(`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${path}`,
-              { headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github+json' } });
+              { headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github+json' }});
             if (chk.ok) sha = (await chk.json()).sha;
           } catch {}
           const body = { message: `feat: upload CAD for ${moduleName} [skip ci]`, content: b64 };
@@ -4197,28 +4235,6 @@ iframe{
         };
         reader.readAsArrayBuffer(file);
       });
-    }
-
-    async function saveSelectedNode() {
-      const banner = document.getElementById('saveBanner');
-      const btn = document.querySelector('[onclick="saveSelectedNode()"]');
-      if (btn) { btn.textContent = '⏳ Saving…'; btn.disabled = true; }
-      const moduleName = document.getElementById('cadTitle')?.value || 'Unknown';
-      let uploaded = false;
-      if (currentCadFile) {
-        const status = document.getElementById('cadUploadStatus');
-        if (status) status.textContent = `Uploading ${currentCadFile.name}…`;
-        uploaded = await uploadCadToGitHub(currentCadFile, moduleName);
-        if (status) status.textContent = uploaded
-          ? `✓ ${currentCadFile.name} uploaded to clean_database/cad_models/${moduleName}/`
-          : `⚠ Upload failed — check console.`;
-      }
-      if (banner) {
-        banner.style.display = 'flex';
-        banner.textContent = uploaded ? `✓ Metadata saved · CAD uploaded for ${moduleName}` : `✓ Metadata saved (no CAD file)`;
-        setTimeout(() => { banner.style.display = 'none'; }, 4000);
-      }
-      if (btn) { btn.textContent = '💾 Save & Upload to GitHub'; btn.disabled = false; }
     }
 
     window.addEventListener('load', () => { loadMaterialLibrary(); });
