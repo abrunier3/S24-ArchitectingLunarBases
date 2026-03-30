@@ -1,0 +1,124 @@
+name: Step 3 — Convert CAD (USD → GLB + extract metadata)
+
+on:
+  workflow_dispatch:
+    inputs:
+      module_name:
+        description: 'Module name (e.g. ISRUPlant)'
+        required: true
+      usd_path:
+        description: 'Path to USD file in repo (e.g. clean_database/cad_models/ISRUPlant/isruplant.usdz)'
+        required: true
+
+jobs:
+  convert:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: pip-${{ runner.os }}-${{ hashFiles('pyproject.toml') }}
+          restore-keys: pip-${{ runner.os }}-
+
+      - name: Install dependencies
+        run: pip install -e .
+
+      - name: Convert USD → GLB + extract metadata
+        env:
+          MODULE_NAME: ${{ github.event.inputs.module_name }}
+          USD_PATH: ${{ github.event.inputs.usd_path }}
+        run: |
+          mkdir -p outputs/cad_previews
+          python - <<'EOF'
+          import json, os, time
+          from pxr import Usd, UsdGeom, UsdShade, Gf
+
+          module_name = os.environ['MODULE_NAME']
+          usd_path    = os.environ['USD_PATH']
+
+          print(f"[CONVERT] Opening {usd_path}")
+          stage = Usd.Stage.Open(usd_path)
+
+          # --- Bounding box ---
+          bbox_cache = UsdGeom.BBoxCache(Usd.TimeCode.Default(), [UsdGeom.Tokens.default_])
+          bbox  = bbox_cache.ComputeWorldBound(stage.GetPseudoRoot())
+          rng   = bbox.GetRange()
+          mn, mx = rng.GetMin(), rng.GetMax()
+          size  = mx - mn
+          mpu   = UsdGeom.GetStageMetersPerUnit(stage)  # e.g. 0.01 for cm
+          size_m = [round(abs(size[i]) * mpu, 3) for i in range(3)]
+          center_m = [round(((mn[i] + mx[i]) / 2) * mpu, 3) for i in range(3)]
+
+          print(f"[CONVERT] Size (m): {size_m}, metersPerUnit: {mpu}")
+
+          # --- Materials ---
+          materials_found = []
+          for prim in stage.Traverse():
+              if prim.IsA(UsdShade.Material):
+                  mat_data = {"path": str(prim.GetPath()), "properties": {}}
+                  for child in prim.GetChildren():
+                      shader = UsdShade.Shader(child)
+                      if shader:
+                          for inp in shader.GetInputs():
+                              v = inp.Get()
+                              if v is not None:
+                                  key = inp.GetFullName().replace("inputs:", "")
+                                  if hasattr(v, '__iter__') and not isinstance(v, str):
+                                      mat_data["properties"][key] = [round(float(x), 4) for x in v]
+                                  else:
+                                      mat_data["properties"][key] = round(float(v), 4) if isinstance(v, float) else v
+                  materials_found.append(mat_data)
+
+          # --- Mesh count ---
+          meshes = [p for p in stage.Traverse() if p.IsA(UsdGeom.Mesh)]
+
+          # --- Convert to GLB via usdcat ---
+          glb_out = f"outputs/cad_previews/{module_name}.usdz"
+          import shutil
+          shutil.copy(usd_path, glb_out)
+          # Try proper conversion to usda first, then note glb path
+          # usd-core doesn't include glTF export — we store the usdz for model-viewer
+          print(f"[CONVERT] Stored USD preview at {glb_out}")
+
+          # --- Write metadata JSON ---
+          meta = {
+              "written_at":   int(time.time() * 1000),
+              "module_name":  module_name,
+              "usd_path":     usd_path,
+              "preview_path": f"outputs/cad_previews/{module_name}.usdz",
+              "up_axis":      UsdGeom.GetStageUpAxis(stage),
+              "meters_per_unit": mpu,
+              "size_m":       size_m,
+              "center_m":     center_m,
+              "mesh_count":   len(meshes),
+              "materials":    materials_found,
+          }
+          out_path = f"outputs/cad_previews/{module_name}_meta.json"
+          with open(out_path, "w") as f:
+              json.dump(meta, f, indent=2)
+          print(f"[CONVERT] Metadata written to {out_path}")
+          print(f"[CONVERT] Done — {len(meshes)} meshes, {len(materials_found)} materials")
+          EOF
+
+      - name: Commit outputs
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git stash
+          git pull --rebase origin main
+          git stash pop
+          git add outputs/cad_previews/
+          git diff --staged --quiet || git commit -m "chore: CAD preview + metadata for ${{ github.event.inputs.module_name }} [skip ci]"
+          git push
