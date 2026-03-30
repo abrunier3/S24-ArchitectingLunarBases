@@ -66,6 +66,27 @@ jobs:
           print(f"[CONVERT] Size (m): {size_m}, metersPerUnit: {mpu}")
 
           # --- Materials ---
+          def to_json_val(v):
+              """Convert any USD type to a JSON-serializable Python type."""
+              if v is None:
+                  return None
+              if isinstance(v, (bool, int, str)):
+                  return v
+              if isinstance(v, float):
+                  return round(v, 4)
+              # Vec2f, Vec3f, Vec4f, GfVec* — iterable with floats
+              try:
+                  items = list(v)
+                  if all(isinstance(x, (int, float)) for x in items):
+                      return [round(float(x), 4) for x in items]
+              except TypeError:
+                  pass
+              # Fallback: cast to float or string
+              try:
+                  return round(float(v), 4)
+              except (TypeError, ValueError):
+                  return str(v)
+
           materials_found = []
           for prim in stage.Traverse():
               if prim.IsA(UsdShade.Material):
@@ -77,10 +98,7 @@ jobs:
                               v = inp.Get()
                               if v is not None:
                                   key = inp.GetFullName().replace("inputs:", "")
-                                  if hasattr(v, '__iter__') and not isinstance(v, str):
-                                      mat_data["properties"][key] = [round(float(x), 4) for x in v]
-                                  else:
-                                      mat_data["properties"][key] = round(float(v), 4) if isinstance(v, float) else v
+                                  mat_data["properties"][key] = to_json_val(v)
                   materials_found.append(mat_data)
 
           # --- Mesh count ---
