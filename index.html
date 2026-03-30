@@ -3664,6 +3664,7 @@ iframe{
       btn.textContent = '⏳ Triggering…';
       btn.disabled = true;
       setGraphStatus('Dispatching to GitHub Actions workflow…', 'var(--text2)');
+      console.log('[DEBUG] Sending active_nodes to workflow:', activeSysmlNames);
 
       try {
         const res = await fetch(
@@ -3684,18 +3685,19 @@ iframe{
 
         if (res.status === 204) {
           btn.textContent = '⏳ Running…';
-          setGraphStatus(`Workflow triggered for: ${activeSysmlNames.join(', ')}. Results in ~30s…`, '#7ee0b1');
+          const runTimestamp = Date.now();
+          setGraphStatus(`Workflow triggered for: ${activeSysmlNames.join(', ')}. Polling for results…`, '#7ee0b1');
           let attempts = 0;
           const poll = setInterval(async () => {
             attempts++;
-            if (attempts > 15) {
+            if (attempts > 20) {
               clearInterval(poll);
               btn.textContent = '▶ Run Graph';
               btn.disabled = false;
               setGraphStatus('Timeout — check the Actions tab on GitHub.', '#ffd36e');
               return;
             }
-            const done = await fetchGraphResult();
+            const done = await fetchGraphResult(runTimestamp);
             if (done) clearInterval(poll);
           }, 8000);
         } else {
@@ -3714,12 +3716,20 @@ iframe{
       }
     }
 
-    async function fetchGraphResult() {
+    async function fetchGraphResult(runTimestamp) {
+      // Cache-bust with timestamp to avoid GitHub CDN cache
       const url = `https://raw.githubusercontent.com/${GH_OWNER}/${GH_REPO}/${GH_REF}/outputs/graph.json?t=${Date.now()}`;
       try {
-        const res = await fetch(url);
+        const res = await fetch(url, { cache: 'no-store' });
         if (!res.ok) return false;
         const data = await res.json();
+        // Only accept if the file was written AFTER this run was triggered
+        if (runTimestamp && data.written_at) {
+          if (data.written_at < runTimestamp) {
+            console.log('[POLL] graph.json is stale (written_at:', data.written_at, '< runTimestamp:', runTimestamp, ')');
+            return false;
+          }
+        }
         applyGraphResult(data);
         return true;
       } catch (e) {
