@@ -1847,102 +1847,200 @@
       </div>
     </section>
 
-    <section class="section" id="assembly">
-      <div class="section-head">
+<section class="section" id="assembly">
+  <div class="section-head">
+    <div>
+      <div class="section-title">3. Model Submission</div>
+    </div>
+  </div>
+
+  <div class="assembly-wrap">
+    <div class="assembly-side">
+      <div class="assembly-toolbar">
         <div>
-          <div class="section-title">3. Model Submission</div>
+          <div class="panel-title" style="margin-bottom:4px;">Assembly Tree</div>
+          <div class="mini-note">Select activated nodes.</div>
         </div>
+        <div class="cluster"></div>
       </div>
 
-      <div class="assembly-wrap">
-        <div class="assembly-side">
-          <div class="assembly-toolbar">
-            <div>
-              <div class="panel-title" style="margin-bottom:4px;">Assembly Tree</div>
-              <div class="mini-note">Select activated nodes.</div>
-            </div>
-            <div class="cluster">
-            </div>
-          </div>
-          <div class="assembly-scroll">
-            <div class="tree-box" id="assemblyTree"></div>
-          </div>
+      <div class="assembly-scroll">
+        <div class="tree-box" id="assemblyTree"></div>
+      </div>
+    </div>
+
+    <div class="assembly-main">
+      <div class="assembly-toolbar">
+        <div>
+          <div class="panel-title" style="margin-bottom:4px;">Part / Assembly Metadata</div>
+          <div class="mini-note" id="selectedPath">Selected path: /</div>
         </div>
+        <div class="cluster"></div>
+      </div>
 
-        <div class="assembly-main">
-          <div class="assembly-toolbar">
-            <div>
-              <div class="panel-title" style="margin-bottom:4px;">Part / Assembly Metadata</div>
-              <div class="mini-note" id="selectedPath">Selected path: /</div>
-            </div>
-            <div class="cluster">
+      <div class="assembly-scroll consequence-scroll">
+        <div class="form-grid">
 
-            </div>
+          <div class="form-section-title">Actions</div>
+
+          <div class="field span-12">
+            <label>Upload CAD File</label>
+            <input
+              id="cadFileInput"
+              type="file"
+              accept=".stp,.step,.usda,.usd,.usdc,.obj,.fbx,.iges,.igs"
+              onchange="handleCadUpload(event)"
+            >
+            <div class="mini-note" id="cadUploadStatus">No CAD file uploaded yet.</div>
           </div>
-          <div class="assembly-scroll consequence-scroll">
-            <div class="form-grid">
-              <div class="form-section-title">Identity</div>
-              <div class="field span-6">
-                <label>STEP Filename</label>
-                <input id="stepFileName" value="Lander.step">
-              </div>
-              <div class="field span-6">
-                <label>Part Name</label>
-                <input id="partName" value="Lander">
-              </div>
-              <div class="field span-6">
-                <label>Material</label>
-                <select id="materialRef">
-                  <option>Aluminum_2219_T87</option>
-                  <option>Titanium_Ti6Al4V</option>
-                  <option>Composite_Shell</option>
-                  <option>Regolith_Shielded</option>
-                </select>
-              </div>
-              <div class="field span-6">
-                <label>Category</label>
-                <select id="partCategory">
-                  <option>Assembly</option>
-                  <option>Vehicle</option>
-                  <option>Processing Plant</option>
-                  <option>Infrastructure</option>
-                  <option>Power</option>
-                  <option>Habitat</option>
-                </select>
-              </div>
 
-              <div class="form-section-title">Dimensions</div>
-              <div class="field span-4"><label>Length (m)</label><input id="dimLength" type="number" value="16"></div>
-              <div class="field span-4"><label>Width (m)</label><input id="dimWidth" type="number" value="9"></div>
-              <div class="field span-4"><label>Height (m)</label><input id="dimHeight" type="number" value="6"></div>
+          <div class="form-section-title">Review Imported Metadata</div>
 
-              <div class="form-section-title">Transform — Position</div>
-              <div class="field span-4"><label>X (m)</label><input id="posX" type="number" value="0"></div>
-              <div class="field span-4"><label>Y (m)</label><input id="posY" type="number" value="0"></div>
-              <div class="field span-4"><label>Z (m)</label><input id="posZ" type="number" value="0"></div>
+          <div class="field span-4">
+            <label>OML Length</label>
+            <input id="omlLength" type="number" step="any" readonly>
+          </div>
+          <div class="field span-4">
+            <label>OML Width</label>
+            <input id="omlWidth" type="number" step="any" readonly>
+          </div>
+          <div class="field span-4">
+            <label>OML Height</label>
+            <input id="omlHeight" type="number" step="any" readonly>
+          </div>
 
-              <div class="form-section-title">Transform — Orientation</div>
-              <div class="field span-4"><label>rX (deg)</label><input id="rotX" type="number" value="0"></div>
-              <div class="field span-4"><label>rY (deg)</label><input id="rotY" type="number" value="0"></div>
-              <div class="field span-4"><label>rZ (deg)</label><input id="rotZ" type="number" value="0"></div>
+          <div class="field span-4">
+            <label>Material</label>
+            <input id="material" type="text" readonly>
+          </div>
+          <div class="field span-4">
+            <label>Date / Time Uploaded</label>
+            <input id="uploadTimestamp" type="text" readonly>
+          </div>
+          <div class="field span-4">
+            <label>Pipeline Unique ID</label>
+            <input id="pipelineUid" type="text" readonly>
+          </div>
 
-              <div class="form-section-title">Units</div>
-              <div class="field span-3"><label>metersPerUnit</label><input id="metersPerUnit" type="number" value="1"></div>
-              <div class="field span-3"><label>upAxis</label><select id="upAxis"><option>Z</option><option>Y</option><option>X</option></select></div>
-              <div class="field span-3"><label>angleUnit</label><select id="angleUnit"><option>deg</option><option>rad</option></select></div>
-              <div class="field span-3"><label>massUnit</label><select id="massUnit"><option>kg</option><option>g</option><option>lb</option></select></div>
-              <div class="field span-6"><label>pressureUnit</label><select id="pressureUnit"><option>kPa</option><option>Pa</option><option>bar</option></select></div>
-              <div class="field span-6"><label>lengthUnit</label><select id="lengthUnit"><option>m</option><option>cm</option><option>mm</option></select></div>
+          <div class="field span-4">
+            <label>Revision</label>
+            <input id="cadRevision" type="text" placeholder="Enter or confirm revision">
+          </div>
+          <div class="field span-4">
+            <label>CAD Title</label>
+            <input id="cadTitle" type="text" placeholder="Enter or confirm CAD title">
+          </div>
+          <div class="field span-4">
+            <label>Source File Type</label>
+            <input id="sourceFileType" type="text" readonly>
+          </div>
+
+          <div class="field span-4">
+            <label>Mass</label>
+            <input id="cadMass" type="number" step="any" placeholder="Enter or confirm mass">
+          </div>
+          <div class="field span-4">
+            <label>Unit Cost per Quantity</label>
+            <input id="unitCost" type="number" step="0.01" placeholder="Enter unit cost">
+          </div>
+          <div class="field span-4">
+            <label>Original File Name</label>
+            <input id="sourceFileName" type="text" readonly>
+          </div>
+
+          <div class="form-section-title">Transform — Position</div>
+          <div class="field span-4">
+            <label>X (m)</label>
+            <input id="posX" type="number" value="0">
+          </div>
+          <div class="field span-4">
+            <label>Y (m)</label>
+            <input id="posY" type="number" value="0">
+          </div>
+          <div class="field span-4">
+            <label>Z (m)</label>
+            <input id="posZ" type="number" value="0">
+          </div>
+
+          <div class="form-section-title">Transform — Orientation</div>
+          <div class="field span-4">
+            <label>rX (deg)</label>
+            <input id="rotX" type="number" value="0">
+          </div>
+          <div class="field span-4">
+            <label>rY (deg)</label>
+            <input id="rotY" type="number" value="0">
+          </div>
+          <div class="field span-4">
+            <label>rZ (deg)</label>
+            <input id="rotZ" type="number" value="0">
+          </div>
+
+          <div class="form-section-title">Units</div>
+          <div class="field span-3">
+            <label>metersPerUnit</label>
+            <input id="metersPerUnit" type="number" value="1">
+          </div>
+          <div class="field span-3">
+            <label>upAxis</label>
+            <select id="upAxis">
+              <option>Z</option>
+              <option>Y</option>
+              <option>X</option>
+            </select>
+          </div>
+          <div class="field span-3">
+            <label>angleUnit</label>
+            <select id="angleUnit">
+              <option>deg</option>
+              <option>rad</option>
+            </select>
+          </div>
+          <div class="field span-3">
+            <label>massUnit</label>
+            <select id="massUnit">
+              <option>kg</option>
+              <option>g</option>
+              <option>lb</option>
+            </select>
+          </div>
+          <div class="field span-6">
+            <label>pressureUnit</label>
+            <select id="pressureUnit">
+              <option>kPa</option>
+              <option>Pa</option>
+              <option>bar</option>
+            </select>
+          </div>
+          <div class="field span-6">
+            <label>lengthUnit</label>
+            <select id="lengthUnit">
+              <option>m</option>
+              <option>cm</option>
+              <option>mm</option>
+            </select>
+          </div>
+
+          <div class="form-section-title">Actions</div>
+
+          <div class="field span-4">
+            <button class="btn btn-primary" onclick="saveSelectedNode()">Save</button>
+          </div>
+
+          <div class="success-banner" id="saveBanner" style="display:none;">
+            ✓ Assembly metadata saved and ready to feed downstream logic.
+          </div>
+
+          <div class="custom-attrs" id="customAttrs" style="display:none;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  </div>
+  </div>
+</section>
 
 
-
-              <div class="form-section-title">Actions</div>
-              <div class="field span-4"><button class="btn btn-primary" onclick="saveSelectedNode()">Upload</button></div>
-
-              <div class="field span-4"><button class="btn btn-primary" onclick="saveSelectedNode()">Save </button></div>
-
-              <div class="success-banner" id="saveBanner">✓ Assembly metadata saved and ready to feed downstream logic.</div>
-              <div class="custom-attrs" id="customAttrs" style="display:none;"></div>
 
 <div class="field full" style="display:none;">
   <div class="chart-box" style="margin-top:0;">
@@ -2608,6 +2706,7 @@ iframe{
 
 
 <section class="section">
+
 
 <div class="section-title">4. Mission Tradepace Selection</div>
 
