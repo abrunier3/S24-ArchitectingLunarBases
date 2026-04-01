@@ -4014,8 +4014,7 @@ iframe{
     }
   </script>
 
-  <!-- model-viewer for 3D preview -->
-  <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+  <!-- Step 3 JS -->
   <script>
     // ─── Step 3 — CAD Upload + Convert + Preview ─────────────────────────
     let materialLibrary   = [];
@@ -4239,7 +4238,10 @@ iframe{
         updateModuleDot(moduleName,'uploading');
         if(pubStatus) pubStatus.textContent=`Uploading ${moduleName}… (${done+1}/${modules.length})`;
 
-        // 1. Upload CAD file
+        // 1. Delete old USD files for this module
+        await deleteOldCadFiles(moduleName, file.name);
+
+        // 2. Upload new CAD file
         const uploaded=await uploadCadToGitHub(file,moduleName);
 
         // 2. Write updated asset JSON
@@ -4420,9 +4422,9 @@ iframe{
 
     function applyCadMeta(data) {
       const status = document.getElementById('cadUploadStatus');
-      if (data.glb_path) {
-        const glbUrl = `https://raw.githubusercontent.com/${GH_OWNER}/${GH_REPO}/${GH_REF}/${data.glb_path}`;
-        showModelViewer(glbUrl, data.up_axis);
+      if (data.png_path) {
+        const pngUrl = `https://raw.githubusercontent.com/${GH_OWNER}/${GH_REPO}/${GH_REF}/${data.png_path}`;
+        showThumbnail(pngUrl, data.module_name, data.mesh_count, data.size_m);
       }
       if (status) status.textContent =
         `✓ ${data.mesh_count} meshes · ${data.size_m[0]}×${data.size_m[1]}×${data.size_m[2]} m · upAxis: ${data.up_axis}`;
@@ -4437,22 +4439,23 @@ iframe{
       }
     }
 
-    function showModelViewer(src, upAxis) {
+    function showThumbnail(src, moduleName, meshCount, sizeM) {
       const wrap = document.getElementById('viewer3dWrap');
       if (!wrap) return;
       wrap.style.display = 'block';
       wrap.innerHTML = `
-        <model-viewer
-          src="${src}"
-          alt="3D preview"
-          camera-controls
-          touch-action="none"
-          shadow-intensity="0.5"
-          exposure="1.2"
-          min-camera-orbit="auto -180deg auto"
-          max-camera-orbit="auto 180deg auto"
-          style="width:100%;height:380px;border-radius:12px;border:1px solid var(--border2);background:#0c1119;"
-        ></model-viewer>`;
+        <div style="position:relative;border-radius:12px;overflow:hidden;border:1px solid var(--border2);background:#0c1119;">
+          <img src="${src}?t=${Date.now()}" alt="3D preview of ${moduleName}"
+            style="width:100%;height:340px;object-fit:contain;display:block;background:#0c1119;"
+            onerror="this.style.display='none';document.getElementById('thumbFallback').style.display='flex';">
+          <div id="thumbFallback" style="display:none;height:340px;align-items:center;justify-content:center;color:var(--text3);font-size:13px;">
+            Preview not yet available
+          </div>
+          <div style="position:absolute;bottom:10px;left:12px;font-size:10px;color:rgba(255,255,255,0.5);
+            text-transform:uppercase;letter-spacing:1px;background:rgba(0,0,0,0.4);padding:3px 8px;border-radius:4px;">
+            ${meshCount} meshes · ${sizeM[0]}×${sizeM[1]}×${sizeM[2]} m
+          </div>
+        </div>`;
     }
 
     function showUsdMaterialProps(usdMat) {
@@ -4485,6 +4488,33 @@ iframe{
         usdBlock.appendChild(div);
       });
       wrap.appendChild(usdBlock);
+    }
+
+    async function deleteOldCadFiles(moduleName, newFileName) {
+      // Delete all USD files in the module folder except the new one
+      const token = sessionStorage.getItem('gh_pat');
+      if (!token) return;
+      const folderPath = `clean_database/cad_models/${moduleName}`;
+      try {
+        const res = await fetch(
+          `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${folderPath}`,
+          { headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github+json' } }
+        );
+        if (!res.ok) return;
+        const files = await res.json();
+        const usdExts = ['.usd', '.usda', '.usdc', '.usdz'];
+        for (const file of files) {
+          const isUsd = usdExts.some(ext => file.name.toLowerCase().endsWith(ext));
+          if (isUsd && file.name !== newFileName) {
+            await fetch(`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${file.path}`, {
+              method: 'DELETE',
+              headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github+json', 'Content-Type': 'application/json' },
+              body: JSON.stringify({ message: `chore: replace old CAD for ${moduleName} [skip ci]`, sha: file.sha }),
+            });
+            console.log(`[CAD] Deleted old file: ${file.name}`);
+          }
+        }
+      } catch(e) { console.warn('[CAD] Could not clean old files:', e); }
     }
 
     async function uploadCadToGitHub(file, moduleName) {
