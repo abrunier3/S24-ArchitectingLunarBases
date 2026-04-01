@@ -61,10 +61,9 @@ jobs:
           path: ~/.cache/pip
           key: pip-${{ runner.os }}-${{ hashFiles('pyproject.toml') }}
           restore-keys: pip-${{ runner.os }}-
-          
+
       - name: Install dependencies
         run: |
-          pip install simpy
           pip install -e .
 
       - name: Run DES simulation
@@ -122,12 +121,16 @@ jobs:
               with open('lunar_spaceport_results.json') as f:
                   sim_results = json.load(f)
 
+              with open('lunar_spaceport_log.json') as f:
+                  sim_log = json.load(f)
+
               result = {
                   "written_at": int(time.time() * 1000),
                   "status": "success",
                   "warnings": warnings,
                   "inputs": slider_value_dict,
                   "results": sim_results,
+                  "log": sim_log,
               }
 
           with open('outputs/des_results.json', 'w') as f:
