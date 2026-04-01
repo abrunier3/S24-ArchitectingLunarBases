@@ -129,15 +129,17 @@ jobs:
 
           print(f"[CONVERT] Extracted {len(meshes_data)} meshes")
 
-          # Export GLB with Y-up correction + horizontal axis alignment
+          # Export GLB with Y-up correction + centered at origin
           glb_path = None
           if meshes_data:
               scene = trimesh.Scene(meshes_data)
               if up_axis == 'Y':
-                  # Y-up → Z-up
                   scene.apply_transform(tf.rotation_matrix(-np.pi/2, [1,0,0]))
-              # Additional 90° around Z to align horizontal rotation axis
-              scene.apply_transform(tf.rotation_matrix(np.pi/2, [0,0,1]))
+              # Center the scene at origin so model-viewer rotates around correct axis
+              bounds = scene.bounds
+              if bounds is not None:
+                  center = (bounds[0] + bounds[1]) / 2
+                  scene.apply_translation(-center)
               glb_path = f"outputs/cad_previews/{module_name}.glb"
               glb_bytes = scene.export(file_type='glb')
               with open(glb_path, 'wb') as f:
