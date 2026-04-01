@@ -1,0 +1,148 @@
+name: Step 4 — Run DES Simulation
+
+on:
+  workflow_dispatch:
+    inputs:
+      active_nodes:
+        description: 'JSON array of DES active nodes'
+        required: true
+        default: '["ISRUPlant","RegolithRover","SolarPowerSystem","LOXRover","LaunchLandingZone","HabitationModule","CommunicationModule"]'
+      Num_Regolith_Rovers:
+        description: 'Number of regolith rovers'
+        required: true
+        default: '1'
+      Num_ISRU_Plants:
+        description: 'Number of ISRU plants'
+        required: true
+        default: '1'
+      Regolith_Haul_Distance:
+        description: 'Regolith haul distance (km)'
+        required: true
+        default: '1'
+      LOX_Haul_Distance:
+        description: 'LOX haul distance (km)'
+        required: true
+        default: '1'
+      Rover_Energy_Consumption:
+        description: 'Rover energy consumption (kWh/km/kg)'
+        required: true
+        default: '0.00034'
+      Rover_Travel_Time:
+        description: 'Rover travel time (hr/km)'
+        required: true
+        default: '5'
+      ISRU_Plant_Processing_Rate:
+        description: 'ISRU plant processing rate (kg/hr)'
+        required: true
+        default: '1600'
+      LOX_Transport_Threshold:
+        description: 'LOX transport threshold (kg)'
+        required: true
+        default: '100'
+
+jobs:
+  run-des:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: pip-${{ runner.os }}-${{ hashFiles('pyproject.toml') }}
+          restore-keys: pip-${{ runner.os }}-
+
+      - name: Install dependencies
+        run: |
+          pip install -e .
+
+      - name: Run DES simulation
+        env:
+          ACTIVE_NODES:               ${{ github.event.inputs.active_nodes }}
+          NUM_REGOLITH_ROVERS:        ${{ github.event.inputs.Num_Regolith_Rovers }}
+          NUM_ISRU_PLANTS:            ${{ github.event.inputs.Num_ISRU_Plants }}
+          REGOLITH_HAUL_DISTANCE:     ${{ github.event.inputs.Regolith_Haul_Distance }}
+          LOX_HAUL_DISTANCE:          ${{ github.event.inputs.LOX_Haul_Distance }}
+          ROVER_ENERGY_CONSUMPTION:   ${{ github.event.inputs.Rover_Energy_Consumption }}
+          ROVER_TRAVEL_TIME:          ${{ github.event.inputs.Rover_Travel_Time }}
+          ISRU_PLANT_PROCESSING_RATE: ${{ github.event.inputs.ISRU_Plant_Processing_Rate }}
+          LOX_TRANSPORT_THRESHOLD:    ${{ github.event.inputs.LOX_Transport_Threshold }}
+        run: |
+          mkdir -p outputs
+          python - <<'EOF'
+          import json, os, time, sys
+          sys.path.insert(0, '.')
+
+          from S24.DES_pipeline_version.ISRU_DES_Model_V5_2_PV import run_scenario, check_scenario_validity
+
+          active_nodes = json.loads(os.environ['ACTIVE_NODES'])
+
+          slider_value_dict = {
+              "active_nodes":               active_nodes,
+              "Num_Regolith_Rovers":        int(os.environ['NUM_REGOLITH_ROVERS']),
+              "Num_ISRU_Plants":            int(os.environ['NUM_ISRU_PLANTS']),
+              "Regolith_Haul_Distance":     float(os.environ['REGOLITH_HAUL_DISTANCE']),
+              "LOX_Haul_Distance":          float(os.environ['LOX_HAUL_DISTANCE']),
+              "Rover_Energy_Consumption":   float(os.environ['ROVER_ENERGY_CONSUMPTION']),
+              "Rover_Travel_Time":          float(os.environ['ROVER_TRAVEL_TIME']),
+              "ISRU_Plant_Processing_Rate": float(os.environ['ISRU_PLANT_PROCESSING_RATE']),
+              "LOX_Transport_Threshold":    float(os.environ['LOX_TRANSPORT_THRESHOLD']),
+          }
+
+          # Validate before running
+          print("[DES] Checking scenario validity...")
+          messages = check_scenario_validity(active_nodes, raiseError=False)
+          errors   = [m for m in messages if m.startswith('[ERROR]')]
+          warnings = [m for m in messages if m.startswith('[WARNING]') or m.startswith('[INFO]')]
+
+          if errors:
+              print("[DES] Scenario has errors — aborting.")
+              result = {
+                  "written_at": int(time.time() * 1000),
+                  "status": "error",
+                  "errors": errors,
+                  "warnings": warnings,
+              }
+          else:
+              print("[DES] Running scenario...")
+              run_scenario(slider_value_dict)
+
+              # read the results written by run_scenario
+              with open('lunar_spaceport_results.json') as f:
+                  sim_results = json.load(f)
+
+              result = {
+                  "written_at": int(time.time() * 1000),
+                  "status": "success",
+                  "warnings": warnings,
+                  "inputs": slider_value_dict,
+                  "results": sim_results,
+              }
+
+          with open('outputs/des_results.json', 'w') as f:
+              json.dump(result, f, indent=2)
+
+          print(f"[DES] Done — outputs/des_results.json written")
+          EOF
+
+      - name: Commit results
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add outputs/des_results.json
+          STASHED=$(git stash 2>&1)
+          git pull --rebase origin main
+          echo "$STASHED" | grep -q "No local changes" || git stash pop
+          git add outputs/des_results.json
+          git diff --staged --quiet || git commit -m "chore: DES results [skip ci]"
+          git push
