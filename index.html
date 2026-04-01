@@ -4477,25 +4477,27 @@ iframe{
     }
 
     async function fetchFreshGlb(moduleName) {
-      // Fetch GLB via API (bypasses CDN cache), return a blob URL
       const token = sessionStorage.getItem('gh_pat');
       const path = `outputs/cad_previews/${moduleName}.glb`;
       try {
-        // Get download URL via API
+        // Step 1: get the download_url via API (always fresh, no CDN cache on API)
         const res = await fetch(
           `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${path}`,
           { headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github+json' } }
         );
         if (!res.ok) return null;
         const meta = await res.json();
-        // Decode base64 GLB
-        const b64 = meta.content.replace(/\n/g, '');
-        const binary = atob(b64);
-        const bytes = new Uint8Array(binary.length);
-        for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-        const blob = new Blob([bytes], { type: 'model/gltf-binary' });
+        const downloadUrl = meta.download_url;
+        if (!downloadUrl) return null;
+
+        // Step 2: fetch the actual binary via download_url (authenticated to bypass cache)
+        const binRes = await fetch(downloadUrl, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!binRes.ok) return null;
+        const blob = await binRes.blob();
         return URL.createObjectURL(blob);
-      } catch(e) { console.warn('[GLB]', e); return null; }
+      } catch(e) { console.warn('[GLB fetch]', e); return null; }
     }
 
     async function showModelViewer(moduleName, meshCount, sizeM) {
@@ -4540,7 +4542,8 @@ iframe{
             touch-action="none"
             shadow-intensity="0.5"
             exposure="1.2"
-            min-camera-orbit="auto -180deg auto"
+            camera-orbit="45deg 80deg auto"
+            min-camera-orbit="auto 0deg auto"
             max-camera-orbit="auto 180deg auto"
             style="width:100%;height:360px;background:#0c1119;display:block;"
           ></model-viewer>
