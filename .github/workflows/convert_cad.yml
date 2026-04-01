@@ -1,4 +1,4 @@
-name: Step 3 — Process CAD (USD → PNG thumbnail + metadata)
+name: Step 3 — Convert CAD (USD → GLB + extract metadata)
 
 on:
   workflow_dispatch:
@@ -34,10 +34,10 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install usd-core trimesh numpy matplotlib
+          pip install usd-core trimesh numpy
           pip install -e .
 
-      - name: Generate PNG thumbnail + extract metadata
+      - name: Convert USD to GLB and extract metadata
         env:
           MODULE_NAME: ${{ github.event.inputs.module_name }}
           USD_PATH: ${{ github.event.inputs.usd_path }}
@@ -48,10 +48,6 @@ jobs:
           import numpy as np
           import trimesh
           import trimesh.transformations as tf
-          import matplotlib
-          matplotlib.use('Agg')
-          import matplotlib.pyplot as plt
-          from mpl_toolkits.mplot3d.art3d import Poly3DCollection
           from pxr import Usd, UsdGeom, UsdShade
 
           module_name = os.environ['MODULE_NAME']
@@ -70,7 +66,7 @@ jobs:
                           actual_usd_path = os.path.join(root, f)
                           break
 
-          print(f"[PROCESS] Opening {actual_usd_path}")
+          print(f"[CONVERT] Opening {actual_usd_path}")
           stage = Usd.Stage.Open(actual_usd_path)
           mpu     = UsdGeom.GetStageMetersPerUnit(stage)
           up_axis = UsdGeom.GetStageUpAxis(stage)
@@ -83,7 +79,7 @@ jobs:
           size  = mx - mn
           size_m   = [round(abs(size[i]) * mpu, 3) for i in range(3)]
           center_m = [round(((mn[i] + mx[i]) / 2) * mpu, 3) for i in range(3)]
-          print(f"[PROCESS] Size (m): {size_m}")
+          print(f"[CONVERT] Size (m): {size_m}, up_axis: {up_axis}")
 
           # Materials
           def to_json_val(v):
@@ -131,64 +127,26 @@ jobs:
                   if faces:
                       meshes_data.append(trimesh.Trimesh(vertices=verts, faces=np.array(faces, dtype=np.int32)))
 
-          print(f"[PROCESS] Extracted {len(meshes_data)} meshes")
+          print(f"[CONVERT] Extracted {len(meshes_data)} meshes")
 
-          # Generate PNG thumbnail
-          png_path = None
+          # Export GLB with Y-up correction
+          glb_path = None
           if meshes_data:
-              combined = trimesh.util.concatenate(meshes_data)
-              # Y-up correction
+              scene = trimesh.Scene(meshes_data)
               if up_axis == 'Y':
-                  combined.apply_transform(tf.rotation_matrix(-np.pi/2, [1,0,0]))
-
-              BG = '#111827'
-              fig = plt.figure(figsize=(7, 7), facecolor=BG)
-              ax  = fig.add_subplot(111, projection='3d', facecolor=BG)
-
-              # Sample faces — enough for good quality
-              step = max(1, len(combined.faces) // 5000)
-              faces_sub = combined.faces[::step]
-              verts_arr = combined.vertices
-              polys = [[verts_arr[f[0]], verts_arr[f[1]], verts_arr[f[2]]] for f in faces_sub]
-
-              # Light-facing faces get lighter color (simple diffuse shading)
-              normals = combined.face_normals[::step]
-              light = np.array([0.6, 0.8, 1.0])
-              light /= np.linalg.norm(light)
-              shade = np.clip(np.dot(normals, light), 0.15, 1.0)
-              colors = np.stack([shade*0.72, shade*0.78, shade*0.88, np.ones_like(shade)*0.92], axis=1)
-
-              coll = Poly3DCollection(polys, linewidth=0, zsort='average')
-              coll.set_facecolor(colors)
-              coll.set_edgecolor('none')
-              ax.add_collection3d(coll)
-
-              b = combined.bounds
-              cx = (b[0][0]+b[1][0])/2
-              cy = (b[0][1]+b[1][1])/2
-              cz = (b[0][2]+b[1][2])/2
-              ext = max(b[1]-b[0]) * 0.55
-              ax.set_xlim(cx-ext, cx+ext)
-              ax.set_ylim(cy-ext, cy+ext)
-              ax.set_zlim(cz-ext, cz+ext)
-              ax.set_box_aspect([1,1,1])
-              ax.view_init(elev=28, azim=45)
-              ax.axis('off')
-              ax.set_facecolor(BG)
-              fig.patch.set_facecolor(BG)
-
-              plt.subplots_adjust(left=0, right=1, top=1, bottom=0)
-              png_path = f"outputs/cad_previews/{module_name}.png"
-              plt.savefig(png_path, dpi=120, bbox_inches='tight', facecolor=BG, pad_inches=0.05)
-              plt.close()
-              print(f"[PROCESS] PNG saved: {png_path}")
+                  scene.apply_transform(tf.rotation_matrix(-np.pi/2, [1,0,0]))
+              glb_path = f"outputs/cad_previews/{module_name}.glb"
+              glb_bytes = scene.export(file_type='glb')
+              with open(glb_path, 'wb') as f:
+                  f.write(glb_bytes)
+              print(f"[CONVERT] GLB written: {len(glb_bytes)//1024} KB")
 
           # Write metadata
           meta = {
               "written_at":      int(time.time() * 1000),
               "module_name":     module_name,
               "usd_path":        usd_path,
-              "png_path":        png_path,
+              "glb_path":        glb_path,
               "up_axis":         up_axis,
               "meters_per_unit": mpu,
               "size_m":          size_m,
@@ -199,7 +157,7 @@ jobs:
           out_path = f"outputs/cad_previews/{module_name}_meta.json"
           with open(out_path, "w") as f:
               json.dump(meta, f, indent=2)
-          print(f"[PROCESS] Done — metadata written to {out_path}")
+          print(f"[CONVERT] Done — {out_path}")
           EOF
 
       - name: Commit outputs
