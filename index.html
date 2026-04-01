@@ -4420,11 +4420,11 @@ iframe{
       } catch(e) { return false; }
     }
 
-    function applyCadMeta(data) {
+    async function applyCadMeta(data) {
       const status = document.getElementById('cadUploadStatus');
       if (data.png_path) {
         const pngUrl = `https://raw.githubusercontent.com/${GH_OWNER}/${GH_REPO}/${GH_REF}/${data.png_path}`;
-        showThumbnail(pngUrl, data.module_name, data.mesh_count, data.size_m);
+        await showThumbnail(pngUrl, data.module_name, data.mesh_count, data.size_m);
       }
       if (status) status.textContent =
         `✓ ${data.mesh_count} meshes · ${data.size_m[0]}×${data.size_m[1]}×${data.size_m[2]} m · upAxis: ${data.up_axis}`;
@@ -4460,7 +4460,27 @@ iframe{
       modal.style.display = 'flex';
     }
 
-    function showThumbnail(src, moduleName, meshCount, sizeM) {
+    async function fetchFreshPng(moduleName) {
+      // Fetch PNG via API (bypasses CDN cache) and return a blob URL
+      const token = sessionStorage.getItem('gh_pat');
+      const path = `outputs/cad_previews/${moduleName}.png`;
+      try {
+        const res = await fetch(
+          `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${path}`,
+          { headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github+json' } }
+        );
+        if (!res.ok) return null;
+        const meta = await res.json();
+        // content is base64 — decode to blob
+        const binary = atob(meta.content.replace(/\n/g, ''));
+        const bytes = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+        const blob = new Blob([bytes], { type: 'image/png' });
+        return URL.createObjectURL(blob);
+      } catch(e) { return null; }
+    }
+
+    async function showThumbnail(src, moduleName, meshCount, sizeM) {
       const wrap = document.getElementById('viewer3dWrap');
       if (!wrap) return;
       wrap.style.display = 'block';
@@ -4469,14 +4489,8 @@ iframe{
       container.style.cssText = 'position:relative;border-radius:12px;overflow:hidden;border:1px solid var(--border2);background:#0c1119;';
 
       const img = document.createElement('img');
-      img.src = src + '?t=' + Date.now();
       img.alt = '3D preview of ' + moduleName;
       img.style.cssText = 'width:100%;height:300px;object-fit:contain;display:block;background:#0c1119;cursor:zoom-in;';
-      img.addEventListener('click', () => openZoomModal(img.src));
-      img.addEventListener('error', () => {
-        img.style.display = 'none';
-        fallback.style.display = 'flex';
-      });
 
       const fallback = document.createElement('div');
       fallback.style.cssText = 'display:none;height:300px;align-items:center;justify-content:center;color:var(--text3);font-size:13px;';
@@ -4489,7 +4503,6 @@ iframe{
       const zoomBtn = document.createElement('button');
       zoomBtn.textContent = '⤢ Full screen';
       zoomBtn.style.cssText = 'position:absolute;top:10px;right:10px;background:rgba(0,0,0,0.6);border:1px solid rgba(255,255,255,0.25);color:rgba(255,255,255,0.8);border-radius:6px;padding:5px 10px;font-size:11px;cursor:pointer;';
-      zoomBtn.addEventListener('click', () => openZoomModal(img.src));
 
       container.appendChild(img);
       container.appendChild(fallback);
@@ -4497,6 +4510,20 @@ iframe{
       container.appendChild(zoomBtn);
       wrap.innerHTML = '';
       wrap.appendChild(container);
+
+      // Fetch fresh image via API to bypass CDN cache
+      const blobUrl = await fetchFreshPng(moduleName);
+      if (blobUrl) {
+        img.src = blobUrl;
+        img.addEventListener('click', () => openZoomModal(blobUrl));
+        zoomBtn.addEventListener('click', () => openZoomModal(blobUrl));
+      } else {
+        // Fallback to raw URL
+        img.src = src;
+        img.addEventListener('error', () => { img.style.display='none'; fallback.style.display='flex'; });
+        img.addEventListener('click', () => openZoomModal(src));
+        zoomBtn.addEventListener('click', () => openZoomModal(src));
+      }
     }
 
     function showUsdMaterialProps(usdMat) {
