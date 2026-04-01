@@ -4248,16 +4248,11 @@ iframe{
         await writeAssetJson(moduleName, file);
 
         if(uploaded){
-          // 3. Trigger conversion workflow
+          // 3. Trigger conversion workflow — returns run ID
           const usdPath=`clean_database/cad_models/${moduleName}/${file.name}`;
-          const triggered=await triggerConvertWorkflow(moduleName,usdPath);
+          const runId=await triggerConvertWorkflow(moduleName,usdPath);
           updateModuleDot(moduleName,'done');
-
-          if(triggered){
-            // 4. Poll for fresh _meta.json (ignores stale file via runTimestamp)
-            const runTimestamp=Date.now();
-            pollForMeta(moduleName, runTimestamp);
-          }
+          if(runId) pollForMeta(moduleName, runId);
         } else {
           updateModuleDot(moduleName,'error');
         }
@@ -4270,62 +4265,97 @@ iframe{
       if(banner){banner.style.display='flex';banner.textContent=`✓ ${done} CAD file(s) uploaded and JSON assets updated.`;setTimeout(()=>banner.style.display='none',5000);}
     }
 
-    function pollForMeta(moduleName, runTimestamp) {
+    async function triggerConvertWorkflow(moduleName, usdPath) {
+      const token = sessionStorage.getItem('gh_pat');
+      if (!token) return null;
+      const res = await fetch(
+        `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/actions/workflows/convert_cad.yml/dispatches`,
+        {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github+json', 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ref: GH_REF, inputs: { module_name: moduleName, usd_path: usdPath } }),
+        }
+      );
+      if (res.status !== 204) return null;
+      // Wait 4s then get the latest run ID
+      await new Promise(r => setTimeout(r, 4000));
+      try {
+        const runsRes = await fetch(
+          `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/actions/workflows/convert_cad.yml/runs?per_page=1`,
+          { headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github+json' } }
+        );
+        if (!runsRes.ok) return 'dispatched';
+        const runs = await runsRes.json();
+        const runId = runs.workflow_runs?.[0]?.id;
+        console.log(`[WORKFLOW] ${moduleName} run ID: ${runId}`);
+        return runId || 'dispatched';
+      } catch(e) { return 'dispatched'; }
+    }
+
+    function pollForMeta(moduleName, runId) {
       let attempts = 0;
-      let lastSha = null;  // Track SHA to detect actual file change
+      const token = sessionStorage.getItem('gh_pat');
       const poll = setInterval(async () => {
         attempts++;
-        if (attempts > 25) { clearInterval(poll); return; }
-        const token = sessionStorage.getItem('gh_pat');
+        if (attempts > 30) { clearInterval(poll); return; }
         try {
-          const res = await fetch(
-            `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/outputs/cad_previews/${moduleName}_meta.json`,
-            { headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github+json' } }
-          );
-          if (!res.ok) return; // file not yet written
-          const meta = await res.json();
-          const currentSha = meta.sha;
-          // On first poll, record the existing SHA
-          if (lastSha === null) { lastSha = currentSha; return; }
-          // If SHA changed → file was updated by the new workflow run
-          if (currentSha === lastSha) return;
-          clearInterval(poll);
-          const d = JSON.parse(atob(meta.content.replace(/\n/g, '')));
-          if (moduleName === currentModuleName) applyCadMeta(d);
-          updateModuleDot(moduleName, 'preview');
-          const pubStatus = document.getElementById('publishStatus');
-          if (pubStatus) pubStatus.textContent = `✓ ${moduleName} 3D preview ready.`;
+          if (runId && runId !== 'dispatched') {
+            const runRes = await fetch(
+              `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/actions/runs/${runId}`,
+              { headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github+json' } }
+            );
+            if (!runRes.ok) return;
+            const run = await runRes.json();
+            console.log(`[POLL] ${moduleName} run: ${run.status}/${run.conclusion}`);
+            if (run.status !== 'completed') return;
+            clearInterval(poll);
+            if (run.conclusion !== 'success') { updateModuleDot(moduleName, 'error'); return; }
+          } else {
+            clearInterval(poll);
+          }
+          await loadAndApplyFreshMeta(moduleName);
         } catch(e) {}
-      }, 8000);
+      }, 10000);
+    }
+
+    async function loadAndApplyFreshMeta(moduleName) {
+      const token = sessionStorage.getItem('gh_pat');
+      try {
+        const res = await fetch(
+          `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/outputs/cad_previews/${moduleName}_meta.json`,
+          { headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github+json' } }
+        );
+        if (!res.ok) return;
+        const meta = await res.json();
+        const d = JSON.parse(atob(meta.content.replace(/\n/g, '')));
+        if (moduleName === currentModuleName) await applyCadMeta(d);
+        updateModuleDot(moduleName, 'preview');
+        const pubStatus = document.getElementById('publishStatus');
+        if (pubStatus) pubStatus.textContent = `✓ ${moduleName} preview ready — click module to view.`;
+      } catch(e) {}
     }
 
     function buildAssetJson(moduleName, cadFile) {
-      // Get SysML base data
       const part = sysmlPartsCache[moduleName] || {};
-      // Get material info
-      const selId = document.getElementById('materialSelect')?.value || '';
+      // Read from per-module saved cache — NOT from DOM (which shows current module)
+      const saved = moduleMetaCache[moduleName] || {};
+      const selId  = saved.materialId || '';
       const selMat = materialLibrary.find(m => m.materialId === selId) || null;
-      const usdMatName = document.getElementById('materialFromUsd')?.value || null;
-      // Get computed mass
-      const mass = parseFloat(document.getElementById('cadMass')?.value) || null;
-      // Get units
-      const metersPerUnit = parseFloat(document.getElementById('metersPerUnit')?.value) || 1;
-      const upAxis = document.getElementById('upAxis')?.value || 'Z';
-      const massUnit = document.getElementById('massUnit')?.value || 'kg';
-      const lengthUnit = document.getElementById('lengthUnit')?.value || 'm';
-      // Get GLB size from meta if available
-      const sizeM = window._cadSizeM || null;
+      const mass   = parseFloat(saved.mass) || null;
+      const metersPerUnit = parseFloat(saved.metersPerUnit) || 1;
+      const upAxis    = saved.upAxis    || part.dimensions?.upAxis    || 'Z';
+      const massUnit  = saved.massUnit  || 'kg';
+      const lengthUnit= saved.lengthUnit|| 'm';
+      const sizeM = part.dimensions?.size_m
+        ? [part.dimensions.size_m.length, part.dimensions.size_m.width, part.dimensions.size_m.height]
+        : null;
 
       const asset = {
         type: part.type || 'Part',
         id: part.id || `urn:S24_PIPELINE:part:${moduleName}:001`,
         name: moduleName,
         dimensions: {
-          size_m: sizeM ? {
-            length: sizeM[0],
-            width: sizeM[1],
-            height: sizeM[2],
-          } : (part.dimensions?.size_m || {}),
+          size_m: sizeM ? { length: sizeM[0], width: sizeM[1], height: sizeM[2] } : (part.dimensions?.size_m || {}),
           metersPerUnit,
           upAxis,
           massUnit,
@@ -4342,7 +4372,7 @@ iframe{
           cadUploadedAt: new Date().toISOString(),
           glbPreviewRef: `outputs/cad_previews/${moduleName}.glb`,
         },
-        materialRef: selId || usdMatName || part.materialRef || null,
+        materialRef: selId || part.materialRef || null,
         materialProperties: selMat ? {
           source: 'library',
           density_kg_m3: selMat.density_kg_m3,
@@ -4351,7 +4381,7 @@ iframe{
           yieldStrength_Pa: selMat.yieldStrength_Pa,
           ultimateStrength_Pa: selMat.ultimateStrength_Pa,
           thermalConductivity_W_mK: selMat.thermalConductivity_W_mK,
-        } : (usdMatName ? { source: 'usd', name: usdMatName } : null),
+        } : null,
         ports: part.ports || [],
       };
       return asset;
@@ -4392,19 +4422,6 @@ iframe{
     function saveSelectedNode() { publishAll(); }
 
     // ── Workflow + API helpers ────────────────────────────────────────────
-    async function triggerConvertWorkflow(moduleName, usdPath) {
-      const token = sessionStorage.getItem('gh_pat');
-      if (!token) return false;
-      const res = await fetch(
-        `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/actions/workflows/convert_cad.yml/dispatches`,
-        {
-          method: 'POST',
-          headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github+json', 'Content-Type': 'application/json' },
-          body: JSON.stringify({ ref: GH_REF, inputs: { module_name: moduleName, usd_path: usdPath } }),
-        }
-      );
-      return res.status === 204;
-    }
 
     async function fetchCadMeta(moduleName, runTimestamp) {
       const token = sessionStorage.getItem('gh_pat');
@@ -4422,9 +4439,8 @@ iframe{
 
     async function applyCadMeta(data) {
       const status = document.getElementById('cadUploadStatus');
-      if (data.png_path) {
-        const pngUrl = `https://raw.githubusercontent.com/${GH_OWNER}/${GH_REPO}/${GH_REF}/${data.png_path}`;
-        await showThumbnail(pngUrl, data.module_name, data.mesh_count, data.size_m);
+      if (data.glb_path) {
+        await showModelViewer(data.module_name, data.mesh_count, data.size_m);
       }
       if (status) status.textContent =
         `✓ ${data.mesh_count} meshes · ${data.size_m[0]}×${data.size_m[1]}×${data.size_m[2]} m · upAxis: ${data.up_axis}`;
@@ -4460,70 +4476,83 @@ iframe{
       modal.style.display = 'flex';
     }
 
-    async function fetchFreshPng(moduleName) {
-      // Fetch PNG via API (bypasses CDN cache) and return a blob URL
+    async function fetchFreshGlb(moduleName) {
+      // Fetch GLB via API (bypasses CDN cache), return a blob URL
       const token = sessionStorage.getItem('gh_pat');
-      const path = `outputs/cad_previews/${moduleName}.png`;
+      const path = `outputs/cad_previews/${moduleName}.glb`;
       try {
+        // Get download URL via API
         const res = await fetch(
           `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${path}`,
           { headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github+json' } }
         );
         if (!res.ok) return null;
         const meta = await res.json();
-        // content is base64 — decode to blob
-        const binary = atob(meta.content.replace(/\n/g, ''));
+        // Decode base64 GLB
+        const b64 = meta.content.replace(/\n/g, '');
+        const binary = atob(b64);
         const bytes = new Uint8Array(binary.length);
         for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-        const blob = new Blob([bytes], { type: 'image/png' });
+        const blob = new Blob([bytes], { type: 'model/gltf-binary' });
         return URL.createObjectURL(blob);
-      } catch(e) { return null; }
+      } catch(e) { console.warn('[GLB]', e); return null; }
     }
 
-    async function showThumbnail(src, moduleName, meshCount, sizeM) {
+    async function showModelViewer(moduleName, meshCount, sizeM) {
       const wrap = document.getElementById('viewer3dWrap');
       if (!wrap) return;
       wrap.style.display = 'block';
 
-      const container = document.createElement('div');
-      container.style.cssText = 'position:relative;border-radius:12px;overflow:hidden;border:1px solid var(--border2);background:#0c1119;';
+      // Show loading state
+      wrap.innerHTML = `
+        <div style="height:360px;border-radius:12px;border:1px solid var(--border2);background:#0c1119;
+          display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:13px;">
+          ⏳ Loading 3D model…
+        </div>`;
 
-      const img = document.createElement('img');
-      img.alt = '3D preview of ' + moduleName;
-      img.style.cssText = 'width:100%;height:300px;object-fit:contain;display:block;background:#0c1119;cursor:zoom-in;';
-
-      const fallback = document.createElement('div');
-      fallback.style.cssText = 'display:none;height:300px;align-items:center;justify-content:center;color:var(--text3);font-size:13px;';
-      fallback.textContent = 'Preview not yet available';
-
-      const badge = document.createElement('div');
-      badge.style.cssText = 'position:absolute;bottom:10px;left:12px;font-size:10px;color:rgba(255,255,255,0.7);background:rgba(0,0,0,0.6);padding:3px 8px;border-radius:4px;';
-      badge.textContent = `${meshCount} meshes · ${sizeM[0]}×${sizeM[1]}×${sizeM[2]} m`;
-
-      const zoomBtn = document.createElement('button');
-      zoomBtn.textContent = '⤢ Full screen';
-      zoomBtn.style.cssText = 'position:absolute;top:10px;right:10px;background:rgba(0,0,0,0.6);border:1px solid rgba(255,255,255,0.25);color:rgba(255,255,255,0.8);border-radius:6px;padding:5px 10px;font-size:11px;cursor:pointer;';
-
-      container.appendChild(img);
-      container.appendChild(fallback);
-      container.appendChild(badge);
-      container.appendChild(zoomBtn);
-      wrap.innerHTML = '';
-      wrap.appendChild(container);
-
-      // Fetch fresh image via API to bypass CDN cache
-      const blobUrl = await fetchFreshPng(moduleName);
-      if (blobUrl) {
-        img.src = blobUrl;
-        img.addEventListener('click', () => openZoomModal(blobUrl));
-        zoomBtn.addEventListener('click', () => openZoomModal(blobUrl));
-      } else {
-        // Fallback to raw URL
-        img.src = src;
-        img.addEventListener('error', () => { img.style.display='none'; fallback.style.display='flex'; });
-        img.addEventListener('click', () => openZoomModal(src));
-        zoomBtn.addEventListener('click', () => openZoomModal(src));
+      const blobUrl = await fetchFreshGlb(moduleName);
+      if (!blobUrl) {
+        wrap.innerHTML = `<div style="height:360px;border-radius:12px;border:1px solid var(--border2);background:#0c1119;
+          display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:13px;">
+          Preview not available
+        </div>`;
+        return;
       }
+
+      // Ensure model-viewer is loaded
+      if (!customElements.get('model-viewer')) {
+        await new Promise(resolve => {
+          const s = document.createElement('script');
+          s.type = 'module';
+          s.src = 'https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js';
+          s.onload = resolve;
+          document.head.appendChild(s);
+        });
+      }
+
+      wrap.innerHTML = `
+        <div style="position:relative;border-radius:12px;overflow:hidden;border:1px solid var(--border2);">
+          <model-viewer
+            id="mv-${moduleName}"
+            src="${blobUrl}"
+            alt="3D model of ${moduleName}"
+            camera-controls
+            touch-action="none"
+            shadow-intensity="0.5"
+            exposure="1.2"
+            min-camera-orbit="auto -180deg auto"
+            max-camera-orbit="auto 180deg auto"
+            style="width:100%;height:360px;background:#0c1119;display:block;"
+          ></model-viewer>
+          <div style="position:absolute;bottom:10px;left:12px;font-size:10px;
+            color:rgba(255,255,255,0.7);background:rgba(0,0,0,0.6);padding:3px 8px;border-radius:4px;">
+            ${meshCount} meshes · ${sizeM[0]}×${sizeM[1]}×${sizeM[2]} m
+          </div>
+          <div style="position:absolute;top:10px;right:10px;font-size:10px;
+            color:rgba(255,255,255,0.5);background:rgba(0,0,0,0.5);padding:3px 8px;border-radius:4px;">
+            Drag to rotate · Scroll to zoom
+          </div>
+        </div>`;
     }
 
     function showUsdMaterialProps(usdMat) {
