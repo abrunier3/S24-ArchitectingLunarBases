@@ -1,13 +1,17 @@
 {
-  "written_at": 1775081882530,
+  "written_at": 1775082156834,
   "status": "success",
-  "warnings": [],
+  "warnings": [
+    "[INFO] HabitationModule present but SolarPowerSystem absent \u2014 habitat power draw will not be managed.",
+    "[INFO] CommunicationModule present but SolarPowerSystem absent \u2014 comms power draw will not be managed.",
+    "[INFO] ISRUPlant present but SolarPowerSystem absent \u2014 ISRU power draw will not be managed.",
+    "[INFO] LaunchLandingZone present but SolarPowerSystem absent \u2014 landing zone power draw will not be managed.",
+    "[INFO] LaunchLandingZone is active but LOXRover is not \u2014 LOX delivery process will not be spawned (no transport)."
+  ],
   "inputs": {
     "active_nodes": [
       "ISRUPlant",
       "RegolithRover",
-      "SolarPowerSystem",
-      "LOXRover",
       "LaunchLandingZone",
       "HabitationModule",
       "CommunicationModule"
@@ -23,29 +27,27 @@
   },
   "results": {
     "Sim_Metrics": {
-      "Simulation_Run_Time": 0.0036,
+      "Simulation_Run_Time": 0.0022,
       "Active_Nodes": [
         "CommunicationModule",
         "HabitationModule",
         "ISRUPlant",
-        "LOXRover",
         "LaunchLandingZone",
-        "RegolithRover",
-        "SolarPowerSystem"
+        "RegolithRover"
       ]
     },
     "ISRU_Plants": {
       "ISRU_Plant_1": {
-        "LOX_Stored_kg": 10.11,
-        "Energy_Consumed_kWh": 3358.82,
+        "LOX_Stored_kg": 111.23,
+        "Energy_Consumed_kWh": 3609.58,
         "Total_Operational_Hours": 27.5,
         "Regolith_Received_kg": 44000,
         "Total_LOX_Production_kg": 111.23
       },
       "Fleet_Totals": {
         "Num_Plants": 1,
-        "LOX_Stored_kg": 10.11,
-        "Energy_Consumed_kWh": 3358.82,
+        "LOX_Stored_kg": 111.23,
+        "Energy_Consumed_kWh": 3609.58,
         "Total_Operational_Hours": 27.5,
         "Regolith_Received_kg": 44000,
         "Total_LOX_Production_kg": 111.23
@@ -65,161 +67,18 @@
         "Energy_Consumed_kWh": 16.8
       }
     },
-    "Solar_Power_System": {
-      "Total_Generated_kWh": 5900.0,
-      "From_Battery_kWh": 0.0,
-      "Battery_Charge_kWh": 500.0,
-      "Battery_Capacity_kWh": 500.0
-    },
-    "Power_Manager": {
-      "Energy_Generated_Time_Array_kWh": [
-        100.0,
-        100.0,
-        100.0,
-        100.0,
-        100.0,
-        100.0,
-        100.0,
-        100.0,
-        100.0,
-        100.0,
-        100.0,
-        100.0,
-        100.0,
-        100.0,
-        100.0,
-        100.0,
-        100.0,
-        100.0,
-        100.0,
-        100.0,
-        100.0,
-        100.0,
-        100.0,
-        100.0,
-        100.0,
-        100.0,
-        100.0,
-        100.0,
-        100.0,
-        100.0,
-        100.0,
-        100.0,
-        100.0,
-        100.0,
-        100.0,
-        100.0,
-        100.0,
-        100.0,
-        100.0,
-        100.0,
-        100.0,
-        100.0,
-        100.0,
-        100.0,
-        100.0,
-        100.0,
-        100.0,
-        100.0,
-        100.0,
-        100.0,
-        100.0,
-        100.0,
-        100.0,
-        100.0,
-        100.0,
-        100.0,
-        100.0,
-        100.0,
-        100.0
-      ],
-      "Total_Demand_Time_Array_kWh": [
-        10.0,
-        10.0,
-        10.0,
-        10.0,
-        10.0,
-        10.0,
-        10.0,
-        10.0,
-        10.0,
-        30.0,
-        10.0,
-        10.0,
-        10.0,
-        10.0,
-        20.0,
-        10.0,
-        10.0,
-        10.0,
-        10.0,
-        10.0,
-        10.0,
-        10.0,
-        10.0,
-        10.0,
-        60.0,
-        10.0,
-        10.0,
-        10.0,
-        10.0,
-        10.0,
-        10.0,
-        10.0,
-        10.0,
-        10.0,
-        10.0,
-        10.0,
-        10.0,
-        10.0,
-        10.0,
-        10.0,
-        10.0,
-        10.0,
-        10.0,
-        10.0,
-        10.0,
-        10.0,
-        10.0,
-        10.0,
-        10.0,
-        10.0,
-        10.0,
-        10.0,
-        10.0,
-        10.0,
-        10.0,
-        10.0,
-        41.34598501087602,
-        41.34598501087602,
-        41.34598501087602
-      ]
-    },
     "Habitat": {
       "Name": "Habitat-1",
-      "Energy_Consumed_kWh": 315.0
+      "Energy_Consumed_kWh": 0
     },
     "Communications": {
       "Name": "CommArray-1",
-      "Energy_Consumed_kWh": 128.0
+      "Energy_Consumed_kWh": 0.0
     },
     "Landing_Zone": {
       "Name": "LZ-Alpha",
-      "LOX_Stored_kg": 101.12,
-      "Energy_Consumed_kWh": 321.04
-    },
-    "LOX_Cargo_Rover": {
-      "Name": "LOX Cargo Rover",
-      "Total_Distance_km": 1.0,
-      "Energy_Consumed_kWh": 0.04,
-      "Battery_Charge_kWh": 99.96,
-      "Battery_Capacity_kWh": 100.0,
-      "Current_Load_kg": 0
-    },
-    "Charging_Station": {
-      "Name": "ChargeStation-1",
-      "Energy_Consumed_kWh": 0,
-      "Energy_Delivered_to_Rovers_kWh": 0
+      "LOX_Stored_kg": 0,
+      "Energy_Consumed_kWh": 0
     }
   },
   "log": {
@@ -241,32 +100,27 @@
         "total_LOX_production": 0,
         "regolith_recieved": 0
       },
-      "Solar_Power_System": {
-        "Name": "Solar_Power_System",
-        "power_degradation_factor": 1.0,
-        "current_power_output": 100.0,
-        "battery_degradation_factor": 1.0,
-        "battery_capacity": 500.0,
-        "battery_charge": 500.0,
-        "total_energy_generated": 0.0,
-        "total_energy_from_battery": 0.0
-      },
-      "Power_Manager": {
-        "Name": "Power_Manager",
-        "current_energy_demand": 0,
-        "current_energy_production": 0
-      },
       "Habitat-1": {
         "Name": "Habitat-1",
         "Energy_Consumed_kWh": 0,
         "Constant_Power_Rate": 5,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            10,
+            20
+          ]
+        ]
       },
       "CommArray-1": {
         "Name": "CommArray-1",
         "Energy_Consumed_kWh": 0.0,
         "Constant_Power_Rate": 2.0,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            15,
+            10
+          ]
+        ]
       },
       "LZ-Alpha": {
         "Name": "LZ-Alpha",
@@ -275,7 +129,12 @@
         "utilities_power_rate": 3,
         "Energy_Consumed_kWh": 0,
         "chilling_power_per_kg_LOX": 0.31,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            25,
+            50
+          ]
+        ]
       },
       "Regolith Cargo Rover 1": {
         "Name": "Regolith Cargo Rover 1",
@@ -288,25 +147,6 @@
         "total_distance_traveled": 0.0,
         "total_energy_consumed": 0.0,
         "hours_per_km": 5.0
-      },
-      "LOX Cargo Rover": {
-        "Name": "LOX Cargo Rover",
-        "rover_type": "cargo",
-        "max_capacity": 5000.0,
-        "current_load": 0,
-        "energy_per_km_per_kg": 0.00035,
-        "battery_capacity": 100.0,
-        "battery_charge": 100.0,
-        "total_distance_traveled": 0.0,
-        "total_energy_consumed": 0.0,
-        "hours_per_km": 5.0
-      },
-      "ChargeStation-1": {
-        "Name": "ChargeStation-1",
-        "charging_power_rate": 20,
-        "efficiency_factor": 0.85,
-        "total_energy_consumed": 0,
-        "total_energy_delivered": 0
       }
     },
     "1.0": {
@@ -327,32 +167,27 @@
         "total_LOX_production": 0,
         "regolith_recieved": 0
       },
-      "Solar_Power_System": {
-        "Name": "Solar_Power_System",
-        "power_degradation_factor": 1.0,
-        "current_power_output": 100.0,
-        "battery_degradation_factor": 1.0,
-        "battery_capacity": 500.0,
-        "battery_charge": 500.0,
-        "total_energy_generated": 0.0,
-        "total_energy_from_battery": 0.0
-      },
-      "Power_Manager": {
-        "Name": "Power_Manager",
-        "current_energy_demand": 0,
-        "current_energy_production": 0
-      },
       "Habitat-1": {
         "Name": "Habitat-1",
         "Energy_Consumed_kWh": 0,
         "Constant_Power_Rate": 5,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            10,
+            20
+          ]
+        ]
       },
       "CommArray-1": {
         "Name": "CommArray-1",
         "Energy_Consumed_kWh": 0.0,
         "Constant_Power_Rate": 2.0,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            15,
+            10
+          ]
+        ]
       },
       "LZ-Alpha": {
         "Name": "LZ-Alpha",
@@ -361,7 +196,12 @@
         "utilities_power_rate": 3,
         "Energy_Consumed_kWh": 0,
         "chilling_power_per_kg_LOX": 0.31,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            25,
+            50
+          ]
+        ]
       },
       "Regolith Cargo Rover 1": {
         "Name": "Regolith Cargo Rover 1",
@@ -374,25 +214,6 @@
         "total_distance_traveled": 1.0,
         "total_energy_consumed": 1.4,
         "hours_per_km": 5.0
-      },
-      "LOX Cargo Rover": {
-        "Name": "LOX Cargo Rover",
-        "rover_type": "cargo",
-        "max_capacity": 5000.0,
-        "current_load": 0,
-        "energy_per_km_per_kg": 0.00035,
-        "battery_capacity": 100.0,
-        "battery_charge": 100.0,
-        "total_distance_traveled": 0.0,
-        "total_energy_consumed": 0.0,
-        "hours_per_km": 5.0
-      },
-      "ChargeStation-1": {
-        "Name": "ChargeStation-1",
-        "charging_power_rate": 20,
-        "efficiency_factor": 0.85,
-        "total_energy_consumed": 0,
-        "total_energy_delivered": 0
       }
     },
     "2.0": {
@@ -413,41 +234,41 @@
         "total_LOX_production": 0,
         "regolith_recieved": 0
       },
-      "Solar_Power_System": {
-        "Name": "Solar_Power_System",
-        "power_degradation_factor": 1.0,
-        "current_power_output": 100.0,
-        "battery_degradation_factor": 1.0,
-        "battery_capacity": 500.0,
-        "battery_charge": 500.0,
-        "total_energy_generated": 100.0,
-        "total_energy_from_battery": 0.0
-      },
-      "Power_Manager": {
-        "Name": "Power_Manager",
-        "current_energy_demand": 10.0,
-        "current_energy_production": 100.0
-      },
       "Habitat-1": {
         "Name": "Habitat-1",
-        "Energy_Consumed_kWh": 5.0,
+        "Energy_Consumed_kWh": 0,
         "Constant_Power_Rate": 5,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            10,
+            20
+          ]
+        ]
       },
       "CommArray-1": {
         "Name": "CommArray-1",
-        "Energy_Consumed_kWh": 2.0,
+        "Energy_Consumed_kWh": 0.0,
         "Constant_Power_Rate": 2.0,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            15,
+            10
+          ]
+        ]
       },
       "LZ-Alpha": {
         "Name": "LZ-Alpha",
         "LOX_Capacity": 50000,
         "LOX_Stored": 0,
         "utilities_power_rate": 3,
-        "Energy_Consumed_kWh": 3.0,
+        "Energy_Consumed_kWh": 0,
         "chilling_power_per_kg_LOX": 0.31,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            25,
+            50
+          ]
+        ]
       },
       "Regolith Cargo Rover 1": {
         "Name": "Regolith Cargo Rover 1",
@@ -460,25 +281,6 @@
         "total_distance_traveled": 1.0,
         "total_energy_consumed": 1.4,
         "hours_per_km": 5.0
-      },
-      "LOX Cargo Rover": {
-        "Name": "LOX Cargo Rover",
-        "rover_type": "cargo",
-        "max_capacity": 5000.0,
-        "current_load": 0,
-        "energy_per_km_per_kg": 0.00035,
-        "battery_capacity": 100.0,
-        "battery_charge": 100.0,
-        "total_distance_traveled": 0.0,
-        "total_energy_consumed": 0.0,
-        "hours_per_km": 5.0
-      },
-      "ChargeStation-1": {
-        "Name": "ChargeStation-1",
-        "charging_power_rate": 20,
-        "efficiency_factor": 0.85,
-        "total_energy_consumed": 0,
-        "total_energy_delivered": 0
       }
     },
     "3.0": {
@@ -499,41 +301,41 @@
         "total_LOX_production": 0,
         "regolith_recieved": 0
       },
-      "Solar_Power_System": {
-        "Name": "Solar_Power_System",
-        "power_degradation_factor": 1.0,
-        "current_power_output": 100.0,
-        "battery_degradation_factor": 1.0,
-        "battery_capacity": 500.0,
-        "battery_charge": 500.0,
-        "total_energy_generated": 200.0,
-        "total_energy_from_battery": 0.0
-      },
-      "Power_Manager": {
-        "Name": "Power_Manager",
-        "current_energy_demand": 10.0,
-        "current_energy_production": 100.0
-      },
       "Habitat-1": {
         "Name": "Habitat-1",
-        "Energy_Consumed_kWh": 10.0,
+        "Energy_Consumed_kWh": 0,
         "Constant_Power_Rate": 5,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            10,
+            20
+          ]
+        ]
       },
       "CommArray-1": {
         "Name": "CommArray-1",
-        "Energy_Consumed_kWh": 4.0,
+        "Energy_Consumed_kWh": 0.0,
         "Constant_Power_Rate": 2.0,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            15,
+            10
+          ]
+        ]
       },
       "LZ-Alpha": {
         "Name": "LZ-Alpha",
         "LOX_Capacity": 50000,
         "LOX_Stored": 0,
         "utilities_power_rate": 3,
-        "Energy_Consumed_kWh": 6.0,
+        "Energy_Consumed_kWh": 0,
         "chilling_power_per_kg_LOX": 0.31,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            25,
+            50
+          ]
+        ]
       },
       "Regolith Cargo Rover 1": {
         "Name": "Regolith Cargo Rover 1",
@@ -546,25 +348,6 @@
         "total_distance_traveled": 1.0,
         "total_energy_consumed": 1.4,
         "hours_per_km": 5.0
-      },
-      "LOX Cargo Rover": {
-        "Name": "LOX Cargo Rover",
-        "rover_type": "cargo",
-        "max_capacity": 5000.0,
-        "current_load": 0,
-        "energy_per_km_per_kg": 0.00035,
-        "battery_capacity": 100.0,
-        "battery_charge": 100.0,
-        "total_distance_traveled": 0.0,
-        "total_energy_consumed": 0.0,
-        "hours_per_km": 5.0
-      },
-      "ChargeStation-1": {
-        "Name": "ChargeStation-1",
-        "charging_power_rate": 20,
-        "efficiency_factor": 0.85,
-        "total_energy_consumed": 0,
-        "total_energy_delivered": 0
       }
     },
     "4.0": {
@@ -585,41 +368,41 @@
         "total_LOX_production": 0,
         "regolith_recieved": 0
       },
-      "Solar_Power_System": {
-        "Name": "Solar_Power_System",
-        "power_degradation_factor": 1.0,
-        "current_power_output": 100.0,
-        "battery_degradation_factor": 1.0,
-        "battery_capacity": 500.0,
-        "battery_charge": 500.0,
-        "total_energy_generated": 300.0,
-        "total_energy_from_battery": 0.0
-      },
-      "Power_Manager": {
-        "Name": "Power_Manager",
-        "current_energy_demand": 10.0,
-        "current_energy_production": 100.0
-      },
       "Habitat-1": {
         "Name": "Habitat-1",
-        "Energy_Consumed_kWh": 15.0,
+        "Energy_Consumed_kWh": 0,
         "Constant_Power_Rate": 5,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            10,
+            20
+          ]
+        ]
       },
       "CommArray-1": {
         "Name": "CommArray-1",
-        "Energy_Consumed_kWh": 6.0,
+        "Energy_Consumed_kWh": 0.0,
         "Constant_Power_Rate": 2.0,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            15,
+            10
+          ]
+        ]
       },
       "LZ-Alpha": {
         "Name": "LZ-Alpha",
         "LOX_Capacity": 50000,
         "LOX_Stored": 0,
         "utilities_power_rate": 3,
-        "Energy_Consumed_kWh": 9.0,
+        "Energy_Consumed_kWh": 0,
         "chilling_power_per_kg_LOX": 0.31,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            25,
+            50
+          ]
+        ]
       },
       "Regolith Cargo Rover 1": {
         "Name": "Regolith Cargo Rover 1",
@@ -632,25 +415,6 @@
         "total_distance_traveled": 1.0,
         "total_energy_consumed": 1.4,
         "hours_per_km": 5.0
-      },
-      "LOX Cargo Rover": {
-        "Name": "LOX Cargo Rover",
-        "rover_type": "cargo",
-        "max_capacity": 5000.0,
-        "current_load": 0,
-        "energy_per_km_per_kg": 0.00035,
-        "battery_capacity": 100.0,
-        "battery_charge": 100.0,
-        "total_distance_traveled": 0.0,
-        "total_energy_consumed": 0.0,
-        "hours_per_km": 5.0
-      },
-      "ChargeStation-1": {
-        "Name": "ChargeStation-1",
-        "charging_power_rate": 20,
-        "efficiency_factor": 0.85,
-        "total_energy_consumed": 0,
-        "total_energy_delivered": 0
       }
     },
     "5.0": {
@@ -671,41 +435,41 @@
         "total_LOX_production": 0,
         "regolith_recieved": 0
       },
-      "Solar_Power_System": {
-        "Name": "Solar_Power_System",
-        "power_degradation_factor": 1.0,
-        "current_power_output": 100.0,
-        "battery_degradation_factor": 1.0,
-        "battery_capacity": 500.0,
-        "battery_charge": 500.0,
-        "total_energy_generated": 400.0,
-        "total_energy_from_battery": 0.0
-      },
-      "Power_Manager": {
-        "Name": "Power_Manager",
-        "current_energy_demand": 10.0,
-        "current_energy_production": 100.0
-      },
       "Habitat-1": {
         "Name": "Habitat-1",
-        "Energy_Consumed_kWh": 20.0,
+        "Energy_Consumed_kWh": 0,
         "Constant_Power_Rate": 5,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            10,
+            20
+          ]
+        ]
       },
       "CommArray-1": {
         "Name": "CommArray-1",
-        "Energy_Consumed_kWh": 8.0,
+        "Energy_Consumed_kWh": 0.0,
         "Constant_Power_Rate": 2.0,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            15,
+            10
+          ]
+        ]
       },
       "LZ-Alpha": {
         "Name": "LZ-Alpha",
         "LOX_Capacity": 50000,
         "LOX_Stored": 0,
         "utilities_power_rate": 3,
-        "Energy_Consumed_kWh": 12.0,
+        "Energy_Consumed_kWh": 0,
         "chilling_power_per_kg_LOX": 0.31,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            25,
+            50
+          ]
+        ]
       },
       "Regolith Cargo Rover 1": {
         "Name": "Regolith Cargo Rover 1",
@@ -718,25 +482,6 @@
         "total_distance_traveled": 1.0,
         "total_energy_consumed": 1.4,
         "hours_per_km": 5.0
-      },
-      "LOX Cargo Rover": {
-        "Name": "LOX Cargo Rover",
-        "rover_type": "cargo",
-        "max_capacity": 5000.0,
-        "current_load": 0,
-        "energy_per_km_per_kg": 0.00035,
-        "battery_capacity": 100.0,
-        "battery_charge": 100.0,
-        "total_distance_traveled": 0.0,
-        "total_energy_consumed": 0.0,
-        "hours_per_km": 5.0
-      },
-      "ChargeStation-1": {
-        "Name": "ChargeStation-1",
-        "charging_power_rate": 20,
-        "efficiency_factor": 0.85,
-        "total_energy_consumed": 0,
-        "total_energy_delivered": 0
       }
     },
     "6.0": {
@@ -757,41 +502,41 @@
         "total_LOX_production": 10.11160806802452,
         "regolith_recieved": 4000
       },
-      "Solar_Power_System": {
-        "Name": "Solar_Power_System",
-        "power_degradation_factor": 1.0,
-        "current_power_output": 100.0,
-        "battery_degradation_factor": 1.0,
-        "battery_capacity": 500.0,
-        "battery_charge": 500.0,
-        "total_energy_generated": 500.0,
-        "total_energy_from_battery": 0.0
-      },
-      "Power_Manager": {
-        "Name": "Power_Manager",
-        "current_energy_demand": 10.0,
-        "current_energy_production": 100.0
-      },
       "Habitat-1": {
         "Name": "Habitat-1",
-        "Energy_Consumed_kWh": 25.0,
+        "Energy_Consumed_kWh": 0,
         "Constant_Power_Rate": 5,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            10,
+            20
+          ]
+        ]
       },
       "CommArray-1": {
         "Name": "CommArray-1",
-        "Energy_Consumed_kWh": 10.0,
+        "Energy_Consumed_kWh": 0.0,
         "Constant_Power_Rate": 2.0,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            15,
+            10
+          ]
+        ]
       },
       "LZ-Alpha": {
         "Name": "LZ-Alpha",
         "LOX_Capacity": 50000,
         "LOX_Stored": 0,
         "utilities_power_rate": 3,
-        "Energy_Consumed_kWh": 15.0,
+        "Energy_Consumed_kWh": 0,
         "chilling_power_per_kg_LOX": 0.31,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            25,
+            50
+          ]
+        ]
       },
       "Regolith Cargo Rover 1": {
         "Name": "Regolith Cargo Rover 1",
@@ -804,25 +549,6 @@
         "total_distance_traveled": 2.0,
         "total_energy_consumed": 2.8,
         "hours_per_km": 5.0
-      },
-      "LOX Cargo Rover": {
-        "Name": "LOX Cargo Rover",
-        "rover_type": "cargo",
-        "max_capacity": 5000.0,
-        "current_load": 0,
-        "energy_per_km_per_kg": 0.00035,
-        "battery_capacity": 100.0,
-        "battery_charge": 100.0,
-        "total_distance_traveled": 0.0,
-        "total_energy_consumed": 0.0,
-        "hours_per_km": 5.0
-      },
-      "ChargeStation-1": {
-        "Name": "ChargeStation-1",
-        "charging_power_rate": 20,
-        "efficiency_factor": 0.85,
-        "total_energy_consumed": 0,
-        "total_energy_delivered": 0
       }
     },
     "7.0": {
@@ -843,41 +569,41 @@
         "total_LOX_production": 10.11160806802452,
         "regolith_recieved": 4000
       },
-      "Solar_Power_System": {
-        "Name": "Solar_Power_System",
-        "power_degradation_factor": 1.0,
-        "current_power_output": 100.0,
-        "battery_degradation_factor": 1.0,
-        "battery_capacity": 500.0,
-        "battery_charge": 500.0,
-        "total_energy_generated": 600.0,
-        "total_energy_from_battery": 0.0
-      },
-      "Power_Manager": {
-        "Name": "Power_Manager",
-        "current_energy_demand": 10.0,
-        "current_energy_production": 100.0
-      },
       "Habitat-1": {
         "Name": "Habitat-1",
-        "Energy_Consumed_kWh": 30.0,
+        "Energy_Consumed_kWh": 0,
         "Constant_Power_Rate": 5,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            10,
+            20
+          ]
+        ]
       },
       "CommArray-1": {
         "Name": "CommArray-1",
-        "Energy_Consumed_kWh": 12.0,
+        "Energy_Consumed_kWh": 0.0,
         "Constant_Power_Rate": 2.0,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            15,
+            10
+          ]
+        ]
       },
       "LZ-Alpha": {
         "Name": "LZ-Alpha",
         "LOX_Capacity": 50000,
         "LOX_Stored": 0,
         "utilities_power_rate": 3,
-        "Energy_Consumed_kWh": 18.0,
+        "Energy_Consumed_kWh": 0,
         "chilling_power_per_kg_LOX": 0.31,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            25,
+            50
+          ]
+        ]
       },
       "Regolith Cargo Rover 1": {
         "Name": "Regolith Cargo Rover 1",
@@ -890,25 +616,6 @@
         "total_distance_traveled": 2.0,
         "total_energy_consumed": 2.8,
         "hours_per_km": 5.0
-      },
-      "LOX Cargo Rover": {
-        "Name": "LOX Cargo Rover",
-        "rover_type": "cargo",
-        "max_capacity": 5000.0,
-        "current_load": 0,
-        "energy_per_km_per_kg": 0.00035,
-        "battery_capacity": 100.0,
-        "battery_charge": 100.0,
-        "total_distance_traveled": 0.0,
-        "total_energy_consumed": 0.0,
-        "hours_per_km": 5.0
-      },
-      "ChargeStation-1": {
-        "Name": "ChargeStation-1",
-        "charging_power_rate": 20,
-        "efficiency_factor": 0.85,
-        "total_energy_consumed": 0,
-        "total_energy_delivered": 0
       }
     },
     "8.0": {
@@ -929,41 +636,41 @@
         "total_LOX_production": 10.11160806802452,
         "regolith_recieved": 4000
       },
-      "Solar_Power_System": {
-        "Name": "Solar_Power_System",
-        "power_degradation_factor": 1.0,
-        "current_power_output": 100.0,
-        "battery_degradation_factor": 1.0,
-        "battery_capacity": 500.0,
-        "battery_charge": 500.0,
-        "total_energy_generated": 700.0,
-        "total_energy_from_battery": 0.0
-      },
-      "Power_Manager": {
-        "Name": "Power_Manager",
-        "current_energy_demand": 10.0,
-        "current_energy_production": 100.0
-      },
       "Habitat-1": {
         "Name": "Habitat-1",
-        "Energy_Consumed_kWh": 35.0,
+        "Energy_Consumed_kWh": 0,
         "Constant_Power_Rate": 5,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            10,
+            20
+          ]
+        ]
       },
       "CommArray-1": {
         "Name": "CommArray-1",
-        "Energy_Consumed_kWh": 14.0,
+        "Energy_Consumed_kWh": 0.0,
         "Constant_Power_Rate": 2.0,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            15,
+            10
+          ]
+        ]
       },
       "LZ-Alpha": {
         "Name": "LZ-Alpha",
         "LOX_Capacity": 50000,
         "LOX_Stored": 0,
         "utilities_power_rate": 3,
-        "Energy_Consumed_kWh": 21.0,
+        "Energy_Consumed_kWh": 0,
         "chilling_power_per_kg_LOX": 0.31,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            25,
+            50
+          ]
+        ]
       },
       "Regolith Cargo Rover 1": {
         "Name": "Regolith Cargo Rover 1",
@@ -976,25 +683,6 @@
         "total_distance_traveled": 2.0,
         "total_energy_consumed": 2.8,
         "hours_per_km": 5.0
-      },
-      "LOX Cargo Rover": {
-        "Name": "LOX Cargo Rover",
-        "rover_type": "cargo",
-        "max_capacity": 5000.0,
-        "current_load": 0,
-        "energy_per_km_per_kg": 0.00035,
-        "battery_capacity": 100.0,
-        "battery_charge": 100.0,
-        "total_distance_traveled": 0.0,
-        "total_energy_consumed": 0.0,
-        "hours_per_km": 5.0
-      },
-      "ChargeStation-1": {
-        "Name": "ChargeStation-1",
-        "charging_power_rate": 20,
-        "efficiency_factor": 0.85,
-        "total_energy_consumed": 0,
-        "total_energy_delivered": 0
       }
     },
     "9.0": {
@@ -1015,41 +703,41 @@
         "total_LOX_production": 10.11160806802452,
         "regolith_recieved": 4000
       },
-      "Solar_Power_System": {
-        "Name": "Solar_Power_System",
-        "power_degradation_factor": 1.0,
-        "current_power_output": 100.0,
-        "battery_degradation_factor": 1.0,
-        "battery_capacity": 500.0,
-        "battery_charge": 500.0,
-        "total_energy_generated": 800.0,
-        "total_energy_from_battery": 0.0
-      },
-      "Power_Manager": {
-        "Name": "Power_Manager",
-        "current_energy_demand": 10.0,
-        "current_energy_production": 100.0
-      },
       "Habitat-1": {
         "Name": "Habitat-1",
-        "Energy_Consumed_kWh": 40.0,
+        "Energy_Consumed_kWh": 0,
         "Constant_Power_Rate": 5,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            10,
+            20
+          ]
+        ]
       },
       "CommArray-1": {
         "Name": "CommArray-1",
-        "Energy_Consumed_kWh": 16.0,
+        "Energy_Consumed_kWh": 0.0,
         "Constant_Power_Rate": 2.0,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            15,
+            10
+          ]
+        ]
       },
       "LZ-Alpha": {
         "Name": "LZ-Alpha",
         "LOX_Capacity": 50000,
         "LOX_Stored": 0,
         "utilities_power_rate": 3,
-        "Energy_Consumed_kWh": 24.0,
+        "Energy_Consumed_kWh": 0,
         "chilling_power_per_kg_LOX": 0.31,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            25,
+            50
+          ]
+        ]
       },
       "Regolith Cargo Rover 1": {
         "Name": "Regolith Cargo Rover 1",
@@ -1062,25 +750,6 @@
         "total_distance_traveled": 2.0,
         "total_energy_consumed": 2.8,
         "hours_per_km": 5.0
-      },
-      "LOX Cargo Rover": {
-        "Name": "LOX Cargo Rover",
-        "rover_type": "cargo",
-        "max_capacity": 5000.0,
-        "current_load": 0,
-        "energy_per_km_per_kg": 0.00035,
-        "battery_capacity": 100.0,
-        "battery_charge": 100.0,
-        "total_distance_traveled": 0.0,
-        "total_energy_consumed": 0.0,
-        "hours_per_km": 5.0
-      },
-      "ChargeStation-1": {
-        "Name": "ChargeStation-1",
-        "charging_power_rate": 20,
-        "efficiency_factor": 0.85,
-        "total_energy_consumed": 0,
-        "total_energy_delivered": 0
       }
     },
     "10.0": {
@@ -1101,41 +770,41 @@
         "total_LOX_production": 10.11160806802452,
         "regolith_recieved": 4000
       },
-      "Solar_Power_System": {
-        "Name": "Solar_Power_System",
-        "power_degradation_factor": 1.0,
-        "current_power_output": 100.0,
-        "battery_degradation_factor": 1.0,
-        "battery_capacity": 500.0,
-        "battery_charge": 500.0,
-        "total_energy_generated": 900.0,
-        "total_energy_from_battery": 0.0
-      },
-      "Power_Manager": {
-        "Name": "Power_Manager",
-        "current_energy_demand": 10.0,
-        "current_energy_production": 100.0
-      },
       "Habitat-1": {
         "Name": "Habitat-1",
-        "Energy_Consumed_kWh": 45.0,
+        "Energy_Consumed_kWh": 0,
         "Constant_Power_Rate": 5,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            10,
+            20
+          ]
+        ]
       },
       "CommArray-1": {
         "Name": "CommArray-1",
-        "Energy_Consumed_kWh": 18.0,
+        "Energy_Consumed_kWh": 0.0,
         "Constant_Power_Rate": 2.0,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            15,
+            10
+          ]
+        ]
       },
       "LZ-Alpha": {
         "Name": "LZ-Alpha",
         "LOX_Capacity": 50000,
         "LOX_Stored": 0,
         "utilities_power_rate": 3,
-        "Energy_Consumed_kWh": 27.0,
+        "Energy_Consumed_kWh": 0,
         "chilling_power_per_kg_LOX": 0.31,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            25,
+            50
+          ]
+        ]
       },
       "Regolith Cargo Rover 1": {
         "Name": "Regolith Cargo Rover 1",
@@ -1148,25 +817,6 @@
         "total_distance_traveled": 2.0,
         "total_energy_consumed": 2.8,
         "hours_per_km": 5.0
-      },
-      "LOX Cargo Rover": {
-        "Name": "LOX Cargo Rover",
-        "rover_type": "cargo",
-        "max_capacity": 5000.0,
-        "current_load": 0,
-        "energy_per_km_per_kg": 0.00035,
-        "battery_capacity": 100.0,
-        "battery_charge": 100.0,
-        "total_distance_traveled": 0.0,
-        "total_energy_consumed": 0.0,
-        "hours_per_km": 5.0
-      },
-      "ChargeStation-1": {
-        "Name": "ChargeStation-1",
-        "charging_power_rate": 20,
-        "efficiency_factor": 0.85,
-        "total_energy_consumed": 0,
-        "total_energy_delivered": 0
       }
     },
     "11.0": {
@@ -1187,41 +837,41 @@
         "total_LOX_production": 20.22321613604904,
         "regolith_recieved": 8000
       },
-      "Solar_Power_System": {
-        "Name": "Solar_Power_System",
-        "power_degradation_factor": 1.0,
-        "current_power_output": 100.0,
-        "battery_degradation_factor": 1.0,
-        "battery_capacity": 500.0,
-        "battery_charge": 500.0,
-        "total_energy_generated": 1000.0,
-        "total_energy_from_battery": 0.0
-      },
-      "Power_Manager": {
-        "Name": "Power_Manager",
-        "current_energy_demand": 30.0,
-        "current_energy_production": 100.0
-      },
       "Habitat-1": {
         "Name": "Habitat-1",
-        "Energy_Consumed_kWh": 70.0,
+        "Energy_Consumed_kWh": 0,
         "Constant_Power_Rate": 5,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            10,
+            20
+          ]
+        ]
       },
       "CommArray-1": {
         "Name": "CommArray-1",
-        "Energy_Consumed_kWh": 20.0,
+        "Energy_Consumed_kWh": 0.0,
         "Constant_Power_Rate": 2.0,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            15,
+            10
+          ]
+        ]
       },
       "LZ-Alpha": {
         "Name": "LZ-Alpha",
         "LOX_Capacity": 50000,
         "LOX_Stored": 0,
         "utilities_power_rate": 3,
-        "Energy_Consumed_kWh": 30.0,
+        "Energy_Consumed_kWh": 0,
         "chilling_power_per_kg_LOX": 0.31,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            25,
+            50
+          ]
+        ]
       },
       "Regolith Cargo Rover 1": {
         "Name": "Regolith Cargo Rover 1",
@@ -1234,25 +884,6 @@
         "total_distance_traveled": 3.0,
         "total_energy_consumed": 4.199999999999999,
         "hours_per_km": 5.0
-      },
-      "LOX Cargo Rover": {
-        "Name": "LOX Cargo Rover",
-        "rover_type": "cargo",
-        "max_capacity": 5000.0,
-        "current_load": 0,
-        "energy_per_km_per_kg": 0.00035,
-        "battery_capacity": 100.0,
-        "battery_charge": 100.0,
-        "total_distance_traveled": 0.0,
-        "total_energy_consumed": 0.0,
-        "hours_per_km": 5.0
-      },
-      "ChargeStation-1": {
-        "Name": "ChargeStation-1",
-        "charging_power_rate": 20,
-        "efficiency_factor": 0.85,
-        "total_energy_consumed": 0,
-        "total_energy_delivered": 0
       }
     },
     "12.0": {
@@ -1273,41 +904,41 @@
         "total_LOX_production": 20.22321613604904,
         "regolith_recieved": 8000
       },
-      "Solar_Power_System": {
-        "Name": "Solar_Power_System",
-        "power_degradation_factor": 1.0,
-        "current_power_output": 100.0,
-        "battery_degradation_factor": 1.0,
-        "battery_capacity": 500.0,
-        "battery_charge": 500.0,
-        "total_energy_generated": 1100.0,
-        "total_energy_from_battery": 0.0
-      },
-      "Power_Manager": {
-        "Name": "Power_Manager",
-        "current_energy_demand": 10.0,
-        "current_energy_production": 100.0
-      },
       "Habitat-1": {
         "Name": "Habitat-1",
-        "Energy_Consumed_kWh": 75.0,
+        "Energy_Consumed_kWh": 0,
         "Constant_Power_Rate": 5,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            10,
+            20
+          ]
+        ]
       },
       "CommArray-1": {
         "Name": "CommArray-1",
-        "Energy_Consumed_kWh": 22.0,
+        "Energy_Consumed_kWh": 0.0,
         "Constant_Power_Rate": 2.0,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            15,
+            10
+          ]
+        ]
       },
       "LZ-Alpha": {
         "Name": "LZ-Alpha",
         "LOX_Capacity": 50000,
         "LOX_Stored": 0,
         "utilities_power_rate": 3,
-        "Energy_Consumed_kWh": 33.0,
+        "Energy_Consumed_kWh": 0,
         "chilling_power_per_kg_LOX": 0.31,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            25,
+            50
+          ]
+        ]
       },
       "Regolith Cargo Rover 1": {
         "Name": "Regolith Cargo Rover 1",
@@ -1320,25 +951,6 @@
         "total_distance_traveled": 3.0,
         "total_energy_consumed": 4.199999999999999,
         "hours_per_km": 5.0
-      },
-      "LOX Cargo Rover": {
-        "Name": "LOX Cargo Rover",
-        "rover_type": "cargo",
-        "max_capacity": 5000.0,
-        "current_load": 0,
-        "energy_per_km_per_kg": 0.00035,
-        "battery_capacity": 100.0,
-        "battery_charge": 100.0,
-        "total_distance_traveled": 0.0,
-        "total_energy_consumed": 0.0,
-        "hours_per_km": 5.0
-      },
-      "ChargeStation-1": {
-        "Name": "ChargeStation-1",
-        "charging_power_rate": 20,
-        "efficiency_factor": 0.85,
-        "total_energy_consumed": 0,
-        "total_energy_delivered": 0
       }
     },
     "13.0": {
@@ -1359,41 +971,41 @@
         "total_LOX_production": 20.22321613604904,
         "regolith_recieved": 8000
       },
-      "Solar_Power_System": {
-        "Name": "Solar_Power_System",
-        "power_degradation_factor": 1.0,
-        "current_power_output": 100.0,
-        "battery_degradation_factor": 1.0,
-        "battery_capacity": 500.0,
-        "battery_charge": 500.0,
-        "total_energy_generated": 1200.0,
-        "total_energy_from_battery": 0.0
-      },
-      "Power_Manager": {
-        "Name": "Power_Manager",
-        "current_energy_demand": 10.0,
-        "current_energy_production": 100.0
-      },
       "Habitat-1": {
         "Name": "Habitat-1",
-        "Energy_Consumed_kWh": 80.0,
+        "Energy_Consumed_kWh": 0,
         "Constant_Power_Rate": 5,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            10,
+            20
+          ]
+        ]
       },
       "CommArray-1": {
         "Name": "CommArray-1",
-        "Energy_Consumed_kWh": 24.0,
+        "Energy_Consumed_kWh": 0.0,
         "Constant_Power_Rate": 2.0,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            15,
+            10
+          ]
+        ]
       },
       "LZ-Alpha": {
         "Name": "LZ-Alpha",
         "LOX_Capacity": 50000,
         "LOX_Stored": 0,
         "utilities_power_rate": 3,
-        "Energy_Consumed_kWh": 36.0,
+        "Energy_Consumed_kWh": 0,
         "chilling_power_per_kg_LOX": 0.31,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            25,
+            50
+          ]
+        ]
       },
       "Regolith Cargo Rover 1": {
         "Name": "Regolith Cargo Rover 1",
@@ -1406,25 +1018,6 @@
         "total_distance_traveled": 3.0,
         "total_energy_consumed": 4.199999999999999,
         "hours_per_km": 5.0
-      },
-      "LOX Cargo Rover": {
-        "Name": "LOX Cargo Rover",
-        "rover_type": "cargo",
-        "max_capacity": 5000.0,
-        "current_load": 0,
-        "energy_per_km_per_kg": 0.00035,
-        "battery_capacity": 100.0,
-        "battery_charge": 100.0,
-        "total_distance_traveled": 0.0,
-        "total_energy_consumed": 0.0,
-        "hours_per_km": 5.0
-      },
-      "ChargeStation-1": {
-        "Name": "ChargeStation-1",
-        "charging_power_rate": 20,
-        "efficiency_factor": 0.85,
-        "total_energy_consumed": 0,
-        "total_energy_delivered": 0
       }
     },
     "14.0": {
@@ -1445,41 +1038,41 @@
         "total_LOX_production": 20.22321613604904,
         "regolith_recieved": 8000
       },
-      "Solar_Power_System": {
-        "Name": "Solar_Power_System",
-        "power_degradation_factor": 1.0,
-        "current_power_output": 100.0,
-        "battery_degradation_factor": 1.0,
-        "battery_capacity": 500.0,
-        "battery_charge": 500.0,
-        "total_energy_generated": 1300.0,
-        "total_energy_from_battery": 0.0
-      },
-      "Power_Manager": {
-        "Name": "Power_Manager",
-        "current_energy_demand": 10.0,
-        "current_energy_production": 100.0
-      },
       "Habitat-1": {
         "Name": "Habitat-1",
-        "Energy_Consumed_kWh": 85.0,
+        "Energy_Consumed_kWh": 0,
         "Constant_Power_Rate": 5,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            10,
+            20
+          ]
+        ]
       },
       "CommArray-1": {
         "Name": "CommArray-1",
-        "Energy_Consumed_kWh": 26.0,
+        "Energy_Consumed_kWh": 0.0,
         "Constant_Power_Rate": 2.0,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            15,
+            10
+          ]
+        ]
       },
       "LZ-Alpha": {
         "Name": "LZ-Alpha",
         "LOX_Capacity": 50000,
         "LOX_Stored": 0,
         "utilities_power_rate": 3,
-        "Energy_Consumed_kWh": 39.0,
+        "Energy_Consumed_kWh": 0,
         "chilling_power_per_kg_LOX": 0.31,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            25,
+            50
+          ]
+        ]
       },
       "Regolith Cargo Rover 1": {
         "Name": "Regolith Cargo Rover 1",
@@ -1492,25 +1085,6 @@
         "total_distance_traveled": 3.0,
         "total_energy_consumed": 4.199999999999999,
         "hours_per_km": 5.0
-      },
-      "LOX Cargo Rover": {
-        "Name": "LOX Cargo Rover",
-        "rover_type": "cargo",
-        "max_capacity": 5000.0,
-        "current_load": 0,
-        "energy_per_km_per_kg": 0.00035,
-        "battery_capacity": 100.0,
-        "battery_charge": 100.0,
-        "total_distance_traveled": 0.0,
-        "total_energy_consumed": 0.0,
-        "hours_per_km": 5.0
-      },
-      "ChargeStation-1": {
-        "Name": "ChargeStation-1",
-        "charging_power_rate": 20,
-        "efficiency_factor": 0.85,
-        "total_energy_consumed": 0,
-        "total_energy_delivered": 0
       }
     },
     "15.0": {
@@ -1531,41 +1105,41 @@
         "total_LOX_production": 20.22321613604904,
         "regolith_recieved": 8000
       },
-      "Solar_Power_System": {
-        "Name": "Solar_Power_System",
-        "power_degradation_factor": 1.0,
-        "current_power_output": 100.0,
-        "battery_degradation_factor": 1.0,
-        "battery_capacity": 500.0,
-        "battery_charge": 500.0,
-        "total_energy_generated": 1400.0,
-        "total_energy_from_battery": 0.0
-      },
-      "Power_Manager": {
-        "Name": "Power_Manager",
-        "current_energy_demand": 10.0,
-        "current_energy_production": 100.0
-      },
       "Habitat-1": {
         "Name": "Habitat-1",
-        "Energy_Consumed_kWh": 90.0,
+        "Energy_Consumed_kWh": 0,
         "Constant_Power_Rate": 5,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            10,
+            20
+          ]
+        ]
       },
       "CommArray-1": {
         "Name": "CommArray-1",
-        "Energy_Consumed_kWh": 28.0,
+        "Energy_Consumed_kWh": 0.0,
         "Constant_Power_Rate": 2.0,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            15,
+            10
+          ]
+        ]
       },
       "LZ-Alpha": {
         "Name": "LZ-Alpha",
         "LOX_Capacity": 50000,
         "LOX_Stored": 0,
         "utilities_power_rate": 3,
-        "Energy_Consumed_kWh": 42.0,
+        "Energy_Consumed_kWh": 0,
         "chilling_power_per_kg_LOX": 0.31,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            25,
+            50
+          ]
+        ]
       },
       "Regolith Cargo Rover 1": {
         "Name": "Regolith Cargo Rover 1",
@@ -1578,25 +1152,6 @@
         "total_distance_traveled": 3.0,
         "total_energy_consumed": 4.199999999999999,
         "hours_per_km": 5.0
-      },
-      "LOX Cargo Rover": {
-        "Name": "LOX Cargo Rover",
-        "rover_type": "cargo",
-        "max_capacity": 5000.0,
-        "current_load": 0,
-        "energy_per_km_per_kg": 0.00035,
-        "battery_capacity": 100.0,
-        "battery_charge": 100.0,
-        "total_distance_traveled": 0.0,
-        "total_energy_consumed": 0.0,
-        "hours_per_km": 5.0
-      },
-      "ChargeStation-1": {
-        "Name": "ChargeStation-1",
-        "charging_power_rate": 20,
-        "efficiency_factor": 0.85,
-        "total_energy_consumed": 0,
-        "total_energy_delivered": 0
       }
     },
     "16.0": {
@@ -1617,41 +1172,41 @@
         "total_LOX_production": 30.33482420407356,
         "regolith_recieved": 12000
       },
-      "Solar_Power_System": {
-        "Name": "Solar_Power_System",
-        "power_degradation_factor": 1.0,
-        "current_power_output": 100.0,
-        "battery_degradation_factor": 1.0,
-        "battery_capacity": 500.0,
-        "battery_charge": 500.0,
-        "total_energy_generated": 1500.0,
-        "total_energy_from_battery": 0.0
-      },
-      "Power_Manager": {
-        "Name": "Power_Manager",
-        "current_energy_demand": 20.0,
-        "current_energy_production": 100.0
-      },
       "Habitat-1": {
         "Name": "Habitat-1",
-        "Energy_Consumed_kWh": 95.0,
+        "Energy_Consumed_kWh": 0,
         "Constant_Power_Rate": 5,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            10,
+            20
+          ]
+        ]
       },
       "CommArray-1": {
         "Name": "CommArray-1",
-        "Energy_Consumed_kWh": 40.0,
+        "Energy_Consumed_kWh": 0.0,
         "Constant_Power_Rate": 2.0,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            15,
+            10
+          ]
+        ]
       },
       "LZ-Alpha": {
         "Name": "LZ-Alpha",
         "LOX_Capacity": 50000,
         "LOX_Stored": 0,
         "utilities_power_rate": 3,
-        "Energy_Consumed_kWh": 45.0,
+        "Energy_Consumed_kWh": 0,
         "chilling_power_per_kg_LOX": 0.31,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            25,
+            50
+          ]
+        ]
       },
       "Regolith Cargo Rover 1": {
         "Name": "Regolith Cargo Rover 1",
@@ -1664,25 +1219,6 @@
         "total_distance_traveled": 4.0,
         "total_energy_consumed": 5.6,
         "hours_per_km": 5.0
-      },
-      "LOX Cargo Rover": {
-        "Name": "LOX Cargo Rover",
-        "rover_type": "cargo",
-        "max_capacity": 5000.0,
-        "current_load": 0,
-        "energy_per_km_per_kg": 0.00035,
-        "battery_capacity": 100.0,
-        "battery_charge": 100.0,
-        "total_distance_traveled": 0.0,
-        "total_energy_consumed": 0.0,
-        "hours_per_km": 5.0
-      },
-      "ChargeStation-1": {
-        "Name": "ChargeStation-1",
-        "charging_power_rate": 20,
-        "efficiency_factor": 0.85,
-        "total_energy_consumed": 0,
-        "total_energy_delivered": 0
       }
     },
     "17.0": {
@@ -1703,41 +1239,41 @@
         "total_LOX_production": 30.33482420407356,
         "regolith_recieved": 12000
       },
-      "Solar_Power_System": {
-        "Name": "Solar_Power_System",
-        "power_degradation_factor": 1.0,
-        "current_power_output": 100.0,
-        "battery_degradation_factor": 1.0,
-        "battery_capacity": 500.0,
-        "battery_charge": 500.0,
-        "total_energy_generated": 1600.0,
-        "total_energy_from_battery": 0.0
-      },
-      "Power_Manager": {
-        "Name": "Power_Manager",
-        "current_energy_demand": 10.0,
-        "current_energy_production": 100.0
-      },
       "Habitat-1": {
         "Name": "Habitat-1",
-        "Energy_Consumed_kWh": 100.0,
+        "Energy_Consumed_kWh": 0,
         "Constant_Power_Rate": 5,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            10,
+            20
+          ]
+        ]
       },
       "CommArray-1": {
         "Name": "CommArray-1",
-        "Energy_Consumed_kWh": 42.0,
+        "Energy_Consumed_kWh": 0.0,
         "Constant_Power_Rate": 2.0,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            15,
+            10
+          ]
+        ]
       },
       "LZ-Alpha": {
         "Name": "LZ-Alpha",
         "LOX_Capacity": 50000,
         "LOX_Stored": 0,
         "utilities_power_rate": 3,
-        "Energy_Consumed_kWh": 48.0,
+        "Energy_Consumed_kWh": 0,
         "chilling_power_per_kg_LOX": 0.31,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            25,
+            50
+          ]
+        ]
       },
       "Regolith Cargo Rover 1": {
         "Name": "Regolith Cargo Rover 1",
@@ -1750,25 +1286,6 @@
         "total_distance_traveled": 4.0,
         "total_energy_consumed": 5.6,
         "hours_per_km": 5.0
-      },
-      "LOX Cargo Rover": {
-        "Name": "LOX Cargo Rover",
-        "rover_type": "cargo",
-        "max_capacity": 5000.0,
-        "current_load": 0,
-        "energy_per_km_per_kg": 0.00035,
-        "battery_capacity": 100.0,
-        "battery_charge": 100.0,
-        "total_distance_traveled": 0.0,
-        "total_energy_consumed": 0.0,
-        "hours_per_km": 5.0
-      },
-      "ChargeStation-1": {
-        "Name": "ChargeStation-1",
-        "charging_power_rate": 20,
-        "efficiency_factor": 0.85,
-        "total_energy_consumed": 0,
-        "total_energy_delivered": 0
       }
     },
     "18.0": {
@@ -1789,41 +1306,41 @@
         "total_LOX_production": 30.33482420407356,
         "regolith_recieved": 12000
       },
-      "Solar_Power_System": {
-        "Name": "Solar_Power_System",
-        "power_degradation_factor": 1.0,
-        "current_power_output": 100.0,
-        "battery_degradation_factor": 1.0,
-        "battery_capacity": 500.0,
-        "battery_charge": 500.0,
-        "total_energy_generated": 1700.0,
-        "total_energy_from_battery": 0.0
-      },
-      "Power_Manager": {
-        "Name": "Power_Manager",
-        "current_energy_demand": 10.0,
-        "current_energy_production": 100.0
-      },
       "Habitat-1": {
         "Name": "Habitat-1",
-        "Energy_Consumed_kWh": 105.0,
+        "Energy_Consumed_kWh": 0,
         "Constant_Power_Rate": 5,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            10,
+            20
+          ]
+        ]
       },
       "CommArray-1": {
         "Name": "CommArray-1",
-        "Energy_Consumed_kWh": 44.0,
+        "Energy_Consumed_kWh": 0.0,
         "Constant_Power_Rate": 2.0,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            15,
+            10
+          ]
+        ]
       },
       "LZ-Alpha": {
         "Name": "LZ-Alpha",
         "LOX_Capacity": 50000,
         "LOX_Stored": 0,
         "utilities_power_rate": 3,
-        "Energy_Consumed_kWh": 51.0,
+        "Energy_Consumed_kWh": 0,
         "chilling_power_per_kg_LOX": 0.31,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            25,
+            50
+          ]
+        ]
       },
       "Regolith Cargo Rover 1": {
         "Name": "Regolith Cargo Rover 1",
@@ -1836,25 +1353,6 @@
         "total_distance_traveled": 4.0,
         "total_energy_consumed": 5.6,
         "hours_per_km": 5.0
-      },
-      "LOX Cargo Rover": {
-        "Name": "LOX Cargo Rover",
-        "rover_type": "cargo",
-        "max_capacity": 5000.0,
-        "current_load": 0,
-        "energy_per_km_per_kg": 0.00035,
-        "battery_capacity": 100.0,
-        "battery_charge": 100.0,
-        "total_distance_traveled": 0.0,
-        "total_energy_consumed": 0.0,
-        "hours_per_km": 5.0
-      },
-      "ChargeStation-1": {
-        "Name": "ChargeStation-1",
-        "charging_power_rate": 20,
-        "efficiency_factor": 0.85,
-        "total_energy_consumed": 0,
-        "total_energy_delivered": 0
       }
     },
     "19.0": {
@@ -1875,41 +1373,41 @@
         "total_LOX_production": 30.33482420407356,
         "regolith_recieved": 12000
       },
-      "Solar_Power_System": {
-        "Name": "Solar_Power_System",
-        "power_degradation_factor": 1.0,
-        "current_power_output": 100.0,
-        "battery_degradation_factor": 1.0,
-        "battery_capacity": 500.0,
-        "battery_charge": 500.0,
-        "total_energy_generated": 1800.0,
-        "total_energy_from_battery": 0.0
-      },
-      "Power_Manager": {
-        "Name": "Power_Manager",
-        "current_energy_demand": 10.0,
-        "current_energy_production": 100.0
-      },
       "Habitat-1": {
         "Name": "Habitat-1",
-        "Energy_Consumed_kWh": 110.0,
+        "Energy_Consumed_kWh": 0,
         "Constant_Power_Rate": 5,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            10,
+            20
+          ]
+        ]
       },
       "CommArray-1": {
         "Name": "CommArray-1",
-        "Energy_Consumed_kWh": 46.0,
+        "Energy_Consumed_kWh": 0.0,
         "Constant_Power_Rate": 2.0,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            15,
+            10
+          ]
+        ]
       },
       "LZ-Alpha": {
         "Name": "LZ-Alpha",
         "LOX_Capacity": 50000,
         "LOX_Stored": 0,
         "utilities_power_rate": 3,
-        "Energy_Consumed_kWh": 54.0,
+        "Energy_Consumed_kWh": 0,
         "chilling_power_per_kg_LOX": 0.31,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            25,
+            50
+          ]
+        ]
       },
       "Regolith Cargo Rover 1": {
         "Name": "Regolith Cargo Rover 1",
@@ -1922,25 +1420,6 @@
         "total_distance_traveled": 4.0,
         "total_energy_consumed": 5.6,
         "hours_per_km": 5.0
-      },
-      "LOX Cargo Rover": {
-        "Name": "LOX Cargo Rover",
-        "rover_type": "cargo",
-        "max_capacity": 5000.0,
-        "current_load": 0,
-        "energy_per_km_per_kg": 0.00035,
-        "battery_capacity": 100.0,
-        "battery_charge": 100.0,
-        "total_distance_traveled": 0.0,
-        "total_energy_consumed": 0.0,
-        "hours_per_km": 5.0
-      },
-      "ChargeStation-1": {
-        "Name": "ChargeStation-1",
-        "charging_power_rate": 20,
-        "efficiency_factor": 0.85,
-        "total_energy_consumed": 0,
-        "total_energy_delivered": 0
       }
     },
     "20.0": {
@@ -1961,41 +1440,41 @@
         "total_LOX_production": 30.33482420407356,
         "regolith_recieved": 12000
       },
-      "Solar_Power_System": {
-        "Name": "Solar_Power_System",
-        "power_degradation_factor": 1.0,
-        "current_power_output": 100.0,
-        "battery_degradation_factor": 1.0,
-        "battery_capacity": 500.0,
-        "battery_charge": 500.0,
-        "total_energy_generated": 1900.0,
-        "total_energy_from_battery": 0.0
-      },
-      "Power_Manager": {
-        "Name": "Power_Manager",
-        "current_energy_demand": 10.0,
-        "current_energy_production": 100.0
-      },
       "Habitat-1": {
         "Name": "Habitat-1",
-        "Energy_Consumed_kWh": 115.0,
+        "Energy_Consumed_kWh": 0,
         "Constant_Power_Rate": 5,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            10,
+            20
+          ]
+        ]
       },
       "CommArray-1": {
         "Name": "CommArray-1",
-        "Energy_Consumed_kWh": 48.0,
+        "Energy_Consumed_kWh": 0.0,
         "Constant_Power_Rate": 2.0,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            15,
+            10
+          ]
+        ]
       },
       "LZ-Alpha": {
         "Name": "LZ-Alpha",
         "LOX_Capacity": 50000,
         "LOX_Stored": 0,
         "utilities_power_rate": 3,
-        "Energy_Consumed_kWh": 57.0,
+        "Energy_Consumed_kWh": 0,
         "chilling_power_per_kg_LOX": 0.31,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            25,
+            50
+          ]
+        ]
       },
       "Regolith Cargo Rover 1": {
         "Name": "Regolith Cargo Rover 1",
@@ -2008,25 +1487,6 @@
         "total_distance_traveled": 4.0,
         "total_energy_consumed": 5.6,
         "hours_per_km": 5.0
-      },
-      "LOX Cargo Rover": {
-        "Name": "LOX Cargo Rover",
-        "rover_type": "cargo",
-        "max_capacity": 5000.0,
-        "current_load": 0,
-        "energy_per_km_per_kg": 0.00035,
-        "battery_capacity": 100.0,
-        "battery_charge": 100.0,
-        "total_distance_traveled": 0.0,
-        "total_energy_consumed": 0.0,
-        "hours_per_km": 5.0
-      },
-      "ChargeStation-1": {
-        "Name": "ChargeStation-1",
-        "charging_power_rate": 20,
-        "efficiency_factor": 0.85,
-        "total_energy_consumed": 0,
-        "total_energy_delivered": 0
       }
     },
     "21.0": {
@@ -2047,41 +1507,41 @@
         "total_LOX_production": 40.44643227209808,
         "regolith_recieved": 16000
       },
-      "Solar_Power_System": {
-        "Name": "Solar_Power_System",
-        "power_degradation_factor": 1.0,
-        "current_power_output": 100.0,
-        "battery_degradation_factor": 1.0,
-        "battery_capacity": 500.0,
-        "battery_charge": 500.0,
-        "total_energy_generated": 2000.0,
-        "total_energy_from_battery": 0.0
-      },
-      "Power_Manager": {
-        "Name": "Power_Manager",
-        "current_energy_demand": 10.0,
-        "current_energy_production": 100.0
-      },
       "Habitat-1": {
         "Name": "Habitat-1",
-        "Energy_Consumed_kWh": 120.0,
+        "Energy_Consumed_kWh": 0,
         "Constant_Power_Rate": 5,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            10,
+            20
+          ]
+        ]
       },
       "CommArray-1": {
         "Name": "CommArray-1",
-        "Energy_Consumed_kWh": 50.0,
+        "Energy_Consumed_kWh": 0.0,
         "Constant_Power_Rate": 2.0,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            15,
+            10
+          ]
+        ]
       },
       "LZ-Alpha": {
         "Name": "LZ-Alpha",
         "LOX_Capacity": 50000,
         "LOX_Stored": 0,
         "utilities_power_rate": 3,
-        "Energy_Consumed_kWh": 60.0,
+        "Energy_Consumed_kWh": 0,
         "chilling_power_per_kg_LOX": 0.31,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            25,
+            50
+          ]
+        ]
       },
       "Regolith Cargo Rover 1": {
         "Name": "Regolith Cargo Rover 1",
@@ -2094,25 +1554,6 @@
         "total_distance_traveled": 5.0,
         "total_energy_consumed": 7.0,
         "hours_per_km": 5.0
-      },
-      "LOX Cargo Rover": {
-        "Name": "LOX Cargo Rover",
-        "rover_type": "cargo",
-        "max_capacity": 5000.0,
-        "current_load": 0,
-        "energy_per_km_per_kg": 0.00035,
-        "battery_capacity": 100.0,
-        "battery_charge": 100.0,
-        "total_distance_traveled": 0.0,
-        "total_energy_consumed": 0.0,
-        "hours_per_km": 5.0
-      },
-      "ChargeStation-1": {
-        "Name": "ChargeStation-1",
-        "charging_power_rate": 20,
-        "efficiency_factor": 0.85,
-        "total_energy_consumed": 0,
-        "total_energy_delivered": 0
       }
     },
     "22.0": {
@@ -2133,41 +1574,41 @@
         "total_LOX_production": 40.44643227209808,
         "regolith_recieved": 16000
       },
-      "Solar_Power_System": {
-        "Name": "Solar_Power_System",
-        "power_degradation_factor": 1.0,
-        "current_power_output": 100.0,
-        "battery_degradation_factor": 1.0,
-        "battery_capacity": 500.0,
-        "battery_charge": 500.0,
-        "total_energy_generated": 2100.0,
-        "total_energy_from_battery": 0.0
-      },
-      "Power_Manager": {
-        "Name": "Power_Manager",
-        "current_energy_demand": 10.0,
-        "current_energy_production": 100.0
-      },
       "Habitat-1": {
         "Name": "Habitat-1",
-        "Energy_Consumed_kWh": 125.0,
+        "Energy_Consumed_kWh": 0,
         "Constant_Power_Rate": 5,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            10,
+            20
+          ]
+        ]
       },
       "CommArray-1": {
         "Name": "CommArray-1",
-        "Energy_Consumed_kWh": 52.0,
+        "Energy_Consumed_kWh": 0.0,
         "Constant_Power_Rate": 2.0,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            15,
+            10
+          ]
+        ]
       },
       "LZ-Alpha": {
         "Name": "LZ-Alpha",
         "LOX_Capacity": 50000,
         "LOX_Stored": 0,
         "utilities_power_rate": 3,
-        "Energy_Consumed_kWh": 63.0,
+        "Energy_Consumed_kWh": 0,
         "chilling_power_per_kg_LOX": 0.31,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            25,
+            50
+          ]
+        ]
       },
       "Regolith Cargo Rover 1": {
         "Name": "Regolith Cargo Rover 1",
@@ -2180,25 +1621,6 @@
         "total_distance_traveled": 5.0,
         "total_energy_consumed": 7.0,
         "hours_per_km": 5.0
-      },
-      "LOX Cargo Rover": {
-        "Name": "LOX Cargo Rover",
-        "rover_type": "cargo",
-        "max_capacity": 5000.0,
-        "current_load": 0,
-        "energy_per_km_per_kg": 0.00035,
-        "battery_capacity": 100.0,
-        "battery_charge": 100.0,
-        "total_distance_traveled": 0.0,
-        "total_energy_consumed": 0.0,
-        "hours_per_km": 5.0
-      },
-      "ChargeStation-1": {
-        "Name": "ChargeStation-1",
-        "charging_power_rate": 20,
-        "efficiency_factor": 0.85,
-        "total_energy_consumed": 0,
-        "total_energy_delivered": 0
       }
     },
     "23.0": {
@@ -2219,41 +1641,41 @@
         "total_LOX_production": 40.44643227209808,
         "regolith_recieved": 16000
       },
-      "Solar_Power_System": {
-        "Name": "Solar_Power_System",
-        "power_degradation_factor": 1.0,
-        "current_power_output": 100.0,
-        "battery_degradation_factor": 1.0,
-        "battery_capacity": 500.0,
-        "battery_charge": 500.0,
-        "total_energy_generated": 2200.0,
-        "total_energy_from_battery": 0.0
-      },
-      "Power_Manager": {
-        "Name": "Power_Manager",
-        "current_energy_demand": 10.0,
-        "current_energy_production": 100.0
-      },
       "Habitat-1": {
         "Name": "Habitat-1",
-        "Energy_Consumed_kWh": 130.0,
+        "Energy_Consumed_kWh": 0,
         "Constant_Power_Rate": 5,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            10,
+            20
+          ]
+        ]
       },
       "CommArray-1": {
         "Name": "CommArray-1",
-        "Energy_Consumed_kWh": 54.0,
+        "Energy_Consumed_kWh": 0.0,
         "Constant_Power_Rate": 2.0,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            15,
+            10
+          ]
+        ]
       },
       "LZ-Alpha": {
         "Name": "LZ-Alpha",
         "LOX_Capacity": 50000,
         "LOX_Stored": 0,
         "utilities_power_rate": 3,
-        "Energy_Consumed_kWh": 66.0,
+        "Energy_Consumed_kWh": 0,
         "chilling_power_per_kg_LOX": 0.31,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            25,
+            50
+          ]
+        ]
       },
       "Regolith Cargo Rover 1": {
         "Name": "Regolith Cargo Rover 1",
@@ -2266,25 +1688,6 @@
         "total_distance_traveled": 5.0,
         "total_energy_consumed": 7.0,
         "hours_per_km": 5.0
-      },
-      "LOX Cargo Rover": {
-        "Name": "LOX Cargo Rover",
-        "rover_type": "cargo",
-        "max_capacity": 5000.0,
-        "current_load": 0,
-        "energy_per_km_per_kg": 0.00035,
-        "battery_capacity": 100.0,
-        "battery_charge": 100.0,
-        "total_distance_traveled": 0.0,
-        "total_energy_consumed": 0.0,
-        "hours_per_km": 5.0
-      },
-      "ChargeStation-1": {
-        "Name": "ChargeStation-1",
-        "charging_power_rate": 20,
-        "efficiency_factor": 0.85,
-        "total_energy_consumed": 0,
-        "total_energy_delivered": 0
       }
     },
     "24.0": {
@@ -2305,41 +1708,41 @@
         "total_LOX_production": 40.44643227209808,
         "regolith_recieved": 16000
       },
-      "Solar_Power_System": {
-        "Name": "Solar_Power_System",
-        "power_degradation_factor": 1.0,
-        "current_power_output": 100.0,
-        "battery_degradation_factor": 1.0,
-        "battery_capacity": 500.0,
-        "battery_charge": 500.0,
-        "total_energy_generated": 2300.0,
-        "total_energy_from_battery": 0.0
-      },
-      "Power_Manager": {
-        "Name": "Power_Manager",
-        "current_energy_demand": 10.0,
-        "current_energy_production": 100.0
-      },
       "Habitat-1": {
         "Name": "Habitat-1",
-        "Energy_Consumed_kWh": 135.0,
+        "Energy_Consumed_kWh": 0,
         "Constant_Power_Rate": 5,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            10,
+            20
+          ]
+        ]
       },
       "CommArray-1": {
         "Name": "CommArray-1",
-        "Energy_Consumed_kWh": 56.0,
+        "Energy_Consumed_kWh": 0.0,
         "Constant_Power_Rate": 2.0,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            15,
+            10
+          ]
+        ]
       },
       "LZ-Alpha": {
         "Name": "LZ-Alpha",
         "LOX_Capacity": 50000,
         "LOX_Stored": 0,
         "utilities_power_rate": 3,
-        "Energy_Consumed_kWh": 69.0,
+        "Energy_Consumed_kWh": 0,
         "chilling_power_per_kg_LOX": 0.31,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            25,
+            50
+          ]
+        ]
       },
       "Regolith Cargo Rover 1": {
         "Name": "Regolith Cargo Rover 1",
@@ -2352,25 +1755,6 @@
         "total_distance_traveled": 5.0,
         "total_energy_consumed": 7.0,
         "hours_per_km": 5.0
-      },
-      "LOX Cargo Rover": {
-        "Name": "LOX Cargo Rover",
-        "rover_type": "cargo",
-        "max_capacity": 5000.0,
-        "current_load": 0,
-        "energy_per_km_per_kg": 0.00035,
-        "battery_capacity": 100.0,
-        "battery_charge": 100.0,
-        "total_distance_traveled": 0.0,
-        "total_energy_consumed": 0.0,
-        "hours_per_km": 5.0
-      },
-      "ChargeStation-1": {
-        "Name": "ChargeStation-1",
-        "charging_power_rate": 20,
-        "efficiency_factor": 0.85,
-        "total_energy_consumed": 0,
-        "total_energy_delivered": 0
       }
     },
     "25.0": {
@@ -2391,41 +1775,41 @@
         "total_LOX_production": 40.44643227209808,
         "regolith_recieved": 16000
       },
-      "Solar_Power_System": {
-        "Name": "Solar_Power_System",
-        "power_degradation_factor": 1.0,
-        "current_power_output": 100.0,
-        "battery_degradation_factor": 1.0,
-        "battery_capacity": 500.0,
-        "battery_charge": 500.0,
-        "total_energy_generated": 2400.0,
-        "total_energy_from_battery": 0.0
-      },
-      "Power_Manager": {
-        "Name": "Power_Manager",
-        "current_energy_demand": 10.0,
-        "current_energy_production": 100.0
-      },
       "Habitat-1": {
         "Name": "Habitat-1",
-        "Energy_Consumed_kWh": 140.0,
+        "Energy_Consumed_kWh": 0,
         "Constant_Power_Rate": 5,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            10,
+            20
+          ]
+        ]
       },
       "CommArray-1": {
         "Name": "CommArray-1",
-        "Energy_Consumed_kWh": 58.0,
+        "Energy_Consumed_kWh": 0.0,
         "Constant_Power_Rate": 2.0,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            15,
+            10
+          ]
+        ]
       },
       "LZ-Alpha": {
         "Name": "LZ-Alpha",
         "LOX_Capacity": 50000,
         "LOX_Stored": 0,
         "utilities_power_rate": 3,
-        "Energy_Consumed_kWh": 72.0,
+        "Energy_Consumed_kWh": 0,
         "chilling_power_per_kg_LOX": 0.31,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            25,
+            50
+          ]
+        ]
       },
       "Regolith Cargo Rover 1": {
         "Name": "Regolith Cargo Rover 1",
@@ -2438,25 +1822,6 @@
         "total_distance_traveled": 5.0,
         "total_energy_consumed": 7.0,
         "hours_per_km": 5.0
-      },
-      "LOX Cargo Rover": {
-        "Name": "LOX Cargo Rover",
-        "rover_type": "cargo",
-        "max_capacity": 5000.0,
-        "current_load": 0,
-        "energy_per_km_per_kg": 0.00035,
-        "battery_capacity": 100.0,
-        "battery_charge": 100.0,
-        "total_distance_traveled": 0.0,
-        "total_energy_consumed": 0.0,
-        "hours_per_km": 5.0
-      },
-      "ChargeStation-1": {
-        "Name": "ChargeStation-1",
-        "charging_power_rate": 20,
-        "efficiency_factor": 0.85,
-        "total_energy_consumed": 0,
-        "total_energy_delivered": 0
       }
     },
     "26.0": {
@@ -2477,41 +1842,41 @@
         "total_LOX_production": 50.5580403401226,
         "regolith_recieved": 20000
       },
-      "Solar_Power_System": {
-        "Name": "Solar_Power_System",
-        "power_degradation_factor": 1.0,
-        "current_power_output": 100.0,
-        "battery_degradation_factor": 1.0,
-        "battery_capacity": 500.0,
-        "battery_charge": 500.0,
-        "total_energy_generated": 2500.0,
-        "total_energy_from_battery": 0.0
-      },
-      "Power_Manager": {
-        "Name": "Power_Manager",
-        "current_energy_demand": 60.0,
-        "current_energy_production": 100.0
-      },
       "Habitat-1": {
         "Name": "Habitat-1",
-        "Energy_Consumed_kWh": 145.0,
+        "Energy_Consumed_kWh": 0,
         "Constant_Power_Rate": 5,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            10,
+            20
+          ]
+        ]
       },
       "CommArray-1": {
         "Name": "CommArray-1",
-        "Energy_Consumed_kWh": 60.0,
+        "Energy_Consumed_kWh": 0.0,
         "Constant_Power_Rate": 2.0,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            15,
+            10
+          ]
+        ]
       },
       "LZ-Alpha": {
         "Name": "LZ-Alpha",
         "LOX_Capacity": 50000,
         "LOX_Stored": 0,
         "utilities_power_rate": 3,
-        "Energy_Consumed_kWh": 125.0,
+        "Energy_Consumed_kWh": 0,
         "chilling_power_per_kg_LOX": 0.31,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            25,
+            50
+          ]
+        ]
       },
       "Regolith Cargo Rover 1": {
         "Name": "Regolith Cargo Rover 1",
@@ -2524,25 +1889,6 @@
         "total_distance_traveled": 6.0,
         "total_energy_consumed": 8.4,
         "hours_per_km": 5.0
-      },
-      "LOX Cargo Rover": {
-        "Name": "LOX Cargo Rover",
-        "rover_type": "cargo",
-        "max_capacity": 5000.0,
-        "current_load": 0,
-        "energy_per_km_per_kg": 0.00035,
-        "battery_capacity": 100.0,
-        "battery_charge": 100.0,
-        "total_distance_traveled": 0.0,
-        "total_energy_consumed": 0.0,
-        "hours_per_km": 5.0
-      },
-      "ChargeStation-1": {
-        "Name": "ChargeStation-1",
-        "charging_power_rate": 20,
-        "efficiency_factor": 0.85,
-        "total_energy_consumed": 0,
-        "total_energy_delivered": 0
       }
     },
     "27.0": {
@@ -2563,41 +1909,41 @@
         "total_LOX_production": 50.5580403401226,
         "regolith_recieved": 20000
       },
-      "Solar_Power_System": {
-        "Name": "Solar_Power_System",
-        "power_degradation_factor": 1.0,
-        "current_power_output": 100.0,
-        "battery_degradation_factor": 1.0,
-        "battery_capacity": 500.0,
-        "battery_charge": 500.0,
-        "total_energy_generated": 2600.0,
-        "total_energy_from_battery": 0.0
-      },
-      "Power_Manager": {
-        "Name": "Power_Manager",
-        "current_energy_demand": 10.0,
-        "current_energy_production": 100.0
-      },
       "Habitat-1": {
         "Name": "Habitat-1",
-        "Energy_Consumed_kWh": 150.0,
+        "Energy_Consumed_kWh": 0,
         "Constant_Power_Rate": 5,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            10,
+            20
+          ]
+        ]
       },
       "CommArray-1": {
         "Name": "CommArray-1",
-        "Energy_Consumed_kWh": 62.0,
+        "Energy_Consumed_kWh": 0.0,
         "Constant_Power_Rate": 2.0,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            15,
+            10
+          ]
+        ]
       },
       "LZ-Alpha": {
         "Name": "LZ-Alpha",
         "LOX_Capacity": 50000,
         "LOX_Stored": 0,
         "utilities_power_rate": 3,
-        "Energy_Consumed_kWh": 128.0,
+        "Energy_Consumed_kWh": 0,
         "chilling_power_per_kg_LOX": 0.31,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            25,
+            50
+          ]
+        ]
       },
       "Regolith Cargo Rover 1": {
         "Name": "Regolith Cargo Rover 1",
@@ -2610,25 +1956,6 @@
         "total_distance_traveled": 6.0,
         "total_energy_consumed": 8.4,
         "hours_per_km": 5.0
-      },
-      "LOX Cargo Rover": {
-        "Name": "LOX Cargo Rover",
-        "rover_type": "cargo",
-        "max_capacity": 5000.0,
-        "current_load": 0,
-        "energy_per_km_per_kg": 0.00035,
-        "battery_capacity": 100.0,
-        "battery_charge": 100.0,
-        "total_distance_traveled": 0.0,
-        "total_energy_consumed": 0.0,
-        "hours_per_km": 5.0
-      },
-      "ChargeStation-1": {
-        "Name": "ChargeStation-1",
-        "charging_power_rate": 20,
-        "efficiency_factor": 0.85,
-        "total_energy_consumed": 0,
-        "total_energy_delivered": 0
       }
     },
     "28.0": {
@@ -2649,41 +1976,41 @@
         "total_LOX_production": 50.5580403401226,
         "regolith_recieved": 20000
       },
-      "Solar_Power_System": {
-        "Name": "Solar_Power_System",
-        "power_degradation_factor": 1.0,
-        "current_power_output": 100.0,
-        "battery_degradation_factor": 1.0,
-        "battery_capacity": 500.0,
-        "battery_charge": 500.0,
-        "total_energy_generated": 2700.0,
-        "total_energy_from_battery": 0.0
-      },
-      "Power_Manager": {
-        "Name": "Power_Manager",
-        "current_energy_demand": 10.0,
-        "current_energy_production": 100.0
-      },
       "Habitat-1": {
         "Name": "Habitat-1",
-        "Energy_Consumed_kWh": 155.0,
+        "Energy_Consumed_kWh": 0,
         "Constant_Power_Rate": 5,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            10,
+            20
+          ]
+        ]
       },
       "CommArray-1": {
         "Name": "CommArray-1",
-        "Energy_Consumed_kWh": 64.0,
+        "Energy_Consumed_kWh": 0.0,
         "Constant_Power_Rate": 2.0,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            15,
+            10
+          ]
+        ]
       },
       "LZ-Alpha": {
         "Name": "LZ-Alpha",
         "LOX_Capacity": 50000,
         "LOX_Stored": 0,
         "utilities_power_rate": 3,
-        "Energy_Consumed_kWh": 131.0,
+        "Energy_Consumed_kWh": 0,
         "chilling_power_per_kg_LOX": 0.31,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            25,
+            50
+          ]
+        ]
       },
       "Regolith Cargo Rover 1": {
         "Name": "Regolith Cargo Rover 1",
@@ -2696,25 +2023,6 @@
         "total_distance_traveled": 6.0,
         "total_energy_consumed": 8.4,
         "hours_per_km": 5.0
-      },
-      "LOX Cargo Rover": {
-        "Name": "LOX Cargo Rover",
-        "rover_type": "cargo",
-        "max_capacity": 5000.0,
-        "current_load": 0,
-        "energy_per_km_per_kg": 0.00035,
-        "battery_capacity": 100.0,
-        "battery_charge": 100.0,
-        "total_distance_traveled": 0.0,
-        "total_energy_consumed": 0.0,
-        "hours_per_km": 5.0
-      },
-      "ChargeStation-1": {
-        "Name": "ChargeStation-1",
-        "charging_power_rate": 20,
-        "efficiency_factor": 0.85,
-        "total_energy_consumed": 0,
-        "total_energy_delivered": 0
       }
     },
     "29.0": {
@@ -2735,41 +2043,41 @@
         "total_LOX_production": 50.5580403401226,
         "regolith_recieved": 20000
       },
-      "Solar_Power_System": {
-        "Name": "Solar_Power_System",
-        "power_degradation_factor": 1.0,
-        "current_power_output": 100.0,
-        "battery_degradation_factor": 1.0,
-        "battery_capacity": 500.0,
-        "battery_charge": 500.0,
-        "total_energy_generated": 2800.0,
-        "total_energy_from_battery": 0.0
-      },
-      "Power_Manager": {
-        "Name": "Power_Manager",
-        "current_energy_demand": 10.0,
-        "current_energy_production": 100.0
-      },
       "Habitat-1": {
         "Name": "Habitat-1",
-        "Energy_Consumed_kWh": 160.0,
+        "Energy_Consumed_kWh": 0,
         "Constant_Power_Rate": 5,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            10,
+            20
+          ]
+        ]
       },
       "CommArray-1": {
         "Name": "CommArray-1",
-        "Energy_Consumed_kWh": 66.0,
+        "Energy_Consumed_kWh": 0.0,
         "Constant_Power_Rate": 2.0,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            15,
+            10
+          ]
+        ]
       },
       "LZ-Alpha": {
         "Name": "LZ-Alpha",
         "LOX_Capacity": 50000,
         "LOX_Stored": 0,
         "utilities_power_rate": 3,
-        "Energy_Consumed_kWh": 134.0,
+        "Energy_Consumed_kWh": 0,
         "chilling_power_per_kg_LOX": 0.31,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            25,
+            50
+          ]
+        ]
       },
       "Regolith Cargo Rover 1": {
         "Name": "Regolith Cargo Rover 1",
@@ -2782,25 +2090,6 @@
         "total_distance_traveled": 6.0,
         "total_energy_consumed": 8.4,
         "hours_per_km": 5.0
-      },
-      "LOX Cargo Rover": {
-        "Name": "LOX Cargo Rover",
-        "rover_type": "cargo",
-        "max_capacity": 5000.0,
-        "current_load": 0,
-        "energy_per_km_per_kg": 0.00035,
-        "battery_capacity": 100.0,
-        "battery_charge": 100.0,
-        "total_distance_traveled": 0.0,
-        "total_energy_consumed": 0.0,
-        "hours_per_km": 5.0
-      },
-      "ChargeStation-1": {
-        "Name": "ChargeStation-1",
-        "charging_power_rate": 20,
-        "efficiency_factor": 0.85,
-        "total_energy_consumed": 0,
-        "total_energy_delivered": 0
       }
     },
     "30.0": {
@@ -2821,41 +2110,41 @@
         "total_LOX_production": 50.5580403401226,
         "regolith_recieved": 20000
       },
-      "Solar_Power_System": {
-        "Name": "Solar_Power_System",
-        "power_degradation_factor": 1.0,
-        "current_power_output": 100.0,
-        "battery_degradation_factor": 1.0,
-        "battery_capacity": 500.0,
-        "battery_charge": 500.0,
-        "total_energy_generated": 2900.0,
-        "total_energy_from_battery": 0.0
-      },
-      "Power_Manager": {
-        "Name": "Power_Manager",
-        "current_energy_demand": 10.0,
-        "current_energy_production": 100.0
-      },
       "Habitat-1": {
         "Name": "Habitat-1",
-        "Energy_Consumed_kWh": 165.0,
+        "Energy_Consumed_kWh": 0,
         "Constant_Power_Rate": 5,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            10,
+            20
+          ]
+        ]
       },
       "CommArray-1": {
         "Name": "CommArray-1",
-        "Energy_Consumed_kWh": 68.0,
+        "Energy_Consumed_kWh": 0.0,
         "Constant_Power_Rate": 2.0,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            15,
+            10
+          ]
+        ]
       },
       "LZ-Alpha": {
         "Name": "LZ-Alpha",
         "LOX_Capacity": 50000,
         "LOX_Stored": 0,
         "utilities_power_rate": 3,
-        "Energy_Consumed_kWh": 137.0,
+        "Energy_Consumed_kWh": 0,
         "chilling_power_per_kg_LOX": 0.31,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            25,
+            50
+          ]
+        ]
       },
       "Regolith Cargo Rover 1": {
         "Name": "Regolith Cargo Rover 1",
@@ -2868,25 +2157,6 @@
         "total_distance_traveled": 6.0,
         "total_energy_consumed": 8.4,
         "hours_per_km": 5.0
-      },
-      "LOX Cargo Rover": {
-        "Name": "LOX Cargo Rover",
-        "rover_type": "cargo",
-        "max_capacity": 5000.0,
-        "current_load": 0,
-        "energy_per_km_per_kg": 0.00035,
-        "battery_capacity": 100.0,
-        "battery_charge": 100.0,
-        "total_distance_traveled": 0.0,
-        "total_energy_consumed": 0.0,
-        "hours_per_km": 5.0
-      },
-      "ChargeStation-1": {
-        "Name": "ChargeStation-1",
-        "charging_power_rate": 20,
-        "efficiency_factor": 0.85,
-        "total_energy_consumed": 0,
-        "total_energy_delivered": 0
       }
     },
     "31.0": {
@@ -2907,41 +2177,41 @@
         "total_LOX_production": 60.669648408147125,
         "regolith_recieved": 24000
       },
-      "Solar_Power_System": {
-        "Name": "Solar_Power_System",
-        "power_degradation_factor": 1.0,
-        "current_power_output": 100.0,
-        "battery_degradation_factor": 1.0,
-        "battery_capacity": 500.0,
-        "battery_charge": 500.0,
-        "total_energy_generated": 3000.0,
-        "total_energy_from_battery": 0.0
-      },
-      "Power_Manager": {
-        "Name": "Power_Manager",
-        "current_energy_demand": 10.0,
-        "current_energy_production": 100.0
-      },
       "Habitat-1": {
         "Name": "Habitat-1",
-        "Energy_Consumed_kWh": 170.0,
+        "Energy_Consumed_kWh": 0,
         "Constant_Power_Rate": 5,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            10,
+            20
+          ]
+        ]
       },
       "CommArray-1": {
         "Name": "CommArray-1",
-        "Energy_Consumed_kWh": 70.0,
+        "Energy_Consumed_kWh": 0.0,
         "Constant_Power_Rate": 2.0,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            15,
+            10
+          ]
+        ]
       },
       "LZ-Alpha": {
         "Name": "LZ-Alpha",
         "LOX_Capacity": 50000,
         "LOX_Stored": 0,
         "utilities_power_rate": 3,
-        "Energy_Consumed_kWh": 140.0,
+        "Energy_Consumed_kWh": 0,
         "chilling_power_per_kg_LOX": 0.31,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            25,
+            50
+          ]
+        ]
       },
       "Regolith Cargo Rover 1": {
         "Name": "Regolith Cargo Rover 1",
@@ -2954,25 +2224,6 @@
         "total_distance_traveled": 7.0,
         "total_energy_consumed": 9.8,
         "hours_per_km": 5.0
-      },
-      "LOX Cargo Rover": {
-        "Name": "LOX Cargo Rover",
-        "rover_type": "cargo",
-        "max_capacity": 5000.0,
-        "current_load": 0,
-        "energy_per_km_per_kg": 0.00035,
-        "battery_capacity": 100.0,
-        "battery_charge": 100.0,
-        "total_distance_traveled": 0.0,
-        "total_energy_consumed": 0.0,
-        "hours_per_km": 5.0
-      },
-      "ChargeStation-1": {
-        "Name": "ChargeStation-1",
-        "charging_power_rate": 20,
-        "efficiency_factor": 0.85,
-        "total_energy_consumed": 0,
-        "total_energy_delivered": 0
       }
     },
     "32.0": {
@@ -2993,41 +2244,41 @@
         "total_LOX_production": 60.669648408147125,
         "regolith_recieved": 24000
       },
-      "Solar_Power_System": {
-        "Name": "Solar_Power_System",
-        "power_degradation_factor": 1.0,
-        "current_power_output": 100.0,
-        "battery_degradation_factor": 1.0,
-        "battery_capacity": 500.0,
-        "battery_charge": 500.0,
-        "total_energy_generated": 3100.0,
-        "total_energy_from_battery": 0.0
-      },
-      "Power_Manager": {
-        "Name": "Power_Manager",
-        "current_energy_demand": 10.0,
-        "current_energy_production": 100.0
-      },
       "Habitat-1": {
         "Name": "Habitat-1",
-        "Energy_Consumed_kWh": 175.0,
+        "Energy_Consumed_kWh": 0,
         "Constant_Power_Rate": 5,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            10,
+            20
+          ]
+        ]
       },
       "CommArray-1": {
         "Name": "CommArray-1",
-        "Energy_Consumed_kWh": 72.0,
+        "Energy_Consumed_kWh": 0.0,
         "Constant_Power_Rate": 2.0,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            15,
+            10
+          ]
+        ]
       },
       "LZ-Alpha": {
         "Name": "LZ-Alpha",
         "LOX_Capacity": 50000,
         "LOX_Stored": 0,
         "utilities_power_rate": 3,
-        "Energy_Consumed_kWh": 143.0,
+        "Energy_Consumed_kWh": 0,
         "chilling_power_per_kg_LOX": 0.31,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            25,
+            50
+          ]
+        ]
       },
       "Regolith Cargo Rover 1": {
         "Name": "Regolith Cargo Rover 1",
@@ -3040,25 +2291,6 @@
         "total_distance_traveled": 7.0,
         "total_energy_consumed": 9.8,
         "hours_per_km": 5.0
-      },
-      "LOX Cargo Rover": {
-        "Name": "LOX Cargo Rover",
-        "rover_type": "cargo",
-        "max_capacity": 5000.0,
-        "current_load": 0,
-        "energy_per_km_per_kg": 0.00035,
-        "battery_capacity": 100.0,
-        "battery_charge": 100.0,
-        "total_distance_traveled": 0.0,
-        "total_energy_consumed": 0.0,
-        "hours_per_km": 5.0
-      },
-      "ChargeStation-1": {
-        "Name": "ChargeStation-1",
-        "charging_power_rate": 20,
-        "efficiency_factor": 0.85,
-        "total_energy_consumed": 0,
-        "total_energy_delivered": 0
       }
     },
     "33.0": {
@@ -3079,41 +2311,41 @@
         "total_LOX_production": 60.669648408147125,
         "regolith_recieved": 24000
       },
-      "Solar_Power_System": {
-        "Name": "Solar_Power_System",
-        "power_degradation_factor": 1.0,
-        "current_power_output": 100.0,
-        "battery_degradation_factor": 1.0,
-        "battery_capacity": 500.0,
-        "battery_charge": 500.0,
-        "total_energy_generated": 3200.0,
-        "total_energy_from_battery": 0.0
-      },
-      "Power_Manager": {
-        "Name": "Power_Manager",
-        "current_energy_demand": 10.0,
-        "current_energy_production": 100.0
-      },
       "Habitat-1": {
         "Name": "Habitat-1",
-        "Energy_Consumed_kWh": 180.0,
+        "Energy_Consumed_kWh": 0,
         "Constant_Power_Rate": 5,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            10,
+            20
+          ]
+        ]
       },
       "CommArray-1": {
         "Name": "CommArray-1",
-        "Energy_Consumed_kWh": 74.0,
+        "Energy_Consumed_kWh": 0.0,
         "Constant_Power_Rate": 2.0,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            15,
+            10
+          ]
+        ]
       },
       "LZ-Alpha": {
         "Name": "LZ-Alpha",
         "LOX_Capacity": 50000,
         "LOX_Stored": 0,
         "utilities_power_rate": 3,
-        "Energy_Consumed_kWh": 146.0,
+        "Energy_Consumed_kWh": 0,
         "chilling_power_per_kg_LOX": 0.31,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            25,
+            50
+          ]
+        ]
       },
       "Regolith Cargo Rover 1": {
         "Name": "Regolith Cargo Rover 1",
@@ -3126,25 +2358,6 @@
         "total_distance_traveled": 7.0,
         "total_energy_consumed": 9.8,
         "hours_per_km": 5.0
-      },
-      "LOX Cargo Rover": {
-        "Name": "LOX Cargo Rover",
-        "rover_type": "cargo",
-        "max_capacity": 5000.0,
-        "current_load": 0,
-        "energy_per_km_per_kg": 0.00035,
-        "battery_capacity": 100.0,
-        "battery_charge": 100.0,
-        "total_distance_traveled": 0.0,
-        "total_energy_consumed": 0.0,
-        "hours_per_km": 5.0
-      },
-      "ChargeStation-1": {
-        "Name": "ChargeStation-1",
-        "charging_power_rate": 20,
-        "efficiency_factor": 0.85,
-        "total_energy_consumed": 0,
-        "total_energy_delivered": 0
       }
     },
     "34.0": {
@@ -3165,41 +2378,41 @@
         "total_LOX_production": 60.669648408147125,
         "regolith_recieved": 24000
       },
-      "Solar_Power_System": {
-        "Name": "Solar_Power_System",
-        "power_degradation_factor": 1.0,
-        "current_power_output": 100.0,
-        "battery_degradation_factor": 1.0,
-        "battery_capacity": 500.0,
-        "battery_charge": 500.0,
-        "total_energy_generated": 3300.0,
-        "total_energy_from_battery": 0.0
-      },
-      "Power_Manager": {
-        "Name": "Power_Manager",
-        "current_energy_demand": 10.0,
-        "current_energy_production": 100.0
-      },
       "Habitat-1": {
         "Name": "Habitat-1",
-        "Energy_Consumed_kWh": 185.0,
+        "Energy_Consumed_kWh": 0,
         "Constant_Power_Rate": 5,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            10,
+            20
+          ]
+        ]
       },
       "CommArray-1": {
         "Name": "CommArray-1",
-        "Energy_Consumed_kWh": 76.0,
+        "Energy_Consumed_kWh": 0.0,
         "Constant_Power_Rate": 2.0,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            15,
+            10
+          ]
+        ]
       },
       "LZ-Alpha": {
         "Name": "LZ-Alpha",
         "LOX_Capacity": 50000,
         "LOX_Stored": 0,
         "utilities_power_rate": 3,
-        "Energy_Consumed_kWh": 149.0,
+        "Energy_Consumed_kWh": 0,
         "chilling_power_per_kg_LOX": 0.31,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            25,
+            50
+          ]
+        ]
       },
       "Regolith Cargo Rover 1": {
         "Name": "Regolith Cargo Rover 1",
@@ -3212,25 +2425,6 @@
         "total_distance_traveled": 7.0,
         "total_energy_consumed": 9.8,
         "hours_per_km": 5.0
-      },
-      "LOX Cargo Rover": {
-        "Name": "LOX Cargo Rover",
-        "rover_type": "cargo",
-        "max_capacity": 5000.0,
-        "current_load": 0,
-        "energy_per_km_per_kg": 0.00035,
-        "battery_capacity": 100.0,
-        "battery_charge": 100.0,
-        "total_distance_traveled": 0.0,
-        "total_energy_consumed": 0.0,
-        "hours_per_km": 5.0
-      },
-      "ChargeStation-1": {
-        "Name": "ChargeStation-1",
-        "charging_power_rate": 20,
-        "efficiency_factor": 0.85,
-        "total_energy_consumed": 0,
-        "total_energy_delivered": 0
       }
     },
     "35.0": {
@@ -3251,41 +2445,41 @@
         "total_LOX_production": 60.669648408147125,
         "regolith_recieved": 24000
       },
-      "Solar_Power_System": {
-        "Name": "Solar_Power_System",
-        "power_degradation_factor": 1.0,
-        "current_power_output": 100.0,
-        "battery_degradation_factor": 1.0,
-        "battery_capacity": 500.0,
-        "battery_charge": 500.0,
-        "total_energy_generated": 3400.0,
-        "total_energy_from_battery": 0.0
-      },
-      "Power_Manager": {
-        "Name": "Power_Manager",
-        "current_energy_demand": 10.0,
-        "current_energy_production": 100.0
-      },
       "Habitat-1": {
         "Name": "Habitat-1",
-        "Energy_Consumed_kWh": 190.0,
+        "Energy_Consumed_kWh": 0,
         "Constant_Power_Rate": 5,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            10,
+            20
+          ]
+        ]
       },
       "CommArray-1": {
         "Name": "CommArray-1",
-        "Energy_Consumed_kWh": 78.0,
+        "Energy_Consumed_kWh": 0.0,
         "Constant_Power_Rate": 2.0,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            15,
+            10
+          ]
+        ]
       },
       "LZ-Alpha": {
         "Name": "LZ-Alpha",
         "LOX_Capacity": 50000,
         "LOX_Stored": 0,
         "utilities_power_rate": 3,
-        "Energy_Consumed_kWh": 152.0,
+        "Energy_Consumed_kWh": 0,
         "chilling_power_per_kg_LOX": 0.31,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            25,
+            50
+          ]
+        ]
       },
       "Regolith Cargo Rover 1": {
         "Name": "Regolith Cargo Rover 1",
@@ -3298,25 +2492,6 @@
         "total_distance_traveled": 7.0,
         "total_energy_consumed": 9.8,
         "hours_per_km": 5.0
-      },
-      "LOX Cargo Rover": {
-        "Name": "LOX Cargo Rover",
-        "rover_type": "cargo",
-        "max_capacity": 5000.0,
-        "current_load": 0,
-        "energy_per_km_per_kg": 0.00035,
-        "battery_capacity": 100.0,
-        "battery_charge": 100.0,
-        "total_distance_traveled": 0.0,
-        "total_energy_consumed": 0.0,
-        "hours_per_km": 5.0
-      },
-      "ChargeStation-1": {
-        "Name": "ChargeStation-1",
-        "charging_power_rate": 20,
-        "efficiency_factor": 0.85,
-        "total_energy_consumed": 0,
-        "total_energy_delivered": 0
       }
     },
     "36.0": {
@@ -3337,41 +2512,41 @@
         "total_LOX_production": 70.78125647617165,
         "regolith_recieved": 28000
       },
-      "Solar_Power_System": {
-        "Name": "Solar_Power_System",
-        "power_degradation_factor": 1.0,
-        "current_power_output": 100.0,
-        "battery_degradation_factor": 1.0,
-        "battery_capacity": 500.0,
-        "battery_charge": 500.0,
-        "total_energy_generated": 3500.0,
-        "total_energy_from_battery": 0.0
-      },
-      "Power_Manager": {
-        "Name": "Power_Manager",
-        "current_energy_demand": 10.0,
-        "current_energy_production": 100.0
-      },
       "Habitat-1": {
         "Name": "Habitat-1",
-        "Energy_Consumed_kWh": 195.0,
+        "Energy_Consumed_kWh": 0,
         "Constant_Power_Rate": 5,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            10,
+            20
+          ]
+        ]
       },
       "CommArray-1": {
         "Name": "CommArray-1",
-        "Energy_Consumed_kWh": 80.0,
+        "Energy_Consumed_kWh": 0.0,
         "Constant_Power_Rate": 2.0,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            15,
+            10
+          ]
+        ]
       },
       "LZ-Alpha": {
         "Name": "LZ-Alpha",
         "LOX_Capacity": 50000,
         "LOX_Stored": 0,
         "utilities_power_rate": 3,
-        "Energy_Consumed_kWh": 155.0,
+        "Energy_Consumed_kWh": 0,
         "chilling_power_per_kg_LOX": 0.31,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            25,
+            50
+          ]
+        ]
       },
       "Regolith Cargo Rover 1": {
         "Name": "Regolith Cargo Rover 1",
@@ -3384,25 +2559,6 @@
         "total_distance_traveled": 8.0,
         "total_energy_consumed": 11.200000000000001,
         "hours_per_km": 5.0
-      },
-      "LOX Cargo Rover": {
-        "Name": "LOX Cargo Rover",
-        "rover_type": "cargo",
-        "max_capacity": 5000.0,
-        "current_load": 0,
-        "energy_per_km_per_kg": 0.00035,
-        "battery_capacity": 100.0,
-        "battery_charge": 100.0,
-        "total_distance_traveled": 0.0,
-        "total_energy_consumed": 0.0,
-        "hours_per_km": 5.0
-      },
-      "ChargeStation-1": {
-        "Name": "ChargeStation-1",
-        "charging_power_rate": 20,
-        "efficiency_factor": 0.85,
-        "total_energy_consumed": 0,
-        "total_energy_delivered": 0
       }
     },
     "37.0": {
@@ -3423,41 +2579,41 @@
         "total_LOX_production": 70.78125647617165,
         "regolith_recieved": 28000
       },
-      "Solar_Power_System": {
-        "Name": "Solar_Power_System",
-        "power_degradation_factor": 1.0,
-        "current_power_output": 100.0,
-        "battery_degradation_factor": 1.0,
-        "battery_capacity": 500.0,
-        "battery_charge": 500.0,
-        "total_energy_generated": 3600.0,
-        "total_energy_from_battery": 0.0
-      },
-      "Power_Manager": {
-        "Name": "Power_Manager",
-        "current_energy_demand": 10.0,
-        "current_energy_production": 100.0
-      },
       "Habitat-1": {
         "Name": "Habitat-1",
-        "Energy_Consumed_kWh": 200.0,
+        "Energy_Consumed_kWh": 0,
         "Constant_Power_Rate": 5,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            10,
+            20
+          ]
+        ]
       },
       "CommArray-1": {
         "Name": "CommArray-1",
-        "Energy_Consumed_kWh": 82.0,
+        "Energy_Consumed_kWh": 0.0,
         "Constant_Power_Rate": 2.0,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            15,
+            10
+          ]
+        ]
       },
       "LZ-Alpha": {
         "Name": "LZ-Alpha",
         "LOX_Capacity": 50000,
         "LOX_Stored": 0,
         "utilities_power_rate": 3,
-        "Energy_Consumed_kWh": 158.0,
+        "Energy_Consumed_kWh": 0,
         "chilling_power_per_kg_LOX": 0.31,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            25,
+            50
+          ]
+        ]
       },
       "Regolith Cargo Rover 1": {
         "Name": "Regolith Cargo Rover 1",
@@ -3470,25 +2626,6 @@
         "total_distance_traveled": 8.0,
         "total_energy_consumed": 11.200000000000001,
         "hours_per_km": 5.0
-      },
-      "LOX Cargo Rover": {
-        "Name": "LOX Cargo Rover",
-        "rover_type": "cargo",
-        "max_capacity": 5000.0,
-        "current_load": 0,
-        "energy_per_km_per_kg": 0.00035,
-        "battery_capacity": 100.0,
-        "battery_charge": 100.0,
-        "total_distance_traveled": 0.0,
-        "total_energy_consumed": 0.0,
-        "hours_per_km": 5.0
-      },
-      "ChargeStation-1": {
-        "Name": "ChargeStation-1",
-        "charging_power_rate": 20,
-        "efficiency_factor": 0.85,
-        "total_energy_consumed": 0,
-        "total_energy_delivered": 0
       }
     },
     "38.0": {
@@ -3509,41 +2646,41 @@
         "total_LOX_production": 70.78125647617165,
         "regolith_recieved": 28000
       },
-      "Solar_Power_System": {
-        "Name": "Solar_Power_System",
-        "power_degradation_factor": 1.0,
-        "current_power_output": 100.0,
-        "battery_degradation_factor": 1.0,
-        "battery_capacity": 500.0,
-        "battery_charge": 500.0,
-        "total_energy_generated": 3700.0,
-        "total_energy_from_battery": 0.0
-      },
-      "Power_Manager": {
-        "Name": "Power_Manager",
-        "current_energy_demand": 10.0,
-        "current_energy_production": 100.0
-      },
       "Habitat-1": {
         "Name": "Habitat-1",
-        "Energy_Consumed_kWh": 205.0,
+        "Energy_Consumed_kWh": 0,
         "Constant_Power_Rate": 5,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            10,
+            20
+          ]
+        ]
       },
       "CommArray-1": {
         "Name": "CommArray-1",
-        "Energy_Consumed_kWh": 84.0,
+        "Energy_Consumed_kWh": 0.0,
         "Constant_Power_Rate": 2.0,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            15,
+            10
+          ]
+        ]
       },
       "LZ-Alpha": {
         "Name": "LZ-Alpha",
         "LOX_Capacity": 50000,
         "LOX_Stored": 0,
         "utilities_power_rate": 3,
-        "Energy_Consumed_kWh": 161.0,
+        "Energy_Consumed_kWh": 0,
         "chilling_power_per_kg_LOX": 0.31,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            25,
+            50
+          ]
+        ]
       },
       "Regolith Cargo Rover 1": {
         "Name": "Regolith Cargo Rover 1",
@@ -3556,25 +2693,6 @@
         "total_distance_traveled": 8.0,
         "total_energy_consumed": 11.200000000000001,
         "hours_per_km": 5.0
-      },
-      "LOX Cargo Rover": {
-        "Name": "LOX Cargo Rover",
-        "rover_type": "cargo",
-        "max_capacity": 5000.0,
-        "current_load": 0,
-        "energy_per_km_per_kg": 0.00035,
-        "battery_capacity": 100.0,
-        "battery_charge": 100.0,
-        "total_distance_traveled": 0.0,
-        "total_energy_consumed": 0.0,
-        "hours_per_km": 5.0
-      },
-      "ChargeStation-1": {
-        "Name": "ChargeStation-1",
-        "charging_power_rate": 20,
-        "efficiency_factor": 0.85,
-        "total_energy_consumed": 0,
-        "total_energy_delivered": 0
       }
     },
     "39.0": {
@@ -3595,41 +2713,41 @@
         "total_LOX_production": 70.78125647617165,
         "regolith_recieved": 28000
       },
-      "Solar_Power_System": {
-        "Name": "Solar_Power_System",
-        "power_degradation_factor": 1.0,
-        "current_power_output": 100.0,
-        "battery_degradation_factor": 1.0,
-        "battery_capacity": 500.0,
-        "battery_charge": 500.0,
-        "total_energy_generated": 3800.0,
-        "total_energy_from_battery": 0.0
-      },
-      "Power_Manager": {
-        "Name": "Power_Manager",
-        "current_energy_demand": 10.0,
-        "current_energy_production": 100.0
-      },
       "Habitat-1": {
         "Name": "Habitat-1",
-        "Energy_Consumed_kWh": 210.0,
+        "Energy_Consumed_kWh": 0,
         "Constant_Power_Rate": 5,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            10,
+            20
+          ]
+        ]
       },
       "CommArray-1": {
         "Name": "CommArray-1",
-        "Energy_Consumed_kWh": 86.0,
+        "Energy_Consumed_kWh": 0.0,
         "Constant_Power_Rate": 2.0,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            15,
+            10
+          ]
+        ]
       },
       "LZ-Alpha": {
         "Name": "LZ-Alpha",
         "LOX_Capacity": 50000,
         "LOX_Stored": 0,
         "utilities_power_rate": 3,
-        "Energy_Consumed_kWh": 164.0,
+        "Energy_Consumed_kWh": 0,
         "chilling_power_per_kg_LOX": 0.31,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            25,
+            50
+          ]
+        ]
       },
       "Regolith Cargo Rover 1": {
         "Name": "Regolith Cargo Rover 1",
@@ -3642,25 +2760,6 @@
         "total_distance_traveled": 8.0,
         "total_energy_consumed": 11.200000000000001,
         "hours_per_km": 5.0
-      },
-      "LOX Cargo Rover": {
-        "Name": "LOX Cargo Rover",
-        "rover_type": "cargo",
-        "max_capacity": 5000.0,
-        "current_load": 0,
-        "energy_per_km_per_kg": 0.00035,
-        "battery_capacity": 100.0,
-        "battery_charge": 100.0,
-        "total_distance_traveled": 0.0,
-        "total_energy_consumed": 0.0,
-        "hours_per_km": 5.0
-      },
-      "ChargeStation-1": {
-        "Name": "ChargeStation-1",
-        "charging_power_rate": 20,
-        "efficiency_factor": 0.85,
-        "total_energy_consumed": 0,
-        "total_energy_delivered": 0
       }
     },
     "40.0": {
@@ -3681,41 +2780,41 @@
         "total_LOX_production": 70.78125647617165,
         "regolith_recieved": 28000
       },
-      "Solar_Power_System": {
-        "Name": "Solar_Power_System",
-        "power_degradation_factor": 1.0,
-        "current_power_output": 100.0,
-        "battery_degradation_factor": 1.0,
-        "battery_capacity": 500.0,
-        "battery_charge": 500.0,
-        "total_energy_generated": 3900.0,
-        "total_energy_from_battery": 0.0
-      },
-      "Power_Manager": {
-        "Name": "Power_Manager",
-        "current_energy_demand": 10.0,
-        "current_energy_production": 100.0
-      },
       "Habitat-1": {
         "Name": "Habitat-1",
-        "Energy_Consumed_kWh": 215.0,
+        "Energy_Consumed_kWh": 0,
         "Constant_Power_Rate": 5,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            10,
+            20
+          ]
+        ]
       },
       "CommArray-1": {
         "Name": "CommArray-1",
-        "Energy_Consumed_kWh": 88.0,
+        "Energy_Consumed_kWh": 0.0,
         "Constant_Power_Rate": 2.0,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            15,
+            10
+          ]
+        ]
       },
       "LZ-Alpha": {
         "Name": "LZ-Alpha",
         "LOX_Capacity": 50000,
         "LOX_Stored": 0,
         "utilities_power_rate": 3,
-        "Energy_Consumed_kWh": 167.0,
+        "Energy_Consumed_kWh": 0,
         "chilling_power_per_kg_LOX": 0.31,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            25,
+            50
+          ]
+        ]
       },
       "Regolith Cargo Rover 1": {
         "Name": "Regolith Cargo Rover 1",
@@ -3728,25 +2827,6 @@
         "total_distance_traveled": 8.0,
         "total_energy_consumed": 11.200000000000001,
         "hours_per_km": 5.0
-      },
-      "LOX Cargo Rover": {
-        "Name": "LOX Cargo Rover",
-        "rover_type": "cargo",
-        "max_capacity": 5000.0,
-        "current_load": 0,
-        "energy_per_km_per_kg": 0.00035,
-        "battery_capacity": 100.0,
-        "battery_charge": 100.0,
-        "total_distance_traveled": 0.0,
-        "total_energy_consumed": 0.0,
-        "hours_per_km": 5.0
-      },
-      "ChargeStation-1": {
-        "Name": "ChargeStation-1",
-        "charging_power_rate": 20,
-        "efficiency_factor": 0.85,
-        "total_energy_consumed": 0,
-        "total_energy_delivered": 0
       }
     },
     "41.0": {
@@ -3767,41 +2847,41 @@
         "total_LOX_production": 80.89286454419617,
         "regolith_recieved": 32000
       },
-      "Solar_Power_System": {
-        "Name": "Solar_Power_System",
-        "power_degradation_factor": 1.0,
-        "current_power_output": 100.0,
-        "battery_degradation_factor": 1.0,
-        "battery_capacity": 500.0,
-        "battery_charge": 500.0,
-        "total_energy_generated": 4000.0,
-        "total_energy_from_battery": 0.0
-      },
-      "Power_Manager": {
-        "Name": "Power_Manager",
-        "current_energy_demand": 10.0,
-        "current_energy_production": 100.0
-      },
       "Habitat-1": {
         "Name": "Habitat-1",
-        "Energy_Consumed_kWh": 220.0,
+        "Energy_Consumed_kWh": 0,
         "Constant_Power_Rate": 5,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            10,
+            20
+          ]
+        ]
       },
       "CommArray-1": {
         "Name": "CommArray-1",
-        "Energy_Consumed_kWh": 90.0,
+        "Energy_Consumed_kWh": 0.0,
         "Constant_Power_Rate": 2.0,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            15,
+            10
+          ]
+        ]
       },
       "LZ-Alpha": {
         "Name": "LZ-Alpha",
         "LOX_Capacity": 50000,
         "LOX_Stored": 0,
         "utilities_power_rate": 3,
-        "Energy_Consumed_kWh": 170.0,
+        "Energy_Consumed_kWh": 0,
         "chilling_power_per_kg_LOX": 0.31,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            25,
+            50
+          ]
+        ]
       },
       "Regolith Cargo Rover 1": {
         "Name": "Regolith Cargo Rover 1",
@@ -3814,25 +2894,6 @@
         "total_distance_traveled": 9.0,
         "total_energy_consumed": 12.600000000000001,
         "hours_per_km": 5.0
-      },
-      "LOX Cargo Rover": {
-        "Name": "LOX Cargo Rover",
-        "rover_type": "cargo",
-        "max_capacity": 5000.0,
-        "current_load": 0,
-        "energy_per_km_per_kg": 0.00035,
-        "battery_capacity": 100.0,
-        "battery_charge": 100.0,
-        "total_distance_traveled": 0.0,
-        "total_energy_consumed": 0.0,
-        "hours_per_km": 5.0
-      },
-      "ChargeStation-1": {
-        "Name": "ChargeStation-1",
-        "charging_power_rate": 20,
-        "efficiency_factor": 0.85,
-        "total_energy_consumed": 0,
-        "total_energy_delivered": 0
       }
     },
     "42.0": {
@@ -3853,41 +2914,41 @@
         "total_LOX_production": 80.89286454419617,
         "regolith_recieved": 32000
       },
-      "Solar_Power_System": {
-        "Name": "Solar_Power_System",
-        "power_degradation_factor": 1.0,
-        "current_power_output": 100.0,
-        "battery_degradation_factor": 1.0,
-        "battery_capacity": 500.0,
-        "battery_charge": 500.0,
-        "total_energy_generated": 4100.0,
-        "total_energy_from_battery": 0.0
-      },
-      "Power_Manager": {
-        "Name": "Power_Manager",
-        "current_energy_demand": 10.0,
-        "current_energy_production": 100.0
-      },
       "Habitat-1": {
         "Name": "Habitat-1",
-        "Energy_Consumed_kWh": 225.0,
+        "Energy_Consumed_kWh": 0,
         "Constant_Power_Rate": 5,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            10,
+            20
+          ]
+        ]
       },
       "CommArray-1": {
         "Name": "CommArray-1",
-        "Energy_Consumed_kWh": 92.0,
+        "Energy_Consumed_kWh": 0.0,
         "Constant_Power_Rate": 2.0,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            15,
+            10
+          ]
+        ]
       },
       "LZ-Alpha": {
         "Name": "LZ-Alpha",
         "LOX_Capacity": 50000,
         "LOX_Stored": 0,
         "utilities_power_rate": 3,
-        "Energy_Consumed_kWh": 173.0,
+        "Energy_Consumed_kWh": 0,
         "chilling_power_per_kg_LOX": 0.31,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            25,
+            50
+          ]
+        ]
       },
       "Regolith Cargo Rover 1": {
         "Name": "Regolith Cargo Rover 1",
@@ -3900,25 +2961,6 @@
         "total_distance_traveled": 9.0,
         "total_energy_consumed": 12.600000000000001,
         "hours_per_km": 5.0
-      },
-      "LOX Cargo Rover": {
-        "Name": "LOX Cargo Rover",
-        "rover_type": "cargo",
-        "max_capacity": 5000.0,
-        "current_load": 0,
-        "energy_per_km_per_kg": 0.00035,
-        "battery_capacity": 100.0,
-        "battery_charge": 100.0,
-        "total_distance_traveled": 0.0,
-        "total_energy_consumed": 0.0,
-        "hours_per_km": 5.0
-      },
-      "ChargeStation-1": {
-        "Name": "ChargeStation-1",
-        "charging_power_rate": 20,
-        "efficiency_factor": 0.85,
-        "total_energy_consumed": 0,
-        "total_energy_delivered": 0
       }
     },
     "43.0": {
@@ -3939,41 +2981,41 @@
         "total_LOX_production": 80.89286454419617,
         "regolith_recieved": 32000
       },
-      "Solar_Power_System": {
-        "Name": "Solar_Power_System",
-        "power_degradation_factor": 1.0,
-        "current_power_output": 100.0,
-        "battery_degradation_factor": 1.0,
-        "battery_capacity": 500.0,
-        "battery_charge": 500.0,
-        "total_energy_generated": 4200.0,
-        "total_energy_from_battery": 0.0
-      },
-      "Power_Manager": {
-        "Name": "Power_Manager",
-        "current_energy_demand": 10.0,
-        "current_energy_production": 100.0
-      },
       "Habitat-1": {
         "Name": "Habitat-1",
-        "Energy_Consumed_kWh": 230.0,
+        "Energy_Consumed_kWh": 0,
         "Constant_Power_Rate": 5,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            10,
+            20
+          ]
+        ]
       },
       "CommArray-1": {
         "Name": "CommArray-1",
-        "Energy_Consumed_kWh": 94.0,
+        "Energy_Consumed_kWh": 0.0,
         "Constant_Power_Rate": 2.0,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            15,
+            10
+          ]
+        ]
       },
       "LZ-Alpha": {
         "Name": "LZ-Alpha",
         "LOX_Capacity": 50000,
         "LOX_Stored": 0,
         "utilities_power_rate": 3,
-        "Energy_Consumed_kWh": 176.0,
+        "Energy_Consumed_kWh": 0,
         "chilling_power_per_kg_LOX": 0.31,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            25,
+            50
+          ]
+        ]
       },
       "Regolith Cargo Rover 1": {
         "Name": "Regolith Cargo Rover 1",
@@ -3986,25 +3028,6 @@
         "total_distance_traveled": 9.0,
         "total_energy_consumed": 12.600000000000001,
         "hours_per_km": 5.0
-      },
-      "LOX Cargo Rover": {
-        "Name": "LOX Cargo Rover",
-        "rover_type": "cargo",
-        "max_capacity": 5000.0,
-        "current_load": 0,
-        "energy_per_km_per_kg": 0.00035,
-        "battery_capacity": 100.0,
-        "battery_charge": 100.0,
-        "total_distance_traveled": 0.0,
-        "total_energy_consumed": 0.0,
-        "hours_per_km": 5.0
-      },
-      "ChargeStation-1": {
-        "Name": "ChargeStation-1",
-        "charging_power_rate": 20,
-        "efficiency_factor": 0.85,
-        "total_energy_consumed": 0,
-        "total_energy_delivered": 0
       }
     },
     "44.0": {
@@ -4025,41 +3048,41 @@
         "total_LOX_production": 80.89286454419617,
         "regolith_recieved": 32000
       },
-      "Solar_Power_System": {
-        "Name": "Solar_Power_System",
-        "power_degradation_factor": 1.0,
-        "current_power_output": 100.0,
-        "battery_degradation_factor": 1.0,
-        "battery_capacity": 500.0,
-        "battery_charge": 500.0,
-        "total_energy_generated": 4300.0,
-        "total_energy_from_battery": 0.0
-      },
-      "Power_Manager": {
-        "Name": "Power_Manager",
-        "current_energy_demand": 10.0,
-        "current_energy_production": 100.0
-      },
       "Habitat-1": {
         "Name": "Habitat-1",
-        "Energy_Consumed_kWh": 235.0,
+        "Energy_Consumed_kWh": 0,
         "Constant_Power_Rate": 5,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            10,
+            20
+          ]
+        ]
       },
       "CommArray-1": {
         "Name": "CommArray-1",
-        "Energy_Consumed_kWh": 96.0,
+        "Energy_Consumed_kWh": 0.0,
         "Constant_Power_Rate": 2.0,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            15,
+            10
+          ]
+        ]
       },
       "LZ-Alpha": {
         "Name": "LZ-Alpha",
         "LOX_Capacity": 50000,
         "LOX_Stored": 0,
         "utilities_power_rate": 3,
-        "Energy_Consumed_kWh": 179.0,
+        "Energy_Consumed_kWh": 0,
         "chilling_power_per_kg_LOX": 0.31,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            25,
+            50
+          ]
+        ]
       },
       "Regolith Cargo Rover 1": {
         "Name": "Regolith Cargo Rover 1",
@@ -4072,25 +3095,6 @@
         "total_distance_traveled": 9.0,
         "total_energy_consumed": 12.600000000000001,
         "hours_per_km": 5.0
-      },
-      "LOX Cargo Rover": {
-        "Name": "LOX Cargo Rover",
-        "rover_type": "cargo",
-        "max_capacity": 5000.0,
-        "current_load": 0,
-        "energy_per_km_per_kg": 0.00035,
-        "battery_capacity": 100.0,
-        "battery_charge": 100.0,
-        "total_distance_traveled": 0.0,
-        "total_energy_consumed": 0.0,
-        "hours_per_km": 5.0
-      },
-      "ChargeStation-1": {
-        "Name": "ChargeStation-1",
-        "charging_power_rate": 20,
-        "efficiency_factor": 0.85,
-        "total_energy_consumed": 0,
-        "total_energy_delivered": 0
       }
     },
     "45.0": {
@@ -4111,41 +3115,41 @@
         "total_LOX_production": 80.89286454419617,
         "regolith_recieved": 32000
       },
-      "Solar_Power_System": {
-        "Name": "Solar_Power_System",
-        "power_degradation_factor": 1.0,
-        "current_power_output": 100.0,
-        "battery_degradation_factor": 1.0,
-        "battery_capacity": 500.0,
-        "battery_charge": 500.0,
-        "total_energy_generated": 4400.0,
-        "total_energy_from_battery": 0.0
-      },
-      "Power_Manager": {
-        "Name": "Power_Manager",
-        "current_energy_demand": 10.0,
-        "current_energy_production": 100.0
-      },
       "Habitat-1": {
         "Name": "Habitat-1",
-        "Energy_Consumed_kWh": 240.0,
+        "Energy_Consumed_kWh": 0,
         "Constant_Power_Rate": 5,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            10,
+            20
+          ]
+        ]
       },
       "CommArray-1": {
         "Name": "CommArray-1",
-        "Energy_Consumed_kWh": 98.0,
+        "Energy_Consumed_kWh": 0.0,
         "Constant_Power_Rate": 2.0,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            15,
+            10
+          ]
+        ]
       },
       "LZ-Alpha": {
         "Name": "LZ-Alpha",
         "LOX_Capacity": 50000,
         "LOX_Stored": 0,
         "utilities_power_rate": 3,
-        "Energy_Consumed_kWh": 182.0,
+        "Energy_Consumed_kWh": 0,
         "chilling_power_per_kg_LOX": 0.31,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            25,
+            50
+          ]
+        ]
       },
       "Regolith Cargo Rover 1": {
         "Name": "Regolith Cargo Rover 1",
@@ -4158,25 +3162,6 @@
         "total_distance_traveled": 9.0,
         "total_energy_consumed": 12.600000000000001,
         "hours_per_km": 5.0
-      },
-      "LOX Cargo Rover": {
-        "Name": "LOX Cargo Rover",
-        "rover_type": "cargo",
-        "max_capacity": 5000.0,
-        "current_load": 0,
-        "energy_per_km_per_kg": 0.00035,
-        "battery_capacity": 100.0,
-        "battery_charge": 100.0,
-        "total_distance_traveled": 0.0,
-        "total_energy_consumed": 0.0,
-        "hours_per_km": 5.0
-      },
-      "ChargeStation-1": {
-        "Name": "ChargeStation-1",
-        "charging_power_rate": 20,
-        "efficiency_factor": 0.85,
-        "total_energy_consumed": 0,
-        "total_energy_delivered": 0
       }
     },
     "46.0": {
@@ -4197,41 +3182,41 @@
         "total_LOX_production": 91.0044726122207,
         "regolith_recieved": 36000
       },
-      "Solar_Power_System": {
-        "Name": "Solar_Power_System",
-        "power_degradation_factor": 1.0,
-        "current_power_output": 100.0,
-        "battery_degradation_factor": 1.0,
-        "battery_capacity": 500.0,
-        "battery_charge": 500.0,
-        "total_energy_generated": 4500.0,
-        "total_energy_from_battery": 0.0
-      },
-      "Power_Manager": {
-        "Name": "Power_Manager",
-        "current_energy_demand": 10.0,
-        "current_energy_production": 100.0
-      },
       "Habitat-1": {
         "Name": "Habitat-1",
-        "Energy_Consumed_kWh": 245.0,
+        "Energy_Consumed_kWh": 0,
         "Constant_Power_Rate": 5,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            10,
+            20
+          ]
+        ]
       },
       "CommArray-1": {
         "Name": "CommArray-1",
-        "Energy_Consumed_kWh": 100.0,
+        "Energy_Consumed_kWh": 0.0,
         "Constant_Power_Rate": 2.0,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            15,
+            10
+          ]
+        ]
       },
       "LZ-Alpha": {
         "Name": "LZ-Alpha",
         "LOX_Capacity": 50000,
         "LOX_Stored": 0,
         "utilities_power_rate": 3,
-        "Energy_Consumed_kWh": 185.0,
+        "Energy_Consumed_kWh": 0,
         "chilling_power_per_kg_LOX": 0.31,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            25,
+            50
+          ]
+        ]
       },
       "Regolith Cargo Rover 1": {
         "Name": "Regolith Cargo Rover 1",
@@ -4244,25 +3229,6 @@
         "total_distance_traveled": 10.0,
         "total_energy_consumed": 14.000000000000002,
         "hours_per_km": 5.0
-      },
-      "LOX Cargo Rover": {
-        "Name": "LOX Cargo Rover",
-        "rover_type": "cargo",
-        "max_capacity": 5000.0,
-        "current_load": 0,
-        "energy_per_km_per_kg": 0.00035,
-        "battery_capacity": 100.0,
-        "battery_charge": 100.0,
-        "total_distance_traveled": 0.0,
-        "total_energy_consumed": 0.0,
-        "hours_per_km": 5.0
-      },
-      "ChargeStation-1": {
-        "Name": "ChargeStation-1",
-        "charging_power_rate": 20,
-        "efficiency_factor": 0.85,
-        "total_energy_consumed": 0,
-        "total_energy_delivered": 0
       }
     },
     "47.0": {
@@ -4283,41 +3249,41 @@
         "total_LOX_production": 91.0044726122207,
         "regolith_recieved": 36000
       },
-      "Solar_Power_System": {
-        "Name": "Solar_Power_System",
-        "power_degradation_factor": 1.0,
-        "current_power_output": 100.0,
-        "battery_degradation_factor": 1.0,
-        "battery_capacity": 500.0,
-        "battery_charge": 500.0,
-        "total_energy_generated": 4600.0,
-        "total_energy_from_battery": 0.0
-      },
-      "Power_Manager": {
-        "Name": "Power_Manager",
-        "current_energy_demand": 10.0,
-        "current_energy_production": 100.0
-      },
       "Habitat-1": {
         "Name": "Habitat-1",
-        "Energy_Consumed_kWh": 250.0,
+        "Energy_Consumed_kWh": 0,
         "Constant_Power_Rate": 5,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            10,
+            20
+          ]
+        ]
       },
       "CommArray-1": {
         "Name": "CommArray-1",
-        "Energy_Consumed_kWh": 102.0,
+        "Energy_Consumed_kWh": 0.0,
         "Constant_Power_Rate": 2.0,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            15,
+            10
+          ]
+        ]
       },
       "LZ-Alpha": {
         "Name": "LZ-Alpha",
         "LOX_Capacity": 50000,
         "LOX_Stored": 0,
         "utilities_power_rate": 3,
-        "Energy_Consumed_kWh": 188.0,
+        "Energy_Consumed_kWh": 0,
         "chilling_power_per_kg_LOX": 0.31,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            25,
+            50
+          ]
+        ]
       },
       "Regolith Cargo Rover 1": {
         "Name": "Regolith Cargo Rover 1",
@@ -4330,25 +3296,6 @@
         "total_distance_traveled": 10.0,
         "total_energy_consumed": 14.000000000000002,
         "hours_per_km": 5.0
-      },
-      "LOX Cargo Rover": {
-        "Name": "LOX Cargo Rover",
-        "rover_type": "cargo",
-        "max_capacity": 5000.0,
-        "current_load": 0,
-        "energy_per_km_per_kg": 0.00035,
-        "battery_capacity": 100.0,
-        "battery_charge": 100.0,
-        "total_distance_traveled": 0.0,
-        "total_energy_consumed": 0.0,
-        "hours_per_km": 5.0
-      },
-      "ChargeStation-1": {
-        "Name": "ChargeStation-1",
-        "charging_power_rate": 20,
-        "efficiency_factor": 0.85,
-        "total_energy_consumed": 0,
-        "total_energy_delivered": 0
       }
     },
     "48.0": {
@@ -4369,41 +3316,41 @@
         "total_LOX_production": 91.0044726122207,
         "regolith_recieved": 36000
       },
-      "Solar_Power_System": {
-        "Name": "Solar_Power_System",
-        "power_degradation_factor": 1.0,
-        "current_power_output": 100.0,
-        "battery_degradation_factor": 1.0,
-        "battery_capacity": 500.0,
-        "battery_charge": 500.0,
-        "total_energy_generated": 4700.0,
-        "total_energy_from_battery": 0.0
-      },
-      "Power_Manager": {
-        "Name": "Power_Manager",
-        "current_energy_demand": 10.0,
-        "current_energy_production": 100.0
-      },
       "Habitat-1": {
         "Name": "Habitat-1",
-        "Energy_Consumed_kWh": 255.0,
+        "Energy_Consumed_kWh": 0,
         "Constant_Power_Rate": 5,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            10,
+            20
+          ]
+        ]
       },
       "CommArray-1": {
         "Name": "CommArray-1",
-        "Energy_Consumed_kWh": 104.0,
+        "Energy_Consumed_kWh": 0.0,
         "Constant_Power_Rate": 2.0,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            15,
+            10
+          ]
+        ]
       },
       "LZ-Alpha": {
         "Name": "LZ-Alpha",
         "LOX_Capacity": 50000,
         "LOX_Stored": 0,
         "utilities_power_rate": 3,
-        "Energy_Consumed_kWh": 191.0,
+        "Energy_Consumed_kWh": 0,
         "chilling_power_per_kg_LOX": 0.31,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            25,
+            50
+          ]
+        ]
       },
       "Regolith Cargo Rover 1": {
         "Name": "Regolith Cargo Rover 1",
@@ -4416,25 +3363,6 @@
         "total_distance_traveled": 10.0,
         "total_energy_consumed": 14.000000000000002,
         "hours_per_km": 5.0
-      },
-      "LOX Cargo Rover": {
-        "Name": "LOX Cargo Rover",
-        "rover_type": "cargo",
-        "max_capacity": 5000.0,
-        "current_load": 0,
-        "energy_per_km_per_kg": 0.00035,
-        "battery_capacity": 100.0,
-        "battery_charge": 100.0,
-        "total_distance_traveled": 0.0,
-        "total_energy_consumed": 0.0,
-        "hours_per_km": 5.0
-      },
-      "ChargeStation-1": {
-        "Name": "ChargeStation-1",
-        "charging_power_rate": 20,
-        "efficiency_factor": 0.85,
-        "total_energy_consumed": 0,
-        "total_energy_delivered": 0
       }
     },
     "49.0": {
@@ -4455,41 +3383,41 @@
         "total_LOX_production": 91.0044726122207,
         "regolith_recieved": 36000
       },
-      "Solar_Power_System": {
-        "Name": "Solar_Power_System",
-        "power_degradation_factor": 1.0,
-        "current_power_output": 100.0,
-        "battery_degradation_factor": 1.0,
-        "battery_capacity": 500.0,
-        "battery_charge": 500.0,
-        "total_energy_generated": 4800.0,
-        "total_energy_from_battery": 0.0
-      },
-      "Power_Manager": {
-        "Name": "Power_Manager",
-        "current_energy_demand": 10.0,
-        "current_energy_production": 100.0
-      },
       "Habitat-1": {
         "Name": "Habitat-1",
-        "Energy_Consumed_kWh": 260.0,
+        "Energy_Consumed_kWh": 0,
         "Constant_Power_Rate": 5,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            10,
+            20
+          ]
+        ]
       },
       "CommArray-1": {
         "Name": "CommArray-1",
-        "Energy_Consumed_kWh": 106.0,
+        "Energy_Consumed_kWh": 0.0,
         "Constant_Power_Rate": 2.0,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            15,
+            10
+          ]
+        ]
       },
       "LZ-Alpha": {
         "Name": "LZ-Alpha",
         "LOX_Capacity": 50000,
         "LOX_Stored": 0,
         "utilities_power_rate": 3,
-        "Energy_Consumed_kWh": 194.0,
+        "Energy_Consumed_kWh": 0,
         "chilling_power_per_kg_LOX": 0.31,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            25,
+            50
+          ]
+        ]
       },
       "Regolith Cargo Rover 1": {
         "Name": "Regolith Cargo Rover 1",
@@ -4502,25 +3430,6 @@
         "total_distance_traveled": 10.0,
         "total_energy_consumed": 14.000000000000002,
         "hours_per_km": 5.0
-      },
-      "LOX Cargo Rover": {
-        "Name": "LOX Cargo Rover",
-        "rover_type": "cargo",
-        "max_capacity": 5000.0,
-        "current_load": 0,
-        "energy_per_km_per_kg": 0.00035,
-        "battery_capacity": 100.0,
-        "battery_charge": 100.0,
-        "total_distance_traveled": 0.0,
-        "total_energy_consumed": 0.0,
-        "hours_per_km": 5.0
-      },
-      "ChargeStation-1": {
-        "Name": "ChargeStation-1",
-        "charging_power_rate": 20,
-        "efficiency_factor": 0.85,
-        "total_energy_consumed": 0,
-        "total_energy_delivered": 0
       }
     },
     "50.0": {
@@ -4541,41 +3450,41 @@
         "total_LOX_production": 91.0044726122207,
         "regolith_recieved": 36000
       },
-      "Solar_Power_System": {
-        "Name": "Solar_Power_System",
-        "power_degradation_factor": 1.0,
-        "current_power_output": 100.0,
-        "battery_degradation_factor": 1.0,
-        "battery_capacity": 500.0,
-        "battery_charge": 500.0,
-        "total_energy_generated": 4900.0,
-        "total_energy_from_battery": 0.0
-      },
-      "Power_Manager": {
-        "Name": "Power_Manager",
-        "current_energy_demand": 10.0,
-        "current_energy_production": 100.0
-      },
       "Habitat-1": {
         "Name": "Habitat-1",
-        "Energy_Consumed_kWh": 265.0,
+        "Energy_Consumed_kWh": 0,
         "Constant_Power_Rate": 5,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            10,
+            20
+          ]
+        ]
       },
       "CommArray-1": {
         "Name": "CommArray-1",
-        "Energy_Consumed_kWh": 108.0,
+        "Energy_Consumed_kWh": 0.0,
         "Constant_Power_Rate": 2.0,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            15,
+            10
+          ]
+        ]
       },
       "LZ-Alpha": {
         "Name": "LZ-Alpha",
         "LOX_Capacity": 50000,
         "LOX_Stored": 0,
         "utilities_power_rate": 3,
-        "Energy_Consumed_kWh": 197.0,
+        "Energy_Consumed_kWh": 0,
         "chilling_power_per_kg_LOX": 0.31,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            25,
+            50
+          ]
+        ]
       },
       "Regolith Cargo Rover 1": {
         "Name": "Regolith Cargo Rover 1",
@@ -4588,25 +3497,6 @@
         "total_distance_traveled": 10.0,
         "total_energy_consumed": 14.000000000000002,
         "hours_per_km": 5.0
-      },
-      "LOX Cargo Rover": {
-        "Name": "LOX Cargo Rover",
-        "rover_type": "cargo",
-        "max_capacity": 5000.0,
-        "current_load": 0,
-        "energy_per_km_per_kg": 0.00035,
-        "battery_capacity": 100.0,
-        "battery_charge": 100.0,
-        "total_distance_traveled": 0.0,
-        "total_energy_consumed": 0.0,
-        "hours_per_km": 5.0
-      },
-      "ChargeStation-1": {
-        "Name": "ChargeStation-1",
-        "charging_power_rate": 20,
-        "efficiency_factor": 0.85,
-        "total_energy_consumed": 0,
-        "total_energy_delivered": 0
       }
     },
     "51.0": {
@@ -4627,41 +3517,41 @@
         "total_LOX_production": 101.11608068024522,
         "regolith_recieved": 40000
       },
-      "Solar_Power_System": {
-        "Name": "Solar_Power_System",
-        "power_degradation_factor": 1.0,
-        "current_power_output": 100.0,
-        "battery_degradation_factor": 1.0,
-        "battery_capacity": 500.0,
-        "battery_charge": 500.0,
-        "total_energy_generated": 5000.0,
-        "total_energy_from_battery": 0.0
-      },
-      "Power_Manager": {
-        "Name": "Power_Manager",
-        "current_energy_demand": 10.0,
-        "current_energy_production": 100.0
-      },
       "Habitat-1": {
         "Name": "Habitat-1",
-        "Energy_Consumed_kWh": 270.0,
+        "Energy_Consumed_kWh": 0,
         "Constant_Power_Rate": 5,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            10,
+            20
+          ]
+        ]
       },
       "CommArray-1": {
         "Name": "CommArray-1",
-        "Energy_Consumed_kWh": 110.0,
+        "Energy_Consumed_kWh": 0.0,
         "Constant_Power_Rate": 2.0,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            15,
+            10
+          ]
+        ]
       },
       "LZ-Alpha": {
         "Name": "LZ-Alpha",
         "LOX_Capacity": 50000,
         "LOX_Stored": 0,
         "utilities_power_rate": 3,
-        "Energy_Consumed_kWh": 200.0,
+        "Energy_Consumed_kWh": 0,
         "chilling_power_per_kg_LOX": 0.31,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            25,
+            50
+          ]
+        ]
       },
       "Regolith Cargo Rover 1": {
         "Name": "Regolith Cargo Rover 1",
@@ -4674,25 +3564,6 @@
         "total_distance_traveled": 11.0,
         "total_energy_consumed": 15.400000000000002,
         "hours_per_km": 5.0
-      },
-      "LOX Cargo Rover": {
-        "Name": "LOX Cargo Rover",
-        "rover_type": "cargo",
-        "max_capacity": 5000.0,
-        "current_load": 0,
-        "energy_per_km_per_kg": 0.00035,
-        "battery_capacity": 100.0,
-        "battery_charge": 100.0,
-        "total_distance_traveled": 0.0,
-        "total_energy_consumed": 0.0,
-        "hours_per_km": 5.0
-      },
-      "ChargeStation-1": {
-        "Name": "ChargeStation-1",
-        "charging_power_rate": 20,
-        "efficiency_factor": 0.85,
-        "total_energy_consumed": 0,
-        "total_energy_delivered": 0
       }
     },
     "52.0": {
@@ -4700,7 +3571,7 @@
         "Name": "ISRU_Plant_1",
         "processingRate": 1600.0,
         "regHeadGrade": 0.1,
-        "LOX_Stored": 0,
+        "LOX_Stored": 101.11608068024522,
         "total_energy_consumed": 3109.037390180742,
         "excavationEnergyCoeff": 6.5e-06,
         "transportEnergyCoeff": 0.00036,
@@ -4713,41 +3584,41 @@
         "total_LOX_production": 101.11608068024522,
         "regolith_recieved": 40000
       },
-      "Solar_Power_System": {
-        "Name": "Solar_Power_System",
-        "power_degradation_factor": 1.0,
-        "current_power_output": 100.0,
-        "battery_degradation_factor": 1.0,
-        "battery_capacity": 500.0,
-        "battery_charge": 500.0,
-        "total_energy_generated": 5100.0,
-        "total_energy_from_battery": 0.0
-      },
-      "Power_Manager": {
-        "Name": "Power_Manager",
-        "current_energy_demand": 10.0,
-        "current_energy_production": 100.0
-      },
       "Habitat-1": {
         "Name": "Habitat-1",
-        "Energy_Consumed_kWh": 275.0,
+        "Energy_Consumed_kWh": 0,
         "Constant_Power_Rate": 5,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            10,
+            20
+          ]
+        ]
       },
       "CommArray-1": {
         "Name": "CommArray-1",
-        "Energy_Consumed_kWh": 112.0,
+        "Energy_Consumed_kWh": 0.0,
         "Constant_Power_Rate": 2.0,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            15,
+            10
+          ]
+        ]
       },
       "LZ-Alpha": {
         "Name": "LZ-Alpha",
         "LOX_Capacity": 50000,
         "LOX_Stored": 0,
         "utilities_power_rate": 3,
-        "Energy_Consumed_kWh": 203.0,
+        "Energy_Consumed_kWh": 0,
         "chilling_power_per_kg_LOX": 0.31,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            25,
+            50
+          ]
+        ]
       },
       "Regolith Cargo Rover 1": {
         "Name": "Regolith Cargo Rover 1",
@@ -4760,25 +3631,6 @@
         "total_distance_traveled": 11.0,
         "total_energy_consumed": 15.400000000000002,
         "hours_per_km": 5.0
-      },
-      "LOX Cargo Rover": {
-        "Name": "LOX Cargo Rover",
-        "rover_type": "cargo",
-        "max_capacity": 5000.0,
-        "current_load": 101.11608068024522,
-        "energy_per_km_per_kg": 0.00035,
-        "battery_capacity": 100.0,
-        "battery_charge": 99.96460937176191,
-        "total_distance_traveled": 1.0,
-        "total_energy_consumed": 0.03539062823808583,
-        "hours_per_km": 5.0
-      },
-      "ChargeStation-1": {
-        "Name": "ChargeStation-1",
-        "charging_power_rate": 20,
-        "efficiency_factor": 0.85,
-        "total_energy_consumed": 0,
-        "total_energy_delivered": 0
       }
     },
     "53.0": {
@@ -4786,8 +3638,8 @@
         "Name": "ISRU_Plant_1",
         "processingRate": 1600.0,
         "regHeadGrade": 0.1,
-        "LOX_Stored": 0,
-        "total_energy_consumed": 3109.037390180742,
+        "LOX_Stored": 101.11608068024522,
+        "total_energy_consumed": 3140.383375191618,
         "excavationEnergyCoeff": 6.5e-06,
         "transportEnergyCoeff": 0.00036,
         "liftHeight": 1,
@@ -4799,41 +3651,41 @@
         "total_LOX_production": 101.11608068024522,
         "regolith_recieved": 40000
       },
-      "Solar_Power_System": {
-        "Name": "Solar_Power_System",
-        "power_degradation_factor": 1.0,
-        "current_power_output": 100.0,
-        "battery_degradation_factor": 1.0,
-        "battery_capacity": 500.0,
-        "battery_charge": 500.0,
-        "total_energy_generated": 5200.0,
-        "total_energy_from_battery": 0.0
-      },
-      "Power_Manager": {
-        "Name": "Power_Manager",
-        "current_energy_demand": 10.0,
-        "current_energy_production": 100.0
-      },
       "Habitat-1": {
         "Name": "Habitat-1",
-        "Energy_Consumed_kWh": 280.0,
+        "Energy_Consumed_kWh": 0,
         "Constant_Power_Rate": 5,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            10,
+            20
+          ]
+        ]
       },
       "CommArray-1": {
         "Name": "CommArray-1",
-        "Energy_Consumed_kWh": 114.0,
+        "Energy_Consumed_kWh": 0.0,
         "Constant_Power_Rate": 2.0,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            15,
+            10
+          ]
+        ]
       },
       "LZ-Alpha": {
         "Name": "LZ-Alpha",
         "LOX_Capacity": 50000,
         "LOX_Stored": 0,
         "utilities_power_rate": 3,
-        "Energy_Consumed_kWh": 206.0,
+        "Energy_Consumed_kWh": 0,
         "chilling_power_per_kg_LOX": 0.31,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            25,
+            50
+          ]
+        ]
       },
       "Regolith Cargo Rover 1": {
         "Name": "Regolith Cargo Rover 1",
@@ -4846,25 +3698,6 @@
         "total_distance_traveled": 11.0,
         "total_energy_consumed": 15.400000000000002,
         "hours_per_km": 5.0
-      },
-      "LOX Cargo Rover": {
-        "Name": "LOX Cargo Rover",
-        "rover_type": "cargo",
-        "max_capacity": 5000.0,
-        "current_load": 101.11608068024522,
-        "energy_per_km_per_kg": 0.00035,
-        "battery_capacity": 100.0,
-        "battery_charge": 99.96460937176191,
-        "total_distance_traveled": 1.0,
-        "total_energy_consumed": 0.03539062823808583,
-        "hours_per_km": 5.0
-      },
-      "ChargeStation-1": {
-        "Name": "ChargeStation-1",
-        "charging_power_rate": 20,
-        "efficiency_factor": 0.85,
-        "total_energy_consumed": 0,
-        "total_energy_delivered": 0
       }
     },
     "54.0": {
@@ -4872,8 +3705,8 @@
         "Name": "ISRU_Plant_1",
         "processingRate": 1600.0,
         "regHeadGrade": 0.1,
-        "LOX_Stored": 0,
-        "total_energy_consumed": 3109.037390180742,
+        "LOX_Stored": 101.11608068024522,
+        "total_energy_consumed": 3171.7293602024943,
         "excavationEnergyCoeff": 6.5e-06,
         "transportEnergyCoeff": 0.00036,
         "liftHeight": 1,
@@ -4885,41 +3718,41 @@
         "total_LOX_production": 101.11608068024522,
         "regolith_recieved": 40000
       },
-      "Solar_Power_System": {
-        "Name": "Solar_Power_System",
-        "power_degradation_factor": 1.0,
-        "current_power_output": 100.0,
-        "battery_degradation_factor": 1.0,
-        "battery_capacity": 500.0,
-        "battery_charge": 500.0,
-        "total_energy_generated": 5300.0,
-        "total_energy_from_battery": 0.0
-      },
-      "Power_Manager": {
-        "Name": "Power_Manager",
-        "current_energy_demand": 10.0,
-        "current_energy_production": 100.0
-      },
       "Habitat-1": {
         "Name": "Habitat-1",
-        "Energy_Consumed_kWh": 285.0,
+        "Energy_Consumed_kWh": 0,
         "Constant_Power_Rate": 5,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            10,
+            20
+          ]
+        ]
       },
       "CommArray-1": {
         "Name": "CommArray-1",
-        "Energy_Consumed_kWh": 116.0,
+        "Energy_Consumed_kWh": 0.0,
         "Constant_Power_Rate": 2.0,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            15,
+            10
+          ]
+        ]
       },
       "LZ-Alpha": {
         "Name": "LZ-Alpha",
         "LOX_Capacity": 50000,
         "LOX_Stored": 0,
         "utilities_power_rate": 3,
-        "Energy_Consumed_kWh": 209.0,
+        "Energy_Consumed_kWh": 0,
         "chilling_power_per_kg_LOX": 0.31,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            25,
+            50
+          ]
+        ]
       },
       "Regolith Cargo Rover 1": {
         "Name": "Regolith Cargo Rover 1",
@@ -4932,25 +3765,6 @@
         "total_distance_traveled": 11.0,
         "total_energy_consumed": 15.400000000000002,
         "hours_per_km": 5.0
-      },
-      "LOX Cargo Rover": {
-        "Name": "LOX Cargo Rover",
-        "rover_type": "cargo",
-        "max_capacity": 5000.0,
-        "current_load": 101.11608068024522,
-        "energy_per_km_per_kg": 0.00035,
-        "battery_capacity": 100.0,
-        "battery_charge": 99.96460937176191,
-        "total_distance_traveled": 1.0,
-        "total_energy_consumed": 0.03539062823808583,
-        "hours_per_km": 5.0
-      },
-      "ChargeStation-1": {
-        "Name": "ChargeStation-1",
-        "charging_power_rate": 20,
-        "efficiency_factor": 0.85,
-        "total_energy_consumed": 0,
-        "total_energy_delivered": 0
       }
     },
     "55.0": {
@@ -4958,8 +3772,8 @@
         "Name": "ISRU_Plant_1",
         "processingRate": 1600.0,
         "regHeadGrade": 0.1,
-        "LOX_Stored": 0,
-        "total_energy_consumed": 3109.037390180742,
+        "LOX_Stored": 101.11608068024522,
+        "total_energy_consumed": 3203.0753452133704,
         "excavationEnergyCoeff": 6.5e-06,
         "transportEnergyCoeff": 0.00036,
         "liftHeight": 1,
@@ -4971,41 +3785,41 @@
         "total_LOX_production": 101.11608068024522,
         "regolith_recieved": 40000
       },
-      "Solar_Power_System": {
-        "Name": "Solar_Power_System",
-        "power_degradation_factor": 1.0,
-        "current_power_output": 100.0,
-        "battery_degradation_factor": 1.0,
-        "battery_capacity": 500.0,
-        "battery_charge": 500.0,
-        "total_energy_generated": 5400.0,
-        "total_energy_from_battery": 0.0
-      },
-      "Power_Manager": {
-        "Name": "Power_Manager",
-        "current_energy_demand": 10.0,
-        "current_energy_production": 100.0
-      },
       "Habitat-1": {
         "Name": "Habitat-1",
-        "Energy_Consumed_kWh": 290.0,
+        "Energy_Consumed_kWh": 0,
         "Constant_Power_Rate": 5,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            10,
+            20
+          ]
+        ]
       },
       "CommArray-1": {
         "Name": "CommArray-1",
-        "Energy_Consumed_kWh": 118.0,
+        "Energy_Consumed_kWh": 0.0,
         "Constant_Power_Rate": 2.0,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            15,
+            10
+          ]
+        ]
       },
       "LZ-Alpha": {
         "Name": "LZ-Alpha",
         "LOX_Capacity": 50000,
         "LOX_Stored": 0,
         "utilities_power_rate": 3,
-        "Energy_Consumed_kWh": 212.0,
+        "Energy_Consumed_kWh": 0,
         "chilling_power_per_kg_LOX": 0.31,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            25,
+            50
+          ]
+        ]
       },
       "Regolith Cargo Rover 1": {
         "Name": "Regolith Cargo Rover 1",
@@ -5018,25 +3832,6 @@
         "total_distance_traveled": 11.0,
         "total_energy_consumed": 15.400000000000002,
         "hours_per_km": 5.0
-      },
-      "LOX Cargo Rover": {
-        "Name": "LOX Cargo Rover",
-        "rover_type": "cargo",
-        "max_capacity": 5000.0,
-        "current_load": 101.11608068024522,
-        "energy_per_km_per_kg": 0.00035,
-        "battery_capacity": 100.0,
-        "battery_charge": 99.96460937176191,
-        "total_distance_traveled": 1.0,
-        "total_energy_consumed": 0.03539062823808583,
-        "hours_per_km": 5.0
-      },
-      "ChargeStation-1": {
-        "Name": "ChargeStation-1",
-        "charging_power_rate": 20,
-        "efficiency_factor": 0.85,
-        "total_energy_consumed": 0,
-        "total_energy_delivered": 0
       }
     },
     "56.0": {
@@ -5044,8 +3839,8 @@
         "Name": "ISRU_Plant_1",
         "processingRate": 1600.0,
         "regHeadGrade": 0.1,
-        "LOX_Stored": 10.11160806802452,
-        "total_energy_consumed": 3346.278064423257,
+        "LOX_Stored": 111.22768874826974,
+        "total_energy_consumed": 3471.6620044667616,
         "excavationEnergyCoeff": 6.5e-06,
         "transportEnergyCoeff": 0.00036,
         "liftHeight": 1,
@@ -5057,41 +3852,41 @@
         "total_LOX_production": 111.22768874826974,
         "regolith_recieved": 44000
       },
-      "Solar_Power_System": {
-        "Name": "Solar_Power_System",
-        "power_degradation_factor": 1.0,
-        "current_power_output": 100.0,
-        "battery_degradation_factor": 1.0,
-        "battery_capacity": 500.0,
-        "battery_charge": 500.0,
-        "total_energy_generated": 5500.0,
-        "total_energy_from_battery": 0.0
-      },
-      "Power_Manager": {
-        "Name": "Power_Manager",
-        "current_energy_demand": 10.0,
-        "current_energy_production": 100.0
-      },
       "Habitat-1": {
         "Name": "Habitat-1",
-        "Energy_Consumed_kWh": 295.0,
+        "Energy_Consumed_kWh": 0,
         "Constant_Power_Rate": 5,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            10,
+            20
+          ]
+        ]
       },
       "CommArray-1": {
         "Name": "CommArray-1",
-        "Energy_Consumed_kWh": 120.0,
+        "Energy_Consumed_kWh": 0.0,
         "Constant_Power_Rate": 2.0,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            15,
+            10
+          ]
+        ]
       },
       "LZ-Alpha": {
         "Name": "LZ-Alpha",
         "LOX_Capacity": 50000,
         "LOX_Stored": 0,
         "utilities_power_rate": 3,
-        "Energy_Consumed_kWh": 215.0,
+        "Energy_Consumed_kWh": 0,
         "chilling_power_per_kg_LOX": 0.31,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            25,
+            50
+          ]
+        ]
       },
       "Regolith Cargo Rover 1": {
         "Name": "Regolith Cargo Rover 1",
@@ -5104,25 +3899,6 @@
         "total_distance_traveled": 12.0,
         "total_energy_consumed": 16.8,
         "hours_per_km": 5.0
-      },
-      "LOX Cargo Rover": {
-        "Name": "LOX Cargo Rover",
-        "rover_type": "cargo",
-        "max_capacity": 5000.0,
-        "current_load": 101.11608068024522,
-        "energy_per_km_per_kg": 0.00035,
-        "battery_capacity": 100.0,
-        "battery_charge": 99.96460937176191,
-        "total_distance_traveled": 1.0,
-        "total_energy_consumed": 0.03539062823808583,
-        "hours_per_km": 5.0
-      },
-      "ChargeStation-1": {
-        "Name": "ChargeStation-1",
-        "charging_power_rate": 20,
-        "efficiency_factor": 0.85,
-        "total_energy_consumed": 0,
-        "total_energy_delivered": 0
       }
     },
     "57.0": {
@@ -5130,8 +3906,8 @@
         "Name": "ISRU_Plant_1",
         "processingRate": 1600.0,
         "regHeadGrade": 0.1,
-        "LOX_Stored": 10.11160806802452,
-        "total_energy_consumed": 3349.4126629243447,
+        "LOX_Stored": 111.22768874826974,
+        "total_energy_consumed": 3506.1425879787253,
         "excavationEnergyCoeff": 6.5e-06,
         "transportEnergyCoeff": 0.00036,
         "liftHeight": 1,
@@ -5143,41 +3919,41 @@
         "total_LOX_production": 111.22768874826974,
         "regolith_recieved": 44000
       },
-      "Solar_Power_System": {
-        "Name": "Solar_Power_System",
-        "power_degradation_factor": 1.0,
-        "current_power_output": 100.0,
-        "battery_degradation_factor": 1.0,
-        "battery_capacity": 500.0,
-        "battery_charge": 500.0,
-        "total_energy_generated": 5600.0,
-        "total_energy_from_battery": 0.0
-      },
-      "Power_Manager": {
-        "Name": "Power_Manager",
-        "current_energy_demand": 10.0,
-        "current_energy_production": 100.0
-      },
       "Habitat-1": {
         "Name": "Habitat-1",
-        "Energy_Consumed_kWh": 300.0,
+        "Energy_Consumed_kWh": 0,
         "Constant_Power_Rate": 5,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            10,
+            20
+          ]
+        ]
       },
       "CommArray-1": {
         "Name": "CommArray-1",
-        "Energy_Consumed_kWh": 122.0,
+        "Energy_Consumed_kWh": 0.0,
         "Constant_Power_Rate": 2.0,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            15,
+            10
+          ]
+        ]
       },
       "LZ-Alpha": {
         "Name": "LZ-Alpha",
         "LOX_Capacity": 50000,
-        "LOX_Stored": 101.11608068024522,
+        "LOX_Stored": 0,
         "utilities_power_rate": 3,
-        "Energy_Consumed_kWh": 218.0,
+        "Energy_Consumed_kWh": 0,
         "chilling_power_per_kg_LOX": 0.31,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            25,
+            50
+          ]
+        ]
       },
       "Regolith Cargo Rover 1": {
         "Name": "Regolith Cargo Rover 1",
@@ -5190,25 +3966,6 @@
         "total_distance_traveled": 12.0,
         "total_energy_consumed": 16.8,
         "hours_per_km": 5.0
-      },
-      "LOX Cargo Rover": {
-        "Name": "LOX Cargo Rover",
-        "rover_type": "cargo",
-        "max_capacity": 5000.0,
-        "current_load": 0,
-        "energy_per_km_per_kg": 0.00035,
-        "battery_capacity": 100.0,
-        "battery_charge": 99.96460937176191,
-        "total_distance_traveled": 1.0,
-        "total_energy_consumed": 0.03539062823808583,
-        "hours_per_km": 5.0
-      },
-      "ChargeStation-1": {
-        "Name": "ChargeStation-1",
-        "charging_power_rate": 20,
-        "efficiency_factor": 0.85,
-        "total_energy_consumed": 0,
-        "total_energy_delivered": 0
       }
     },
     "58.0": {
@@ -5216,8 +3973,8 @@
         "Name": "ISRU_Plant_1",
         "processingRate": 1600.0,
         "regHeadGrade": 0.1,
-        "LOX_Stored": 10.11160806802452,
-        "total_energy_consumed": 3352.547261425432,
+        "LOX_Stored": 111.22768874826974,
+        "total_energy_consumed": 3540.623171490689,
         "excavationEnergyCoeff": 6.5e-06,
         "transportEnergyCoeff": 0.00036,
         "liftHeight": 1,
@@ -5229,41 +3986,41 @@
         "total_LOX_production": 111.22768874826974,
         "regolith_recieved": 44000
       },
-      "Solar_Power_System": {
-        "Name": "Solar_Power_System",
-        "power_degradation_factor": 1.0,
-        "current_power_output": 100.0,
-        "battery_degradation_factor": 1.0,
-        "battery_capacity": 500.0,
-        "battery_charge": 500.0,
-        "total_energy_generated": 5700.0,
-        "total_energy_from_battery": 0.0
-      },
-      "Power_Manager": {
-        "Name": "Power_Manager",
-        "current_energy_demand": 41.34598501087602,
-        "current_energy_production": 100.0
-      },
       "Habitat-1": {
         "Name": "Habitat-1",
-        "Energy_Consumed_kWh": 305.0,
+        "Energy_Consumed_kWh": 0,
         "Constant_Power_Rate": 5,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            10,
+            20
+          ]
+        ]
       },
       "CommArray-1": {
         "Name": "CommArray-1",
-        "Energy_Consumed_kWh": 124.0,
+        "Energy_Consumed_kWh": 0.0,
         "Constant_Power_Rate": 2.0,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            15,
+            10
+          ]
+        ]
       },
       "LZ-Alpha": {
         "Name": "LZ-Alpha",
         "LOX_Capacity": 50000,
-        "LOX_Stored": 101.11608068024522,
+        "LOX_Stored": 0,
         "utilities_power_rate": 3,
-        "Energy_Consumed_kWh": 252.345985010876,
+        "Energy_Consumed_kWh": 0,
         "chilling_power_per_kg_LOX": 0.31,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            25,
+            50
+          ]
+        ]
       },
       "Regolith Cargo Rover 1": {
         "Name": "Regolith Cargo Rover 1",
@@ -5276,25 +4033,6 @@
         "total_distance_traveled": 12.0,
         "total_energy_consumed": 16.8,
         "hours_per_km": 5.0
-      },
-      "LOX Cargo Rover": {
-        "Name": "LOX Cargo Rover",
-        "rover_type": "cargo",
-        "max_capacity": 5000.0,
-        "current_load": 0,
-        "energy_per_km_per_kg": 0.00035,
-        "battery_capacity": 100.0,
-        "battery_charge": 99.96460937176191,
-        "total_distance_traveled": 1.0,
-        "total_energy_consumed": 0.03539062823808583,
-        "hours_per_km": 5.0
-      },
-      "ChargeStation-1": {
-        "Name": "ChargeStation-1",
-        "charging_power_rate": 20,
-        "efficiency_factor": 0.85,
-        "total_energy_consumed": 0,
-        "total_energy_delivered": 0
       }
     },
     "59.0": {
@@ -5302,8 +4040,8 @@
         "Name": "ISRU_Plant_1",
         "processingRate": 1600.0,
         "regHeadGrade": 0.1,
-        "LOX_Stored": 10.11160806802452,
-        "total_energy_consumed": 3355.68185992652,
+        "LOX_Stored": 111.22768874826974,
+        "total_energy_consumed": 3575.1037550026526,
         "excavationEnergyCoeff": 6.5e-06,
         "transportEnergyCoeff": 0.00036,
         "liftHeight": 1,
@@ -5315,41 +4053,41 @@
         "total_LOX_production": 111.22768874826974,
         "regolith_recieved": 44000
       },
-      "Solar_Power_System": {
-        "Name": "Solar_Power_System",
-        "power_degradation_factor": 1.0,
-        "current_power_output": 100.0,
-        "battery_degradation_factor": 1.0,
-        "battery_capacity": 500.0,
-        "battery_charge": 500.0,
-        "total_energy_generated": 5800.0,
-        "total_energy_from_battery": 0.0
-      },
-      "Power_Manager": {
-        "Name": "Power_Manager",
-        "current_energy_demand": 41.34598501087602,
-        "current_energy_production": 100.0
-      },
       "Habitat-1": {
         "Name": "Habitat-1",
-        "Energy_Consumed_kWh": 310.0,
+        "Energy_Consumed_kWh": 0,
         "Constant_Power_Rate": 5,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            10,
+            20
+          ]
+        ]
       },
       "CommArray-1": {
         "Name": "CommArray-1",
-        "Energy_Consumed_kWh": 126.0,
+        "Energy_Consumed_kWh": 0.0,
         "Constant_Power_Rate": 2.0,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            15,
+            10
+          ]
+        ]
       },
       "LZ-Alpha": {
         "Name": "LZ-Alpha",
         "LOX_Capacity": 50000,
-        "LOX_Stored": 101.11608068024522,
+        "LOX_Stored": 0,
         "utilities_power_rate": 3,
-        "Energy_Consumed_kWh": 286.691970021752,
+        "Energy_Consumed_kWh": 0,
         "chilling_power_per_kg_LOX": 0.31,
-        "Spike_Events_Array": []
+        "Spike_Events_Array": [
+          [
+            25,
+            50
+          ]
+        ]
       },
       "Regolith Cargo Rover 1": {
         "Name": "Regolith Cargo Rover 1",
@@ -5362,25 +4100,6 @@
         "total_distance_traveled": 12.0,
         "total_energy_consumed": 16.8,
         "hours_per_km": 5.0
-      },
-      "LOX Cargo Rover": {
-        "Name": "LOX Cargo Rover",
-        "rover_type": "cargo",
-        "max_capacity": 5000.0,
-        "current_load": 0,
-        "energy_per_km_per_kg": 0.00035,
-        "battery_capacity": 100.0,
-        "battery_charge": 99.96460937176191,
-        "total_distance_traveled": 1.0,
-        "total_energy_consumed": 0.03539062823808583,
-        "hours_per_km": 5.0
-      },
-      "ChargeStation-1": {
-        "Name": "ChargeStation-1",
-        "charging_power_rate": 20,
-        "efficiency_factor": 0.85,
-        "total_energy_consumed": 0,
-        "total_energy_delivered": 0
       }
     }
   }
