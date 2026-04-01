@@ -84,6 +84,37 @@ jobs:
           import json, os, time, sys
           sys.path.insert(0, '.')
 
+          # ── Patch data_from_json to use ECLIPSE_Project.json ──────────────
+          with open('clean_database/json/ECLIPSE_Project/ECLIPSE_Project.json') as f:
+              eclipse_data = json.load(f)
+          parts_by_name = {p['name']: p for p in eclipse_data['parts']}
+
+          from S24.DES_pipeline_version import ImportUtility
+
+          class FakePart:
+              def __init__(self, attrs):
+                  self.raw = {'attributes': attrs}
+              def __getitem__(self, key):
+                  return self
+
+          NAME_MAP = {
+              'ISRUV2.json':                'ISRUPlant',
+              'SolarPowerSystemV1.json':    'SolarPowerSystem',
+              'HabitationModuleV1.json':    'HabitationModule',
+              'CommunicationModuleV1.json': None,
+              'LaunchLandingZoneV1.json':   'LaunchLandingZone',
+              'RoverV1.json':               'Rover',
+          }
+
+          def patched_data_from_json(filename):
+              part_name = NAME_MAP.get(filename)
+              attrs = parts_by_name[part_name]['attributes'] if part_name and part_name in parts_by_name else {}
+              key = part_name or filename.replace('.json', '')
+              return {key: FakePart(attrs)}
+
+          ImportUtility.data_from_json = patched_data_from_json
+          # ──────────────────────────────────────────────────────────────────
+
           from S24.DES_pipeline_version.ISRU_DES_Model_V5_2_PV import run_scenario, check_scenario_validity
 
           active_nodes = json.loads(os.environ['ACTIVE_NODES'])
