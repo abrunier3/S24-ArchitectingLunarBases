@@ -4351,27 +4351,82 @@ iframe{
       return log[best] || {};
     }
 
-    // ── Graph ──────────────────────────────────────────────────────────────
+    // ── Metrics cards ──────────────────────────────────────────────────────
+    function renderDesMetrics(log, t, results) {
+      const snap = getLogAtTime(log, t);
+      const wrap = document.getElementById('desMetricsWrap');
+      if (!wrap) return;
+
+      // Aggregate from snapshot using real field names
+      let loxAtPlants = 0, energyConsumed = 0, uptime = 0;
+      let battCharge = 500, battCap = 500;
+      let loxAtLZ = 0, roverBattPct = 100;
+      let solarGenerated = 0;
+
+      for (const [name, attrs] of Object.entries(snap)) {
+        // ISRU plants
+        if (attrs.LOX_Stored !== undefined && attrs.processingRate !== undefined) {
+          loxAtPlants += attrs.LOX_Stored;
+          energyConsumed += attrs.total_energy_consumed || 0;
+          uptime = Math.max(uptime, attrs.processing_uptime || 0);
+        }
+        // Solar battery
+        if (attrs.battery_charge !== undefined && attrs.battery_capacity !== undefined && attrs.current_power_output !== undefined) {
+          battCharge = attrs.battery_charge;
+          battCap = attrs.battery_capacity;
+          solarGenerated = attrs.total_energy_generated || 0;
+        }
+        // Landing zone
+        if (attrs.LOX_Capacity !== undefined) {
+          loxAtLZ = attrs.LOX_Stored || 0;
+        }
+        // Regolith rover battery (first one found)
+        if (attrs.rover_type === 'cargo' && attrs.Name?.includes('Regolith')) {
+          roverBattPct = Math.round((attrs.battery_charge / attrs.battery_capacity) * 100);
+        }
+      }
+
+      const battPct = Math.round((battCharge / battCap) * 100);
+
+      const cards = [
+        { label: 'LOX at Plants',       value: `${loxAtPlants.toFixed(1)} kg`,      color: '#7ee0b1', icon: '🧊' },
+        { label: 'LOX at Landing Zone', value: `${loxAtLZ.toFixed(1)} kg`,           color: '#4cc9f0', icon: '🚀' },
+        { label: 'Energy Consumed',     value: `${energyConsumed.toFixed(0)} kWh`,   color: '#ffd166', icon: '⚡' },
+        { label: 'Plant Uptime',        value: `${uptime.toFixed(1)} hr`,             color: '#a78bfa', icon: '⏱' },
+        { label: 'Battery Charge',      value: `${battPct}%`,                         color: battPct > 50 ? '#7ee0b1' : '#ff7a8a', icon: '🔋' },
+        { label: 'Rover Battery',       value: `${roverBattPct}%`,                    color: roverBattPct > 40 ? '#7ee0b1' : '#ffd166', icon: '🚗' },
+      ];
+
+      wrap.innerHTML = cards.map(c => `
+        <div style="background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:14px;">
+          <div style="font-size:18px;margin-bottom:6px;">${c.icon}</div>
+          <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">${c.label}</div>
+          <div style="font-size:20px;font-weight:700;color:${c.color};">${c.value}</div>
+        </div>`).join('');
+    }
+
+    // ── Graph constants ────────────────────────────────────────────────────
     const DES_GRAPH_NODES = {
-      'RegolithRover':      { x: 0.15, y: 0.20, label: 'Regolith\nRover',   color: '#4cc9f0' },
-      'ISRUPlant':          { x: 0.42, y: 0.35, label: 'ISRU\nPlant',        color: '#7ee0b1' },
-      'SolarPowerSystem':   { x: 0.20, y: 0.72, label: 'Solar\nPower',       color: '#ffd166' },
-      'LOXRover':           { x: 0.70, y: 0.45, label: 'LOX\nRover',         color: '#f4a261' },
-      'LaunchLandingZone':  { x: 0.88, y: 0.22, label: 'LZ /\nDepot',        color: '#4cc9f0' },
-      'HabitationModule':   { x: 0.50, y: 0.78, label: 'Habitat',            color: '#a78bfa' },
-      'CommunicationModule':{ x: 0.78, y: 0.75, label: 'Comms',              color: '#a78bfa' },
+      'RegolithRover':      { x: 0.15, y: 0.22, label: 'Regolith\nRover',    color: '#4cc9f0' },
+      'ISRUPlant':          { x: 0.42, y: 0.35, label: 'ISRU\nPlant',         color: '#7ee0b1' },
+      'SolarPowerSystem':   { x: 0.18, y: 0.72, label: 'Solar\nPower',        color: '#ffd166' },
+      'LOXRover':           { x: 0.68, y: 0.48, label: 'LOX\nRover',          color: '#f4a261' },
+      'LaunchLandingZone':  { x: 0.87, y: 0.22, label: 'LZ /\nDepot',         color: '#4cc9f0' },
+      'HabitationModule':   { x: 0.50, y: 0.78, label: 'Habitat',             color: '#a78bfa' },
+      'CommunicationModule':{ x: 0.78, y: 0.78, label: 'Comms',               color: '#a78bfa' },
     };
 
     const DES_GRAPH_EDGES = [
-      { from: 'RegolithRover', to: 'ISRUPlant',      type: 'regolith', color: '#4cc9f0' },
-      { from: 'ISRUPlant',     to: 'LOXRover',        type: 'lox',     color: '#ffd166' },
-      { from: 'LOXRover',      to: 'LaunchLandingZone', type: 'lox',   color: '#ffd166' },
-      { from: 'SolarPowerSystem', to: 'ISRUPlant',    type: 'power',   color: '#7ee0b1' },
-      { from: 'SolarPowerSystem', to: 'HabitationModule', type: 'power', color: '#7ee0b1' },
-      { from: 'SolarPowerSystem', to: 'CommunicationModule', type: 'power', color: '#7ee0b1' },
-      { from: 'SolarPowerSystem', to: 'LaunchLandingZone', type: 'power', color: '#7ee0b1' },
+      { from: 'RegolithRover',    to: 'ISRUPlant',          type: 'regolith', color: '#4cc9f0' },
+      { from: 'ISRUPlant',        to: 'LOXRover',           type: 'lox',      color: '#ffd166' },
+      { from: 'LOXRover',         to: 'LaunchLandingZone',  type: 'loxrover', color: '#ffd166' },
+      { from: 'SolarPowerSystem', to: 'ISRUPlant',          type: 'power',    color: '#7ee0b1' },
+      { from: 'SolarPowerSystem', to: 'HabitationModule',   type: 'power',    color: '#7ee0b1' },
+      { from: 'SolarPowerSystem', to: 'CommunicationModule',type: 'power',    color: '#7ee0b1' },
+      { from: 'SolarPowerSystem', to: 'LaunchLandingZone',  type: 'power',    color: '#7ee0b1' },
     ];
 
+    // ── Graph ──────────────────────────────────────────────────────────────
     function renderDesGraph(log, t) {
       const svg = document.getElementById('desGraphSvg');
       if (!svg) return;
@@ -4380,18 +4435,17 @@ iframe{
       svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
 
       const snap = getLogAtTime(log, t);
-      const activeNodes = desData?.results?.Sim_Metrics?.Active_Nodes || Object.keys(DES_GRAPH_NODES);
+      const activeNodes = desData?.results?.Sim_Metrics?.Active_Nodes || [];
 
-      // Get metric values for edge thickness
-      let loxStored = 0, battPct = 1, regolithRate = 0;
-      for (const [name, attrs] of Object.entries(snap)) {
-        if (attrs.LOX_Stored !== undefined) loxStored += attrs.LOX_Stored;
-        if (attrs.battery_charge !== undefined && attrs.battery_capacity !== undefined)
-          battPct = attrs.battery_charge / attrs.battery_capacity;
-        if (attrs.regolith_recieved !== undefined) regolithRate = attrs.regolith_recieved;
+      // Extract key values for edge thickness
+      let loxAtPlants = 0, battPct = 1, roverLoad = 0, loxRoverLoad = 0;
+      for (const attrs of Object.values(snap)) {
+        if (attrs.processingRate !== undefined) loxAtPlants += attrs.LOX_Stored || 0;
+        if (attrs.current_power_output !== undefined) battPct = (attrs.battery_charge || 500) / (attrs.battery_capacity || 500);
+        if (attrs.Name?.includes('Regolith')) roverLoad = (attrs.current_load || 0) / (attrs.max_capacity || 5000);
+        if (attrs.Name === 'LOX Cargo Rover') loxRoverLoad = (attrs.current_load || 0) / (attrs.max_capacity || 5000);
       }
-      const maxLox = 120;
-      const loxPct = Math.min(loxStored / maxLox, 1);
+      const loxPct = Math.min(loxAtPlants / 120, 1);
 
       let svgHtml = `<rect width="${W}" height="${H}" fill="#0c1119"/>`;
 
@@ -4403,11 +4457,12 @@ iframe{
         const x1 = n1.x * W, y1 = n1.y * H;
         const x2 = n2.x * W, y2 = n2.y * H;
         let thick = 1.5;
-        if (edge.type === 'lox')      thick = 1.5 + loxPct * 6;
-        if (edge.type === 'regolith') thick = 2 + (regolithRate / 10000) * 4;
+        if (edge.type === 'lox')      thick = 1.5 + loxPct * 7;
+        if (edge.type === 'regolith') thick = 1.5 + roverLoad * 5;
+        if (edge.type === 'loxrover') thick = 1.5 + loxRoverLoad * 6;
         if (edge.type === 'power')    thick = 1 + battPct * 3;
         svgHtml += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"
-          stroke="${edge.color}" stroke-width="${thick.toFixed(1)}" stroke-opacity="0.7"
+          stroke="${edge.color}" stroke-width="${thick.toFixed(1)}" stroke-opacity="0.75"
           stroke-linecap="round"/>`;
       }
 
@@ -4415,16 +4470,7 @@ iframe{
       for (const [nodeId, pos] of Object.entries(DES_GRAPH_NODES)) {
         if (!activeNodes.includes(nodeId)) continue;
         const cx = pos.x * W, cy = pos.y * H;
-        const nodeSnap = Object.values(snap).find(a => {
-          const n = (a.Name||'').toLowerCase();
-          return n.includes(nodeId.toLowerCase().replace('module','').replace('system','').slice(0,5));
-        });
-
-        // Health color
-        let fill = '#1a2535', stroke = pos.color;
-        svgHtml += `<circle cx="${cx}" cy="${cy}" r="36" fill="${fill}" stroke="${stroke}" stroke-width="2"/>`;
-
-        // Label (multiline)
+        svgHtml += `<circle cx="${cx}" cy="${cy}" r="36" fill="#1a2535" stroke="${pos.color}" stroke-width="2"/>`;
         const lines = pos.label.split('\n');
         const lineH = 13;
         const startY = cy - (lines.length - 1) * lineH / 2;
@@ -4435,46 +4481,6 @@ iframe{
       }
 
       svg.innerHTML = svgHtml;
-    }
-
-    // ── Metrics cards ──────────────────────────────────────────────────────
-    function renderDesMetrics(log, t, results) {
-      const snap = getLogAtTime(log, t);
-      const wrap = document.getElementById('desMetricsWrap');
-      if (!wrap) return;
-
-      // Aggregate from snapshot
-      let loxStored = 0, energyConsumed = 0, uptime = 0, battCharge = 0, battCap = 500;
-      let loxAtLZ = 0, isruCount = 0;
-
-      for (const [name, attrs] of Object.entries(snap)) {
-        if (attrs.LOX_Stored !== undefined)           { loxStored += attrs.LOX_Stored; isruCount++; }
-        if (attrs.total_energy_consumed !== undefined) energyConsumed += attrs.total_energy_consumed;
-        if (attrs.processing_uptime !== undefined)     uptime = Math.max(uptime, attrs.processing_uptime);
-        if (attrs.battery_charge !== undefined)        { battCharge = attrs.battery_charge; battCap = attrs.battery_capacity || 500; }
-      }
-
-      // From final results for LZ
-      if (results?.Landing_Zone) loxAtLZ = results.Landing_Zone.LOX_Stored_kg || 0;
-
-      const battPct = Math.round((battCharge / battCap) * 100);
-      const uptimePct = Math.round((uptime / t) * 100) || 0;
-
-      const cards = [
-        { label: 'LOX at Plants',     value: `${loxStored.toFixed(1)} kg`,      color: '#7ee0b1', icon: '🧊' },
-        { label: 'LOX at Landing Zone', value: `${loxAtLZ.toFixed(1)} kg`,      color: '#4cc9f0', icon: '🚀' },
-        { label: 'Energy Consumed',   value: `${energyConsumed.toFixed(0)} kWh`, color: '#ffd166', icon: '⚡' },
-        { label: 'Plant Uptime',      value: `${uptime.toFixed(1)} hr`,          color: '#a78bfa', icon: '⏱' },
-        { label: 'Battery Charge',    value: `${battPct}%`,                      color: battPct > 50 ? '#7ee0b1' : '#ff7a8a', icon: '🔋' },
-        { label: 'Sim Time',          value: `${t} / 60 hr`,                     color: 'var(--text2)', icon: '🕐' },
-      ];
-
-      wrap.innerHTML = cards.map(c => `
-        <div style="background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:14px;">
-          <div style="font-size:18px;margin-bottom:6px;">${c.icon}</div>
-          <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">${c.label}</div>
-          <div style="font-size:20px;font-weight:700;color:${c.color};">${c.value}</div>
-        </div>`).join('');
     }
 
     function renderFinalMetrics(r) {
