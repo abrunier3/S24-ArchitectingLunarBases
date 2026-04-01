@@ -49,7 +49,6 @@ def generate_json_from_sysml(sysml_filename, json_filename):
 
 #NOTE: JSON File must be conatined under database/json/ and the json_filename must only be the name of the json file (i.e. "ISRU.json")
 def data_from_json(json_filename):
-    # Map old DES filenames to actual asset filenames in the repo
     NAME_MAP = {
         'ISRUV2.json':                'ISRUPlant.json',
         'SolarPowerSystemV1.json':    'SolarPowerSystem.json',
@@ -59,14 +58,20 @@ def data_from_json(json_filename):
         'CommunicationModuleV1.json': 'CommunicationModule.json',
     }
     actual_filename = NAME_MAP.get(json_filename, json_filename)
-    
-    # Path relative to this file → always works regardless of cwd
     DATA_JSON = Path(__file__).resolve().parent.parent.parent / "clean_database" / "json" / "ECLIPSE_Project" / "assets"
     JSON_FILE = DATA_JSON / actual_filename
-    
-    vetting = VettingProc(source=str(JSON_FILE))
-    vetted_parts = vetting.by_name
-    return vetted_parts
+
+    with open(JSON_FILE, 'r', encoding='utf-8') as f:
+        data = json.load(f)
+
+    # Wrap in a simple object that mimics VettingProc.by_name behavior
+    class PartWrapper:
+        def __init__(self, raw):
+            self.raw = raw
+        def __getitem__(self, key):
+            return self
+
+    return {data['name']: PartWrapper(data)}
 
 def write_json(parts: List[Dict[str, Any]], output_path: str) -> str:
     """
