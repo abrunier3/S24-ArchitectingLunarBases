@@ -61,9 +61,10 @@ jobs:
           path: ~/.cache/pip
           key: pip-${{ runner.os }}-${{ hashFiles('pyproject.toml') }}
           restore-keys: pip-${{ runner.os }}-
-
+          
       - name: Install dependencies
         run: |
+          pip install simpy
           pip install -e .
 
       - name: Run DES simulation
