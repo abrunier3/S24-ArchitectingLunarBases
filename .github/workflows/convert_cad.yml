@@ -1,4 +1,4 @@
-name: Step 3 — Convert CAD (USD → GLB + extract metadata)
+name: Step 3 — Process CAD (USD → PNG thumbnail + metadata)
 
 on:
   workflow_dispatch:
@@ -34,10 +34,10 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install usd-core trimesh numpy
+          pip install usd-core trimesh numpy matplotlib
           pip install -e .
 
-      - name: Convert USD to GLB and extract metadata
+      - name: Generate PNG thumbnail + extract metadata
         env:
           MODULE_NAME: ${{ github.event.inputs.module_name }}
           USD_PATH: ${{ github.event.inputs.usd_path }}
@@ -47,12 +47,17 @@ jobs:
           import json, os, time, zipfile
           import numpy as np
           import trimesh
+          import trimesh.transformations as tf
+          import matplotlib
+          matplotlib.use('Agg')
+          import matplotlib.pyplot as plt
+          from mpl_toolkits.mplot3d.art3d import Poly3DCollection
           from pxr import Usd, UsdGeom, UsdShade
 
           module_name = os.environ['MODULE_NAME']
           usd_path    = os.environ['USD_PATH']
 
-          # Handle .usdz (zip containing .usdc)
+          # Handle .usdz (zip)
           actual_usd_path = usd_path
           if usd_path.endswith('.usdz'):
               tmp_dir = '/tmp/usd_extract'
@@ -65,8 +70,10 @@ jobs:
                           actual_usd_path = os.path.join(root, f)
                           break
 
-          print(f"[CONVERT] Opening {actual_usd_path}")
+          print(f"[PROCESS] Opening {actual_usd_path}")
           stage = Usd.Stage.Open(actual_usd_path)
+          mpu     = UsdGeom.GetStageMetersPerUnit(stage)
+          up_axis = UsdGeom.GetStageUpAxis(stage)
 
           # Bounding box
           bbox_cache = UsdGeom.BBoxCache(Usd.TimeCode.Default(), [UsdGeom.Tokens.default_])
@@ -74,10 +81,9 @@ jobs:
           rng   = bbox.GetRange()
           mn, mx = rng.GetMin(), rng.GetMax()
           size  = mx - mn
-          mpu   = UsdGeom.GetStageMetersPerUnit(stage)
           size_m   = [round(abs(size[i]) * mpu, 3) for i in range(3)]
           center_m = [round(((mn[i] + mx[i]) / 2) * mpu, 3) for i in range(3)]
-          print(f"[CONVERT] Size (m): {size_m}")
+          print(f"[PROCESS] Size (m): {size_m}")
 
           # Materials
           def to_json_val(v):
@@ -106,7 +112,7 @@ jobs:
                                   mat_data["properties"][key] = to_json_val(v)
                   materials_found.append(mat_data)
 
-          # Extract meshes and convert to GLB
+          # Extract meshes
           meshes_data = []
           for prim in stage.Traverse():
               if prim.IsA(UsdGeom.Mesh):
@@ -115,40 +121,64 @@ jobs:
                   idxs   = m.GetFaceVertexIndicesAttr().Get()
                   counts = m.GetFaceVertexCountsAttr().Get()
                   if not (pts and idxs and counts): continue
-                  verts = np.array([[p[0], p[1], p[2]] for p in pts], dtype=np.float32)
+                  verts = np.array([[p[0],p[1],p[2]] for p in pts], dtype=np.float32) * mpu
                   faces, idx = [], 0
                   for c in counts:
-                      face = [idxs[idx + i] for i in range(c)]
-                      for i in range(1, len(face) - 1):
-                          faces.append([face[0], face[i], face[i + 1]])
+                      face = [idxs[idx+i] for i in range(c)]
+                      for i in range(1, len(face)-1):
+                          faces.append([face[0], face[i], face[i+1]])
                       idx += c
                   if faces:
                       meshes_data.append(trimesh.Trimesh(vertices=verts, faces=np.array(faces, dtype=np.int32)))
 
-          print(f"[CONVERT] Extracted {len(meshes_data)} meshes")
+          print(f"[PROCESS] Extracted {len(meshes_data)} meshes")
 
-          glb_path = None
+          # Generate PNG thumbnail
+          png_path = None
           if meshes_data:
-              glb_path = f"outputs/cad_previews/{module_name}.glb"
-              scene = trimesh.Scene(meshes_data)
-              # Correct orientation: USD Y-up → GLB/glTF Z-up
-              up_axis = UsdGeom.GetStageUpAxis(stage)
+              combined = trimesh.util.concatenate(meshes_data)
+              # Y-up correction
               if up_axis == 'Y':
-                  import trimesh.transformations as tf
-                  rot = tf.rotation_matrix(-np.pi / 2, [1, 0, 0])
-                  scene.apply_transform(rot)
-              glb_bytes = scene.export(file_type='glb')
-              with open(glb_path, 'wb') as f:
-                  f.write(glb_bytes)
-              print(f"[CONVERT] GLB written: {len(glb_bytes)//1024} KB (up_axis corrected: {up_axis})")
+                  combined.apply_transform(tf.rotation_matrix(-np.pi/2, [1,0,0]))
+
+              BG = '#0c1119'
+              fig = plt.figure(figsize=(6, 6), facecolor=BG)
+              ax  = fig.add_subplot(111, projection='3d', facecolor=BG)
+
+              step = max(1, len(combined.faces) // 3000)
+              faces_sub = combined.faces[::step]
+              verts_arr = combined.vertices
+              polys = [[verts_arr[f[0]], verts_arr[f[1]], verts_arr[f[2]]] for f in faces_sub]
+
+              coll = Poly3DCollection(polys, alpha=0.88, linewidth=0)
+              coll.set_facecolor('#8899aa')
+              coll.set_edgecolor('none')
+              ax.add_collection3d(coll)
+
+              b = combined.bounds
+              pad = [(b[1][i]-b[0][i])*0.05 for i in range(3)]
+              ax.set_xlim(b[0][0]-pad[0], b[1][0]+pad[0])
+              ax.set_ylim(b[0][1]-pad[1], b[1][1]+pad[1])
+              ax.set_zlim(b[0][2]-pad[2], b[1][2]+pad[2])
+              ax.set_box_aspect([b[1][i]-b[0][i] for i in range(3)])
+              ax.view_init(elev=30, azim=45)
+              ax.axis('off')
+              ax.set_facecolor(BG)
+              fig.patch.set_facecolor(BG)
+
+              plt.tight_layout(pad=0)
+              png_path = f"outputs/cad_previews/{module_name}.png"
+              plt.savefig(png_path, dpi=100, bbox_inches='tight', facecolor=BG)
+              plt.close()
+              print(f"[PROCESS] PNG saved: {png_path}")
 
           # Write metadata
           meta = {
               "written_at":      int(time.time() * 1000),
               "module_name":     module_name,
               "usd_path":        usd_path,
-              "glb_path":        glb_path,
-              "up_axis":         UsdGeom.GetStageUpAxis(stage),
+              "png_path":        png_path,
+              "up_axis":         up_axis,
               "meters_per_unit": mpu,
               "size_m":          size_m,
               "center_m":        center_m,
@@ -158,7 +188,7 @@ jobs:
           out_path = f"outputs/cad_previews/{module_name}_meta.json"
           with open(out_path, "w") as f:
               json.dump(meta, f, indent=2)
-          print(f"[CONVERT] Done — metadata written to {out_path}")
+          print(f"[PROCESS] Done — metadata written to {out_path}")
           EOF
 
       - name: Commit outputs
@@ -169,5 +199,6 @@ jobs:
           STASHED=$(git stash 2>&1)
           git pull --rebase origin main
           echo "$STASHED" | grep -q "No local changes" || git stash pop
+          git add outputs/cad_previews/
           git diff --staged --quiet || git commit -m "chore: CAD preview + metadata for ${{ github.event.inputs.module_name }} [skip ci]"
           git push
