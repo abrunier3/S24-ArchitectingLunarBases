@@ -49,18 +49,23 @@ def generate_json_from_sysml(sysml_filename, json_filename):
 
 #NOTE: JSON File must be conatined under database/json/ and the json_filename must only be the name of the json file (i.e. "ISRU.json")
 def data_from_json(json_filename):
-    ROOT = Path.cwd().parent
-
-    #DATA_JSON  = ROOT / "S24-ArchitectingLunarBases" / "database" / "json"
-    DATA_JSON  = ROOT / "database" / "json"
-    JSON_FILE  = DATA_JSON  / json_filename
-
+    # Map old DES filenames to actual asset filenames in the repo
+    NAME_MAP = {
+        'ISRUV2.json':                'ISRUPlant.json',
+        'SolarPowerSystemV1.json':    'SolarPowerSystem.json',
+        'HabitationModuleV1.json':    'HabitationModule.json',
+        'LaunchLandingZoneV1.json':   'LaunchLandingZone.json',
+        'RoverV1.json':               'Rover.json',
+        'CommunicationModuleV1.json': 'CommunicationModule.json',
+    }
+    actual_filename = NAME_MAP.get(json_filename, json_filename)
+    
+    # Path relative to this file → always works regardless of cwd
+    DATA_JSON = Path(__file__).resolve().parent.parent.parent / "clean_database" / "json" / "ECLIPSE_Project" / "assets"
+    JSON_FILE = DATA_JSON / actual_filename
+    
     vetting = VettingProc(source=str(JSON_FILE))
     vetted_parts = vetting.by_name
-    
-    #print(list(vetted_parts.keys()))
-    #print(vetted_parts['ISRUPlant'])
-
     return vetted_parts
 
 def write_json(parts: List[Dict[str, Any]], output_path: str) -> str:
