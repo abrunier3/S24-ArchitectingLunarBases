@@ -2746,14 +2746,33 @@ iframe{
       </div>
     </div>
 
-    <!-- RIGHT: Results -->
-    <div class="panel" style="overflow:auto;">
-      <div class="panel-title" style="margin-bottom:12px;">Simulation Results</div>
-      <div id="desResultsWrap">
-        <div style="color:var(--text3);font-size:13px;text-align:center;margin-top:60px;">
+    <!-- RIGHT: Results + visualizer -->
+    <div style="display:flex;flex-direction:column;gap:14px;overflow:hidden;">
+
+      <!-- Time slider -->
+      <div class="panel" id="desTimeSliderPanel" style="display:none;">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div style="font-size:11px;color:var(--text3);white-space:nowrap;">t = 0 hr</div>
+          <input id="desTimeSlider" type="range" min="0" max="60" step="1" value="0"
+            style="flex:1;" oninput="onDesTimeSlider(this.value)">
+          <div id="desTimeLabel" style="font-size:11px;color:var(--accent);white-space:nowrap;min-width:50px;">t = 0 hr</div>
+        </div>
+      </div>
+
+      <!-- Graph -->
+      <div class="panel" id="desGraphPanel" style="display:none;padding:0;overflow:hidden;border-radius:12px;">
+        <svg id="desGraphSvg" width="100%" height="320" style="display:block;"></svg>
+      </div>
+
+      <!-- Metrics cards -->
+      <div id="desMetricsWrap" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">
+        <div style="color:var(--text3);font-size:13px;text-align:center;grid-column:span 3;margin-top:40px;">
           Run the DES simulation to see results here.
         </div>
       </div>
+
+      <!-- Warnings -->
+      <div id="desWarningsWrap" style="display:none;"></div>
     </div>
 
   </div>
@@ -4272,104 +4291,212 @@ iframe{
       } catch(e) { console.error('[DES]', e); }
     }
 
+    // ── DES state ─────────────────────────────────────────────────────────
+    let desData = null;
+    let desLogTimes = [];
+
     function renderDesResults(data) {
-      const wrap = document.getElementById('desResultsWrap');
-      if (!wrap) return;
+      desData = data;
 
       if (data.status === 'error') {
-        wrap.innerHTML = `<div style="color:#ff7a8a;padding:12px;">${data.errors.join('<br>')}</div>`;
+        document.getElementById('desMetricsWrap').innerHTML =
+          `<div style="color:#ff7a8a;padding:12px;grid-column:span 3;">${(data.errors||[]).join('<br>')}</div>`;
         setDesStatus('Simulation failed — see errors above.', '#ff7a8a');
         return;
       }
 
-      setDesStatus(`✓ Simulation complete · Active: ${data.results?.Sim_Metrics?.Active_Nodes?.join(', ')}`, '#7ee0b1');
-
-      const r = data.results;
-      let html = '';
+      const activeNodes = data.results?.Sim_Metrics?.Active_Nodes || [];
+      setDesStatus(`✓ Complete · ${activeNodes.join(', ')}`, '#7ee0b1');
 
       // Warnings
+      const warnWrap = document.getElementById('desWarningsWrap');
       if (data.warnings?.length) {
-        html += `<div style="background:rgba(255,211,74,0.08);border:1px solid rgba(255,211,74,0.3);border-radius:8px;padding:10px;margin-bottom:14px;font-size:12px;color:#ffd36e;">
-          ${data.warnings.map(w => `<div>${w}</div>`).join('')}
-        </div>`;
+        warnWrap.style.display = 'block';
+        warnWrap.innerHTML = `<div style="background:rgba(255,211,74,0.08);border:1px solid rgba(255,211,74,0.3);
+          border-radius:8px;padding:10px;font-size:12px;color:#ffd36e;">
+          ${data.warnings.map(w=>`<div>${w}</div>`).join('')}</div>`;
       }
 
-      // ISRU Fleet totals
-      if (r.ISRU_Plants?.Fleet_Totals) {
-        const ft = r.ISRU_Plants.Fleet_Totals;
-        html += renderResultBlock('ISRU Plants — Fleet Totals', [
-          ['Plants', ft.Num_Plants],
-          ['Total LOX Production', `${ft.Total_LOX_Production_kg} kg`],
-          ['LOX Stored', `${ft.LOX_Stored_kg} kg`],
-          ['Energy Consumed', `${ft.Energy_Consumed_kWh} kWh`],
-          ['Regolith Received', `${ft.Regolith_Received_kg} kg`],
-        ]);
+      // Setup time slider if log present
+      if (data.log) {
+        desLogTimes = Object.keys(data.log).map(Number).sort((a,b)=>a-b);
+        const maxT = desLogTimes[desLogTimes.length-1] || 60;
+        const slider = document.getElementById('desTimeSlider');
+        slider.max = Math.round(maxT);
+        slider.value = Math.round(maxT);
+        document.getElementById('desTimeSliderPanel').style.display = 'block';
+        document.getElementById('desGraphPanel').style.display = 'block';
+        renderDesGraph(data.log, maxT);
+        renderDesMetrics(data.log, maxT, data.results);
+      } else {
+        renderFinalMetrics(data.results);
       }
-
-      // Solar
-      if (r.Solar_Power_System) {
-        const s = r.Solar_Power_System;
-        html += renderResultBlock('Solar Power System', [
-          ['Total Generated', `${s.Total_Generated_kWh} kWh`],
-          ['From Battery', `${s.From_Battery_kWh} kWh`],
-          ['Battery Charge', `${s.Battery_Charge_kWh} / ${s.Battery_Capacity_kWh} kWh`],
-        ]);
-      }
-
-      // Landing Zone
-      if (r.Landing_Zone) {
-        const lz = r.Landing_Zone;
-        html += renderResultBlock(`${lz.Name}`, [
-          ['LOX Stored', `${lz.LOX_Stored_kg} kg`],
-          ['Energy Consumed', `${lz.Energy_Consumed_kWh} kWh`],
-        ]);
-      }
-
-      // Rover fleet
-      if (r.Regolith_Cargo_Rovers?.Fleet_Totals) {
-        const ft = r.Regolith_Cargo_Rovers.Fleet_Totals;
-        html += renderResultBlock('Regolith Rovers — Fleet Totals', [
-          ['Rovers', ft.Num_Rovers],
-          ['Total Distance', `${ft.Total_Distance_km} km`],
-          ['Energy Consumed', `${ft.Energy_Consumed_kWh} kWh`],
-        ]);
-      }
-
-      // LOX Rover
-      if (r.LOX_Cargo_Rover) {
-        const lr = r.LOX_Cargo_Rover;
-        html += renderResultBlock('LOX Cargo Rover', [
-          ['Total Distance', `${lr.Total_Distance_km} km`],
-          ['Energy Consumed', `${lr.Energy_Consumed_kWh} kWh`],
-          ['Battery', `${lr.Battery_Charge_kWh} / ${lr.Battery_Capacity_kWh} kWh`],
-        ]);
-      }
-
-      // Habitat + Comms
-      if (r.Habitat) html += renderResultBlock(r.Habitat.Name, [['Energy Consumed', `${r.Habitat.Energy_Consumed_kWh} kWh`]]);
-      if (r.Communications) html += renderResultBlock(r.Communications.Name, [['Energy Consumed', `${r.Communications.Energy_Consumed_kWh} kWh`]]);
-
-      // Sim time
-      if (r.Sim_Metrics) {
-        html += `<div style="font-size:11px;color:var(--text3);margin-top:10px;text-align:right;">
-          Elapsed: ${r.Sim_Metrics.Simulation_Run_Time}s
-        </div>`;
-      }
-
-      wrap.innerHTML = html;
     }
 
-    function renderResultBlock(title, rows) {
-      return `
-        <div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:10px;">
-          <div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--accent);margin-bottom:8px;">${title}</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
-            ${rows.map(([k,v]) => `
-              <div style="font-size:11px;color:var(--text3);">${k}</div>
-              <div style="font-size:13px;font-weight:600;">${v}</div>
-            `).join('')}
-          </div>
-        </div>`;
+    function onDesTimeSlider(t) {
+      document.getElementById('desTimeLabel').textContent = `t = ${t} hr`;
+      if (!desData?.log) return;
+      renderDesGraph(desData.log, Number(t));
+      renderDesMetrics(desData.log, Number(t), desData.results);
+    }
+
+    function getLogAtTime(log, t) {
+      // Find closest time <= t
+      const times = Object.keys(log).map(Number).sort((a,b)=>a-b);
+      let best = times[0];
+      for (const time of times) {
+        if (time <= t) best = time;
+        else break;
+      }
+      return log[best] || {};
+    }
+
+    // ── Graph ──────────────────────────────────────────────────────────────
+    const DES_GRAPH_NODES = {
+      'RegolithRover':      { x: 0.15, y: 0.20, label: 'Regolith\nRover',   color: '#4cc9f0' },
+      'ISRUPlant':          { x: 0.42, y: 0.35, label: 'ISRU\nPlant',        color: '#7ee0b1' },
+      'SolarPowerSystem':   { x: 0.20, y: 0.72, label: 'Solar\nPower',       color: '#ffd166' },
+      'LOXRover':           { x: 0.70, y: 0.45, label: 'LOX\nRover',         color: '#f4a261' },
+      'LaunchLandingZone':  { x: 0.88, y: 0.22, label: 'LZ /\nDepot',        color: '#4cc9f0' },
+      'HabitationModule':   { x: 0.50, y: 0.78, label: 'Habitat',            color: '#a78bfa' },
+      'CommunicationModule':{ x: 0.78, y: 0.75, label: 'Comms',              color: '#a78bfa' },
+    };
+
+    const DES_GRAPH_EDGES = [
+      { from: 'RegolithRover', to: 'ISRUPlant',      type: 'regolith', color: '#4cc9f0' },
+      { from: 'ISRUPlant',     to: 'LOXRover',        type: 'lox',     color: '#ffd166' },
+      { from: 'LOXRover',      to: 'LaunchLandingZone', type: 'lox',   color: '#ffd166' },
+      { from: 'SolarPowerSystem', to: 'ISRUPlant',    type: 'power',   color: '#7ee0b1' },
+      { from: 'SolarPowerSystem', to: 'HabitationModule', type: 'power', color: '#7ee0b1' },
+      { from: 'SolarPowerSystem', to: 'CommunicationModule', type: 'power', color: '#7ee0b1' },
+      { from: 'SolarPowerSystem', to: 'LaunchLandingZone', type: 'power', color: '#7ee0b1' },
+    ];
+
+    function renderDesGraph(log, t) {
+      const svg = document.getElementById('desGraphSvg');
+      if (!svg) return;
+      const W = svg.clientWidth || svg.parentElement?.clientWidth || 600;
+      const H = 320;
+      svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+
+      const snap = getLogAtTime(log, t);
+      const activeNodes = desData?.results?.Sim_Metrics?.Active_Nodes || Object.keys(DES_GRAPH_NODES);
+
+      // Get metric values for edge thickness
+      let loxStored = 0, battPct = 1, regolithRate = 0;
+      for (const [name, attrs] of Object.entries(snap)) {
+        if (attrs.LOX_Stored !== undefined) loxStored += attrs.LOX_Stored;
+        if (attrs.battery_charge !== undefined && attrs.battery_capacity !== undefined)
+          battPct = attrs.battery_charge / attrs.battery_capacity;
+        if (attrs.regolith_recieved !== undefined) regolithRate = attrs.regolith_recieved;
+      }
+      const maxLox = 120;
+      const loxPct = Math.min(loxStored / maxLox, 1);
+
+      let svgHtml = `<rect width="${W}" height="${H}" fill="#0c1119"/>`;
+
+      // Draw edges
+      for (const edge of DES_GRAPH_EDGES) {
+        if (!activeNodes.includes(edge.from) || !activeNodes.includes(edge.to)) continue;
+        const n1 = DES_GRAPH_NODES[edge.from];
+        const n2 = DES_GRAPH_NODES[edge.to];
+        const x1 = n1.x * W, y1 = n1.y * H;
+        const x2 = n2.x * W, y2 = n2.y * H;
+        let thick = 1.5;
+        if (edge.type === 'lox')      thick = 1.5 + loxPct * 6;
+        if (edge.type === 'regolith') thick = 2 + (regolithRate / 10000) * 4;
+        if (edge.type === 'power')    thick = 1 + battPct * 3;
+        svgHtml += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"
+          stroke="${edge.color}" stroke-width="${thick.toFixed(1)}" stroke-opacity="0.7"
+          stroke-linecap="round"/>`;
+      }
+
+      // Draw nodes
+      for (const [nodeId, pos] of Object.entries(DES_GRAPH_NODES)) {
+        if (!activeNodes.includes(nodeId)) continue;
+        const cx = pos.x * W, cy = pos.y * H;
+        const nodeSnap = Object.values(snap).find(a => {
+          const n = (a.Name||'').toLowerCase();
+          return n.includes(nodeId.toLowerCase().replace('module','').replace('system','').slice(0,5));
+        });
+
+        // Health color
+        let fill = '#1a2535', stroke = pos.color;
+        svgHtml += `<circle cx="${cx}" cy="${cy}" r="36" fill="${fill}" stroke="${stroke}" stroke-width="2"/>`;
+
+        // Label (multiline)
+        const lines = pos.label.split('\n');
+        const lineH = 13;
+        const startY = cy - (lines.length - 1) * lineH / 2;
+        lines.forEach((line, i) => {
+          svgHtml += `<text x="${cx}" y="${startY + i * lineH}" text-anchor="middle"
+            dominant-baseline="middle" fill="white" font-size="11" font-weight="600">${line}</text>`;
+        });
+      }
+
+      svg.innerHTML = svgHtml;
+    }
+
+    // ── Metrics cards ──────────────────────────────────────────────────────
+    function renderDesMetrics(log, t, results) {
+      const snap = getLogAtTime(log, t);
+      const wrap = document.getElementById('desMetricsWrap');
+      if (!wrap) return;
+
+      // Aggregate from snapshot
+      let loxStored = 0, energyConsumed = 0, uptime = 0, battCharge = 0, battCap = 500;
+      let loxAtLZ = 0, isruCount = 0;
+
+      for (const [name, attrs] of Object.entries(snap)) {
+        if (attrs.LOX_Stored !== undefined)           { loxStored += attrs.LOX_Stored; isruCount++; }
+        if (attrs.total_energy_consumed !== undefined) energyConsumed += attrs.total_energy_consumed;
+        if (attrs.processing_uptime !== undefined)     uptime = Math.max(uptime, attrs.processing_uptime);
+        if (attrs.battery_charge !== undefined)        { battCharge = attrs.battery_charge; battCap = attrs.battery_capacity || 500; }
+      }
+
+      // From final results for LZ
+      if (results?.Landing_Zone) loxAtLZ = results.Landing_Zone.LOX_Stored_kg || 0;
+
+      const battPct = Math.round((battCharge / battCap) * 100);
+      const uptimePct = Math.round((uptime / t) * 100) || 0;
+
+      const cards = [
+        { label: 'LOX at Plants',     value: `${loxStored.toFixed(1)} kg`,      color: '#7ee0b1', icon: '🧊' },
+        { label: 'LOX at Landing Zone', value: `${loxAtLZ.toFixed(1)} kg`,      color: '#4cc9f0', icon: '🚀' },
+        { label: 'Energy Consumed',   value: `${energyConsumed.toFixed(0)} kWh`, color: '#ffd166', icon: '⚡' },
+        { label: 'Plant Uptime',      value: `${uptime.toFixed(1)} hr`,          color: '#a78bfa', icon: '⏱' },
+        { label: 'Battery Charge',    value: `${battPct}%`,                      color: battPct > 50 ? '#7ee0b1' : '#ff7a8a', icon: '🔋' },
+        { label: 'Sim Time',          value: `${t} / 60 hr`,                     color: 'var(--text2)', icon: '🕐' },
+      ];
+
+      wrap.innerHTML = cards.map(c => `
+        <div style="background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:14px;">
+          <div style="font-size:18px;margin-bottom:6px;">${c.icon}</div>
+          <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">${c.label}</div>
+          <div style="font-size:20px;font-weight:700;color:${c.color};">${c.value}</div>
+        </div>`).join('');
+    }
+
+    function renderFinalMetrics(r) {
+      const wrap = document.getElementById('desMetricsWrap');
+      if (!wrap || !r) return;
+      const ft = r.ISRU_Plants?.Fleet_Totals;
+      const sol = r.Solar_Power_System;
+      const lz = r.Landing_Zone;
+      const cards = [
+        { label: 'Total LOX Production', value: ft ? `${ft.Total_LOX_Production_kg} kg` : '—', color: '#7ee0b1', icon: '🧊' },
+        { label: 'LOX at Landing Zone',  value: lz ? `${lz.LOX_Stored_kg} kg` : '—',           color: '#4cc9f0', icon: '🚀' },
+        { label: 'Energy Consumed',       value: ft ? `${ft.Energy_Consumed_kWh} kWh` : '—',    color: '#ffd166', icon: '⚡' },
+        { label: 'Solar Generated',       value: sol ? `${sol.Total_Generated_kWh} kWh` : '—',  color: '#a78bfa', icon: '☀️' },
+        { label: 'ISRU Plants',           value: ft ? `${ft.Num_Plants}` : '—',                  color: 'var(--text2)', icon: '🏭' },
+        { label: 'Sim Duration',          value: '60 hr',                                         color: 'var(--text2)', icon: '🕐' },
+      ];
+      wrap.innerHTML = cards.map(c => `
+        <div style="background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:14px;">
+          <div style="font-size:18px;margin-bottom:6px;">${c.icon}</div>
+          <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">${c.label}</div>
+          <div style="font-size:20px;font-weight:700;color:${c.color};">${c.value}</div>
+        </div>`).join('');
     }
   </script>
 
