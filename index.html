@@ -4480,7 +4480,7 @@ iframe{
       const token = sessionStorage.getItem('gh_pat');
       const path = `outputs/cad_previews/${moduleName}.glb`;
       try {
-        // Step 1: get the download_url via API (always fresh, no CDN cache on API)
+        // Step 1: get download_url via API
         const res = await fetch(
           `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${path}`,
           { headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github+json' } }
@@ -4489,11 +4489,8 @@ iframe{
         const meta = await res.json();
         const downloadUrl = meta.download_url;
         if (!downloadUrl) return null;
-
-        // Step 2: fetch the actual binary via download_url (authenticated to bypass cache)
-        const binRes = await fetch(downloadUrl, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
+        // Step 2: fetch binary WITHOUT Authorization header (download_url has its own auth token)
+        const binRes = await fetch(downloadUrl);
         if (!binRes.ok) return null;
         const blob = await binRes.blob();
         return URL.createObjectURL(blob);
@@ -4542,7 +4539,7 @@ iframe{
             touch-action="none"
             shadow-intensity="0.5"
             exposure="1.2"
-            camera-orbit="45deg 80deg auto"
+            camera-orbit="45deg 90deg auto"
             min-camera-orbit="auto 0deg auto"
             max-camera-orbit="auto 180deg auto"
             style="width:100%;height:360px;background:#0c1119;display:block;"
