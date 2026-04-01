@@ -4343,14 +4343,15 @@ iframe{
     }
 
     function getLogAtTime(log, t) {
-      // Find closest time <= t
-      const times = Object.keys(log).map(Number).sort((a,b)=>a-b);
-      let best = times[0];
-      for (const time of times) {
-        if (time <= t) best = time;
+      const tNum = Number(t);
+      // Build a map from numeric value to original string key
+      const entries = Object.keys(log).map(k => ({ num: Number(k), key: k })).sort((a,b) => a.num - b.num);
+      let best = entries[0];
+      for (const entry of entries) {
+        if (entry.num <= tNum) best = entry;
         else break;
       }
-      return log[best] || {};
+      return best ? (log[best.key] || {}) : {};
     }
 
     // ── Metrics cards ──────────────────────────────────────────────────────
