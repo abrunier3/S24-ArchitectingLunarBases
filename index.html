@@ -4324,8 +4324,10 @@ iframe{
         const slider = document.getElementById('desTimeSlider');
         slider.max = Math.round(maxT);
         slider.value = Math.round(maxT);
+        document.getElementById('desTimeLabel').textContent = `t = ${Math.round(maxT)} hr`;
         document.getElementById('desTimeSliderPanel').style.display = 'block';
         document.getElementById('desGraphPanel').style.display = 'block';
+        // Render immediately at final time
         renderDesGraph(data.log, maxT);
         renderDesMetrics(data.log, maxT, data.results);
       } else {
@@ -4361,27 +4363,25 @@ iframe{
       let loxAtPlants = 0, energyConsumed = 0, uptime = 0;
       let battCharge = 500, battCap = 500;
       let loxAtLZ = 0, roverBattPct = 100;
-      let solarGenerated = 0;
 
-      for (const [name, attrs] of Object.entries(snap)) {
-        // ISRU plants
-        if (attrs.LOX_Stored !== undefined && attrs.processingRate !== undefined) {
+      for (const attrs of Object.values(snap)) {
+        // ISRU plants — identified by having processingRate AND LOX_Stored
+        if (attrs.processingRate !== undefined && attrs.LOX_Stored !== undefined) {
           loxAtPlants += attrs.LOX_Stored;
           energyConsumed += attrs.total_energy_consumed || 0;
-          uptime = Math.max(uptime, attrs.processing_uptime || 0);
+          uptime += attrs.processing_uptime || 0;
         }
-        // Solar battery
-        if (attrs.battery_charge !== undefined && attrs.battery_capacity !== undefined && attrs.current_power_output !== undefined) {
+        // Solar battery — identified by current_power_output
+        if (attrs.current_power_output !== undefined && attrs.battery_charge !== undefined) {
           battCharge = attrs.battery_charge;
-          battCap = attrs.battery_capacity;
-          solarGenerated = attrs.total_energy_generated || 0;
+          battCap = attrs.battery_capacity || 500;
         }
-        // Landing zone
+        // Landing zone — identified by LOX_Capacity
         if (attrs.LOX_Capacity !== undefined) {
           loxAtLZ = attrs.LOX_Stored || 0;
         }
-        // Regolith rover battery (first one found)
-        if (attrs.rover_type === 'cargo' && attrs.Name?.includes('Regolith')) {
+        // Regolith rover battery — first one found with rover_type and Regolith in Name
+        if (attrs.rover_type === 'cargo' && (attrs.Name||'').includes('Regolith')) {
           roverBattPct = Math.round((attrs.battery_charge / attrs.battery_capacity) * 100);
         }
       }
@@ -4437,13 +4437,17 @@ iframe{
       const snap = getLogAtTime(log, t);
       const activeNodes = desData?.results?.Sim_Metrics?.Active_Nodes || [];
 
-      // Extract key values for edge thickness
+      // Extract key values for edge thickness using field presence
       let loxAtPlants = 0, battPct = 1, roverLoad = 0, loxRoverLoad = 0;
       for (const attrs of Object.values(snap)) {
-        if (attrs.processingRate !== undefined) loxAtPlants += attrs.LOX_Stored || 0;
-        if (attrs.current_power_output !== undefined) battPct = (attrs.battery_charge || 500) / (attrs.battery_capacity || 500);
-        if (attrs.Name?.includes('Regolith')) roverLoad = (attrs.current_load || 0) / (attrs.max_capacity || 5000);
-        if (attrs.Name === 'LOX Cargo Rover') loxRoverLoad = (attrs.current_load || 0) / (attrs.max_capacity || 5000);
+        if (attrs.processingRate !== undefined && attrs.LOX_Stored !== undefined)
+          loxAtPlants += attrs.LOX_Stored;
+        if (attrs.current_power_output !== undefined && attrs.battery_capacity !== undefined)
+          battPct = (attrs.battery_charge || 500) / (attrs.battery_capacity || 500);
+        if (attrs.rover_type === 'cargo' && (attrs.Name||'').includes('Regolith'))
+          roverLoad = (attrs.current_load || 0) / (attrs.max_capacity || 5000);
+        if (attrs.Name === 'LOX Cargo Rover')
+          loxRoverLoad = (attrs.current_load || 0) / (attrs.max_capacity || 5000);
       }
       const loxPct = Math.min(loxAtPlants / 120, 1);
 
