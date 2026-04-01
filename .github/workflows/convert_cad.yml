@@ -141,34 +141,45 @@ jobs:
               if up_axis == 'Y':
                   combined.apply_transform(tf.rotation_matrix(-np.pi/2, [1,0,0]))
 
-              BG = '#0c1119'
-              fig = plt.figure(figsize=(6, 6), facecolor=BG)
+              BG = '#111827'
+              fig = plt.figure(figsize=(7, 7), facecolor=BG)
               ax  = fig.add_subplot(111, projection='3d', facecolor=BG)
 
-              step = max(1, len(combined.faces) // 3000)
+              # Sample faces — enough for good quality
+              step = max(1, len(combined.faces) // 5000)
               faces_sub = combined.faces[::step]
               verts_arr = combined.vertices
               polys = [[verts_arr[f[0]], verts_arr[f[1]], verts_arr[f[2]]] for f in faces_sub]
 
-              coll = Poly3DCollection(polys, alpha=0.88, linewidth=0)
-              coll.set_facecolor('#8899aa')
+              # Light-facing faces get lighter color (simple diffuse shading)
+              normals = combined.face_normals[::step]
+              light = np.array([0.6, 0.8, 1.0])
+              light /= np.linalg.norm(light)
+              shade = np.clip(np.dot(normals, light), 0.15, 1.0)
+              colors = np.stack([shade*0.72, shade*0.78, shade*0.88, np.ones_like(shade)*0.92], axis=1)
+
+              coll = Poly3DCollection(polys, linewidth=0, zsort='average')
+              coll.set_facecolor(colors)
               coll.set_edgecolor('none')
               ax.add_collection3d(coll)
 
               b = combined.bounds
-              pad = [(b[1][i]-b[0][i])*0.05 for i in range(3)]
-              ax.set_xlim(b[0][0]-pad[0], b[1][0]+pad[0])
-              ax.set_ylim(b[0][1]-pad[1], b[1][1]+pad[1])
-              ax.set_zlim(b[0][2]-pad[2], b[1][2]+pad[2])
-              ax.set_box_aspect([b[1][i]-b[0][i] for i in range(3)])
-              ax.view_init(elev=30, azim=45)
+              cx = (b[0][0]+b[1][0])/2
+              cy = (b[0][1]+b[1][1])/2
+              cz = (b[0][2]+b[1][2])/2
+              ext = max(b[1]-b[0]) * 0.55
+              ax.set_xlim(cx-ext, cx+ext)
+              ax.set_ylim(cy-ext, cy+ext)
+              ax.set_zlim(cz-ext, cz+ext)
+              ax.set_box_aspect([1,1,1])
+              ax.view_init(elev=28, azim=45)
               ax.axis('off')
               ax.set_facecolor(BG)
               fig.patch.set_facecolor(BG)
 
-              plt.tight_layout(pad=0)
+              plt.subplots_adjust(left=0, right=1, top=1, bottom=0)
               png_path = f"outputs/cad_previews/{module_name}.png"
-              plt.savefig(png_path, dpi=100, bbox_inches='tight', facecolor=BG)
+              plt.savefig(png_path, dpi=120, bbox_inches='tight', facecolor=BG, pad_inches=0.05)
               plt.close()
               print(f"[PROCESS] PNG saved: {png_path}")
 
