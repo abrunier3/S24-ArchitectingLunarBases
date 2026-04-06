@@ -3006,11 +3006,11 @@ iframe{
       renderCharts(state);
     }
 
-    [timeSlider, dischargeSlider, travelSlider, processSlider, thresholdSlider, roverCountSlider, plantCountSlider, regolithDistanceSlider, loxDistanceSlider].forEach(el => {
+    [timeSlider, dischargeSlider, travelSlider, processSlider, thresholdSlider, roverCountSlider, plantCountSlider, regolithDistanceSlider, loxDistanceSlider].filter(Boolean).forEach(el => {
       el.addEventListener('input', refresh);
     });
 
-    playBtn.addEventListener('click', () => {
+    if (playBtn) playBtn.addEventListener('click', () => {
       playing = !playing;
       playBtn.textContent = playing ? '❚❚ Pause' : '▶ Play';
       if (playing) {
@@ -3024,27 +3024,28 @@ iframe{
       }
     });
 
-    resetBtn.addEventListener('click', () => {
+    if (resetBtn) resetBtn.addEventListener('click', () => {
       clearInterval(timer);
       playing = false;
-      playBtn.textContent = '▶ Play';
-      timeSlider.value = 6;
-      roverCountSlider.value = 1;
-      plantCountSlider.value = 1;
-      dischargeSlider.value = 4000;
-      travelSlider.value = 5;
-      processSlider.value = 1600;
-      thresholdSlider.value = 100;
-      regolithDistanceSlider.value = 1;
-      loxDistanceSlider.value = 1;
+      if (playBtn) playBtn.textContent = '▶ Play';
+      if (timeSlider) timeSlider.value = 6;
+      if (roverCountSlider) roverCountSlider.value = 1;
+      if (plantCountSlider) plantCountSlider.value = 1;
+      if (dischargeSlider) dischargeSlider.value = 4000;
+      if (travelSlider) travelSlider.value = 5;
+      if (processSlider) processSlider.value = 1600;
+      if (thresholdSlider) thresholdSlider.value = 100;
+      if (regolithDistanceSlider) regolithDistanceSlider.value = 1;
+      if (loxDistanceSlider) loxDistanceSlider.value = 1;
       refresh();
     });
 
-    document.getElementById('snapshotBtn').addEventListener('click', () => {
+    const snapshotBtn = document.getElementById('snapshotBtn');
+    if (snapshotBtn) snapshotBtn.addEventListener('click', () => {
       alert('Snapshot captured for concept demo. In the real tool, this would save the current scenario state and linked outputs.');
     });
 
-    refresh();
+    if (timeSlider) refresh();
   </script>
 
   <!-- ============================================================
@@ -4344,11 +4345,11 @@ iframe{
         desLogTimes = Object.keys(data.log).map(Number).sort((a,b)=>a-b);
         const maxT = desLogTimes[desLogTimes.length-1] || 60;
         const slider = document.getElementById('desTimeSlider');
-        slider.max = Math.round(maxT);
-        slider.value = Math.round(maxT);
-        document.getElementById('desTimeLabel').textContent = `t = ${Math.round(maxT)} hr`;
-        document.getElementById('desTimeSliderPanel').style.display = 'block';
-        document.getElementById('desGraphPanel').style.display = 'block';
+        if (slider) { slider.max = Math.round(maxT); slider.value = Math.round(maxT); }
+        const label = document.getElementById('desTimeLabel');
+        if (label) label.textContent = `t = ${Math.round(maxT)} hr`;
+        const sliderPanel = document.getElementById('desTimeSliderPanel');
+        if (sliderPanel) sliderPanel.style.display = 'flex';
         // Render immediately at final time
         renderDesGraph(data.log, maxT);
         renderDesMetrics(data.log, maxT, data.results);
