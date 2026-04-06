@@ -2673,106 +2673,100 @@ iframe{
   <div class="section-head">
     <div>
       <div class="section-title">4. Mission Tradespace Selection (DES)</div>
-      <div class="section-note">Configure active nodes and parameters, then run the Discrete Event Simulation.</div>
     </div>
   </div>
 
-  <div style="display:grid;grid-template-columns:320px 1fr;gap:18px;min-height:500px;">
+  <!-- Top: Mission time slider -->
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;padding:10px 14px;background:var(--panel);border-radius:10px;border:1px solid var(--border);display:none;" id="desTimeSliderPanel">
+    <div style="font-size:11px;color:var(--text3);white-space:nowrap;">Mission Time</div>
+    <input id="desTimeSlider" type="range" min="0" max="60" step="1" value="0"
+      style="flex:1;" oninput="onDesTimeSlider(this.value)">
+    <div id="desTimeLabel" style="font-size:12px;color:var(--accent);white-space:nowrap;min-width:60px;text-align:right;font-weight:600;">t = 0 hr</div>
+  </div>
 
-    <!-- LEFT: DES node toggles + sliders -->
-    <div style="display:flex;flex-direction:column;gap:14px;">
+  <div style="display:grid;grid-template-columns:200px 1fr 220px;gap:14px;min-height:600px;">
 
-      <!-- Active DES Nodes -->
-      <div class="panel">
-        <div class="panel-title" style="margin-bottom:12px;">Active DES Nodes</div>
-        <div id="desNodeGrid" style="display:grid;gap:8px;"></div>
-        <div id="desValidation" class="mini-note" style="margin-top:10px;color:var(--warn);display:none;"></div>
+    <!-- LEFT: Sliders only -->
+    <div class="panel" style="display:flex;flex-direction:column;gap:0;">
+      <div class="panel-title" style="margin-bottom:14px;">Parameter Controls</div>
+      <div style="font-size:10px;color:var(--text3);margin-bottom:12px;line-height:1.5;">Stakeholder changes the assumptions here. The visualization then rebalances the operational state and downstream outcomes.</div>
+      <div style="display:flex;flex-direction:column;gap:14px;flex:1;">
+
+        <div class="control">
+          <div class="control-head"><span># of regolith rovers</span><span id="desRoverCountVal" style="color:var(--accent);">1</span></div>
+          <input id="desRoverCount" type="range" min="1" max="10" step="1" value="1" oninput="document.getElementById('desRoverCountVal').textContent=this.value">
+          <div style="font-size:10px;color:var(--text3);margin-top:4px;">Assumes multiple rovers are collocated and contribute parallel haul capacity to the same regolith delivery loop.</div>
+        </div>
+
+        <div class="control">
+          <div class="control-head"><span># of ISRU plants</span><span id="desPlantCountVal" style="color:var(--accent);">1</span></div>
+          <input id="desPlantCount" type="range" min="1" max="6" step="1" value="1" oninput="document.getElementById('desPlantCountVal').textContent=this.value">
+          <div style="font-size:10px;color:var(--text3);margin-top:4px;">Assumes multiple ISRU plants are collocated and act like parallel processing units with shared local support infrastructure.</div>
+        </div>
+
+        <div class="control">
+          <div class="control-head"><span>Regolith haul distance</span><span id="desRegDistVal" style="color:var(--accent);">1.0 km</span></div>
+          <input id="desRegDist" type="range" min="0.5" max="10" step="0.5" value="1" oninput="document.getElementById('desRegDistVal').textContent=Number(this.value).toFixed(1)+' km'">
+          <div style="font-size:10px;color:var(--text3);margin-top:4px;">Excavation site → ISRU plant distance.</div>
+        </div>
+
+        <div class="control">
+          <div class="control-head"><span>LOX haul distance</span><span id="desLoxDistVal" style="color:var(--accent);">1.0 km</span></div>
+          <input id="desLoxDist" type="range" min="0.5" max="10" step="0.5" value="1" oninput="document.getElementById('desLoxDistVal').textContent=Number(this.value).toFixed(1)+' km'">
+          <div style="font-size:10px;color:var(--text3);margin-top:4px;">ISRU plant → landing zone distance.</div>
+        </div>
+
+        <div class="control">
+          <div class="control-head"><span>Rover discharge rate</span><span id="desRoverEnergyVal" style="color:var(--accent);">4000 kg/unload</span></div>
+          <input id="desRoverEnergy" type="range" min="0.0001" max="0.001" step="0.00005" value="0.00034" oninput="document.getElementById('desRoverEnergyVal').textContent=Number(this.value).toFixed(5)">
+          <div style="font-size:10px;color:var(--text3);margin-top:4px;">Primary driver for regolith availability.</div>
+        </div>
+
+        <div class="control">
+          <div class="control-head"><span>Rover travel time</span><span id="desRoverTravelVal" style="color:var(--accent);">5 hr/km</span></div>
+          <input id="desRoverTravel" type="range" min="1" max="10" step="1" value="5" oninput="document.getElementById('desRoverTravelVal').textContent=this.value+' hr/km'">
+          <div style="font-size:10px;color:var(--text3);margin-top:4px;">Longer travel time delays delivery cadence.</div>
+        </div>
+
+        <div class="control">
+          <div class="control-head"><span>Plant processing rate</span><span id="desProcessRateVal" style="color:var(--accent);">1600 kg/hr</span></div>
+          <input id="desProcessRate" type="range" min="800" max="3200" step="100" value="1600" oninput="document.getElementById('desProcessRateVal').textContent=this.value+' kg/hr'">
+          <div style="font-size:10px;color:var(--text3);margin-top:4px;">Higher plant processing can increase LOX output.</div>
+        </div>
+
+        <div class="control">
+          <div class="control-head"><span>LOX transport threshold</span><span id="desLoxThreshVal" style="color:var(--accent);">100 kg</span></div>
+          <input id="desLoxThresh" type="range" min="25" max="500" step="25" value="100" oninput="document.getElementById('desLoxThreshVal').textContent=this.value+' kg'">
+          <div style="font-size:10px;color:var(--text3);margin-top:4px;">Determines when the LOX cargo rover is triggered.</div>
+        </div>
+
       </div>
 
-      <!-- Sliders -->
-      <div class="panel" style="flex:1;">
-        <div class="panel-title" style="margin-bottom:12px;">Simulation Parameters</div>
-        <div style="display:grid;gap:10px;">
-
-          <div class="control">
-            <div class="control-head"><span># Regolith Rovers</span><span id="desRoverCountVal">1</span></div>
-            <input id="desRoverCount" type="range" min="1" max="10" step="1" value="1" oninput="document.getElementById('desRoverCountVal').textContent=this.value">
-          </div>
-
-          <div class="control">
-            <div class="control-head"><span># ISRU Plants</span><span id="desPlantCountVal">1</span></div>
-            <input id="desPlantCount" type="range" min="1" max="6" step="1" value="1" oninput="document.getElementById('desPlantCountVal').textContent=this.value">
-          </div>
-
-          <div class="control">
-            <div class="control-head"><span>Regolith Haul Distance (km)</span><span id="desRegDistVal">1.0</span></div>
-            <input id="desRegDist" type="range" min="0.5" max="10" step="0.5" value="1" oninput="document.getElementById('desRegDistVal').textContent=Number(this.value).toFixed(1)">
-          </div>
-
-          <div class="control">
-            <div class="control-head"><span>LOX Haul Distance (km)</span><span id="desLoxDistVal">1.0</span></div>
-            <input id="desLoxDist" type="range" min="0.5" max="10" step="0.5" value="1" oninput="document.getElementById('desLoxDistVal').textContent=Number(this.value).toFixed(1)">
-          </div>
-
-          <div class="control">
-            <div class="control-head"><span>Rover Energy (kWh/km/kg)</span><span id="desRoverEnergyVal">0.00034</span></div>
-            <input id="desRoverEnergy" type="range" min="0.0001" max="0.001" step="0.00005" value="0.00034" oninput="document.getElementById('desRoverEnergyVal').textContent=Number(this.value).toFixed(5)">
-          </div>
-
-          <div class="control">
-            <div class="control-head"><span>Rover Travel Time (hr/km)</span><span id="desRoverTravelVal">5</span></div>
-            <input id="desRoverTravel" type="range" min="1" max="10" step="1" value="5" oninput="document.getElementById('desRoverTravelVal').textContent=this.value">
-          </div>
-
-          <div class="control">
-            <div class="control-head"><span>ISRU Processing Rate (kg/hr)</span><span id="desProcessRateVal">1600</span></div>
-            <input id="desProcessRate" type="range" min="800" max="3200" step="100" value="1600" oninput="document.getElementById('desProcessRateVal').textContent=this.value">
-          </div>
-
-          <div class="control">
-            <div class="control-head"><span>LOX Transport Threshold (kg)</span><span id="desLoxThreshVal">100</span></div>
-            <input id="desLoxThresh" type="range" min="25" max="500" step="25" value="100" oninput="document.getElementById('desLoxThreshVal').textContent=this.value">
-          </div>
-
-        </div>
-
-        <!-- Run button -->
-        <div style="margin-top:16px;">
-          <button id="runDesBtn" class="msosa-btn" style="width:100%;padding:12px;" onclick="triggerDesWorkflow()">
-            ▶ Run DES Simulation
-          </button>
-          <div id="desStatus" class="mini-note" style="margin-top:8px;text-align:center;"></div>
-        </div>
+      <div style="margin-top:16px;">
+        <button id="runDesBtn" class="btn btn-primary" style="width:100%;padding:12px;" onclick="triggerDesWorkflow()">
+          ▶ Run DES Simulation
+        </button>
+        <div id="desStatus" class="mini-note" style="margin-top:8px;text-align:center;"></div>
       </div>
     </div>
 
-    <!-- RIGHT: Results + visualizer -->
-    <div style="display:flex;flex-direction:column;gap:14px;overflow:hidden;">
-
-      <!-- Time slider -->
-      <div class="panel" id="desTimeSliderPanel" style="display:none;">
-        <div style="display:flex;align-items:center;gap:12px;">
-          <div style="font-size:11px;color:var(--text3);white-space:nowrap;">t = 0 hr</div>
-          <input id="desTimeSlider" type="range" min="0" max="60" step="1" value="0"
-            style="flex:1;" oninput="onDesTimeSlider(this.value)">
-          <div id="desTimeLabel" style="font-size:11px;color:var(--accent);white-space:nowrap;min-width:50px;">t = 0 hr</div>
-        </div>
+    <!-- CENTER: Graph -->
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div style="background:var(--panel);border:1px solid var(--border);border-radius:12px;overflow:hidden;flex:1;position:relative;">
+        <div style="position:absolute;top:10px;left:14px;font-size:11px;color:var(--text2);font-weight:600;">Coupled Mission State Network</div>
+        <div style="position:absolute;top:28px;left:14px;font-size:10px;color:var(--text3);">Node color = health/utilization. Edge thickness = current flow magnitude.</div>
+        <svg id="desGraphSvg" width="100%" height="100%" style="display:block;min-height:480px;"></svg>
       </div>
-
-      <!-- Graph -->
-      <div class="panel" id="desGraphPanel" style="display:none;padding:0;overflow:hidden;border-radius:12px;">
-        <svg id="desGraphSvg" width="100%" height="320" style="display:block;"></svg>
-      </div>
-
-      <!-- Metrics cards -->
-      <div id="desMetricsWrap" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">
-        <div style="color:var(--text3);font-size:13px;text-align:center;grid-column:span 3;margin-top:40px;">
-          Run the DES simulation to see results here.
-        </div>
-      </div>
-
-      <!-- Warnings -->
       <div id="desWarningsWrap" style="display:none;"></div>
+    </div>
+
+    <!-- RIGHT: Downstream consequences -->
+    <div class="panel" id="desConsequencesPanel">
+      <div class="panel-title" style="margin-bottom:6px;">Downstream Consequences</div>
+      <div style="font-size:10px;color:var(--text3);margin-bottom:14px;line-height:1.5;">If I change one operational knob, what else changes?</div>
+      <div id="desMetricsWrap" style="display:flex;flex-direction:column;gap:10px;">
+        <div style="color:var(--text3);font-size:12px;text-align:center;margin-top:40px;">Run the simulation to see results.</div>
+      </div>
     </div>
 
   </div>
@@ -4170,9 +4164,37 @@ iframe{
     }
 
     function getDesActiveNodes() {
-      return DES_NODES
-        .filter(n => document.getElementById(`desNode_${n.id}`)?.checked)
-        .map(n => n.id);
+      // Map Step 2 SysML active nodes → DES valid node names
+      const SYSML_TO_DES = {
+        'ISRUPlant':         ['ISRUPlant'],
+        'SolarPowerSystem':  ['SolarPowerSystem'],
+        'HabitationModule':  ['HabitationModule'],
+        'LaunchLandingZone': ['LaunchLandingZone'],
+        'Rover':             ['RegolithRover', 'LOXRover'],
+        'Propellant_Depot':  [], // not in DES
+      };
+
+      const DES_VALID = new Set([
+        'ISRUPlant','RegolithRover','SolarPowerSystem',
+        'LOXRover','LaunchLandingZone','HabitationModule','CommunicationModule'
+      ]);
+
+      // Always required
+      const desNodes = new Set(['ISRUPlant', 'RegolithRover', 'CommunicationModule']);
+
+      // Get active SysML nodes from Step 2
+      const activeSysml = Object.keys(sysmlPartsCache);
+      if (activeSysml.length > 0) {
+        for (const sysmlName of activeSysml) {
+          const mapped = SYSML_TO_DES[sysmlName] || [];
+          mapped.forEach(n => desNodes.add(n));
+        }
+      } else {
+        // No Step 2 data — use all valid nodes
+        DES_VALID.forEach(n => desNodes.add(n));
+      }
+
+      return [...desNodes].filter(n => DES_VALID.has(n));
     }
 
     function setDesStatus(msg, color) {
@@ -4354,138 +4376,205 @@ iframe{
       return best ? (log[best.key] || {}) : {};
     }
 
-    // ── Metrics cards ──────────────────────────────────────────────────────
+    // ── Metrics cards matching screenshot ─────────────────────────────────
     function renderDesMetrics(log, t, results) {
       const snap = getLogAtTime(log, t);
       const wrap = document.getElementById('desMetricsWrap');
       if (!wrap) return;
 
-      // Aggregate from snapshot using real field names
       let loxAtPlants = 0, energyConsumed = 0, uptime = 0;
-      let battCharge = 500, battCap = 500;
-      let loxAtLZ = 0, roverBattPct = 100;
+      let battCharge = 500, battCap = 500, roverBattCharge = 100, roverBattCap = 100;
+      let loxAtLZ = 0, peakDemand = 0, thresholdTime = null;
 
       for (const attrs of Object.values(snap)) {
-        // ISRU plants — identified by having processingRate AND LOX_Stored
         if (attrs.processingRate !== undefined && attrs.LOX_Stored !== undefined) {
           loxAtPlants += attrs.LOX_Stored;
           energyConsumed += attrs.total_energy_consumed || 0;
           uptime += attrs.processing_uptime || 0;
         }
-        // Solar battery — identified by current_power_output
         if (attrs.current_power_output !== undefined && attrs.battery_charge !== undefined) {
           battCharge = attrs.battery_charge;
           battCap = attrs.battery_capacity || 500;
         }
-        // Landing zone — identified by LOX_Capacity
-        if (attrs.LOX_Capacity !== undefined) {
-          loxAtLZ = attrs.LOX_Stored || 0;
-        }
-        // Regolith rover battery — first one found with rover_type and Regolith in Name
+        if (attrs.LOX_Capacity !== undefined) loxAtLZ = attrs.LOX_Stored || 0;
         if (attrs.rover_type === 'cargo' && (attrs.Name||'').includes('Regolith')) {
-          roverBattPct = Math.round((attrs.battery_charge / attrs.battery_capacity) * 100);
+          roverBattCharge = attrs.battery_charge;
+          roverBattCap = attrs.battery_capacity || 100;
+        }
+        if (attrs.current_energy_demand !== undefined) peakDemand = attrs.current_energy_demand;
+      }
+
+      // Derived
+      const roverBattPct = Math.round((roverBattCharge / roverBattCap) * 100);
+      const numPlants = parseInt(desData?.inputs?.Num_ISRU_Plants || 1);
+      const avgUptime = numPlants > 0 ? (uptime / numPlants) : uptime;
+
+      // Find threshold crossing from log
+      for (const [key, snapT] of Object.entries(log)) {
+        if (Number(key) > t) break;
+        for (const attrs of Object.values(snapT)) {
+          if (attrs.LOX_Capacity !== undefined && (attrs.LOX_Stored||0) > 0 && thresholdTime === null) {
+            thresholdTime = Number(key);
+          }
         }
       }
 
-      const battPct = Math.round((battCharge / battCap) * 100);
+      // Total LOX = plants + LZ
+      const totalLox = loxAtPlants + loxAtLZ;
 
-      const cards = [
-        { label: 'LOX at Plants',       value: `${loxAtPlants.toFixed(1)} kg`,      color: '#7ee0b1', icon: '🧊' },
-        { label: 'LOX at Landing Zone', value: `${loxAtLZ.toFixed(1)} kg`,           color: '#4cc9f0', icon: '🚀' },
-        { label: 'Energy Consumed',     value: `${energyConsumed.toFixed(0)} kWh`,   color: '#ffd166', icon: '⚡' },
-        { label: 'Plant Uptime',        value: `${uptime.toFixed(1)} hr`,             color: '#a78bfa', icon: '⏱' },
-        { label: 'Battery Charge',      value: `${battPct}%`,                         color: battPct > 50 ? '#7ee0b1' : '#ff7a8a', icon: '🔋' },
-        { label: 'Rover Battery',       value: `${roverBattPct}%`,                    color: roverBattPct > 40 ? '#7ee0b1' : '#ffd166', icon: '🚗' },
+      const metrics = [
+        {
+          label: 'TOTAL LOX BY 60 HR',
+          value: `${totalLox.toFixed(1)} kg`,
+          sub: '+0% vs baseline',
+          subColor: '#7ee0b1',
+        },
+        {
+          label: 'PLANT UPTIME',
+          value: `${avgUptime.toFixed(1)} hr`,
+          sub: 'Improved throughput',
+          subColor: '#7ee0b1',
+        },
+        {
+          label: 'ROVER BATTERY RESERVE',
+          value: `${roverBattPct}%`,
+          sub: roverBattPct > 50 ? 'Healthy margin' : 'Low margin',
+          subColor: roverBattPct > 50 ? '#7ee0b1' : '#ff7a8a',
+        },
+        {
+          label: 'THRESHOLD CROSSING',
+          value: thresholdTime !== null ? `${thresholdTime} hr` : '—',
+          sub: 'No shift',
+          subColor: 'var(--text3)',
+        },
+        {
+          label: 'PEAK POWER DEMAND',
+          value: `${peakDemand.toFixed(0)} kW`,
+          sub: peakDemand > 100 ? 'Above supply' : 'Below supply',
+          subColor: peakDemand > 100 ? '#ff7a8a' : '#ffd166',
+        },
+        {
+          label: 'ENERGY CONSUMED',
+          value: `${(energyConsumed/1000).toFixed(1)} MWh`,
+          sub: `${energyConsumed.toFixed(0)} kWh total`,
+          subColor: 'var(--text3)',
+        },
       ];
 
-      wrap.innerHTML = cards.map(c => `
-        <div style="background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:14px;">
-          <div style="font-size:18px;margin-bottom:6px;">${c.icon}</div>
-          <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">${c.label}</div>
-          <div style="font-size:20px;font-weight:700;color:${c.color};">${c.value}</div>
+      wrap.innerHTML = metrics.map(m => `
+        <div style="border-bottom:1px solid var(--border);padding-bottom:10px;">
+          <div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">${m.label}</div>
+          <div style="font-size:22px;font-weight:700;color:white;line-height:1;">${m.value}</div>
+          <div style="font-size:10px;color:${m.subColor};margin-top:3px;">${m.sub}</div>
         </div>`).join('');
+
+      // Interpretation text
+      const interp = document.createElement('div');
+      interp.style.cssText = 'margin-top:8px;';
+      interp.innerHTML = `
+        <div style="font-size:10px;color:var(--text3);font-weight:600;margin-bottom:4px;">Interpretation:</div>
+        <div style="font-size:11px;color:var(--text2);line-height:1.5;">
+          At t = ${t} hr, using ${desData?.inputs?.Num_Regolith_Rovers||1} rover(s) and ${numPlants} ISRU plant(s),
+          the system has produced ${totalLox.toFixed(1)} kg LOX total,
+          with ${loxAtLZ.toFixed(1)} kg delivered to the landing zone.
+          Peak power demand is ${peakDemand.toFixed(0)} kW.
+        </div>`;
+      wrap.appendChild(interp);
     }
 
-    // ── Graph constants ────────────────────────────────────────────────────
-    const DES_GRAPH_NODES = {
-      'RegolithRover':      { x: 0.15, y: 0.22, label: 'Regolith\nRover',    color: '#4cc9f0' },
-      'ISRUPlant':          { x: 0.42, y: 0.35, label: 'ISRU\nPlant',         color: '#7ee0b1' },
-      'SolarPowerSystem':   { x: 0.18, y: 0.72, label: 'Solar\nPower',        color: '#ffd166' },
-      'LOXRover':           { x: 0.68, y: 0.48, label: 'LOX\nRover',          color: '#f4a261' },
-      'LaunchLandingZone':  { x: 0.87, y: 0.22, label: 'LZ /\nDepot',         color: '#4cc9f0' },
-      'HabitationModule':   { x: 0.50, y: 0.78, label: 'Habitat',             color: '#a78bfa' },
-      'CommunicationModule':{ x: 0.78, y: 0.78, label: 'Comms',               color: '#a78bfa' },
-    };
-
-    const DES_GRAPH_EDGES = [
-      { from: 'RegolithRover',    to: 'ISRUPlant',          type: 'regolith', color: '#4cc9f0' },
-      { from: 'ISRUPlant',        to: 'LOXRover',           type: 'lox',      color: '#ffd166' },
-      { from: 'LOXRover',         to: 'LaunchLandingZone',  type: 'loxrover', color: '#ffd166' },
-      { from: 'SolarPowerSystem', to: 'ISRUPlant',          type: 'power',    color: '#7ee0b1' },
-      { from: 'SolarPowerSystem', to: 'HabitationModule',   type: 'power',    color: '#7ee0b1' },
-      { from: 'SolarPowerSystem', to: 'CommunicationModule',type: 'power',    color: '#7ee0b1' },
-      { from: 'SolarPowerSystem', to: 'LaunchLandingZone',  type: 'power',    color: '#7ee0b1' },
-    ];
-
-    // ── Graph ──────────────────────────────────────────────────────────────
+    // ── Graph with rectangular nodes ──────────────────────────────────────
     function renderDesGraph(log, t) {
       const svg = document.getElementById('desGraphSvg');
       if (!svg) return;
-      const W = svg.clientWidth || svg.parentElement?.clientWidth || 600;
-      const H = 320;
+      const W = svg.clientWidth || svg.parentElement?.clientWidth || 700;
+      const H = svg.clientHeight || 480;
       svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
 
       const snap = getLogAtTime(log, t);
-      const activeNodes = desData?.results?.Sim_Metrics?.Active_Nodes || [];
+      const activeNodes = desData?.results?.Sim_Metrics?.Active_Nodes || Object.keys(DES_GRAPH_NODES);
 
-      // Extract key values for edge thickness using field presence
+      // Extract values
       let loxAtPlants = 0, battPct = 1, roverLoad = 0, loxRoverLoad = 0;
+      let loxAtLZ = 0, numPlants = 1;
       for (const attrs of Object.values(snap)) {
-        if (attrs.processingRate !== undefined && attrs.LOX_Stored !== undefined)
-          loxAtPlants += attrs.LOX_Stored;
+        if (attrs.processingRate !== undefined && attrs.LOX_Stored !== undefined) {
+          loxAtPlants += attrs.LOX_Stored; numPlants++;
+        }
         if (attrs.current_power_output !== undefined && attrs.battery_capacity !== undefined)
           battPct = (attrs.battery_charge || 500) / (attrs.battery_capacity || 500);
         if (attrs.rover_type === 'cargo' && (attrs.Name||'').includes('Regolith'))
           roverLoad = (attrs.current_load || 0) / (attrs.max_capacity || 5000);
         if (attrs.Name === 'LOX Cargo Rover')
           loxRoverLoad = (attrs.current_load || 0) / (attrs.max_capacity || 5000);
+        if (attrs.LOX_Capacity !== undefined) loxAtLZ = attrs.LOX_Stored || 0;
       }
-      const loxPct = Math.min(loxAtPlants / 120, 1);
+      numPlants = Math.max(numPlants - 1, 1);
+      const loxPct = Math.min(loxAtPlants / (numPlants * 120), 1);
 
-      let svgHtml = `<rect width="${W}" height="${H}" fill="#0c1119"/>`;
+      const BG = '#0d1117';
+      let html = `<rect width="${W}" height="${H}" fill="${BG}"/>`;
 
-      // Draw edges
-      for (const edge of DES_GRAPH_EDGES) {
-        if (!activeNodes.includes(edge.from) || !activeNodes.includes(edge.to)) continue;
-        const n1 = DES_GRAPH_NODES[edge.from];
-        const n2 = DES_GRAPH_NODES[edge.to];
+      // Node positions (relative)
+      const NW = 110, NH = 60, R = 10;
+      const nodes = {
+        RegolithRover:      { x: 0.18, y: 0.22 },
+        ISRUPlant:          { x: 0.45, y: 0.40 },
+        SolarPowerSystem:   { x: 0.22, y: 0.72 },
+        LOXRover:           { x: 0.65, y: 0.50 },
+        LaunchLandingZone:  { x: 0.85, y: 0.22 },
+        HabitationModule:   { x: 0.50, y: 0.80 },
+        CommunicationModule:{ x: 0.78, y: 0.80 },
+      };
+
+      // Draw edges first
+      const edges = [
+        { from:'RegolithRover', to:'ISRUPlant',          type:'regolith', color:'#4cc9f0', w: 1.5 + roverLoad*8 },
+        { from:'ISRUPlant',     to:'LOXRover',           type:'lox',      color:'#ffd166', w: 1.5 + loxPct*7 },
+        { from:'LOXRover',      to:'LaunchLandingZone',  type:'lox',      color:'#f4a261', w: 1.5 + loxRoverLoad*7 },
+        { from:'SolarPowerSystem',to:'ISRUPlant',        type:'power',    color:'#7ee0b1', w: 1 + battPct*3 },
+        { from:'SolarPowerSystem',to:'HabitationModule', type:'power',    color:'#7ee0b1', w: 1 + battPct*2 },
+        { from:'SolarPowerSystem',to:'CommunicationModule',type:'power',  color:'#7ee0b1', w: 1 + battPct*2 },
+        { from:'SolarPowerSystem',to:'LaunchLandingZone',type:'power',    color:'#7ee0b1', w: 1 + battPct*2 },
+        { from:'SolarPowerSystem',to:'LOXRover',         type:'power',    color:'#7ee0b1', w: 1, dash: '4,6' },
+      ];
+
+      for (const e of edges) {
+        if (!activeNodes.includes(e.from) || !activeNodes.includes(e.to)) continue;
+        const n1 = nodes[e.from], n2 = nodes[e.to];
         const x1 = n1.x * W, y1 = n1.y * H;
         const x2 = n2.x * W, y2 = n2.y * H;
-        let thick = 1.5;
-        if (edge.type === 'lox')      thick = 1.5 + loxPct * 7;
-        if (edge.type === 'regolith') thick = 1.5 + roverLoad * 5;
-        if (edge.type === 'loxrover') thick = 1.5 + loxRoverLoad * 6;
-        if (edge.type === 'power')    thick = 1 + battPct * 3;
-        svgHtml += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"
-          stroke="${edge.color}" stroke-width="${thick.toFixed(1)}" stroke-opacity="0.75"
-          stroke-linecap="round"/>`;
+        const dashAttr = e.dash ? `stroke-dasharray="${e.dash}"` : '';
+        html += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"
+          stroke="${e.color}" stroke-width="${e.w.toFixed(1)}" stroke-opacity="0.8"
+          stroke-linecap="round" ${dashAttr}/>`;
       }
 
-      // Draw nodes
-      for (const [nodeId, pos] of Object.entries(DES_GRAPH_NODES)) {
-        if (!activeNodes.includes(nodeId)) continue;
+      // Draw rectangular nodes
+      const nodeLabels = {
+        RegolithRover:       { l1:'Regolith Rover', l2: () => `Count: ${desData?.inputs?.Num_Regolith_Rovers||1} | Load: ${roverLoad*5000|0} kg | Haul: ${desData?.inputs?.Regolith_Haul_Distance||1} km`, stroke:'#4cc9f0' },
+        ISRUPlant:           { l1:'ISRU Plant',     l2: () => `Plants: ${numPlants} | LOX: ${loxAtPlants.toFixed(1)} kg @ t=${t} hr`, stroke:'#7ee0b1' },
+        SolarPowerSystem:    { l1:'Solar + Power',  l2: () => `${(battPct*100).toFixed(0)}% battery | ${(battPct*100).toFixed(0)} kW available`, stroke:'#ffd166' },
+        LOXRover:            { l1:'LOX Rover',      l2: () => loxRoverLoad > 0 ? `Load: ${(loxRoverLoad*5000).toFixed(0)} kg` : 'Idle', stroke:'#f4a261' },
+        LaunchLandingZone:   { l1:'LZ / Depot',     l2: () => `${loxAtLZ.toFixed(1)} kg stored | ${desData?.inputs?.LOX_Haul_Distance||1} km`, stroke:'#4cc9f0' },
+        HabitationModule:    { l1:'Habitat',        l2: () => '5 kW', stroke:'#a78bfa' },
+        CommunicationModule: { l1:'Comms',          l2: () => '2 kW', stroke:'#a78bfa' },
+      };
+
+      for (const [id, pos] of Object.entries(nodes)) {
+        if (!activeNodes.includes(id)) continue;
         const cx = pos.x * W, cy = pos.y * H;
-        svgHtml += `<circle cx="${cx}" cy="${cy}" r="36" fill="#1a2535" stroke="${pos.color}" stroke-width="2"/>`;
-        const lines = pos.label.split('\n');
-        const lineH = 13;
-        const startY = cy - (lines.length - 1) * lineH / 2;
-        lines.forEach((line, i) => {
-          svgHtml += `<text x="${cx}" y="${startY + i * lineH}" text-anchor="middle"
-            dominant-baseline="middle" fill="white" font-size="11" font-weight="600">${line}</text>`;
-        });
+        const x = cx - NW/2, y = cy - NH/2;
+        const info = nodeLabels[id];
+        const strokeW = id === 'RegolithRover' || id === 'ISRUPlant' ? 2.5 : 1.5;
+        html += `<rect x="${x}" y="${y}" width="${NW}" height="${NH}" rx="${R}" ry="${R}"
+          fill="#111827" stroke="${info.stroke}" stroke-width="${strokeW}"/>`;
+        html += `<text x="${cx}" y="${cy - 8}" text-anchor="middle" dominant-baseline="middle"
+          fill="white" font-size="13" font-weight="700">${info.l1}</text>`;
+        html += `<text x="${cx}" y="${cy + 10}" text-anchor="middle" dominant-baseline="middle"
+          fill="#8899aa" font-size="9">${info.l2()}</text>`;
       }
 
-      svg.innerHTML = svgHtml;
+      svg.innerHTML = html;
     }
 
     function renderFinalMetrics(r) {
