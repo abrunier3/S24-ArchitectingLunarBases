@@ -2671,101 +2671,138 @@ iframe{
 
 <section class="section" id="des">
   <div class="section-head">
-    <div>
-      <div class="section-title">4. Mission Tradespace Selection (DES)</div>
-    </div>
+    <div><div class="section-title">4. Mission Tradespace Selection (DES)</div></div>
   </div>
 
-  <!-- Top: Mission time slider -->
-  <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;padding:10px 14px;background:var(--panel);border-radius:10px;border:1px solid var(--border);display:none;" id="desTimeSliderPanel">
-    <div style="font-size:11px;color:var(--text3);white-space:nowrap;">Mission Time</div>
+  <!-- Mission time slider (shown after run) -->
+  <div id="desTimeSliderPanel" style="display:none;align-items:center;gap:14px;margin-bottom:12px;
+    padding:10px 16px;background:var(--panel);border-radius:10px;border:1px solid var(--border);">
+    <div style="font-size:11px;color:var(--text3);white-space:nowrap;min-width:80px;">Mission Time</div>
     <input id="desTimeSlider" type="range" min="0" max="60" step="1" value="0"
       style="flex:1;" oninput="onDesTimeSlider(this.value)">
     <div id="desTimeLabel" style="font-size:12px;color:var(--accent);white-space:nowrap;min-width:60px;text-align:right;font-weight:600;">t = 0 hr</div>
   </div>
 
-  <div style="display:grid;grid-template-columns:200px 1fr 220px;gap:14px;min-height:600px;">
+  <div style="display:grid;grid-template-columns:230px 1fr 200px;gap:12px;height:520px;">
 
-    <!-- LEFT: Sliders only -->
-    <div class="panel" style="display:flex;flex-direction:column;gap:0;">
-      <div class="panel-title" style="margin-bottom:14px;">Parameter Controls</div>
-      <div style="font-size:10px;color:var(--text3);margin-bottom:12px;line-height:1.5;">Stakeholder changes the assumptions here. The visualization then rebalances the operational state and downstream outcomes.</div>
-      <div style="display:flex;flex-direction:column;gap:14px;flex:1;">
+    <!-- LEFT: collapsible sliders -->
+    <div style="display:flex;flex-direction:column;background:var(--panel);border:1px solid var(--border);border-radius:12px;overflow:hidden;">
+      <!-- Header always visible -->
+      <div style="padding:12px 14px;border-bottom:1px solid var(--border);">
+        <div style="font-size:12px;font-weight:600;color:var(--text1);margin-bottom:2px;">Parameter Controls</div>
+        <div style="font-size:10px;color:var(--text3);">Stakeholder changes the assumptions here.</div>
+      </div>
+      <!-- Scrollable sliders -->
+      <div style="flex:1;overflow-y:auto;padding:10px 14px;display:flex;flex-direction:column;gap:12px;">
 
-        <div class="control">
-          <div class="control-head"><span># of regolith rovers</span><span id="desRoverCountVal" style="color:var(--accent);">1</span></div>
-          <input id="desRoverCount" type="range" min="1" max="10" step="1" value="1" oninput="document.getElementById('desRoverCountVal').textContent=this.value">
-          <div style="font-size:10px;color:var(--text3);margin-top:4px;">Assumes multiple rovers are collocated and contribute parallel haul capacity to the same regolith delivery loop.</div>
+        <div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+            <span style="font-size:11px;color:var(--text2);"># of regolith rovers</span>
+            <span id="desRoverCountVal" style="font-size:11px;font-weight:600;color:var(--accent);">1</span>
+          </div>
+          <input id="desRoverCount" type="range" min="1" max="10" step="1" value="1" style="width:100%;"
+            oninput="document.getElementById('desRoverCountVal').textContent=this.value">
+          <div style="font-size:9px;color:var(--text3);margin-top:2px;line-height:1.4;">Parallel haul capacity to regolith loop.</div>
         </div>
 
-        <div class="control">
-          <div class="control-head"><span># of ISRU plants</span><span id="desPlantCountVal" style="color:var(--accent);">1</span></div>
-          <input id="desPlantCount" type="range" min="1" max="6" step="1" value="1" oninput="document.getElementById('desPlantCountVal').textContent=this.value">
-          <div style="font-size:10px;color:var(--text3);margin-top:4px;">Assumes multiple ISRU plants are collocated and act like parallel processing units with shared local support infrastructure.</div>
+        <div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+            <span style="font-size:11px;color:var(--text2);"># of ISRU plants</span>
+            <span id="desPlantCountVal" style="font-size:11px;font-weight:600;color:var(--accent);">1</span>
+          </div>
+          <input id="desPlantCount" type="range" min="1" max="6" step="1" value="1" style="width:100%;"
+            oninput="document.getElementById('desPlantCountVal').textContent=this.value">
+          <div style="font-size:9px;color:var(--text3);margin-top:2px;line-height:1.4;">Parallel processing units, shared infrastructure.</div>
         </div>
 
-        <div class="control">
-          <div class="control-head"><span>Regolith haul distance</span><span id="desRegDistVal" style="color:var(--accent);">1.0 km</span></div>
-          <input id="desRegDist" type="range" min="0.5" max="10" step="0.5" value="1" oninput="document.getElementById('desRegDistVal').textContent=Number(this.value).toFixed(1)+' km'">
-          <div style="font-size:10px;color:var(--text3);margin-top:4px;">Excavation site → ISRU plant distance.</div>
+        <div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+            <span style="font-size:11px;color:var(--text2);">Regolith haul distance</span>
+            <span id="desRegDistVal" style="font-size:11px;font-weight:600;color:var(--accent);">1.0 km</span>
+          </div>
+          <input id="desRegDist" type="range" min="0.5" max="10" step="0.5" value="1" style="width:100%;"
+            oninput="document.getElementById('desRegDistVal').textContent=Number(this.value).toFixed(1)+' km'">
+          <div style="font-size:9px;color:var(--text3);margin-top:2px;line-height:1.4;">Excavation site → ISRU plant distance.</div>
         </div>
 
-        <div class="control">
-          <div class="control-head"><span>LOX haul distance</span><span id="desLoxDistVal" style="color:var(--accent);">1.0 km</span></div>
-          <input id="desLoxDist" type="range" min="0.5" max="10" step="0.5" value="1" oninput="document.getElementById('desLoxDistVal').textContent=Number(this.value).toFixed(1)+' km'">
-          <div style="font-size:10px;color:var(--text3);margin-top:4px;">ISRU plant → landing zone distance.</div>
+        <div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+            <span style="font-size:11px;color:var(--text2);">LOX haul distance</span>
+            <span id="desLoxDistVal" style="font-size:11px;font-weight:600;color:var(--accent);">1.0 km</span>
+          </div>
+          <input id="desLoxDist" type="range" min="0.5" max="10" step="0.5" value="1" style="width:100%;"
+            oninput="document.getElementById('desLoxDistVal').textContent=Number(this.value).toFixed(1)+' km'">
+          <div style="font-size:9px;color:var(--text3);margin-top:2px;line-height:1.4;">ISRU plant → landing zone distance.</div>
         </div>
 
-        <div class="control">
-          <div class="control-head"><span>Rover discharge rate</span><span id="desRoverEnergyVal" style="color:var(--accent);">4000 kg/unload</span></div>
-          <input id="desRoverEnergy" type="range" min="0.0001" max="0.001" step="0.00005" value="0.00034" oninput="document.getElementById('desRoverEnergyVal').textContent=Number(this.value).toFixed(5)">
-          <div style="font-size:10px;color:var(--text3);margin-top:4px;">Primary driver for regolith availability.</div>
+        <div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+            <span style="font-size:11px;color:var(--text2);">Rover energy (kWh/km/kg)</span>
+            <span id="desRoverEnergyVal" style="font-size:11px;font-weight:600;color:var(--accent);">0.00034</span>
+          </div>
+          <input id="desRoverEnergy" type="range" min="0.0001" max="0.001" step="0.00005" value="0.00034" style="width:100%;"
+            oninput="document.getElementById('desRoverEnergyVal').textContent=Number(this.value).toFixed(5)">
+          <div style="font-size:9px;color:var(--text3);margin-top:2px;line-height:1.4;">Primary driver for regolith availability.</div>
         </div>
 
-        <div class="control">
-          <div class="control-head"><span>Rover travel time</span><span id="desRoverTravelVal" style="color:var(--accent);">5 hr/km</span></div>
-          <input id="desRoverTravel" type="range" min="1" max="10" step="1" value="5" oninput="document.getElementById('desRoverTravelVal').textContent=this.value+' hr/km'">
-          <div style="font-size:10px;color:var(--text3);margin-top:4px;">Longer travel time delays delivery cadence.</div>
+        <div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+            <span style="font-size:11px;color:var(--text2);">Rover travel time</span>
+            <span id="desRoverTravelVal" style="font-size:11px;font-weight:600;color:var(--accent);">5 hr/km</span>
+          </div>
+          <input id="desRoverTravel" type="range" min="1" max="10" step="1" value="5" style="width:100%;"
+            oninput="document.getElementById('desRoverTravelVal').textContent=this.value+' hr/km'">
+          <div style="font-size:9px;color:var(--text3);margin-top:2px;line-height:1.4;">Longer travel delays delivery cadence.</div>
         </div>
 
-        <div class="control">
-          <div class="control-head"><span>Plant processing rate</span><span id="desProcessRateVal" style="color:var(--accent);">1600 kg/hr</span></div>
-          <input id="desProcessRate" type="range" min="800" max="3200" step="100" value="1600" oninput="document.getElementById('desProcessRateVal').textContent=this.value+' kg/hr'">
-          <div style="font-size:10px;color:var(--text3);margin-top:4px;">Higher plant processing can increase LOX output.</div>
+        <div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+            <span style="font-size:11px;color:var(--text2);">ISRU processing rate</span>
+            <span id="desProcessRateVal" style="font-size:11px;font-weight:600;color:var(--accent);">1600 kg/hr</span>
+          </div>
+          <input id="desProcessRate" type="range" min="800" max="3200" step="100" value="1600" style="width:100%;"
+            oninput="document.getElementById('desProcessRateVal').textContent=this.value+' kg/hr'">
+          <div style="font-size:9px;color:var(--text3);margin-top:2px;line-height:1.4;">Higher rate increases LOX output.</div>
         </div>
 
-        <div class="control">
-          <div class="control-head"><span>LOX transport threshold</span><span id="desLoxThreshVal" style="color:var(--accent);">100 kg</span></div>
-          <input id="desLoxThresh" type="range" min="25" max="500" step="25" value="100" oninput="document.getElementById('desLoxThreshVal').textContent=this.value+' kg'">
-          <div style="font-size:10px;color:var(--text3);margin-top:4px;">Determines when the LOX cargo rover is triggered.</div>
+        <div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+            <span style="font-size:11px;color:var(--text2);">LOX transport threshold</span>
+            <span id="desLoxThreshVal" style="font-size:11px;font-weight:600;color:var(--accent);">100 kg</span>
+          </div>
+          <input id="desLoxThresh" type="range" min="25" max="500" step="25" value="100" style="width:100%;"
+            oninput="document.getElementById('desLoxThreshVal').textContent=this.value+' kg'">
+          <div style="font-size:9px;color:var(--text3);margin-top:2px;line-height:1.4;">Triggers LOX rover pickup.</div>
         </div>
 
       </div>
-
-      <div style="margin-top:16px;">
-        <button id="runDesBtn" class="btn btn-primary" style="width:100%;padding:12px;" onclick="triggerDesWorkflow()">
+      <!-- Run button pinned at bottom -->
+      <div style="padding:10px 14px;border-top:1px solid var(--border);">
+        <button id="runDesBtn" class="btn btn-primary" style="width:100%;padding:10px;" onclick="triggerDesWorkflow()">
           ▶ Run DES Simulation
         </button>
-        <div id="desStatus" class="mini-note" style="margin-top:8px;text-align:center;"></div>
+        <div id="desStatus" class="mini-note" style="margin-top:6px;text-align:center;font-size:10px;"></div>
       </div>
     </div>
 
     <!-- CENTER: Graph -->
-    <div style="display:flex;flex-direction:column;gap:10px;">
-      <div style="background:var(--panel);border:1px solid var(--border);border-radius:12px;overflow:hidden;flex:1;position:relative;">
-        <div style="position:absolute;top:10px;left:14px;font-size:11px;color:var(--text2);font-weight:600;">Coupled Mission State Network</div>
-        <div style="position:absolute;top:28px;left:14px;font-size:10px;color:var(--text3);">Node color = health/utilization. Edge thickness = current flow magnitude.</div>
-        <svg id="desGraphSvg" width="100%" height="100%" style="display:block;min-height:480px;"></svg>
+    <div style="position:relative;background:var(--panel);border:1px solid var(--border);border-radius:12px;overflow:hidden;">
+      <div style="position:absolute;top:10px;left:14px;z-index:1;">
+        <div style="font-size:11px;font-weight:600;color:var(--text2);">Coupled Mission State Network</div>
+        <div style="font-size:9px;color:var(--text3);">Node color = health/utilization. Edge thickness = current flow magnitude.</div>
       </div>
-      <div id="desWarningsWrap" style="display:none;"></div>
+      <svg id="desGraphSvg" width="100%" height="100%" style="display:block;"></svg>
+      <div id="desWarningsWrap" style="display:none;position:absolute;bottom:8px;left:8px;right:8px;"></div>
     </div>
 
     <!-- RIGHT: Downstream consequences -->
-    <div class="panel" id="desConsequencesPanel">
-      <div class="panel-title" style="margin-bottom:6px;">Downstream Consequences</div>
-      <div style="font-size:10px;color:var(--text3);margin-bottom:14px;line-height:1.5;">If I change one operational knob, what else changes?</div>
-      <div id="desMetricsWrap" style="display:flex;flex-direction:column;gap:10px;">
-        <div style="color:var(--text3);font-size:12px;text-align:center;margin-top:40px;">Run the simulation to see results.</div>
+    <div style="display:flex;flex-direction:column;background:var(--panel);border:1px solid var(--border);border-radius:12px;overflow:hidden;">
+      <div style="padding:12px 14px;border-bottom:1px solid var(--border);">
+        <div style="font-size:12px;font-weight:600;color:var(--text1);">Downstream Consequences</div>
+        <div style="font-size:9px;color:var(--text3);margin-top:2px;">If I change one operational knob, what else changes?</div>
+      </div>
+      <div id="desMetricsWrap" style="flex:1;overflow-y:auto;padding:12px 14px;display:flex;flex-direction:column;gap:0;">
+        <div style="color:var(--text3);font-size:11px;text-align:center;margin-top:40px;">Run the simulation to see results.</div>
       </div>
     </div>
 
