@@ -1,5 +1,5 @@
 {
-  "written_at": 1775563834751,
+  "written_at": 1775565924487,
   "status": "success",
   "warnings": [],
   "inputs": {
@@ -7,23 +7,23 @@
       "ISRUPlant",
       "RegolithRover",
       "CommunicationModule",
-      "SolarPowerSystem",
-      "LOXRover",
+      "HabitationModule",
       "LaunchLandingZone",
-      "HabitationModule"
+      "LOXRover",
+      "SolarPowerSystem"
     ],
     "Num_Regolith_Rovers": 1,
     "Num_ISRU_Plants": 1,
     "Regolith_Haul_Distance": 0.5,
     "LOX_Haul_Distance": 0.5,
-    "Rover_Energy_Consumption": 0.0006,
-    "Rover_Travel_Time": 5.0,
-    "ISRU_Plant_Processing_Rate": 1600.0,
+    "Rover_Energy_Consumption": 0.00045,
+    "Rover_Travel_Time": 4.0,
+    "ISRU_Plant_Processing_Rate": 1500.0,
     "LOX_Transport_Threshold": 100.0
   },
   "results": {
     "Sim_Metrics": {
-      "Simulation_Run_Time": 0.0043,
+      "Simulation_Run_Time": 0.0046,
       "Active_Nodes": [
         "CommunicationModule",
         "HabitationModule",
@@ -36,33 +36,33 @@
     },
     "ISRU_Plants": {
       "ISRU_Plant_1": {
-        "LOX_Stored_kg": 30.33,
-        "Energy_Consumed_kWh": 6249.59,
-        "Total_Operational_Hours": 57.5,
-        "Regolith_Received_kg": 92000,
-        "Total_LOX_Production_kg": 232.57
+        "LOX_Stored_kg": 20.22,
+        "Energy_Consumed_kWh": 6065.64,
+        "Total_Operational_Hours": 58.67,
+        "Regolith_Received_kg": 88000,
+        "Total_LOX_Production_kg": 222.46
       },
       "Fleet_Totals": {
         "Num_Plants": 1,
-        "LOX_Stored_kg": 30.33,
-        "Energy_Consumed_kWh": 6249.59,
-        "Total_Operational_Hours": 57.5,
-        "Regolith_Received_kg": 92000,
-        "Total_LOX_Production_kg": 232.57
+        "LOX_Stored_kg": 20.22,
+        "Energy_Consumed_kWh": 6065.64,
+        "Total_Operational_Hours": 58.67,
+        "Regolith_Received_kg": 88000,
+        "Total_LOX_Production_kg": 222.46
       }
     },
     "Regolith_Cargo_Rovers": {
       "Regolith Cargo Rover 1": {
-        "Total_Distance_km": 12.0,
-        "Energy_Consumed_kWh": 28.8,
-        "Battery_Charge_kWh": 71.2,
+        "Total_Distance_km": 14.0,
+        "Energy_Consumed_kWh": 25.2,
+        "Battery_Charge_kWh": 74.8,
         "Battery_Capacity_kWh": 100.0,
-        "Current_Load_kg": 4000
+        "Current_Load_kg": 0
       },
       "Fleet_Totals": {
         "Num_Rovers": 1,
-        "Total_Distance_km": 12.0,
-        "Energy_Consumed_kWh": 28.8
+        "Total_Distance_km": 14.0,
+        "Energy_Consumed_kWh": 25.2
       }
     },
     "Solar_Power_System": {
@@ -162,6 +162,7 @@
         10.0,
         10.0,
         10.0,
+        10.0,
         41.34598501087602,
         41.34598501087602,
         41.34598501087602,
@@ -187,8 +188,7 @@
         41.34598501087602,
         41.34598501087602,
         41.34598501087602,
-        72.69197002175204,
-        72.69197002175204,
+        41.34598501087602,
         72.69197002175204,
         72.69197002175204,
         72.69197002175204,
@@ -206,13 +206,13 @@
     "Landing_Zone": {
       "Name": "LZ-Alpha",
       "LOX_Stored_kg": 202.23,
-      "Energy_Consumed_kWh": 1386.8
+      "Energy_Consumed_kWh": 1292.76
     },
     "LOX_Cargo_Rover": {
       "Name": "LOX Cargo Rover",
       "Total_Distance_km": 1.0,
-      "Energy_Consumed_kWh": 0.06,
-      "Battery_Charge_kWh": 99.94,
+      "Energy_Consumed_kWh": 0.05,
+      "Battery_Charge_kWh": 99.95,
       "Battery_Capacity_kWh": 100.0,
       "Current_Load_kg": 0
     },
@@ -226,7 +226,7 @@
     "0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 1600.0,
+        "processingRate": 1500.0,
         "regHeadGrade": 0.1,
         "LOX_Stored": 0,
         "total_energy_consumed": 0,
@@ -282,24 +282,24 @@
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 0,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
         "battery_charge": 100.0,
         "total_distance_traveled": 0.0,
         "total_energy_consumed": 0.0,
-        "hours_per_km": 5.0
+        "hours_per_km": 4.0
       },
       "LOX Cargo Rover": {
         "Name": "LOX Cargo Rover",
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 0,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
         "battery_charge": 100.0,
         "total_distance_traveled": 0.0,
         "total_energy_consumed": 0.0,
-        "hours_per_km": 5.0
+        "hours_per_km": 4.0
       },
       "ChargeStation-1": {
         "Name": "ChargeStation-1",
@@ -312,7 +312,7 @@
     "1.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 1600.0,
+        "processingRate": 1500.0,
         "regHeadGrade": 0.1,
         "LOX_Stored": 0,
         "total_energy_consumed": 0,
@@ -368,24 +368,24 @@
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 4000,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
-        "battery_charge": 98.8,
+        "battery_charge": 99.1,
         "total_distance_traveled": 0.5,
-        "total_energy_consumed": 1.2,
-        "hours_per_km": 5.0
+        "total_energy_consumed": 0.9,
+        "hours_per_km": 4.0
       },
       "LOX Cargo Rover": {
         "Name": "LOX Cargo Rover",
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 0,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
         "battery_charge": 100.0,
         "total_distance_traveled": 0.0,
         "total_energy_consumed": 0.0,
-        "hours_per_km": 5.0
+        "hours_per_km": 4.0
       },
       "ChargeStation-1": {
         "Name": "ChargeStation-1",
@@ -398,7 +398,7 @@
     "2.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 1600.0,
+        "processingRate": 1500.0,
         "regHeadGrade": 0.1,
         "LOX_Stored": 0,
         "total_energy_consumed": 0.0,
@@ -454,24 +454,24 @@
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 4000,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
-        "battery_charge": 98.8,
+        "battery_charge": 99.1,
         "total_distance_traveled": 0.5,
-        "total_energy_consumed": 1.2,
-        "hours_per_km": 5.0
+        "total_energy_consumed": 0.9,
+        "hours_per_km": 4.0
       },
       "LOX Cargo Rover": {
         "Name": "LOX Cargo Rover",
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 0,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
         "battery_charge": 100.0,
         "total_distance_traveled": 0.0,
         "total_energy_consumed": 0.0,
-        "hours_per_km": 5.0
+        "hours_per_km": 4.0
       },
       "ChargeStation-1": {
         "Name": "ChargeStation-1",
@@ -484,7 +484,7 @@
     "3.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 1600.0,
+        "processingRate": 1500.0,
         "regHeadGrade": 0.1,
         "LOX_Stored": 10.11160806802452,
         "total_energy_consumed": 237.2406742425153,
@@ -495,7 +495,7 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 2.5,
+        "processing_uptime": 2.6666666666666665,
         "total_LOX_production": 10.11160806802452,
         "regolith_recieved": 4000
       },
@@ -540,24 +540,24 @@
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 4000,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
-        "battery_charge": 97.6,
+        "battery_charge": 98.19999999999999,
         "total_distance_traveled": 1.0,
-        "total_energy_consumed": 2.4,
-        "hours_per_km": 5.0
+        "total_energy_consumed": 1.8,
+        "hours_per_km": 4.0
       },
       "LOX Cargo Rover": {
         "Name": "LOX Cargo Rover",
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 0,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
         "battery_charge": 100.0,
         "total_distance_traveled": 0.0,
         "total_energy_consumed": 0.0,
-        "hours_per_km": 5.0
+        "hours_per_km": 4.0
       },
       "ChargeStation-1": {
         "Name": "ChargeStation-1",
@@ -570,7 +570,7 @@
     "4.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 1600.0,
+        "processingRate": 1500.0,
         "regHeadGrade": 0.1,
         "LOX_Stored": 10.11160806802452,
         "total_energy_consumed": 240.3752727436029,
@@ -581,7 +581,7 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 2.5,
+        "processing_uptime": 2.6666666666666665,
         "total_LOX_production": 10.11160806802452,
         "regolith_recieved": 4000
       },
@@ -626,24 +626,24 @@
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 4000,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
-        "battery_charge": 97.6,
+        "battery_charge": 98.19999999999999,
         "total_distance_traveled": 1.0,
-        "total_energy_consumed": 2.4,
-        "hours_per_km": 5.0
+        "total_energy_consumed": 1.8,
+        "hours_per_km": 4.0
       },
       "LOX Cargo Rover": {
         "Name": "LOX Cargo Rover",
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 0,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
         "battery_charge": 100.0,
         "total_distance_traveled": 0.0,
         "total_energy_consumed": 0.0,
-        "hours_per_km": 5.0
+        "hours_per_km": 4.0
       },
       "ChargeStation-1": {
         "Name": "ChargeStation-1",
@@ -656,10 +656,10 @@
     "5.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 1600.0,
+        "processingRate": 1500.0,
         "regHeadGrade": 0.1,
-        "LOX_Stored": 10.11160806802452,
-        "total_energy_consumed": 243.5098712446905,
+        "LOX_Stored": 20.22321613604904,
+        "total_energy_consumed": 480.7505454872058,
         "excavationEnergyCoeff": 6.5e-06,
         "transportEnergyCoeff": 0.00036,
         "liftHeight": 1,
@@ -667,9 +667,9 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 2.5,
-        "total_LOX_production": 10.11160806802452,
-        "regolith_recieved": 4000
+        "processing_uptime": 5.333333333333333,
+        "total_LOX_production": 20.22321613604904,
+        "regolith_recieved": 8000
       },
       "Solar_Power_System": {
         "Name": "Solar_Power_System",
@@ -712,24 +712,24 @@
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 4000,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
-        "battery_charge": 97.6,
-        "total_distance_traveled": 1.0,
-        "total_energy_consumed": 2.4,
-        "hours_per_km": 5.0
+        "battery_charge": 97.29999999999998,
+        "total_distance_traveled": 1.5,
+        "total_energy_consumed": 2.7,
+        "hours_per_km": 4.0
       },
       "LOX Cargo Rover": {
         "Name": "LOX Cargo Rover",
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 0,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
         "battery_charge": 100.0,
         "total_distance_traveled": 0.0,
         "total_energy_consumed": 0.0,
-        "hours_per_km": 5.0
+        "hours_per_km": 4.0
       },
       "ChargeStation-1": {
         "Name": "ChargeStation-1",
@@ -742,10 +742,10 @@
     "6.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 1600.0,
+        "processingRate": 1500.0,
         "regHeadGrade": 0.1,
         "LOX_Stored": 20.22321613604904,
-        "total_energy_consumed": 483.8851439882934,
+        "total_energy_consumed": 487.019742489381,
         "excavationEnergyCoeff": 6.5e-06,
         "transportEnergyCoeff": 0.00036,
         "liftHeight": 1,
@@ -753,7 +753,7 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 5.0,
+        "processing_uptime": 5.333333333333333,
         "total_LOX_production": 20.22321613604904,
         "regolith_recieved": 8000
       },
@@ -798,24 +798,24 @@
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 4000,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
-        "battery_charge": 96.39999999999999,
+        "battery_charge": 97.29999999999998,
         "total_distance_traveled": 1.5,
-        "total_energy_consumed": 3.5999999999999996,
-        "hours_per_km": 5.0
+        "total_energy_consumed": 2.7,
+        "hours_per_km": 4.0
       },
       "LOX Cargo Rover": {
         "Name": "LOX Cargo Rover",
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 0,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
         "battery_charge": 100.0,
         "total_distance_traveled": 0.0,
         "total_energy_consumed": 0.0,
-        "hours_per_km": 5.0
+        "hours_per_km": 4.0
       },
       "ChargeStation-1": {
         "Name": "ChargeStation-1",
@@ -828,10 +828,10 @@
     "7.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 1600.0,
+        "processingRate": 1500.0,
         "regHeadGrade": 0.1,
         "LOX_Stored": 20.22321613604904,
-        "total_energy_consumed": 490.1543409904686,
+        "total_energy_consumed": 493.28893949155616,
         "excavationEnergyCoeff": 6.5e-06,
         "transportEnergyCoeff": 0.00036,
         "liftHeight": 1,
@@ -839,7 +839,7 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 5.0,
+        "processing_uptime": 5.333333333333333,
         "total_LOX_production": 20.22321613604904,
         "regolith_recieved": 8000
       },
@@ -884,24 +884,24 @@
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 4000,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
-        "battery_charge": 96.39999999999999,
-        "total_distance_traveled": 1.5,
-        "total_energy_consumed": 3.5999999999999996,
-        "hours_per_km": 5.0
+        "battery_charge": 96.39999999999998,
+        "total_distance_traveled": 2.0,
+        "total_energy_consumed": 3.6,
+        "hours_per_km": 4.0
       },
       "LOX Cargo Rover": {
         "Name": "LOX Cargo Rover",
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 0,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
         "battery_charge": 100.0,
         "total_distance_traveled": 0.0,
         "total_energy_consumed": 0.0,
-        "hours_per_km": 5.0
+        "hours_per_km": 4.0
       },
       "ChargeStation-1": {
         "Name": "ChargeStation-1",
@@ -914,10 +914,10 @@
     "8.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 1600.0,
+        "processingRate": 1500.0,
         "regHeadGrade": 0.1,
         "LOX_Stored": 30.33482420407356,
-        "total_energy_consumed": 733.6642122351591,
+        "total_energy_consumed": 736.7988107362467,
         "excavationEnergyCoeff": 6.5e-06,
         "transportEnergyCoeff": 0.00036,
         "liftHeight": 1,
@@ -925,7 +925,7 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 7.5,
+        "processing_uptime": 8.0,
         "total_LOX_production": 30.33482420407356,
         "regolith_recieved": 12000
       },
@@ -970,24 +970,24 @@
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 4000,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
-        "battery_charge": 95.19999999999999,
+        "battery_charge": 96.39999999999998,
         "total_distance_traveled": 2.0,
-        "total_energy_consumed": 4.8,
-        "hours_per_km": 5.0
+        "total_energy_consumed": 3.6,
+        "hours_per_km": 4.0
       },
       "LOX Cargo Rover": {
         "Name": "LOX Cargo Rover",
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 0,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
         "battery_charge": 100.0,
         "total_distance_traveled": 0.0,
         "total_energy_consumed": 0.0,
-        "hours_per_km": 5.0
+        "hours_per_km": 4.0
       },
       "ChargeStation-1": {
         "Name": "ChargeStation-1",
@@ -1000,10 +1000,10 @@
     "9.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 1600.0,
+        "processingRate": 1500.0,
         "regHeadGrade": 0.1,
         "LOX_Stored": 30.33482420407356,
-        "total_energy_consumed": 743.0680077384219,
+        "total_energy_consumed": 746.2026062395095,
         "excavationEnergyCoeff": 6.5e-06,
         "transportEnergyCoeff": 0.00036,
         "liftHeight": 1,
@@ -1011,7 +1011,7 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 7.5,
+        "processing_uptime": 8.0,
         "total_LOX_production": 30.33482420407356,
         "regolith_recieved": 12000
       },
@@ -1056,24 +1056,24 @@
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 4000,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
-        "battery_charge": 95.19999999999999,
-        "total_distance_traveled": 2.0,
-        "total_energy_consumed": 4.8,
-        "hours_per_km": 5.0
+        "battery_charge": 95.49999999999997,
+        "total_distance_traveled": 2.5,
+        "total_energy_consumed": 4.5,
+        "hours_per_km": 4.0
       },
       "LOX Cargo Rover": {
         "Name": "LOX Cargo Rover",
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 0,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
         "battery_charge": 100.0,
         "total_distance_traveled": 0.0,
         "total_energy_consumed": 0.0,
-        "hours_per_km": 5.0
+        "hours_per_km": 4.0
       },
       "ChargeStation-1": {
         "Name": "ChargeStation-1",
@@ -1086,10 +1086,10 @@
     "10.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 1600.0,
+        "processingRate": 1500.0,
         "regHeadGrade": 0.1,
-        "LOX_Stored": 30.33482420407356,
-        "total_energy_consumed": 752.4718032416847,
+        "LOX_Stored": 40.44643227209808,
+        "total_energy_consumed": 992.8470759852876,
         "excavationEnergyCoeff": 6.5e-06,
         "transportEnergyCoeff": 0.00036,
         "liftHeight": 1,
@@ -1097,9 +1097,9 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 7.5,
-        "total_LOX_production": 30.33482420407356,
-        "regolith_recieved": 12000
+        "processing_uptime": 10.666666666666666,
+        "total_LOX_production": 40.44643227209808,
+        "regolith_recieved": 16000
       },
       "Solar_Power_System": {
         "Name": "Solar_Power_System",
@@ -1142,24 +1142,24 @@
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 4000,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
-        "battery_charge": 95.19999999999999,
-        "total_distance_traveled": 2.0,
-        "total_energy_consumed": 4.8,
-        "hours_per_km": 5.0
+        "battery_charge": 95.49999999999997,
+        "total_distance_traveled": 2.5,
+        "total_energy_consumed": 4.5,
+        "hours_per_km": 4.0
       },
       "LOX Cargo Rover": {
         "Name": "LOX Cargo Rover",
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 0,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
         "battery_charge": 100.0,
         "total_distance_traveled": 0.0,
         "total_energy_consumed": 0.0,
-        "hours_per_km": 5.0
+        "hours_per_km": 4.0
       },
       "ChargeStation-1": {
         "Name": "ChargeStation-1",
@@ -1172,10 +1172,10 @@
     "11.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 1600.0,
+        "processingRate": 1500.0,
         "regHeadGrade": 0.1,
         "LOX_Stored": 40.44643227209808,
-        "total_energy_consumed": 999.1162729874628,
+        "total_energy_consumed": 1005.385469989638,
         "excavationEnergyCoeff": 6.5e-06,
         "transportEnergyCoeff": 0.00036,
         "liftHeight": 1,
@@ -1183,7 +1183,7 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 10.0,
+        "processing_uptime": 10.666666666666666,
         "total_LOX_production": 40.44643227209808,
         "regolith_recieved": 16000
       },
@@ -1228,24 +1228,24 @@
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 4000,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
-        "battery_charge": 93.99999999999999,
-        "total_distance_traveled": 2.5,
-        "total_energy_consumed": 6.0,
-        "hours_per_km": 5.0
+        "battery_charge": 94.59999999999997,
+        "total_distance_traveled": 3.0,
+        "total_energy_consumed": 5.4,
+        "hours_per_km": 4.0
       },
       "LOX Cargo Rover": {
         "Name": "LOX Cargo Rover",
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 0,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
         "battery_charge": 100.0,
         "total_distance_traveled": 0.0,
         "total_energy_consumed": 0.0,
-        "hours_per_km": 5.0
+        "hours_per_km": 4.0
       },
       "ChargeStation-1": {
         "Name": "ChargeStation-1",
@@ -1258,10 +1258,10 @@
     "12.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 1600.0,
+        "processingRate": 1500.0,
         "regHeadGrade": 0.1,
         "LOX_Stored": 40.44643227209808,
-        "total_energy_consumed": 1011.6546669918132,
+        "total_energy_consumed": 1017.9238639939883,
         "excavationEnergyCoeff": 6.5e-06,
         "transportEnergyCoeff": 0.00036,
         "liftHeight": 1,
@@ -1269,7 +1269,7 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 10.0,
+        "processing_uptime": 10.666666666666666,
         "total_LOX_production": 40.44643227209808,
         "regolith_recieved": 16000
       },
@@ -1314,24 +1314,24 @@
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 4000,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
-        "battery_charge": 93.99999999999999,
-        "total_distance_traveled": 2.5,
-        "total_energy_consumed": 6.0,
-        "hours_per_km": 5.0
+        "battery_charge": 94.59999999999997,
+        "total_distance_traveled": 3.0,
+        "total_energy_consumed": 5.4,
+        "hours_per_km": 4.0
       },
       "LOX Cargo Rover": {
         "Name": "LOX Cargo Rover",
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 0,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
         "battery_charge": 100.0,
         "total_distance_traveled": 0.0,
         "total_energy_consumed": 0.0,
-        "hours_per_km": 5.0
+        "hours_per_km": 4.0
       },
       "ChargeStation-1": {
         "Name": "ChargeStation-1",
@@ -1344,10 +1344,10 @@
     "13.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 1600.0,
+        "processingRate": 1500.0,
         "regHeadGrade": 0.1,
         "LOX_Stored": 50.5580403401226,
-        "total_energy_consumed": 1261.433735238679,
+        "total_energy_consumed": 1267.7029322408541,
         "excavationEnergyCoeff": 6.5e-06,
         "transportEnergyCoeff": 0.00036,
         "liftHeight": 1,
@@ -1355,7 +1355,7 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 12.5,
+        "processing_uptime": 13.333333333333332,
         "total_LOX_production": 50.5580403401226,
         "regolith_recieved": 20000
       },
@@ -1400,24 +1400,24 @@
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 4000,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
-        "battery_charge": 92.79999999999998,
-        "total_distance_traveled": 3.0,
-        "total_energy_consumed": 7.2,
-        "hours_per_km": 5.0
+        "battery_charge": 93.69999999999996,
+        "total_distance_traveled": 3.5,
+        "total_energy_consumed": 6.300000000000001,
+        "hours_per_km": 4.0
       },
       "LOX Cargo Rover": {
         "Name": "LOX Cargo Rover",
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 0,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
         "battery_charge": 100.0,
         "total_distance_traveled": 0.0,
         "total_energy_consumed": 0.0,
-        "hours_per_km": 5.0
+        "hours_per_km": 4.0
       },
       "ChargeStation-1": {
         "Name": "ChargeStation-1",
@@ -1430,10 +1430,10 @@
     "14.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 1600.0,
+        "processingRate": 1500.0,
         "regHeadGrade": 0.1,
         "LOX_Stored": 50.5580403401226,
-        "total_energy_consumed": 1277.106727744117,
+        "total_energy_consumed": 1283.3759247462922,
         "excavationEnergyCoeff": 6.5e-06,
         "transportEnergyCoeff": 0.00036,
         "liftHeight": 1,
@@ -1441,7 +1441,7 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 12.5,
+        "processing_uptime": 13.333333333333332,
         "total_LOX_production": 50.5580403401226,
         "regolith_recieved": 20000
       },
@@ -1486,24 +1486,24 @@
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 4000,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
-        "battery_charge": 92.79999999999998,
-        "total_distance_traveled": 3.0,
-        "total_energy_consumed": 7.2,
-        "hours_per_km": 5.0
+        "battery_charge": 93.69999999999996,
+        "total_distance_traveled": 3.5,
+        "total_energy_consumed": 6.300000000000001,
+        "hours_per_km": 4.0
       },
       "LOX Cargo Rover": {
         "Name": "LOX Cargo Rover",
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 0,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
         "battery_charge": 100.0,
         "total_distance_traveled": 0.0,
         "total_energy_consumed": 0.0,
-        "hours_per_km": 5.0
+        "hours_per_km": 4.0
       },
       "ChargeStation-1": {
         "Name": "ChargeStation-1",
@@ -1516,10 +1516,10 @@
     "15.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 1600.0,
+        "processingRate": 1500.0,
         "regHeadGrade": 0.1,
         "LOX_Stored": 50.5580403401226,
-        "total_energy_consumed": 1292.779720249555,
+        "total_energy_consumed": 1299.0489172517302,
         "excavationEnergyCoeff": 6.5e-06,
         "transportEnergyCoeff": 0.00036,
         "liftHeight": 1,
@@ -1527,7 +1527,7 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 12.5,
+        "processing_uptime": 13.333333333333332,
         "total_LOX_production": 50.5580403401226,
         "regolith_recieved": 20000
       },
@@ -1572,24 +1572,24 @@
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 4000,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
-        "battery_charge": 92.79999999999998,
-        "total_distance_traveled": 3.0,
-        "total_energy_consumed": 7.2,
-        "hours_per_km": 5.0
+        "battery_charge": 92.79999999999995,
+        "total_distance_traveled": 4.0,
+        "total_energy_consumed": 7.200000000000001,
+        "hours_per_km": 4.0
       },
       "LOX Cargo Rover": {
         "Name": "LOX Cargo Rover",
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 0,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
         "battery_charge": 100.0,
         "total_distance_traveled": 0.0,
         "total_energy_consumed": 0.0,
-        "hours_per_km": 5.0
+        "hours_per_km": 4.0
       },
       "ChargeStation-1": {
         "Name": "ChargeStation-1",
@@ -1602,10 +1602,10 @@
     "16.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 1600.0,
+        "processingRate": 1500.0,
         "regHeadGrade": 0.1,
         "LOX_Stored": 60.669648408147125,
-        "total_energy_consumed": 1545.6933869975085,
+        "total_energy_consumed": 1551.9625839996836,
         "excavationEnergyCoeff": 6.5e-06,
         "transportEnergyCoeff": 0.00036,
         "liftHeight": 1,
@@ -1613,7 +1613,7 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 15.0,
+        "processing_uptime": 15.999999999999998,
         "total_LOX_production": 60.669648408147125,
         "regolith_recieved": 24000
       },
@@ -1658,24 +1658,24 @@
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 4000,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
-        "battery_charge": 91.59999999999998,
-        "total_distance_traveled": 3.5,
-        "total_energy_consumed": 8.4,
-        "hours_per_km": 5.0
+        "battery_charge": 92.79999999999995,
+        "total_distance_traveled": 4.0,
+        "total_energy_consumed": 7.200000000000001,
+        "hours_per_km": 4.0
       },
       "LOX Cargo Rover": {
         "Name": "LOX Cargo Rover",
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 0,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
         "battery_charge": 100.0,
         "total_distance_traveled": 0.0,
         "total_energy_consumed": 0.0,
-        "hours_per_km": 5.0
+        "hours_per_km": 4.0
       },
       "ChargeStation-1": {
         "Name": "ChargeStation-1",
@@ -1688,10 +1688,10 @@
     "17.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 1600.0,
+        "processingRate": 1500.0,
         "regHeadGrade": 0.1,
         "LOX_Stored": 60.669648408147125,
-        "total_energy_consumed": 1564.500978004034,
+        "total_energy_consumed": 1570.7701750062092,
         "excavationEnergyCoeff": 6.5e-06,
         "transportEnergyCoeff": 0.00036,
         "liftHeight": 1,
@@ -1699,7 +1699,7 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 15.0,
+        "processing_uptime": 15.999999999999998,
         "total_LOX_production": 60.669648408147125,
         "regolith_recieved": 24000
       },
@@ -1744,24 +1744,24 @@
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 4000,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
-        "battery_charge": 91.59999999999998,
-        "total_distance_traveled": 3.5,
-        "total_energy_consumed": 8.4,
-        "hours_per_km": 5.0
+        "battery_charge": 91.89999999999995,
+        "total_distance_traveled": 4.5,
+        "total_energy_consumed": 8.100000000000001,
+        "hours_per_km": 4.0
       },
       "LOX Cargo Rover": {
         "Name": "LOX Cargo Rover",
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 0,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
         "battery_charge": 100.0,
         "total_distance_traveled": 0.0,
         "total_energy_consumed": 0.0,
-        "hours_per_km": 5.0
+        "hours_per_km": 4.0
       },
       "ChargeStation-1": {
         "Name": "ChargeStation-1",
@@ -1774,10 +1774,10 @@
     "18.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 1600.0,
+        "processingRate": 1500.0,
         "regHeadGrade": 0.1,
         "LOX_Stored": 70.78125647617165,
-        "total_energy_consumed": 1820.549243253075,
+        "total_energy_consumed": 1826.8184402552502,
         "excavationEnergyCoeff": 6.5e-06,
         "transportEnergyCoeff": 0.00036,
         "liftHeight": 1,
@@ -1785,7 +1785,7 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 17.5,
+        "processing_uptime": 18.666666666666664,
         "total_LOX_production": 70.78125647617165,
         "regolith_recieved": 28000
       },
@@ -1830,24 +1830,24 @@
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 4000,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
-        "battery_charge": 90.39999999999998,
-        "total_distance_traveled": 4.0,
-        "total_energy_consumed": 9.6,
-        "hours_per_km": 5.0
+        "battery_charge": 91.89999999999995,
+        "total_distance_traveled": 4.5,
+        "total_energy_consumed": 8.100000000000001,
+        "hours_per_km": 4.0
       },
       "LOX Cargo Rover": {
         "Name": "LOX Cargo Rover",
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 0,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
         "battery_charge": 100.0,
         "total_distance_traveled": 0.0,
         "total_energy_consumed": 0.0,
-        "hours_per_km": 5.0
+        "hours_per_km": 4.0
       },
       "ChargeStation-1": {
         "Name": "ChargeStation-1",
@@ -1860,10 +1860,10 @@
     "19.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 1600.0,
+        "processingRate": 1500.0,
         "regHeadGrade": 0.1,
         "LOX_Stored": 70.78125647617165,
-        "total_energy_consumed": 1842.4914327606882,
+        "total_energy_consumed": 1848.7606297628633,
         "excavationEnergyCoeff": 6.5e-06,
         "transportEnergyCoeff": 0.00036,
         "liftHeight": 1,
@@ -1871,7 +1871,7 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 17.5,
+        "processing_uptime": 18.666666666666664,
         "total_LOX_production": 70.78125647617165,
         "regolith_recieved": 28000
       },
@@ -1916,24 +1916,24 @@
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 4000,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
-        "battery_charge": 90.39999999999998,
-        "total_distance_traveled": 4.0,
-        "total_energy_consumed": 9.6,
-        "hours_per_km": 5.0
+        "battery_charge": 90.99999999999994,
+        "total_distance_traveled": 5.0,
+        "total_energy_consumed": 9.000000000000002,
+        "hours_per_km": 4.0
       },
       "LOX Cargo Rover": {
         "Name": "LOX Cargo Rover",
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 0,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
         "battery_charge": 100.0,
         "total_distance_traveled": 0.0,
         "total_energy_consumed": 0.0,
-        "hours_per_km": 5.0
+        "hours_per_km": 4.0
       },
       "ChargeStation-1": {
         "Name": "ChargeStation-1",
@@ -1946,10 +1946,10 @@
     "20.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 1600.0,
+        "processingRate": 1500.0,
         "regHeadGrade": 0.1,
         "LOX_Stored": 70.78125647617165,
-        "total_energy_consumed": 1864.4336222683014,
+        "total_energy_consumed": 1870.7028192704765,
         "excavationEnergyCoeff": 6.5e-06,
         "transportEnergyCoeff": 0.00036,
         "liftHeight": 1,
@@ -1957,7 +1957,7 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 17.5,
+        "processing_uptime": 18.666666666666664,
         "total_LOX_production": 70.78125647617165,
         "regolith_recieved": 28000
       },
@@ -2002,24 +2002,24 @@
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 4000,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
-        "battery_charge": 90.39999999999998,
-        "total_distance_traveled": 4.0,
-        "total_energy_consumed": 9.6,
-        "hours_per_km": 5.0
+        "battery_charge": 90.99999999999994,
+        "total_distance_traveled": 5.0,
+        "total_energy_consumed": 9.000000000000002,
+        "hours_per_km": 4.0
       },
       "LOX Cargo Rover": {
         "Name": "LOX Cargo Rover",
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 0,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
         "battery_charge": 100.0,
         "total_distance_traveled": 0.0,
         "total_energy_consumed": 0.0,
-        "hours_per_km": 5.0
+        "hours_per_km": 4.0
       },
       "ChargeStation-1": {
         "Name": "ChargeStation-1",
@@ -2032,10 +2032,10 @@
     "21.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 1600.0,
+        "processingRate": 1500.0,
         "regHeadGrade": 0.1,
         "LOX_Stored": 80.89286454419617,
-        "total_energy_consumed": 2123.61648601843,
+        "total_energy_consumed": 2129.885683020605,
         "excavationEnergyCoeff": 6.5e-06,
         "transportEnergyCoeff": 0.00036,
         "liftHeight": 1,
@@ -2043,7 +2043,7 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 20.0,
+        "processing_uptime": 21.333333333333332,
         "total_LOX_production": 80.89286454419617,
         "regolith_recieved": 32000
       },
@@ -2088,24 +2088,24 @@
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 4000,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
-        "battery_charge": 89.19999999999997,
-        "total_distance_traveled": 4.5,
-        "total_energy_consumed": 10.799999999999999,
-        "hours_per_km": 5.0
+        "battery_charge": 90.09999999999994,
+        "total_distance_traveled": 5.5,
+        "total_energy_consumed": 9.900000000000002,
+        "hours_per_km": 4.0
       },
       "LOX Cargo Rover": {
         "Name": "LOX Cargo Rover",
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 0,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
         "battery_charge": 100.0,
         "total_distance_traveled": 0.0,
         "total_energy_consumed": 0.0,
-        "hours_per_km": 5.0
+        "hours_per_km": 4.0
       },
       "ChargeStation-1": {
         "Name": "ChargeStation-1",
@@ -2118,10 +2118,10 @@
     "22.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 1600.0,
+        "processingRate": 1500.0,
         "regHeadGrade": 0.1,
         "LOX_Stored": 80.89286454419617,
-        "total_energy_consumed": 2148.693274027131,
+        "total_energy_consumed": 2154.962471029306,
         "excavationEnergyCoeff": 6.5e-06,
         "transportEnergyCoeff": 0.00036,
         "liftHeight": 1,
@@ -2129,7 +2129,7 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 20.0,
+        "processing_uptime": 21.333333333333332,
         "total_LOX_production": 80.89286454419617,
         "regolith_recieved": 32000
       },
@@ -2174,24 +2174,24 @@
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 4000,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
-        "battery_charge": 89.19999999999997,
-        "total_distance_traveled": 4.5,
-        "total_energy_consumed": 10.799999999999999,
-        "hours_per_km": 5.0
+        "battery_charge": 90.09999999999994,
+        "total_distance_traveled": 5.5,
+        "total_energy_consumed": 9.900000000000002,
+        "hours_per_km": 4.0
       },
       "LOX Cargo Rover": {
         "Name": "LOX Cargo Rover",
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 0,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
         "battery_charge": 100.0,
         "total_distance_traveled": 0.0,
         "total_energy_consumed": 0.0,
-        "hours_per_km": 5.0
+        "hours_per_km": 4.0
       },
       "ChargeStation-1": {
         "Name": "ChargeStation-1",
@@ -2204,10 +2204,10 @@
     "23.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 1600.0,
+        "processingRate": 1500.0,
         "regHeadGrade": 0.1,
-        "LOX_Stored": 91.0044726122207,
-        "total_energy_consumed": 2411.0107362783474,
+        "LOX_Stored": 80.89286454419617,
+        "total_energy_consumed": 2180.039259038007,
         "excavationEnergyCoeff": 6.5e-06,
         "transportEnergyCoeff": 0.00036,
         "liftHeight": 1,
@@ -2215,9 +2215,9 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 22.5,
-        "total_LOX_production": 91.0044726122207,
-        "regolith_recieved": 36000
+        "processing_uptime": 21.333333333333332,
+        "total_LOX_production": 80.89286454419617,
+        "regolith_recieved": 32000
       },
       "Solar_Power_System": {
         "Name": "Solar_Power_System",
@@ -2260,24 +2260,24 @@
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 4000,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
-        "battery_charge": 87.99999999999997,
-        "total_distance_traveled": 5.0,
-        "total_energy_consumed": 11.999999999999998,
-        "hours_per_km": 5.0
+        "battery_charge": 89.19999999999993,
+        "total_distance_traveled": 6.0,
+        "total_energy_consumed": 10.800000000000002,
+        "hours_per_km": 4.0
       },
       "LOX Cargo Rover": {
         "Name": "LOX Cargo Rover",
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 0,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
         "battery_charge": 100.0,
         "total_distance_traveled": 0.0,
         "total_energy_consumed": 0.0,
-        "hours_per_km": 5.0
+        "hours_per_km": 4.0
       },
       "ChargeStation-1": {
         "Name": "ChargeStation-1",
@@ -2290,10 +2290,10 @@
     "24.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 1600.0,
+        "processingRate": 1500.0,
         "regHeadGrade": 0.1,
         "LOX_Stored": 91.0044726122207,
-        "total_energy_consumed": 2439.222122788136,
+        "total_energy_consumed": 2442.356721289223,
         "excavationEnergyCoeff": 6.5e-06,
         "transportEnergyCoeff": 0.00036,
         "liftHeight": 1,
@@ -2301,7 +2301,7 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 22.5,
+        "processing_uptime": 24.0,
         "total_LOX_production": 91.0044726122207,
         "regolith_recieved": 36000
       },
@@ -2346,24 +2346,24 @@
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 4000,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
-        "battery_charge": 87.99999999999997,
-        "total_distance_traveled": 5.0,
-        "total_energy_consumed": 11.999999999999998,
-        "hours_per_km": 5.0
+        "battery_charge": 89.19999999999993,
+        "total_distance_traveled": 6.0,
+        "total_energy_consumed": 10.800000000000002,
+        "hours_per_km": 4.0
       },
       "LOX Cargo Rover": {
         "Name": "LOX Cargo Rover",
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 0,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
         "battery_charge": 100.0,
         "total_distance_traveled": 0.0,
         "total_energy_consumed": 0.0,
-        "hours_per_km": 5.0
+        "hours_per_km": 4.0
       },
       "ChargeStation-1": {
         "Name": "ChargeStation-1",
@@ -2376,10 +2376,10 @@
     "25.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 1600.0,
+        "processingRate": 1500.0,
         "regHeadGrade": 0.1,
         "LOX_Stored": 91.0044726122207,
-        "total_energy_consumed": 2467.4335092979245,
+        "total_energy_consumed": 2470.5681077990116,
         "excavationEnergyCoeff": 6.5e-06,
         "transportEnergyCoeff": 0.00036,
         "liftHeight": 1,
@@ -2387,7 +2387,7 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 22.5,
+        "processing_uptime": 24.0,
         "total_LOX_production": 91.0044726122207,
         "regolith_recieved": 36000
       },
@@ -2432,24 +2432,24 @@
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 4000,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
-        "battery_charge": 87.99999999999997,
-        "total_distance_traveled": 5.0,
-        "total_energy_consumed": 11.999999999999998,
-        "hours_per_km": 5.0
+        "battery_charge": 88.29999999999993,
+        "total_distance_traveled": 6.5,
+        "total_energy_consumed": 11.700000000000003,
+        "hours_per_km": 4.0
       },
       "LOX Cargo Rover": {
         "Name": "LOX Cargo Rover",
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 0,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
         "battery_charge": 100.0,
         "total_distance_traveled": 0.0,
         "total_energy_consumed": 0.0,
-        "hours_per_km": 5.0
+        "hours_per_km": 4.0
       },
       "ChargeStation-1": {
         "Name": "ChargeStation-1",
@@ -2462,10 +2462,10 @@
     "26.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 1600.0,
+        "processingRate": 1500.0,
         "regHeadGrade": 0.1,
-        "LOX_Stored": 101.11608068024522,
-        "total_energy_consumed": 2732.885570050228,
+        "LOX_Stored": 91.0044726122207,
+        "total_energy_consumed": 2498.7794943088,
         "excavationEnergyCoeff": 6.5e-06,
         "transportEnergyCoeff": 0.00036,
         "liftHeight": 1,
@@ -2473,9 +2473,9 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 25.0,
-        "total_LOX_production": 101.11608068024522,
-        "regolith_recieved": 40000
+        "processing_uptime": 24.0,
+        "total_LOX_production": 91.0044726122207,
+        "regolith_recieved": 36000
       },
       "Solar_Power_System": {
         "Name": "Solar_Power_System",
@@ -2518,24 +2518,24 @@
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 4000,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
-        "battery_charge": 86.79999999999997,
-        "total_distance_traveled": 5.5,
-        "total_energy_consumed": 13.199999999999998,
-        "hours_per_km": 5.0
+        "battery_charge": 88.29999999999993,
+        "total_distance_traveled": 6.5,
+        "total_energy_consumed": 11.700000000000003,
+        "hours_per_km": 4.0
       },
       "LOX Cargo Rover": {
         "Name": "LOX Cargo Rover",
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 0,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
         "battery_charge": 100.0,
         "total_distance_traveled": 0.0,
         "total_energy_consumed": 0.0,
-        "hours_per_km": 5.0
+        "hours_per_km": 4.0
       },
       "ChargeStation-1": {
         "Name": "ChargeStation-1",
@@ -2548,10 +2548,10 @@
     "27.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 1600.0,
+        "processingRate": 1500.0,
         "regHeadGrade": 0.1,
-        "LOX_Stored": 0,
-        "total_energy_consumed": 2764.2315550611042,
+        "LOX_Stored": 101.11608068024522,
+        "total_energy_consumed": 2764.231555061104,
         "excavationEnergyCoeff": 6.5e-06,
         "transportEnergyCoeff": 0.00036,
         "liftHeight": 1,
@@ -2559,7 +2559,7 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 25.0,
+        "processing_uptime": 26.666666666666668,
         "total_LOX_production": 101.11608068024522,
         "regolith_recieved": 40000
       },
@@ -2604,24 +2604,24 @@
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 4000,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
-        "battery_charge": 86.79999999999997,
-        "total_distance_traveled": 5.5,
-        "total_energy_consumed": 13.199999999999998,
-        "hours_per_km": 5.0
+        "battery_charge": 87.39999999999992,
+        "total_distance_traveled": 7.0,
+        "total_energy_consumed": 12.600000000000003,
+        "hours_per_km": 4.0
       },
       "LOX Cargo Rover": {
         "Name": "LOX Cargo Rover",
         "rover_type": "cargo",
         "max_capacity": 5000.0,
-        "current_load": 101.11608068024522,
-        "energy_per_km_per_kg": 0.0006,
+        "current_load": 0,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
-        "battery_charge": 99.96966517579592,
-        "total_distance_traveled": 0.5,
-        "total_energy_consumed": 0.030334824204073563,
-        "hours_per_km": 5.0
+        "battery_charge": 100.0,
+        "total_distance_traveled": 0.0,
+        "total_energy_consumed": 0.0,
+        "hours_per_km": 4.0
       },
       "ChargeStation-1": {
         "Name": "ChargeStation-1",
@@ -2634,10 +2634,10 @@
     "28.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 1600.0,
+        "processingRate": 1500.0,
         "regHeadGrade": 0.1,
-        "LOX_Stored": 10.11160806802452,
-        "total_energy_consumed": 3001.4722293036193,
+        "LOX_Stored": 0,
+        "total_energy_consumed": 2795.57754007198,
         "excavationEnergyCoeff": 6.5e-06,
         "transportEnergyCoeff": 0.00036,
         "liftHeight": 1,
@@ -2645,9 +2645,9 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 27.5,
-        "total_LOX_production": 111.22768874826974,
-        "regolith_recieved": 44000
+        "processing_uptime": 26.666666666666668,
+        "total_LOX_production": 101.11608068024522,
+        "regolith_recieved": 40000
       },
       "Solar_Power_System": {
         "Name": "Solar_Power_System",
@@ -2690,24 +2690,24 @@
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 4000,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
-        "battery_charge": 85.59999999999997,
-        "total_distance_traveled": 6.0,
-        "total_energy_consumed": 14.399999999999997,
-        "hours_per_km": 5.0
+        "battery_charge": 87.39999999999992,
+        "total_distance_traveled": 7.0,
+        "total_energy_consumed": 12.600000000000003,
+        "hours_per_km": 4.0
       },
       "LOX Cargo Rover": {
         "Name": "LOX Cargo Rover",
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 101.11608068024522,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
-        "battery_charge": 99.96966517579592,
+        "battery_charge": 99.97724888184695,
         "total_distance_traveled": 0.5,
-        "total_energy_consumed": 0.030334824204073563,
-        "hours_per_km": 5.0
+        "total_energy_consumed": 0.022751118153055173,
+        "hours_per_km": 4.0
       },
       "ChargeStation-1": {
         "Name": "ChargeStation-1",
@@ -2720,10 +2720,10 @@
     "29.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 1600.0,
+        "processingRate": 1500.0,
         "regHeadGrade": 0.1,
         "LOX_Stored": 10.11160806802452,
-        "total_energy_consumed": 3004.606827804707,
+        "total_energy_consumed": 3032.818214314495,
         "excavationEnergyCoeff": 6.5e-06,
         "transportEnergyCoeff": 0.00036,
         "liftHeight": 1,
@@ -2731,7 +2731,7 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 27.5,
+        "processing_uptime": 29.333333333333336,
         "total_LOX_production": 111.22768874826974,
         "regolith_recieved": 44000
       },
@@ -2765,7 +2765,7 @@
       "LZ-Alpha": {
         "Name": "LZ-Alpha",
         "LOX_Capacity": 50000,
-        "LOX_Stored": 101.11608068024522,
+        "LOX_Stored": 0,
         "utilities_power_rate": 3,
         "Energy_Consumed_kWh": 134.0,
         "chilling_power_per_kg_LOX": 0.31,
@@ -2776,24 +2776,24 @@
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 4000,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
-        "battery_charge": 85.59999999999997,
-        "total_distance_traveled": 6.0,
-        "total_energy_consumed": 14.399999999999997,
-        "hours_per_km": 5.0
+        "battery_charge": 86.49999999999991,
+        "total_distance_traveled": 7.5,
+        "total_energy_consumed": 13.500000000000004,
+        "hours_per_km": 4.0
       },
       "LOX Cargo Rover": {
         "Name": "LOX Cargo Rover",
         "rover_type": "cargo",
         "max_capacity": 5000.0,
-        "current_load": 0,
-        "energy_per_km_per_kg": 0.0006,
+        "current_load": 101.11608068024522,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
-        "battery_charge": 99.96966517579592,
+        "battery_charge": 99.97724888184695,
         "total_distance_traveled": 0.5,
-        "total_energy_consumed": 0.030334824204073563,
-        "hours_per_km": 5.0
+        "total_energy_consumed": 0.022751118153055173,
+        "hours_per_km": 4.0
       },
       "ChargeStation-1": {
         "Name": "ChargeStation-1",
@@ -2806,10 +2806,10 @@
     "30.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 1600.0,
+        "processingRate": 1500.0,
         "regHeadGrade": 0.1,
         "LOX_Stored": 10.11160806802452,
-        "total_energy_consumed": 3007.7414263057944,
+        "total_energy_consumed": 3035.9528128155825,
         "excavationEnergyCoeff": 6.5e-06,
         "transportEnergyCoeff": 0.00036,
         "liftHeight": 1,
@@ -2817,7 +2817,7 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 27.5,
+        "processing_uptime": 29.333333333333336,
         "total_LOX_production": 111.22768874826974,
         "regolith_recieved": 44000
       },
@@ -2833,7 +2833,7 @@
       },
       "Power_Manager": {
         "Name": "Power_Manager",
-        "current_energy_demand": 41.34598501087602,
+        "current_energy_demand": 10.0,
         "current_energy_production": 100.0
       },
       "Habitat-1": {
@@ -2853,7 +2853,7 @@
         "LOX_Capacity": 50000,
         "LOX_Stored": 101.11608068024522,
         "utilities_power_rate": 3,
-        "Energy_Consumed_kWh": 168.345985010876,
+        "Energy_Consumed_kWh": 137.0,
         "chilling_power_per_kg_LOX": 0.31,
         "Spike_Events_Array": []
       },
@@ -2862,24 +2862,24 @@
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 4000,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
-        "battery_charge": 85.59999999999997,
-        "total_distance_traveled": 6.0,
-        "total_energy_consumed": 14.399999999999997,
-        "hours_per_km": 5.0
+        "battery_charge": 86.49999999999991,
+        "total_distance_traveled": 7.5,
+        "total_energy_consumed": 13.500000000000004,
+        "hours_per_km": 4.0
       },
       "LOX Cargo Rover": {
         "Name": "LOX Cargo Rover",
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 0,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
-        "battery_charge": 99.96966517579592,
+        "battery_charge": 99.97724888184695,
         "total_distance_traveled": 0.5,
-        "total_energy_consumed": 0.030334824204073563,
-        "hours_per_km": 5.0
+        "total_energy_consumed": 0.022751118153055173,
+        "hours_per_km": 4.0
       },
       "ChargeStation-1": {
         "Name": "ChargeStation-1",
@@ -2892,10 +2892,10 @@
     "31.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 1600.0,
+        "processingRate": 1500.0,
         "regHeadGrade": 0.1,
-        "LOX_Stored": 20.22321613604904,
-        "total_energy_consumed": 3248.1166990493975,
+        "LOX_Stored": 10.11160806802452,
+        "total_energy_consumed": 3039.08741131667,
         "excavationEnergyCoeff": 6.5e-06,
         "transportEnergyCoeff": 0.00036,
         "liftHeight": 1,
@@ -2903,9 +2903,9 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 30.0,
-        "total_LOX_production": 121.33929681629427,
-        "regolith_recieved": 48000
+        "processing_uptime": 29.333333333333336,
+        "total_LOX_production": 111.22768874826974,
+        "regolith_recieved": 44000
       },
       "Solar_Power_System": {
         "Name": "Solar_Power_System",
@@ -2939,7 +2939,7 @@
         "LOX_Capacity": 50000,
         "LOX_Stored": 101.11608068024522,
         "utilities_power_rate": 3,
-        "Energy_Consumed_kWh": 202.691970021752,
+        "Energy_Consumed_kWh": 171.345985010876,
         "chilling_power_per_kg_LOX": 0.31,
         "Spike_Events_Array": []
       },
@@ -2948,24 +2948,24 @@
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 4000,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
-        "battery_charge": 84.39999999999996,
-        "total_distance_traveled": 6.5,
-        "total_energy_consumed": 15.599999999999996,
-        "hours_per_km": 5.0
+        "battery_charge": 85.59999999999991,
+        "total_distance_traveled": 8.0,
+        "total_energy_consumed": 14.400000000000004,
+        "hours_per_km": 4.0
       },
       "LOX Cargo Rover": {
         "Name": "LOX Cargo Rover",
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 0,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
-        "battery_charge": 99.96966517579592,
+        "battery_charge": 99.97724888184695,
         "total_distance_traveled": 0.5,
-        "total_energy_consumed": 0.030334824204073563,
-        "hours_per_km": 5.0
+        "total_energy_consumed": 0.022751118153055173,
+        "hours_per_km": 4.0
       },
       "ChargeStation-1": {
         "Name": "ChargeStation-1",
@@ -2978,10 +2978,10 @@
     "32.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 1600.0,
+        "processingRate": 1500.0,
         "regHeadGrade": 0.1,
         "LOX_Stored": 20.22321613604904,
-        "total_energy_consumed": 3254.3858960515727,
+        "total_energy_consumed": 3279.462684060273,
         "excavationEnergyCoeff": 6.5e-06,
         "transportEnergyCoeff": 0.00036,
         "liftHeight": 1,
@@ -2989,7 +2989,7 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 30.0,
+        "processing_uptime": 32.0,
         "total_LOX_production": 121.33929681629427,
         "regolith_recieved": 48000
       },
@@ -3025,7 +3025,7 @@
         "LOX_Capacity": 50000,
         "LOX_Stored": 101.11608068024522,
         "utilities_power_rate": 3,
-        "Energy_Consumed_kWh": 237.03795503262802,
+        "Energy_Consumed_kWh": 205.691970021752,
         "chilling_power_per_kg_LOX": 0.31,
         "Spike_Events_Array": []
       },
@@ -3034,24 +3034,24 @@
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 4000,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
-        "battery_charge": 84.39999999999996,
-        "total_distance_traveled": 6.5,
-        "total_energy_consumed": 15.599999999999996,
-        "hours_per_km": 5.0
+        "battery_charge": 85.59999999999991,
+        "total_distance_traveled": 8.0,
+        "total_energy_consumed": 14.400000000000004,
+        "hours_per_km": 4.0
       },
       "LOX Cargo Rover": {
         "Name": "LOX Cargo Rover",
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 0,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
-        "battery_charge": 99.96966517579592,
+        "battery_charge": 99.97724888184695,
         "total_distance_traveled": 0.5,
-        "total_energy_consumed": 0.030334824204073563,
-        "hours_per_km": 5.0
+        "total_energy_consumed": 0.022751118153055173,
+        "hours_per_km": 4.0
       },
       "ChargeStation-1": {
         "Name": "ChargeStation-1",
@@ -3064,10 +3064,10 @@
     "33.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 1600.0,
+        "processingRate": 1500.0,
         "regHeadGrade": 0.1,
-        "LOX_Stored": 30.33482420407356,
-        "total_energy_consumed": 3497.8957672962633,
+        "LOX_Stored": 20.22321613604904,
+        "total_energy_consumed": 3285.7318810624483,
         "excavationEnergyCoeff": 6.5e-06,
         "transportEnergyCoeff": 0.00036,
         "liftHeight": 1,
@@ -3075,9 +3075,9 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 32.5,
-        "total_LOX_production": 131.4509048843188,
-        "regolith_recieved": 52000
+        "processing_uptime": 32.0,
+        "total_LOX_production": 121.33929681629427,
+        "regolith_recieved": 48000
       },
       "Solar_Power_System": {
         "Name": "Solar_Power_System",
@@ -3111,7 +3111,7 @@
         "LOX_Capacity": 50000,
         "LOX_Stored": 101.11608068024522,
         "utilities_power_rate": 3,
-        "Energy_Consumed_kWh": 271.383940043504,
+        "Energy_Consumed_kWh": 240.03795503262802,
         "chilling_power_per_kg_LOX": 0.31,
         "Spike_Events_Array": []
       },
@@ -3120,24 +3120,24 @@
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 4000,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
-        "battery_charge": 83.19999999999996,
-        "total_distance_traveled": 7.0,
-        "total_energy_consumed": 16.799999999999997,
-        "hours_per_km": 5.0
+        "battery_charge": 84.6999999999999,
+        "total_distance_traveled": 8.5,
+        "total_energy_consumed": 15.300000000000004,
+        "hours_per_km": 4.0
       },
       "LOX Cargo Rover": {
         "Name": "LOX Cargo Rover",
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 0,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
-        "battery_charge": 99.96966517579592,
+        "battery_charge": 99.97724888184695,
         "total_distance_traveled": 0.5,
-        "total_energy_consumed": 0.030334824204073563,
-        "hours_per_km": 5.0
+        "total_energy_consumed": 0.022751118153055173,
+        "hours_per_km": 4.0
       },
       "ChargeStation-1": {
         "Name": "ChargeStation-1",
@@ -3150,10 +3150,10 @@
     "34.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 1600.0,
+        "processingRate": 1500.0,
         "regHeadGrade": 0.1,
-        "LOX_Stored": 30.33482420407356,
-        "total_energy_consumed": 3507.299562799526,
+        "LOX_Stored": 20.22321613604904,
+        "total_energy_consumed": 3292.0010780646235,
         "excavationEnergyCoeff": 6.5e-06,
         "transportEnergyCoeff": 0.00036,
         "liftHeight": 1,
@@ -3161,9 +3161,9 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 32.5,
-        "total_LOX_production": 131.4509048843188,
-        "regolith_recieved": 52000
+        "processing_uptime": 32.0,
+        "total_LOX_production": 121.33929681629427,
+        "regolith_recieved": 48000
       },
       "Solar_Power_System": {
         "Name": "Solar_Power_System",
@@ -3197,7 +3197,7 @@
         "LOX_Capacity": 50000,
         "LOX_Stored": 101.11608068024522,
         "utilities_power_rate": 3,
-        "Energy_Consumed_kWh": 305.72992505438003,
+        "Energy_Consumed_kWh": 274.383940043504,
         "chilling_power_per_kg_LOX": 0.31,
         "Spike_Events_Array": []
       },
@@ -3206,24 +3206,24 @@
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 4000,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
-        "battery_charge": 83.19999999999996,
-        "total_distance_traveled": 7.0,
-        "total_energy_consumed": 16.799999999999997,
-        "hours_per_km": 5.0
+        "battery_charge": 84.6999999999999,
+        "total_distance_traveled": 8.5,
+        "total_energy_consumed": 15.300000000000004,
+        "hours_per_km": 4.0
       },
       "LOX Cargo Rover": {
         "Name": "LOX Cargo Rover",
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 0,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
-        "battery_charge": 99.96966517579592,
+        "battery_charge": 99.97724888184695,
         "total_distance_traveled": 0.5,
-        "total_energy_consumed": 0.030334824204073563,
-        "hours_per_km": 5.0
+        "total_energy_consumed": 0.022751118153055173,
+        "hours_per_km": 4.0
       },
       "ChargeStation-1": {
         "Name": "ChargeStation-1",
@@ -3236,10 +3236,10 @@
     "35.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 1600.0,
+        "processingRate": 1500.0,
         "regHeadGrade": 0.1,
         "LOX_Stored": 30.33482420407356,
-        "total_energy_consumed": 3516.7033583027887,
+        "total_energy_consumed": 3535.510949309314,
         "excavationEnergyCoeff": 6.5e-06,
         "transportEnergyCoeff": 0.00036,
         "liftHeight": 1,
@@ -3247,7 +3247,7 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 32.5,
+        "processing_uptime": 34.666666666666664,
         "total_LOX_production": 131.4509048843188,
         "regolith_recieved": 52000
       },
@@ -3283,7 +3283,7 @@
         "LOX_Capacity": 50000,
         "LOX_Stored": 101.11608068024522,
         "utilities_power_rate": 3,
-        "Energy_Consumed_kWh": 340.07591006525604,
+        "Energy_Consumed_kWh": 308.72992505438003,
         "chilling_power_per_kg_LOX": 0.31,
         "Spike_Events_Array": []
       },
@@ -3292,24 +3292,24 @@
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 4000,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
-        "battery_charge": 83.19999999999996,
-        "total_distance_traveled": 7.0,
-        "total_energy_consumed": 16.799999999999997,
-        "hours_per_km": 5.0
+        "battery_charge": 83.7999999999999,
+        "total_distance_traveled": 9.0,
+        "total_energy_consumed": 16.200000000000003,
+        "hours_per_km": 4.0
       },
       "LOX Cargo Rover": {
         "Name": "LOX Cargo Rover",
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 0,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
-        "battery_charge": 99.96966517579592,
+        "battery_charge": 99.97724888184695,
         "total_distance_traveled": 0.5,
-        "total_energy_consumed": 0.030334824204073563,
-        "hours_per_km": 5.0
+        "total_energy_consumed": 0.022751118153055173,
+        "hours_per_km": 4.0
       },
       "ChargeStation-1": {
         "Name": "ChargeStation-1",
@@ -3322,10 +3322,10 @@
     "36.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 1600.0,
+        "processingRate": 1500.0,
         "regHeadGrade": 0.1,
-        "LOX_Stored": 40.44643227209808,
-        "total_energy_consumed": 3763.347828048567,
+        "LOX_Stored": 30.33482420407356,
+        "total_energy_consumed": 3544.914744812577,
         "excavationEnergyCoeff": 6.5e-06,
         "transportEnergyCoeff": 0.00036,
         "liftHeight": 1,
@@ -3333,9 +3333,9 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 35.0,
-        "total_LOX_production": 141.5625129523433,
-        "regolith_recieved": 56000
+        "processing_uptime": 34.666666666666664,
+        "total_LOX_production": 131.4509048843188,
+        "regolith_recieved": 52000
       },
       "Solar_Power_System": {
         "Name": "Solar_Power_System",
@@ -3369,7 +3369,7 @@
         "LOX_Capacity": 50000,
         "LOX_Stored": 101.11608068024522,
         "utilities_power_rate": 3,
-        "Energy_Consumed_kWh": 374.42189507613205,
+        "Energy_Consumed_kWh": 343.07591006525604,
         "chilling_power_per_kg_LOX": 0.31,
         "Spike_Events_Array": []
       },
@@ -3378,24 +3378,24 @@
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 4000,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
-        "battery_charge": 81.99999999999996,
-        "total_distance_traveled": 7.5,
-        "total_energy_consumed": 17.999999999999996,
-        "hours_per_km": 5.0
+        "battery_charge": 83.7999999999999,
+        "total_distance_traveled": 9.0,
+        "total_energy_consumed": 16.200000000000003,
+        "hours_per_km": 4.0
       },
       "LOX Cargo Rover": {
         "Name": "LOX Cargo Rover",
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 0,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
-        "battery_charge": 99.96966517579592,
+        "battery_charge": 99.97724888184695,
         "total_distance_traveled": 0.5,
-        "total_energy_consumed": 0.030334824204073563,
-        "hours_per_km": 5.0
+        "total_energy_consumed": 0.022751118153055173,
+        "hours_per_km": 4.0
       },
       "ChargeStation-1": {
         "Name": "ChargeStation-1",
@@ -3408,10 +3408,10 @@
     "37.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 1600.0,
+        "processingRate": 1500.0,
         "regHeadGrade": 0.1,
         "LOX_Stored": 40.44643227209808,
-        "total_energy_consumed": 3775.886222052917,
+        "total_energy_consumed": 3791.559214558355,
         "excavationEnergyCoeff": 6.5e-06,
         "transportEnergyCoeff": 0.00036,
         "liftHeight": 1,
@@ -3419,7 +3419,7 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 35.0,
+        "processing_uptime": 37.33333333333333,
         "total_LOX_production": 141.5625129523433,
         "regolith_recieved": 56000
       },
@@ -3455,7 +3455,7 @@
         "LOX_Capacity": 50000,
         "LOX_Stored": 101.11608068024522,
         "utilities_power_rate": 3,
-        "Energy_Consumed_kWh": 408.76788008700805,
+        "Energy_Consumed_kWh": 377.42189507613205,
         "chilling_power_per_kg_LOX": 0.31,
         "Spike_Events_Array": []
       },
@@ -3464,24 +3464,24 @@
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 4000,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
-        "battery_charge": 81.99999999999996,
-        "total_distance_traveled": 7.5,
-        "total_energy_consumed": 17.999999999999996,
-        "hours_per_km": 5.0
+        "battery_charge": 82.89999999999989,
+        "total_distance_traveled": 9.5,
+        "total_energy_consumed": 17.1,
+        "hours_per_km": 4.0
       },
       "LOX Cargo Rover": {
         "Name": "LOX Cargo Rover",
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 0,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
-        "battery_charge": 99.96966517579592,
+        "battery_charge": 99.97724888184695,
         "total_distance_traveled": 0.5,
-        "total_energy_consumed": 0.030334824204073563,
-        "hours_per_km": 5.0
+        "total_energy_consumed": 0.022751118153055173,
+        "hours_per_km": 4.0
       },
       "ChargeStation-1": {
         "Name": "ChargeStation-1",
@@ -3494,10 +3494,10 @@
     "38.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 1600.0,
+        "processingRate": 1500.0,
         "regHeadGrade": 0.1,
-        "LOX_Stored": 50.5580403401226,
-        "total_energy_consumed": 4025.665290299783,
+        "LOX_Stored": 40.44643227209808,
+        "total_energy_consumed": 3804.0976085627053,
         "excavationEnergyCoeff": 6.5e-06,
         "transportEnergyCoeff": 0.00036,
         "liftHeight": 1,
@@ -3505,9 +3505,9 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 37.5,
-        "total_LOX_production": 151.6741210203678,
-        "regolith_recieved": 60000
+        "processing_uptime": 37.33333333333333,
+        "total_LOX_production": 141.5625129523433,
+        "regolith_recieved": 56000
       },
       "Solar_Power_System": {
         "Name": "Solar_Power_System",
@@ -3541,7 +3541,7 @@
         "LOX_Capacity": 50000,
         "LOX_Stored": 101.11608068024522,
         "utilities_power_rate": 3,
-        "Energy_Consumed_kWh": 443.11386509788406,
+        "Energy_Consumed_kWh": 411.76788008700805,
         "chilling_power_per_kg_LOX": 0.31,
         "Spike_Events_Array": []
       },
@@ -3550,24 +3550,24 @@
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 4000,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
-        "battery_charge": 80.79999999999995,
-        "total_distance_traveled": 8.0,
-        "total_energy_consumed": 19.199999999999996,
-        "hours_per_km": 5.0
+        "battery_charge": 82.89999999999989,
+        "total_distance_traveled": 9.5,
+        "total_energy_consumed": 17.1,
+        "hours_per_km": 4.0
       },
       "LOX Cargo Rover": {
         "Name": "LOX Cargo Rover",
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 0,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
-        "battery_charge": 99.96966517579592,
+        "battery_charge": 99.97724888184695,
         "total_distance_traveled": 0.5,
-        "total_energy_consumed": 0.030334824204073563,
-        "hours_per_km": 5.0
+        "total_energy_consumed": 0.022751118153055173,
+        "hours_per_km": 4.0
       },
       "ChargeStation-1": {
         "Name": "ChargeStation-1",
@@ -3580,10 +3580,10 @@
     "39.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 1600.0,
+        "processingRate": 1500.0,
         "regHeadGrade": 0.1,
-        "LOX_Stored": 50.5580403401226,
-        "total_energy_consumed": 4041.338282805221,
+        "LOX_Stored": 40.44643227209808,
+        "total_energy_consumed": 3816.6360025670556,
         "excavationEnergyCoeff": 6.5e-06,
         "transportEnergyCoeff": 0.00036,
         "liftHeight": 1,
@@ -3591,9 +3591,9 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 37.5,
-        "total_LOX_production": 151.6741210203678,
-        "regolith_recieved": 60000
+        "processing_uptime": 37.33333333333333,
+        "total_LOX_production": 141.5625129523433,
+        "regolith_recieved": 56000
       },
       "Solar_Power_System": {
         "Name": "Solar_Power_System",
@@ -3627,7 +3627,7 @@
         "LOX_Capacity": 50000,
         "LOX_Stored": 101.11608068024522,
         "utilities_power_rate": 3,
-        "Energy_Consumed_kWh": 477.45985010876007,
+        "Energy_Consumed_kWh": 446.11386509788406,
         "chilling_power_per_kg_LOX": 0.31,
         "Spike_Events_Array": []
       },
@@ -3636,24 +3636,24 @@
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 4000,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
-        "battery_charge": 80.79999999999995,
-        "total_distance_traveled": 8.0,
-        "total_energy_consumed": 19.199999999999996,
-        "hours_per_km": 5.0
+        "battery_charge": 81.99999999999989,
+        "total_distance_traveled": 10.0,
+        "total_energy_consumed": 18.0,
+        "hours_per_km": 4.0
       },
       "LOX Cargo Rover": {
         "Name": "LOX Cargo Rover",
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 0,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
-        "battery_charge": 99.96966517579592,
+        "battery_charge": 99.97724888184695,
         "total_distance_traveled": 0.5,
-        "total_energy_consumed": 0.030334824204073563,
-        "hours_per_km": 5.0
+        "total_energy_consumed": 0.022751118153055173,
+        "hours_per_km": 4.0
       },
       "ChargeStation-1": {
         "Name": "ChargeStation-1",
@@ -3666,10 +3666,10 @@
     "40.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 1600.0,
+        "processingRate": 1500.0,
         "regHeadGrade": 0.1,
         "LOX_Stored": 50.5580403401226,
-        "total_energy_consumed": 4057.0112753106587,
+        "total_energy_consumed": 4066.4150708139214,
         "excavationEnergyCoeff": 6.5e-06,
         "transportEnergyCoeff": 0.00036,
         "liftHeight": 1,
@@ -3677,7 +3677,7 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 37.5,
+        "processing_uptime": 39.99999999999999,
         "total_LOX_production": 151.6741210203678,
         "regolith_recieved": 60000
       },
@@ -3713,7 +3713,7 @@
         "LOX_Capacity": 50000,
         "LOX_Stored": 101.11608068024522,
         "utilities_power_rate": 3,
-        "Energy_Consumed_kWh": 511.8058351196361,
+        "Energy_Consumed_kWh": 480.45985010876007,
         "chilling_power_per_kg_LOX": 0.31,
         "Spike_Events_Array": []
       },
@@ -3722,24 +3722,24 @@
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 4000,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
-        "battery_charge": 80.79999999999995,
-        "total_distance_traveled": 8.0,
-        "total_energy_consumed": 19.199999999999996,
-        "hours_per_km": 5.0
+        "battery_charge": 81.99999999999989,
+        "total_distance_traveled": 10.0,
+        "total_energy_consumed": 18.0,
+        "hours_per_km": 4.0
       },
       "LOX Cargo Rover": {
         "Name": "LOX Cargo Rover",
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 0,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
-        "battery_charge": 99.96966517579592,
+        "battery_charge": 99.97724888184695,
         "total_distance_traveled": 0.5,
-        "total_energy_consumed": 0.030334824204073563,
-        "hours_per_km": 5.0
+        "total_energy_consumed": 0.022751118153055173,
+        "hours_per_km": 4.0
       },
       "ChargeStation-1": {
         "Name": "ChargeStation-1",
@@ -3752,10 +3752,10 @@
     "41.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 1600.0,
+        "processingRate": 1500.0,
         "regHeadGrade": 0.1,
-        "LOX_Stored": 60.669648408147125,
-        "total_energy_consumed": 4309.924942058612,
+        "LOX_Stored": 50.5580403401226,
+        "total_energy_consumed": 4082.088063319359,
         "excavationEnergyCoeff": 6.5e-06,
         "transportEnergyCoeff": 0.00036,
         "liftHeight": 1,
@@ -3763,9 +3763,9 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 40.0,
-        "total_LOX_production": 161.78572908839232,
-        "regolith_recieved": 64000
+        "processing_uptime": 39.99999999999999,
+        "total_LOX_production": 151.6741210203678,
+        "regolith_recieved": 60000
       },
       "Solar_Power_System": {
         "Name": "Solar_Power_System",
@@ -3799,7 +3799,7 @@
         "LOX_Capacity": 50000,
         "LOX_Stored": 101.11608068024522,
         "utilities_power_rate": 3,
-        "Energy_Consumed_kWh": 546.1518201305121,
+        "Energy_Consumed_kWh": 514.8058351196361,
         "chilling_power_per_kg_LOX": 0.31,
         "Spike_Events_Array": []
       },
@@ -3808,24 +3808,24 @@
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 4000,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
-        "battery_charge": 79.59999999999995,
-        "total_distance_traveled": 8.5,
-        "total_energy_consumed": 20.399999999999995,
-        "hours_per_km": 5.0
+        "battery_charge": 81.09999999999988,
+        "total_distance_traveled": 10.5,
+        "total_energy_consumed": 18.9,
+        "hours_per_km": 4.0
       },
       "LOX Cargo Rover": {
         "Name": "LOX Cargo Rover",
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 0,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
-        "battery_charge": 99.96966517579592,
+        "battery_charge": 99.97724888184695,
         "total_distance_traveled": 0.5,
-        "total_energy_consumed": 0.030334824204073563,
-        "hours_per_km": 5.0
+        "total_energy_consumed": 0.022751118153055173,
+        "hours_per_km": 4.0
       },
       "ChargeStation-1": {
         "Name": "ChargeStation-1",
@@ -3838,10 +3838,10 @@
     "42.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 1600.0,
+        "processingRate": 1500.0,
         "regHeadGrade": 0.1,
         "LOX_Stored": 60.669648408147125,
-        "total_energy_consumed": 4328.732533065137,
+        "total_energy_consumed": 4335.001730067313,
         "excavationEnergyCoeff": 6.5e-06,
         "transportEnergyCoeff": 0.00036,
         "liftHeight": 1,
@@ -3849,7 +3849,7 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 40.0,
+        "processing_uptime": 42.66666666666666,
         "total_LOX_production": 161.78572908839232,
         "regolith_recieved": 64000
       },
@@ -3885,7 +3885,7 @@
         "LOX_Capacity": 50000,
         "LOX_Stored": 101.11608068024522,
         "utilities_power_rate": 3,
-        "Energy_Consumed_kWh": 580.4978051413881,
+        "Energy_Consumed_kWh": 549.1518201305121,
         "chilling_power_per_kg_LOX": 0.31,
         "Spike_Events_Array": []
       },
@@ -3894,24 +3894,24 @@
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 4000,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
-        "battery_charge": 79.59999999999995,
-        "total_distance_traveled": 8.5,
-        "total_energy_consumed": 20.399999999999995,
-        "hours_per_km": 5.0
+        "battery_charge": 81.09999999999988,
+        "total_distance_traveled": 10.5,
+        "total_energy_consumed": 18.9,
+        "hours_per_km": 4.0
       },
       "LOX Cargo Rover": {
         "Name": "LOX Cargo Rover",
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 0,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
-        "battery_charge": 99.96966517579592,
+        "battery_charge": 99.97724888184695,
         "total_distance_traveled": 0.5,
-        "total_energy_consumed": 0.030334824204073563,
-        "hours_per_km": 5.0
+        "total_energy_consumed": 0.022751118153055173,
+        "hours_per_km": 4.0
       },
       "ChargeStation-1": {
         "Name": "ChargeStation-1",
@@ -3924,10 +3924,10 @@
     "43.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 1600.0,
+        "processingRate": 1500.0,
         "regHeadGrade": 0.1,
-        "LOX_Stored": 70.78125647617165,
-        "total_energy_consumed": 4584.780798314178,
+        "LOX_Stored": 60.669648408147125,
+        "total_energy_consumed": 4353.809321073838,
         "excavationEnergyCoeff": 6.5e-06,
         "transportEnergyCoeff": 0.00036,
         "liftHeight": 1,
@@ -3935,9 +3935,9 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 42.5,
-        "total_LOX_production": 171.89733715641682,
-        "regolith_recieved": 68000
+        "processing_uptime": 42.66666666666666,
+        "total_LOX_production": 161.78572908839232,
+        "regolith_recieved": 64000
       },
       "Solar_Power_System": {
         "Name": "Solar_Power_System",
@@ -3971,7 +3971,7 @@
         "LOX_Capacity": 50000,
         "LOX_Stored": 101.11608068024522,
         "utilities_power_rate": 3,
-        "Energy_Consumed_kWh": 614.8437901522641,
+        "Energy_Consumed_kWh": 583.4978051413881,
         "chilling_power_per_kg_LOX": 0.31,
         "Spike_Events_Array": []
       },
@@ -3980,24 +3980,24 @@
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 4000,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
-        "battery_charge": 78.39999999999995,
-        "total_distance_traveled": 9.0,
-        "total_energy_consumed": 21.599999999999994,
-        "hours_per_km": 5.0
+        "battery_charge": 80.19999999999987,
+        "total_distance_traveled": 11.0,
+        "total_energy_consumed": 19.799999999999997,
+        "hours_per_km": 4.0
       },
       "LOX Cargo Rover": {
         "Name": "LOX Cargo Rover",
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 0,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
-        "battery_charge": 99.96966517579592,
+        "battery_charge": 99.97724888184695,
         "total_distance_traveled": 0.5,
-        "total_energy_consumed": 0.030334824204073563,
-        "hours_per_km": 5.0
+        "total_energy_consumed": 0.022751118153055173,
+        "hours_per_km": 4.0
       },
       "ChargeStation-1": {
         "Name": "ChargeStation-1",
@@ -4010,10 +4010,10 @@
     "44.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 1600.0,
+        "processingRate": 1500.0,
         "regHeadGrade": 0.1,
-        "LOX_Stored": 70.78125647617165,
-        "total_energy_consumed": 4606.722987821791,
+        "LOX_Stored": 60.669648408147125,
+        "total_energy_consumed": 4372.616912080363,
         "excavationEnergyCoeff": 6.5e-06,
         "transportEnergyCoeff": 0.00036,
         "liftHeight": 1,
@@ -4021,9 +4021,9 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 42.5,
-        "total_LOX_production": 171.89733715641682,
-        "regolith_recieved": 68000
+        "processing_uptime": 42.66666666666666,
+        "total_LOX_production": 161.78572908839232,
+        "regolith_recieved": 64000
       },
       "Solar_Power_System": {
         "Name": "Solar_Power_System",
@@ -4057,7 +4057,7 @@
         "LOX_Capacity": 50000,
         "LOX_Stored": 101.11608068024522,
         "utilities_power_rate": 3,
-        "Energy_Consumed_kWh": 649.1897751631401,
+        "Energy_Consumed_kWh": 617.8437901522641,
         "chilling_power_per_kg_LOX": 0.31,
         "Spike_Events_Array": []
       },
@@ -4066,24 +4066,24 @@
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 4000,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
-        "battery_charge": 78.39999999999995,
-        "total_distance_traveled": 9.0,
-        "total_energy_consumed": 21.599999999999994,
-        "hours_per_km": 5.0
+        "battery_charge": 80.19999999999987,
+        "total_distance_traveled": 11.0,
+        "total_energy_consumed": 19.799999999999997,
+        "hours_per_km": 4.0
       },
       "LOX Cargo Rover": {
         "Name": "LOX Cargo Rover",
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 0,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
-        "battery_charge": 99.96966517579592,
+        "battery_charge": 99.97724888184695,
         "total_distance_traveled": 0.5,
-        "total_energy_consumed": 0.030334824204073563,
-        "hours_per_km": 5.0
+        "total_energy_consumed": 0.022751118153055173,
+        "hours_per_km": 4.0
       },
       "ChargeStation-1": {
         "Name": "ChargeStation-1",
@@ -4096,7 +4096,7 @@
     "45.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 1600.0,
+        "processingRate": 1500.0,
         "regHeadGrade": 0.1,
         "LOX_Stored": 70.78125647617165,
         "total_energy_consumed": 4628.665177329404,
@@ -4107,7 +4107,7 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 42.5,
+        "processing_uptime": 45.33333333333332,
         "total_LOX_production": 171.89733715641682,
         "regolith_recieved": 68000
       },
@@ -4143,7 +4143,7 @@
         "LOX_Capacity": 50000,
         "LOX_Stored": 101.11608068024522,
         "utilities_power_rate": 3,
-        "Energy_Consumed_kWh": 683.5357601740161,
+        "Energy_Consumed_kWh": 652.1897751631401,
         "chilling_power_per_kg_LOX": 0.31,
         "Spike_Events_Array": []
       },
@@ -4152,24 +4152,24 @@
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 4000,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
-        "battery_charge": 78.39999999999995,
-        "total_distance_traveled": 9.0,
-        "total_energy_consumed": 21.599999999999994,
-        "hours_per_km": 5.0
+        "battery_charge": 79.29999999999987,
+        "total_distance_traveled": 11.5,
+        "total_energy_consumed": 20.699999999999996,
+        "hours_per_km": 4.0
       },
       "LOX Cargo Rover": {
         "Name": "LOX Cargo Rover",
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 0,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
-        "battery_charge": 99.96966517579592,
+        "battery_charge": 99.97724888184695,
         "total_distance_traveled": 0.5,
-        "total_energy_consumed": 0.030334824204073563,
-        "hours_per_km": 5.0
+        "total_energy_consumed": 0.022751118153055173,
+        "hours_per_km": 4.0
       },
       "ChargeStation-1": {
         "Name": "ChargeStation-1",
@@ -4182,10 +4182,10 @@
     "46.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 1600.0,
+        "processingRate": 1500.0,
         "regHeadGrade": 0.1,
-        "LOX_Stored": 80.89286454419617,
-        "total_energy_consumed": 4887.848041079533,
+        "LOX_Stored": 70.78125647617165,
+        "total_energy_consumed": 4650.607366837017,
         "excavationEnergyCoeff": 6.5e-06,
         "transportEnergyCoeff": 0.00036,
         "liftHeight": 1,
@@ -4193,9 +4193,9 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 45.0,
-        "total_LOX_production": 182.00894522444133,
-        "regolith_recieved": 72000
+        "processing_uptime": 45.33333333333332,
+        "total_LOX_production": 171.89733715641682,
+        "regolith_recieved": 68000
       },
       "Solar_Power_System": {
         "Name": "Solar_Power_System",
@@ -4229,7 +4229,7 @@
         "LOX_Capacity": 50000,
         "LOX_Stored": 101.11608068024522,
         "utilities_power_rate": 3,
-        "Energy_Consumed_kWh": 717.8817451848921,
+        "Energy_Consumed_kWh": 686.5357601740161,
         "chilling_power_per_kg_LOX": 0.31,
         "Spike_Events_Array": []
       },
@@ -4238,24 +4238,24 @@
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 4000,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
-        "battery_charge": 77.19999999999995,
-        "total_distance_traveled": 9.5,
-        "total_energy_consumed": 22.799999999999994,
-        "hours_per_km": 5.0
+        "battery_charge": 79.29999999999987,
+        "total_distance_traveled": 11.5,
+        "total_energy_consumed": 20.699999999999996,
+        "hours_per_km": 4.0
       },
       "LOX Cargo Rover": {
         "Name": "LOX Cargo Rover",
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 0,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
-        "battery_charge": 99.96966517579592,
+        "battery_charge": 99.97724888184695,
         "total_distance_traveled": 0.5,
-        "total_energy_consumed": 0.030334824204073563,
-        "hours_per_km": 5.0
+        "total_energy_consumed": 0.022751118153055173,
+        "hours_per_km": 4.0
       },
       "ChargeStation-1": {
         "Name": "ChargeStation-1",
@@ -4268,10 +4268,10 @@
     "47.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 1600.0,
+        "processingRate": 1500.0,
         "regHeadGrade": 0.1,
-        "LOX_Stored": 80.89286454419617,
-        "total_energy_consumed": 4912.924829088233,
+        "LOX_Stored": 70.78125647617165,
+        "total_energy_consumed": 4672.54955634463,
         "excavationEnergyCoeff": 6.5e-06,
         "transportEnergyCoeff": 0.00036,
         "liftHeight": 1,
@@ -4279,9 +4279,9 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 45.0,
-        "total_LOX_production": 182.00894522444133,
-        "regolith_recieved": 72000
+        "processing_uptime": 45.33333333333332,
+        "total_LOX_production": 171.89733715641682,
+        "regolith_recieved": 68000
       },
       "Solar_Power_System": {
         "Name": "Solar_Power_System",
@@ -4315,7 +4315,7 @@
         "LOX_Capacity": 50000,
         "LOX_Stored": 101.11608068024522,
         "utilities_power_rate": 3,
-        "Energy_Consumed_kWh": 752.2277301957681,
+        "Energy_Consumed_kWh": 720.8817451848921,
         "chilling_power_per_kg_LOX": 0.31,
         "Spike_Events_Array": []
       },
@@ -4323,25 +4323,25 @@
         "Name": "Regolith Cargo Rover 1",
         "rover_type": "cargo",
         "max_capacity": 5000.0,
-        "current_load": 4000,
-        "energy_per_km_per_kg": 0.0006,
+        "current_load": 0,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
-        "battery_charge": 77.19999999999995,
-        "total_distance_traveled": 9.5,
-        "total_energy_consumed": 22.799999999999994,
-        "hours_per_km": 5.0
+        "battery_charge": 79.29999999999987,
+        "total_distance_traveled": 11.5,
+        "total_energy_consumed": 20.699999999999996,
+        "hours_per_km": 4.0
       },
       "LOX Cargo Rover": {
         "Name": "LOX Cargo Rover",
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 0,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
-        "battery_charge": 99.96966517579592,
+        "battery_charge": 99.97724888184695,
         "total_distance_traveled": 0.5,
-        "total_energy_consumed": 0.030334824204073563,
-        "hours_per_km": 5.0
+        "total_energy_consumed": 0.022751118153055173,
+        "hours_per_km": 4.0
       },
       "ChargeStation-1": {
         "Name": "ChargeStation-1",
@@ -4354,10 +4354,10 @@
     "48.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 1600.0,
+        "processingRate": 1500.0,
         "regHeadGrade": 0.1,
-        "LOX_Stored": 91.0044726122207,
-        "total_energy_consumed": 5175.242291339449,
+        "LOX_Stored": 80.89286454419617,
+        "total_energy_consumed": 4931.732420094759,
         "excavationEnergyCoeff": 6.5e-06,
         "transportEnergyCoeff": 0.00036,
         "liftHeight": 1,
@@ -4365,9 +4365,9 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 47.5,
-        "total_LOX_production": 192.12055329246584,
-        "regolith_recieved": 76000
+        "processing_uptime": 47.999999999999986,
+        "total_LOX_production": 182.00894522444133,
+        "regolith_recieved": 72000
       },
       "Solar_Power_System": {
         "Name": "Solar_Power_System",
@@ -4401,7 +4401,7 @@
         "LOX_Capacity": 50000,
         "LOX_Stored": 101.11608068024522,
         "utilities_power_rate": 3,
-        "Energy_Consumed_kWh": 786.5737152066441,
+        "Energy_Consumed_kWh": 755.2277301957681,
         "chilling_power_per_kg_LOX": 0.31,
         "Spike_Events_Array": []
       },
@@ -4410,24 +4410,24 @@
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 4000,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
-        "battery_charge": 75.99999999999994,
-        "total_distance_traveled": 10.0,
-        "total_energy_consumed": 23.999999999999993,
-        "hours_per_km": 5.0
+        "battery_charge": 78.39999999999986,
+        "total_distance_traveled": 12.0,
+        "total_energy_consumed": 21.599999999999994,
+        "hours_per_km": 4.0
       },
       "LOX Cargo Rover": {
         "Name": "LOX Cargo Rover",
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 0,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
-        "battery_charge": 99.96966517579592,
+        "battery_charge": 99.97724888184695,
         "total_distance_traveled": 0.5,
-        "total_energy_consumed": 0.030334824204073563,
-        "hours_per_km": 5.0
+        "total_energy_consumed": 0.022751118153055173,
+        "hours_per_km": 4.0
       },
       "ChargeStation-1": {
         "Name": "ChargeStation-1",
@@ -4440,10 +4440,10 @@
     "49.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 1600.0,
+        "processingRate": 1500.0,
         "regHeadGrade": 0.1,
-        "LOX_Stored": 91.0044726122207,
-        "total_energy_consumed": 5203.4536778492375,
+        "LOX_Stored": 80.89286454419617,
+        "total_energy_consumed": 4956.809208103459,
         "excavationEnergyCoeff": 6.5e-06,
         "transportEnergyCoeff": 0.00036,
         "liftHeight": 1,
@@ -4451,9 +4451,9 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 47.5,
-        "total_LOX_production": 192.12055329246584,
-        "regolith_recieved": 76000
+        "processing_uptime": 47.999999999999986,
+        "total_LOX_production": 182.00894522444133,
+        "regolith_recieved": 72000
       },
       "Solar_Power_System": {
         "Name": "Solar_Power_System",
@@ -4487,7 +4487,7 @@
         "LOX_Capacity": 50000,
         "LOX_Stored": 101.11608068024522,
         "utilities_power_rate": 3,
-        "Energy_Consumed_kWh": 820.9197002175201,
+        "Energy_Consumed_kWh": 789.5737152066441,
         "chilling_power_per_kg_LOX": 0.31,
         "Spike_Events_Array": []
       },
@@ -4496,24 +4496,24 @@
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 4000,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
-        "battery_charge": 75.99999999999994,
-        "total_distance_traveled": 10.0,
-        "total_energy_consumed": 23.999999999999993,
-        "hours_per_km": 5.0
+        "battery_charge": 78.39999999999986,
+        "total_distance_traveled": 12.0,
+        "total_energy_consumed": 21.599999999999994,
+        "hours_per_km": 4.0
       },
       "LOX Cargo Rover": {
         "Name": "LOX Cargo Rover",
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 0,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
-        "battery_charge": 99.96966517579592,
+        "battery_charge": 99.97724888184695,
         "total_distance_traveled": 0.5,
-        "total_energy_consumed": 0.030334824204073563,
-        "hours_per_km": 5.0
+        "total_energy_consumed": 0.022751118153055173,
+        "hours_per_km": 4.0
       },
       "ChargeStation-1": {
         "Name": "ChargeStation-1",
@@ -4526,10 +4526,10 @@
     "50.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 1600.0,
+        "processingRate": 1500.0,
         "regHeadGrade": 0.1,
         "LOX_Stored": 91.0044726122207,
-        "total_energy_consumed": 5231.665064359026,
+        "total_energy_consumed": 5219.126670354675,
         "excavationEnergyCoeff": 6.5e-06,
         "transportEnergyCoeff": 0.00036,
         "liftHeight": 1,
@@ -4537,7 +4537,7 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 47.5,
+        "processing_uptime": 50.66666666666665,
         "total_LOX_production": 192.12055329246584,
         "regolith_recieved": 76000
       },
@@ -4573,7 +4573,7 @@
         "LOX_Capacity": 50000,
         "LOX_Stored": 101.11608068024522,
         "utilities_power_rate": 3,
-        "Energy_Consumed_kWh": 855.2656852283961,
+        "Energy_Consumed_kWh": 823.9197002175201,
         "chilling_power_per_kg_LOX": 0.31,
         "Spike_Events_Array": []
       },
@@ -4582,24 +4582,24 @@
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 4000,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
-        "battery_charge": 75.99999999999994,
-        "total_distance_traveled": 10.0,
-        "total_energy_consumed": 23.999999999999993,
-        "hours_per_km": 5.0
+        "battery_charge": 77.49999999999986,
+        "total_distance_traveled": 12.5,
+        "total_energy_consumed": 22.499999999999993,
+        "hours_per_km": 4.0
       },
       "LOX Cargo Rover": {
         "Name": "LOX Cargo Rover",
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 0,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
-        "battery_charge": 99.96966517579592,
+        "battery_charge": 99.97724888184695,
         "total_distance_traveled": 0.5,
-        "total_energy_consumed": 0.030334824204073563,
-        "hours_per_km": 5.0
+        "total_energy_consumed": 0.022751118153055173,
+        "hours_per_km": 4.0
       },
       "ChargeStation-1": {
         "Name": "ChargeStation-1",
@@ -4612,10 +4612,10 @@
     "51.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 1600.0,
+        "processingRate": 1500.0,
         "regHeadGrade": 0.1,
-        "LOX_Stored": 0,
-        "total_energy_consumed": 5497.117125111329,
+        "LOX_Stored": 91.0044726122207,
+        "total_energy_consumed": 5247.338056864463,
         "excavationEnergyCoeff": 6.5e-06,
         "transportEnergyCoeff": 0.00036,
         "liftHeight": 1,
@@ -4623,9 +4623,9 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 50.0,
-        "total_LOX_production": 202.23216136049035,
-        "regolith_recieved": 80000
+        "processing_uptime": 50.66666666666665,
+        "total_LOX_production": 192.12055329246584,
+        "regolith_recieved": 76000
       },
       "Solar_Power_System": {
         "Name": "Solar_Power_System",
@@ -4659,7 +4659,7 @@
         "LOX_Capacity": 50000,
         "LOX_Stored": 101.11608068024522,
         "utilities_power_rate": 3,
-        "Energy_Consumed_kWh": 889.6116702392721,
+        "Energy_Consumed_kWh": 858.2656852283961,
         "chilling_power_per_kg_LOX": 0.31,
         "Spike_Events_Array": []
       },
@@ -4668,24 +4668,24 @@
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 4000,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
-        "battery_charge": 74.79999999999994,
-        "total_distance_traveled": 10.5,
-        "total_energy_consumed": 25.199999999999992,
-        "hours_per_km": 5.0
+        "battery_charge": 77.49999999999986,
+        "total_distance_traveled": 12.5,
+        "total_energy_consumed": 22.499999999999993,
+        "hours_per_km": 4.0
       },
       "LOX Cargo Rover": {
         "Name": "LOX Cargo Rover",
         "rover_type": "cargo",
         "max_capacity": 5000.0,
-        "current_load": 101.11608068024522,
-        "energy_per_km_per_kg": 0.0006,
+        "current_load": 0,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
-        "battery_charge": 99.93933035159185,
-        "total_distance_traveled": 1.0,
-        "total_energy_consumed": 0.06066964840814713,
-        "hours_per_km": 5.0
+        "battery_charge": 99.97724888184695,
+        "total_distance_traveled": 0.5,
+        "total_energy_consumed": 0.022751118153055173,
+        "hours_per_km": 4.0
       },
       "ChargeStation-1": {
         "Name": "ChargeStation-1",
@@ -4698,10 +4698,10 @@
     "52.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 1600.0,
+        "processingRate": 1500.0,
         "regHeadGrade": 0.1,
-        "LOX_Stored": 0,
-        "total_energy_consumed": 5497.117125111329,
+        "LOX_Stored": 91.0044726122207,
+        "total_energy_consumed": 5275.5494433742515,
         "excavationEnergyCoeff": 6.5e-06,
         "transportEnergyCoeff": 0.00036,
         "liftHeight": 1,
@@ -4709,9 +4709,9 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 50.0,
-        "total_LOX_production": 202.23216136049035,
-        "regolith_recieved": 80000
+        "processing_uptime": 50.66666666666665,
+        "total_LOX_production": 192.12055329246584,
+        "regolith_recieved": 76000
       },
       "Solar_Power_System": {
         "Name": "Solar_Power_System",
@@ -4745,7 +4745,7 @@
         "LOX_Capacity": 50000,
         "LOX_Stored": 101.11608068024522,
         "utilities_power_rate": 3,
-        "Energy_Consumed_kWh": 923.9576552501482,
+        "Energy_Consumed_kWh": 892.6116702392721,
         "chilling_power_per_kg_LOX": 0.31,
         "Spike_Events_Array": []
       },
@@ -4753,25 +4753,25 @@
         "Name": "Regolith Cargo Rover 1",
         "rover_type": "cargo",
         "max_capacity": 5000.0,
-        "current_load": 4000,
-        "energy_per_km_per_kg": 0.0006,
+        "current_load": 0,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
-        "battery_charge": 74.79999999999994,
-        "total_distance_traveled": 10.5,
-        "total_energy_consumed": 25.199999999999992,
-        "hours_per_km": 5.0
+        "battery_charge": 77.49999999999986,
+        "total_distance_traveled": 12.5,
+        "total_energy_consumed": 22.499999999999993,
+        "hours_per_km": 4.0
       },
       "LOX Cargo Rover": {
         "Name": "LOX Cargo Rover",
         "rover_type": "cargo",
         "max_capacity": 5000.0,
-        "current_load": 101.11608068024522,
-        "energy_per_km_per_kg": 0.0006,
+        "current_load": 0,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
-        "battery_charge": 99.93933035159185,
-        "total_distance_traveled": 1.0,
-        "total_energy_consumed": 0.06066964840814713,
-        "hours_per_km": 5.0
+        "battery_charge": 99.97724888184695,
+        "total_distance_traveled": 0.5,
+        "total_energy_consumed": 0.022751118153055173,
+        "hours_per_km": 4.0
       },
       "ChargeStation-1": {
         "Name": "ChargeStation-1",
@@ -4784,10 +4784,10 @@
     "53.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 1600.0,
+        "processingRate": 1500.0,
         "regHeadGrade": 0.1,
-        "LOX_Stored": 10.11160806802452,
-        "total_energy_consumed": 5734.357799353845,
+        "LOX_Stored": 101.11608068024522,
+        "total_energy_consumed": 5541.001504126555,
         "excavationEnergyCoeff": 6.5e-06,
         "transportEnergyCoeff": 0.00036,
         "liftHeight": 1,
@@ -4795,9 +4795,9 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 52.5,
-        "total_LOX_production": 212.34376942851486,
-        "regolith_recieved": 84000
+        "processing_uptime": 53.333333333333314,
+        "total_LOX_production": 202.23216136049035,
+        "regolith_recieved": 80000
       },
       "Solar_Power_System": {
         "Name": "Solar_Power_System",
@@ -4831,7 +4831,7 @@
         "LOX_Capacity": 50000,
         "LOX_Stored": 101.11608068024522,
         "utilities_power_rate": 3,
-        "Energy_Consumed_kWh": 958.3036402610242,
+        "Energy_Consumed_kWh": 926.9576552501482,
         "chilling_power_per_kg_LOX": 0.31,
         "Spike_Events_Array": []
       },
@@ -4840,24 +4840,24 @@
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 4000,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
-        "battery_charge": 73.59999999999994,
-        "total_distance_traveled": 11.0,
-        "total_energy_consumed": 26.39999999999999,
-        "hours_per_km": 5.0
+        "battery_charge": 76.59999999999985,
+        "total_distance_traveled": 13.0,
+        "total_energy_consumed": 23.39999999999999,
+        "hours_per_km": 4.0
       },
       "LOX Cargo Rover": {
         "Name": "LOX Cargo Rover",
         "rover_type": "cargo",
         "max_capacity": 5000.0,
-        "current_load": 101.11608068024522,
-        "energy_per_km_per_kg": 0.0006,
+        "current_load": 0,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
-        "battery_charge": 99.93933035159185,
-        "total_distance_traveled": 1.0,
-        "total_energy_consumed": 0.06066964840814713,
-        "hours_per_km": 5.0
+        "battery_charge": 99.97724888184695,
+        "total_distance_traveled": 0.5,
+        "total_energy_consumed": 0.022751118153055173,
+        "hours_per_km": 4.0
       },
       "ChargeStation-1": {
         "Name": "ChargeStation-1",
@@ -4870,10 +4870,10 @@
     "54.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 1600.0,
+        "processingRate": 1500.0,
         "regHeadGrade": 0.1,
-        "LOX_Stored": 10.11160806802452,
-        "total_energy_consumed": 5737.492397854932,
+        "LOX_Stored": 0,
+        "total_energy_consumed": 5572.347489137431,
         "excavationEnergyCoeff": 6.5e-06,
         "transportEnergyCoeff": 0.00036,
         "liftHeight": 1,
@@ -4881,9 +4881,9 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 52.5,
-        "total_LOX_production": 212.34376942851486,
-        "regolith_recieved": 84000
+        "processing_uptime": 53.333333333333314,
+        "total_LOX_production": 202.23216136049035,
+        "regolith_recieved": 80000
       },
       "Solar_Power_System": {
         "Name": "Solar_Power_System",
@@ -4915,9 +4915,9 @@
       "LZ-Alpha": {
         "Name": "LZ-Alpha",
         "LOX_Capacity": 50000,
-        "LOX_Stored": 202.23216136049044,
+        "LOX_Stored": 101.11608068024522,
         "utilities_power_rate": 3,
-        "Energy_Consumed_kWh": 992.6496252719002,
+        "Energy_Consumed_kWh": 961.3036402610242,
         "chilling_power_per_kg_LOX": 0.31,
         "Spike_Events_Array": []
       },
@@ -4926,24 +4926,24 @@
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 4000,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
-        "battery_charge": 73.59999999999994,
-        "total_distance_traveled": 11.0,
-        "total_energy_consumed": 26.39999999999999,
-        "hours_per_km": 5.0
+        "battery_charge": 76.59999999999985,
+        "total_distance_traveled": 13.0,
+        "total_energy_consumed": 23.39999999999999,
+        "hours_per_km": 4.0
       },
       "LOX Cargo Rover": {
         "Name": "LOX Cargo Rover",
         "rover_type": "cargo",
         "max_capacity": 5000.0,
-        "current_load": 0,
-        "energy_per_km_per_kg": 0.0006,
+        "current_load": 101.11608068024522,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
-        "battery_charge": 99.93933035159185,
+        "battery_charge": 99.9544977636939,
         "total_distance_traveled": 1.0,
-        "total_energy_consumed": 0.06066964840814713,
-        "hours_per_km": 5.0
+        "total_energy_consumed": 0.04550223630611035,
+        "hours_per_km": 4.0
       },
       "ChargeStation-1": {
         "Name": "ChargeStation-1",
@@ -4956,10 +4956,10 @@
     "55.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 1600.0,
+        "processingRate": 1500.0,
         "regHeadGrade": 0.1,
-        "LOX_Stored": 10.11160806802452,
-        "total_energy_consumed": 5740.62699635602,
+        "LOX_Stored": 0,
+        "total_energy_consumed": 5572.347489137431,
         "excavationEnergyCoeff": 6.5e-06,
         "transportEnergyCoeff": 0.00036,
         "liftHeight": 1,
@@ -4967,9 +4967,9 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 52.5,
-        "total_LOX_production": 212.34376942851486,
-        "regolith_recieved": 84000
+        "processing_uptime": 53.333333333333314,
+        "total_LOX_production": 202.23216136049035,
+        "regolith_recieved": 80000
       },
       "Solar_Power_System": {
         "Name": "Solar_Power_System",
@@ -4983,7 +4983,7 @@
       },
       "Power_Manager": {
         "Name": "Power_Manager",
-        "current_energy_demand": 72.69197002175204,
+        "current_energy_demand": 41.34598501087602,
         "current_energy_production": 100.0
       },
       "Habitat-1": {
@@ -5001,9 +5001,9 @@
       "LZ-Alpha": {
         "Name": "LZ-Alpha",
         "LOX_Capacity": 50000,
-        "LOX_Stored": 202.23216136049044,
+        "LOX_Stored": 101.11608068024522,
         "utilities_power_rate": 3,
-        "Energy_Consumed_kWh": 1058.3415952936523,
+        "Energy_Consumed_kWh": 995.6496252719002,
         "chilling_power_per_kg_LOX": 0.31,
         "Spike_Events_Array": []
       },
@@ -5011,25 +5011,25 @@
         "Name": "Regolith Cargo Rover 1",
         "rover_type": "cargo",
         "max_capacity": 5000.0,
-        "current_load": 4000,
-        "energy_per_km_per_kg": 0.0006,
+        "current_load": 0,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
-        "battery_charge": 73.59999999999994,
-        "total_distance_traveled": 11.0,
-        "total_energy_consumed": 26.39999999999999,
-        "hours_per_km": 5.0
+        "battery_charge": 76.59999999999985,
+        "total_distance_traveled": 13.0,
+        "total_energy_consumed": 23.39999999999999,
+        "hours_per_km": 4.0
       },
       "LOX Cargo Rover": {
         "Name": "LOX Cargo Rover",
         "rover_type": "cargo",
         "max_capacity": 5000.0,
-        "current_load": 0,
-        "energy_per_km_per_kg": 0.0006,
+        "current_load": 101.11608068024522,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
-        "battery_charge": 99.93933035159185,
+        "battery_charge": 99.9544977636939,
         "total_distance_traveled": 1.0,
-        "total_energy_consumed": 0.06066964840814713,
-        "hours_per_km": 5.0
+        "total_energy_consumed": 0.04550223630611035,
+        "hours_per_km": 4.0
       },
       "ChargeStation-1": {
         "Name": "ChargeStation-1",
@@ -5042,10 +5042,10 @@
     "56.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 1600.0,
+        "processingRate": 1500.0,
         "regHeadGrade": 0.1,
-        "LOX_Stored": 20.22321613604904,
-        "total_energy_consumed": 5981.002269099623,
+        "LOX_Stored": 10.11160806802452,
+        "total_energy_consumed": 5809.588163379946,
         "excavationEnergyCoeff": 6.5e-06,
         "transportEnergyCoeff": 0.00036,
         "liftHeight": 1,
@@ -5053,9 +5053,9 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 55.0,
-        "total_LOX_production": 222.45537749653937,
-        "regolith_recieved": 88000
+        "processing_uptime": 55.99999999999998,
+        "total_LOX_production": 212.34376942851486,
+        "regolith_recieved": 84000
       },
       "Solar_Power_System": {
         "Name": "Solar_Power_System",
@@ -5069,7 +5069,7 @@
       },
       "Power_Manager": {
         "Name": "Power_Manager",
-        "current_energy_demand": 72.69197002175204,
+        "current_energy_demand": 41.34598501087602,
         "current_energy_production": 100.0
       },
       "Habitat-1": {
@@ -5089,7 +5089,7 @@
         "LOX_Capacity": 50000,
         "LOX_Stored": 202.23216136049044,
         "utilities_power_rate": 3,
-        "Energy_Consumed_kWh": 1124.0335653154043,
+        "Energy_Consumed_kWh": 1029.9956102827762,
         "chilling_power_per_kg_LOX": 0.31,
         "Spike_Events_Array": []
       },
@@ -5098,24 +5098,24 @@
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 4000,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
-        "battery_charge": 72.39999999999993,
-        "total_distance_traveled": 11.5,
-        "total_energy_consumed": 27.59999999999999,
-        "hours_per_km": 5.0
+        "battery_charge": 75.69999999999985,
+        "total_distance_traveled": 13.5,
+        "total_energy_consumed": 24.29999999999999,
+        "hours_per_km": 4.0
       },
       "LOX Cargo Rover": {
         "Name": "LOX Cargo Rover",
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 0,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
-        "battery_charge": 99.93933035159185,
+        "battery_charge": 99.9544977636939,
         "total_distance_traveled": 1.0,
-        "total_energy_consumed": 0.06066964840814713,
-        "hours_per_km": 5.0
+        "total_energy_consumed": 0.04550223630611035,
+        "hours_per_km": 4.0
       },
       "ChargeStation-1": {
         "Name": "ChargeStation-1",
@@ -5128,10 +5128,10 @@
     "57.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 1600.0,
+        "processingRate": 1500.0,
         "regHeadGrade": 0.1,
-        "LOX_Stored": 20.22321613604904,
-        "total_energy_consumed": 5987.271466101798,
+        "LOX_Stored": 10.11160806802452,
+        "total_energy_consumed": 5812.722761881034,
         "excavationEnergyCoeff": 6.5e-06,
         "transportEnergyCoeff": 0.00036,
         "liftHeight": 1,
@@ -5139,9 +5139,9 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 55.0,
-        "total_LOX_production": 222.45537749653937,
-        "regolith_recieved": 88000
+        "processing_uptime": 55.99999999999998,
+        "total_LOX_production": 212.34376942851486,
+        "regolith_recieved": 84000
       },
       "Solar_Power_System": {
         "Name": "Solar_Power_System",
@@ -5175,7 +5175,7 @@
         "LOX_Capacity": 50000,
         "LOX_Stored": 202.23216136049044,
         "utilities_power_rate": 3,
-        "Energy_Consumed_kWh": 1189.7255353371563,
+        "Energy_Consumed_kWh": 1095.6875803045282,
         "chilling_power_per_kg_LOX": 0.31,
         "Spike_Events_Array": []
       },
@@ -5184,24 +5184,24 @@
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 4000,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
-        "battery_charge": 72.39999999999993,
-        "total_distance_traveled": 11.5,
-        "total_energy_consumed": 27.59999999999999,
-        "hours_per_km": 5.0
+        "battery_charge": 75.69999999999985,
+        "total_distance_traveled": 13.5,
+        "total_energy_consumed": 24.29999999999999,
+        "hours_per_km": 4.0
       },
       "LOX Cargo Rover": {
         "Name": "LOX Cargo Rover",
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 0,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
-        "battery_charge": 99.93933035159185,
+        "battery_charge": 99.9544977636939,
         "total_distance_traveled": 1.0,
-        "total_energy_consumed": 0.06066964840814713,
-        "hours_per_km": 5.0
+        "total_energy_consumed": 0.04550223630611035,
+        "hours_per_km": 4.0
       },
       "ChargeStation-1": {
         "Name": "ChargeStation-1",
@@ -5214,10 +5214,10 @@
     "58.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 1600.0,
+        "processingRate": 1500.0,
         "regHeadGrade": 0.1,
-        "LOX_Stored": 30.33482420407356,
-        "total_energy_consumed": 6230.781337346489,
+        "LOX_Stored": 20.22321613604904,
+        "total_energy_consumed": 6053.098034624637,
         "excavationEnergyCoeff": 6.5e-06,
         "transportEnergyCoeff": 0.00036,
         "liftHeight": 1,
@@ -5225,9 +5225,9 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 57.5,
-        "total_LOX_production": 232.56698556456388,
-        "regolith_recieved": 92000
+        "processing_uptime": 58.66666666666664,
+        "total_LOX_production": 222.45537749653937,
+        "regolith_recieved": 88000
       },
       "Solar_Power_System": {
         "Name": "Solar_Power_System",
@@ -5261,7 +5261,7 @@
         "LOX_Capacity": 50000,
         "LOX_Stored": 202.23216136049044,
         "utilities_power_rate": 3,
-        "Energy_Consumed_kWh": 1255.4175053589083,
+        "Energy_Consumed_kWh": 1161.3795503262802,
         "chilling_power_per_kg_LOX": 0.31,
         "Spike_Events_Array": []
       },
@@ -5270,24 +5270,24 @@
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 4000,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
-        "battery_charge": 71.19999999999993,
-        "total_distance_traveled": 12.0,
-        "total_energy_consumed": 28.79999999999999,
-        "hours_per_km": 5.0
+        "battery_charge": 74.79999999999984,
+        "total_distance_traveled": 14.0,
+        "total_energy_consumed": 25.19999999999999,
+        "hours_per_km": 4.0
       },
       "LOX Cargo Rover": {
         "Name": "LOX Cargo Rover",
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 0,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
-        "battery_charge": 99.93933035159185,
+        "battery_charge": 99.9544977636939,
         "total_distance_traveled": 1.0,
-        "total_energy_consumed": 0.06066964840814713,
-        "hours_per_km": 5.0
+        "total_energy_consumed": 0.04550223630611035,
+        "hours_per_km": 4.0
       },
       "ChargeStation-1": {
         "Name": "ChargeStation-1",
@@ -5300,10 +5300,10 @@
     "59.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 1600.0,
+        "processingRate": 1500.0,
         "regHeadGrade": 0.1,
-        "LOX_Stored": 30.33482420407356,
-        "total_energy_consumed": 6240.185132849751,
+        "LOX_Stored": 20.22321613604904,
+        "total_energy_consumed": 6059.367231626812,
         "excavationEnergyCoeff": 6.5e-06,
         "transportEnergyCoeff": 0.00036,
         "liftHeight": 1,
@@ -5311,9 +5311,9 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 57.5,
-        "total_LOX_production": 232.56698556456388,
-        "regolith_recieved": 92000
+        "processing_uptime": 58.66666666666664,
+        "total_LOX_production": 222.45537749653937,
+        "regolith_recieved": 88000
       },
       "Solar_Power_System": {
         "Name": "Solar_Power_System",
@@ -5347,7 +5347,7 @@
         "LOX_Capacity": 50000,
         "LOX_Stored": 202.23216136049044,
         "utilities_power_rate": 3,
-        "Energy_Consumed_kWh": 1321.1094753806603,
+        "Energy_Consumed_kWh": 1227.0715203480322,
         "chilling_power_per_kg_LOX": 0.31,
         "Spike_Events_Array": []
       },
@@ -5356,24 +5356,24 @@
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 4000,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
-        "battery_charge": 71.19999999999993,
-        "total_distance_traveled": 12.0,
-        "total_energy_consumed": 28.79999999999999,
-        "hours_per_km": 5.0
+        "battery_charge": 74.79999999999984,
+        "total_distance_traveled": 14.0,
+        "total_energy_consumed": 25.19999999999999,
+        "hours_per_km": 4.0
       },
       "LOX Cargo Rover": {
         "Name": "LOX Cargo Rover",
         "rover_type": "cargo",
         "max_capacity": 5000.0,
         "current_load": 0,
-        "energy_per_km_per_kg": 0.0006,
+        "energy_per_km_per_kg": 0.00045,
         "battery_capacity": 100.0,
-        "battery_charge": 99.93933035159185,
+        "battery_charge": 99.9544977636939,
         "total_distance_traveled": 1.0,
-        "total_energy_consumed": 0.06066964840814713,
-        "hours_per_km": 5.0
+        "total_energy_consumed": 0.04550223630611035,
+        "hours_per_km": 4.0
       },
       "ChargeStation-1": {
         "Name": "ChargeStation-1",
