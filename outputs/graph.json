@@ -1,10 +1,11 @@
 {
-  "written_at": 1775618758713,
+  "written_at": 1775619663311,
   "active_nodes": [
     "ISRUPlant",
+    "Propellant_Depot",
     "Rover"
   ],
-  "active_nodes_count": 2,
+  "active_nodes_count": 3,
   "connections": [
     {
       "name": "ISRUPlantToRover",
@@ -17,6 +18,19 @@
       "to": {
         "part": "Rover",
         "port": "Rover_LOXPortInOut"
+      }
+    },
+    {
+      "name": "RoverToPropellantDepot",
+      "type": "LOXMovement",
+      "flow": "LOX",
+      "from": {
+        "part": "Rover",
+        "port": "Rover_LOXPortInOut"
+      },
+      "to": {
+        "part": "Propellant_Depot",
+        "port": "Propellant_LOXPortIn"
       }
     }
   ],
@@ -82,6 +96,61 @@
       ],
       "metadata": {
         "geometryRef": "assets/geom/ISRUPlant_geom.usda"
+      }
+    },
+    "Propellant_Depot": {
+      "id": "urn:S24_PIPELINE:part:Propellant_Depot:001",
+      "dimensions": {
+        "size_m": {
+          "length": 4.0,
+          "width": 4.0,
+          "height": 2.5
+        },
+        "metersPerUnit": 1,
+        "upAxis": "Z",
+        "angleUnit": "deg",
+        "pressureUnit": "kPa",
+        "massUnit": "kg",
+        "lengthUnit": "m"
+      },
+      "transform": {
+        "position_m": [
+          0.0,
+          5.0,
+          0.0
+        ],
+        "rotation_deg": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "attributes": {
+        "Propellant_Depot_volume_m3": 40.0
+      },
+      "materialRef": "Aluminum_2219_T87",
+      "ports": [
+        {
+          "name": "Propellant_LOXPortIn",
+          "direction": [
+            "in"
+          ],
+          "items": [
+            "LOXIn"
+          ]
+        },
+        {
+          "name": "Propellant_PowerPortIn",
+          "direction": [
+            "in"
+          ],
+          "items": [
+            "PowerIn"
+          ]
+        }
+      ],
+      "metadata": {
+        "geometryRef": "assets/geom/Propellant_Depot_geom.usda"
       }
     },
     "Rover": {
