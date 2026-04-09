@@ -2187,6 +2187,9 @@ function buildAssemblyTreeFromActiveSystems() {
       `;
       wrap.appendChild(card);
     });
+    if (typeof syncDesControlsToActiveSystems === 'function') {
+      syncDesControlsToActiveSystems();
+    }
     updateTopMetrics();
   }
 
@@ -2195,6 +2198,7 @@ function toggleSystem(id) {
   if (!sys) return;
   sys.active = !sys.active;
   renderSystems();
+  syncDesControlsToActiveSystems();
   buildAssemblyTreeFromActiveSystems();
   // Re-render live graph filtered to active nodes only
   if (window._lastGraphData) {
@@ -3110,7 +3114,7 @@ window.addEventListener('load',()=>setTimeout(initPolarMap,200));
       <!-- Scrollable sliders -->
       <div style="flex:1;overflow-y:auto;padding:10px 14px;display:flex;flex-direction:column;gap:12px;">
 
-        <div>
+        <div id="desControlRoverCount">
           <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
             <span style="font-size:11px;color:var(--text2);"># of regolith rovers</span>
             <span id="desRoverCountVal" style="font-size:11px;font-weight:600;color:var(--accent);">1</span>
@@ -3120,7 +3124,7 @@ window.addEventListener('load',()=>setTimeout(initPolarMap,200));
           <div style="font-size:9px;color:var(--text3);margin-top:2px;line-height:1.4;">Parallel haul capacity to regolith loop.</div>
         </div>
 
-        <div>
+        <div id="desControlPlantCount">
           <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
             <span style="font-size:11px;color:var(--text2);"># of ISRU plants</span>
             <span id="desPlantCountVal" style="font-size:11px;font-weight:600;color:var(--accent);">1</span>
@@ -3130,7 +3134,7 @@ window.addEventListener('load',()=>setTimeout(initPolarMap,200));
           <div style="font-size:9px;color:var(--text3);margin-top:2px;line-height:1.4;">Parallel processing units, shared infrastructure.</div>
         </div>
 
-        <div>
+        <div id="desControlRegDist">
           <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
             <span style="font-size:11px;color:var(--text2);">Regolith haul distance</span>
             <span id="desRegDistVal" style="font-size:11px;font-weight:600;color:var(--accent);">1.0 km</span>
@@ -3140,7 +3144,7 @@ window.addEventListener('load',()=>setTimeout(initPolarMap,200));
           <div style="font-size:9px;color:var(--text3);margin-top:2px;line-height:1.4;">Excavation site → ISRU plant distance.</div>
         </div>
 
-        <div>
+        <div id="desControlLoxDist">
           <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
             <span style="font-size:11px;color:var(--text2);">LOX haul distance</span>
             <span id="desLoxDistVal" style="font-size:11px;font-weight:600;color:var(--accent);">1.0 km</span>
@@ -3150,7 +3154,7 @@ window.addEventListener('load',()=>setTimeout(initPolarMap,200));
           <div style="font-size:9px;color:var(--text3);margin-top:2px;line-height:1.4;">ISRU plant → landing zone distance.</div>
         </div>
 
-        <div>
+        <div id="desControlRoverEnergy">
           <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
             <span style="font-size:11px;color:var(--text2);">Rover energy (kWh/km/kg)</span>
             <span id="desRoverEnergyVal" style="font-size:11px;font-weight:600;color:var(--accent);">0.00034</span>
@@ -3160,7 +3164,7 @@ window.addEventListener('load',()=>setTimeout(initPolarMap,200));
           <div style="font-size:9px;color:var(--text3);margin-top:2px;line-height:1.4;">Primary driver for regolith availability.</div>
         </div>
 
-        <div>
+        <div id="desControlRoverTravel">
           <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
             <span style="font-size:11px;color:var(--text2);">Rover travel time</span>
             <span id="desRoverTravelVal" style="font-size:11px;font-weight:600;color:var(--accent);">5 hr/km</span>
@@ -3170,7 +3174,7 @@ window.addEventListener('load',()=>setTimeout(initPolarMap,200));
           <div style="font-size:9px;color:var(--text3);margin-top:2px;line-height:1.4;">Longer travel delays delivery cadence.</div>
         </div>
 
-        <div>
+        <div id="desControlProcessRate">
           <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
             <span style="font-size:11px;color:var(--text2);">ISRU processing rate</span>
             <span id="desProcessRateVal" style="font-size:11px;font-weight:600;color:var(--accent);">1600 kg/hr</span>
@@ -3180,7 +3184,7 @@ window.addEventListener('load',()=>setTimeout(initPolarMap,200));
           <div style="font-size:9px;color:var(--text3);margin-top:2px;line-height:1.4;">Higher rate increases LOX output.</div>
         </div>
 
-        <div>
+        <div id="desControlLoxThresh">
           <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
             <span style="font-size:11px;color:var(--text2);">LOX transport threshold</span>
             <span id="desLoxThreshVal" style="font-size:11px;font-weight:600;color:var(--accent);">100 kg</span>
@@ -3809,8 +3813,6 @@ window.addEventListener('load',()=>setTimeout(initPolarMap,200));
     });
   }
 
-  let sysmlPartsCache = {};
-
   function populateStep3(data) {
     sysmlPartsCache = data.parts || {};
     const nodes = data.active_nodes || [];
@@ -4027,6 +4029,10 @@ window.addEventListener('load',()=>setTimeout(initPolarMap,200));
     return fetchGithubJson(`outputs/cad_previews/${moduleName}_meta.json`, bust);
   }
 
+  async function fetchCadGlbMeta(moduleName, bust = Date.now()) {
+    return fetchGithubContentMeta(`outputs/cad_previews/${moduleName}.glb`, bust);
+  }
+
   async function loadMaterialLibrary() {
     try {
       const token = sessionStorage.getItem('gh_pat');
@@ -4110,6 +4116,7 @@ window.addEventListener('load',()=>setTimeout(initPolarMap,200));
 
     currentCadFile = file;
     moduleFiles[currentModuleName] = file;
+    invalidateCadPreview(currentModuleName, file.name);
 
     updateModuleDot(currentModuleName, 'ready');
     updatePublishCounter();
@@ -4118,11 +4125,37 @@ window.addEventListener('load',()=>setTimeout(initPolarMap,200));
     if (nameEl) nameEl.value = file.name;
 
     const status = document.getElementById('cadUploadStatus');
-    if (status) status.textContent = `File ready: ${file.name} (${(file.size / 1024).toFixed(0)} KB)`;
+    if (status) {
+      status.textContent =
+        `File ready: ${file.name} (${(file.size / 1024).toFixed(0)} KB) - preview outdated until publish finishes.`;
+    }
 
     const wrap = document.getElementById('viewer3dWrap');
     if (wrap && wrap.style.display !== 'none') {
-      if (status) status.textContent += ' - Upload & Publish to convert.';
+      if (status) status.textContent = `File ready: ${file.name} - Upload & Publish to regenerate preview.`;
+    }
+  }
+
+  function invalidateCadPreview(moduleName, pendingFileName = '') {
+    const state = cadPreviewState[moduleName] || {};
+    if (state.blobUrl) {
+      URL.revokeObjectURL(state.blobUrl);
+    }
+
+    cadPreviewState[moduleName] = {
+      ...state,
+      blobUrl: null,
+      glbSha: null,
+      previewStale: true,
+      pendingCadFileName: pendingFileName || null
+    };
+
+    if (moduleName === currentModuleName) {
+      const wrap = document.getElementById('viewer3dWrap');
+      if (wrap) {
+        wrap.style.display = 'none';
+        wrap.innerHTML = '';
+      }
     }
   }
 
@@ -4292,10 +4325,28 @@ window.addEventListener('load',()=>setTimeout(initPolarMap,200));
 
   async function loadCachedCadMeta(moduleName) {
     try {
+      if (cadPreviewState[moduleName]?.previewStale && moduleFiles[moduleName]) {
+        const status = document.getElementById('cadUploadStatus');
+        if (status) {
+          status.textContent = `File ready: ${moduleFiles[moduleName].name} - preview pending publish.`;
+        }
+        restoreModuleMeta(moduleName);
+        return;
+      }
+
       const meta = await fetchCadMetaWithSha(moduleName, Date.now());
+      const glbMeta = await fetchCadGlbMeta(moduleName, Date.now());
       if (!meta?.data) return;
 
-      await applyCadMeta(meta.data);
+      await applyCadMeta(meta.data, { glbSha: glbMeta?.sha || null });
+      cadPreviewState[moduleName] = {
+        ...(cadPreviewState[moduleName] || {}),
+        metaSha: meta.sha || null,
+        glbSha: glbMeta?.sha || null,
+        lastWrittenAt: meta.data.written_at ? new Date(meta.data.written_at).getTime() : 0,
+        previewStale: false,
+        pendingCadFileName: null
+      };
       updateModuleDot(moduleName, 'preview');
 
       if (!moduleFiles[moduleName]) {
@@ -4314,24 +4365,33 @@ window.addEventListener('load',()=>setTimeout(initPolarMap,200));
   }
 
   async function waitForFreshCadPreview(moduleName, previewRequest) {
-    const meta = await fetchCadMetaWithSha(moduleName, Date.now());
-    if (!meta?.data) return false;
+    const [meta, glbMeta] = await Promise.all([
+      fetchCadMetaWithSha(moduleName, Date.now()),
+      fetchCadGlbMeta(moduleName, Date.now())
+    ]);
+    if (!meta?.data || !glbMeta?.sha) return false;
 
     const writtenAt = meta.data.written_at ? new Date(meta.data.written_at).getTime() : 0;
-    const isFresh =
+    const metaFresh =
       (meta.sha && meta.sha !== previewRequest.previousMetaSha) ||
       (writtenAt && writtenAt >= previewRequest.requestedAt);
+    const glbFresh =
+      (glbMeta.sha && glbMeta.sha !== previewRequest.previousGlbSha) ||
+      (!previewRequest.previousGlbSha && !!glbMeta.sha);
 
-    if (!isFresh) return false;
+    if (!metaFresh || !glbFresh) return false;
 
     cadPreviewState[moduleName] = {
       ...(cadPreviewState[moduleName] || {}),
       metaSha: meta.sha || null,
-      lastWrittenAt: writtenAt
+      glbSha: glbMeta.sha || null,
+      lastWrittenAt: writtenAt,
+      previewStale: false,
+      pendingCadFileName: null
     };
 
     if (moduleName === currentModuleName) {
-      await applyCadMeta(meta.data);
+      await applyCadMeta(meta.data, { glbSha: glbMeta.sha || null });
     }
 
     updateModuleDot(moduleName, 'preview');
@@ -4360,10 +4420,12 @@ window.addEventListener('load',()=>setTimeout(initPolarMap,200));
         `outputs/cad_previews/${moduleName}_meta.json`,
         Date.now()
       );
+      const previousGlb = await fetchCadGlbMeta(moduleName, Date.now());
 
       const previewRequest = {
         requestedAt: Date.now(),
-        previousMetaSha: previousMeta?.sha || null
+        previousMetaSha: previousMeta?.sha || null,
+        previousGlbSha: previousGlb?.sha || cadPreviewState[moduleName]?.glbSha || null
       };
 
       updateModuleDot(moduleName, 'uploading');
@@ -4518,11 +4580,21 @@ window.addEventListener('load',()=>setTimeout(initPolarMap,200));
   async function loadAndApplyFreshMeta(moduleName) {
     try {
       const meta = await fetchCadMetaWithSha(moduleName, Date.now());
+      const glbMeta = await fetchCadGlbMeta(moduleName, Date.now());
       if (!meta?.data) return;
 
       if (moduleName === currentModuleName) {
-        await applyCadMeta(meta.data);
+        await applyCadMeta(meta.data, { glbSha: glbMeta?.sha || null });
       }
+
+      cadPreviewState[moduleName] = {
+        ...(cadPreviewState[moduleName] || {}),
+        metaSha: meta.sha || null,
+        glbSha: glbMeta?.sha || null,
+        lastWrittenAt: meta.data.written_at ? new Date(meta.data.written_at).getTime() : 0,
+        previewStale: false,
+        pendingCadFileName: null
+      };
 
       updateModuleDot(moduleName, 'preview');
 
@@ -4790,25 +4862,48 @@ window.addEventListener('load',()=>setTimeout(initPolarMap,200));
     });
   }
 
-  async function fetchFreshGlb(moduleName) {
-    const meta = await fetchGithubContentMeta(`outputs/cad_previews/${moduleName}.glb`, Date.now());
-    if (!meta?.download_url) return null;
+  function base64ToBlob(base64, mimeType = 'model/gltf-binary') {
+    const clean = (base64 || '').replace(/\n/g, '');
+    const binary = atob(clean);
+    const bytes = new Uint8Array(binary.length);
 
-    const separator = meta.download_url.includes('?') ? '&' : '?';
-    const downloadUrl =
-      `${meta.download_url}${separator}ts=${Date.now()}&sha=${encodeURIComponent(meta.sha || '')}`;
+    for (let i = 0; i < binary.length; i++) {
+      bytes[i] = binary.charCodeAt(i);
+    }
 
-    const binRes = await fetch(downloadUrl, { cache: 'no-store' });
-    if (!binRes.ok) return null;
+    return new Blob([bytes], { type: mimeType });
+  }
 
-    const blob = await binRes.blob();
+  async function fetchFreshGlb(moduleName, expectedSha = null) {
+    const token = sessionStorage.getItem('gh_pat');
+    const meta = await fetchCadGlbMeta(moduleName, Date.now());
+    const glbSha = expectedSha || meta?.sha || null;
+    if (!token || !glbSha) return null;
+
+    const blobRes = await fetch(
+      `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/git/blobs/${glbSha}?ts=${Date.now()}`,
+      {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/vnd.github+json'
+        },
+        cache: 'no-store'
+      }
+    );
+
+    if (!blobRes.ok) return null;
+
+    const blobMeta = await blobRes.json();
+    if (!blobMeta?.content) return null;
+
+    const blob = base64ToBlob(blobMeta.content);
     return {
       blobUrl: URL.createObjectURL(blob),
-      sha: meta.sha || null
+      sha: glbSha
     };
   }
 
-  async function showModelViewer(moduleName, meshCount, sizeM) {
+  async function showModelViewer(moduleName, meshCount, sizeM, expectedGlbSha = null) {
     const wrap = document.getElementById('viewer3dWrap');
     if (!wrap) return;
 
@@ -4819,7 +4914,7 @@ window.addEventListener('load',()=>setTimeout(initPolarMap,200));
         Loading 3D model...
       </div>`;
 
-    const glb = await fetchFreshGlb(moduleName);
+    const glb = await fetchFreshGlb(moduleName, expectedGlbSha);
     if (!glb) {
       wrap.innerHTML = `
         <div style="height:360px;border-radius:12px;border:1px solid var(--border2);background:#0c1119;
@@ -4875,11 +4970,11 @@ window.addEventListener('load',()=>setTimeout(initPolarMap,200));
       </div>`;
   }
 
-  async function applyCadMeta(data) {
+  async function applyCadMeta(data, options = {}) {
     const status = document.getElementById('cadUploadStatus');
 
     if (data.glb_path) {
-      await showModelViewer(data.module_name, data.mesh_count, data.size_m);
+      await showModelViewer(data.module_name, data.mesh_count, data.size_m, options.glbSha || null);
     }
 
     if (status) {
@@ -4930,9 +5025,98 @@ window.addEventListener('load',()=>setTimeout(initPolarMap,200));
     { id: 'CommunicationModule', label: 'Communication Module', required: false },
   ];
 
+  const SYSML_TO_DES = {
+    ISRUPlant: ['ISRUPlant'],
+    SolarPowerSystem: ['SolarPowerSystem'],
+    HabitationModule: ['HabitationModule'],
+    LaunchLandingZone: ['LaunchLandingZone'],
+    Rover: ['RegolithRover', 'LOXRover'],
+    Propellant_Depot: [],
+  };
+
+  const DES_VALID = new Set([
+    'ISRUPlant',
+    'RegolithRover',
+    'SolarPowerSystem',
+    'LOXRover',
+    'LaunchLandingZone',
+    'HabitationModule',
+    'CommunicationModule'
+  ]);
+
+  const DES_CONTROL_DEPENDENCIES = {
+    Rover: [
+      'desControlRoverCount',
+      'desControlRegDist',
+      'desControlLoxDist',
+      'desControlRoverEnergy',
+      'desControlRoverTravel',
+      'desControlLoxThresh'
+    ],
+    ISRUPlant: [
+      'desControlPlantCount',
+      'desControlProcessRate'
+    ]
+  };
+
+  function getActiveSysmlNodes() {
+    if (systems.length > 0) {
+      return systems.filter(s => s.active).map(s => s.id);
+    }
+
+    const activeSysml = Object.keys(sysmlPartsCache);
+    if (activeSysml.length > 0) return activeSysml;
+
+    return Object.keys(SYSML_TO_DES);
+  }
+
+  function setDesControlEnabled(containerId, enabled, reason) {
+    const wrap = document.getElementById(containerId);
+    if (!wrap) return;
+
+    const input = wrap.querySelector('input[type="range"]');
+    const hint = wrap.querySelector('.des-disabled-note');
+    if (input) input.disabled = !enabled;
+
+    wrap.style.opacity = enabled ? '1' : '0.45';
+    wrap.style.filter = enabled ? 'none' : 'grayscale(0.2)';
+
+    if (!enabled) {
+      if (!hint) {
+        const note = document.createElement('div');
+        note.className = 'des-disabled-note';
+        note.style.cssText = 'font-size:9px;color:#9aa4b2;margin-top:4px;line-height:1.4;';
+        note.textContent = reason || 'Disabled because the corresponding system is inactive in step 2.';
+        wrap.appendChild(note);
+      } else {
+        hint.textContent = reason || 'Disabled because the corresponding system is inactive in step 2.';
+      }
+    } else if (hint) {
+      hint.remove();
+    }
+  }
+
+  function syncDesControlsToActiveSystems() {
+    const activeSystems = new Set(getActiveSysmlNodes());
+
+    Object.entries(DES_CONTROL_DEPENDENCIES).forEach(([sysmlNode, controlIds]) => {
+      const enabled = activeSystems.has(sysmlNode);
+      controlIds.forEach(controlId => {
+        setDesControlEnabled(
+          controlId,
+          enabled,
+          `${sysmlNode} is disabled in step 2.`
+        );
+      });
+    });
+  }
+
   function initDesNodes() {
     const grid = document.getElementById('desNodeGrid');
-    if (!grid) return;
+    if (!grid) {
+      syncDesControlsToActiveSystems();
+      return;
+    }
 
     grid.innerHTML = '';
     DES_NODES.forEach(node => {
@@ -4945,26 +5129,14 @@ window.addEventListener('load',()=>setTimeout(initPolarMap,200));
       `;
       grid.appendChild(row);
     });
+
+    syncDesControlsToActiveSystems();
   }
 
   function getDesActiveNodes() {
-    const SYSML_TO_DES = {
-      'ISRUPlant': ['ISRUPlant'],
-      'SolarPowerSystem': ['SolarPowerSystem'],
-      'HabitationModule': ['HabitationModule'],
-      'LaunchLandingZone': ['LaunchLandingZone'],
-      'Rover': ['RegolithRover', 'LOXRover'],
-      'Propellant_Depot': [],
-    };
-
-    const DES_VALID = new Set([
-      'ISRUPlant', 'RegolithRover', 'SolarPowerSystem',
-      'LOXRover', 'LaunchLandingZone', 'HabitationModule', 'CommunicationModule'
-    ]);
-
     const desNodes = new Set(['ISRUPlant', 'RegolithRover', 'CommunicationModule']);
 
-    const activeSysml = Object.keys(sysmlPartsCache);
+    const activeSysml = getActiveSysmlNodes();
     if (activeSysml.length > 0) {
       for (const sysmlName of activeSysml) {
         const mapped = SYSML_TO_DES[sysmlName] || [];
