@@ -2153,24 +2153,9 @@ function buildAssemblyTreeFromActiveSystems() {
     const wrap = document.getElementById('systemGrid');
     wrap.innerHTML = '';
 
-    // If SysML graph has run, use those nodes instead of hardcoded list
+    // Build systems array from SysML only if not yet populated
     const sysmlNodes = Object.keys(sysmlPartsCache);
-    if (sysmlNodes.length > 0) {
-      // Build/update systems array from SysML parts
-      sysmlNodes.forEach(name => {
-        const part = sysmlPartsCache[name];
-        if (!systems.find(s => s.id === name)) {
-          systems.push({
-            id: name,
-            name: name,
-            meta: part?.description || `${part?.ports?.length || 0} port(s)`,
-            active: true,
-            type: 'sysml'
-          });
-        }
-      });
-      // Remove systems not in SysML
-      systems.length = 0;
+    if (sysmlNodes.length > 0 && systems.length === 0) {
       sysmlNodes.forEach(name => {
         const part = sysmlPartsCache[name];
         systems.push({
