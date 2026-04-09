@@ -2002,6 +2002,8 @@
 <script>
   // Systems populated dynamically from SysML graph result
   const systems = [];
+  // Declared globally so renderSystems can access it before the graph script loads
+  let sysmlPartsCache = {};
 
   const graphPositions = {
     lander: { x: 110, y: 110 },
@@ -2250,16 +2252,12 @@ function toggleSystem(id) {
   }
 
   function updateTopMetrics() {
+    // These metric elements were removed — guard against null to avoid crashes
     const activeCount = systems.filter(s => s.active).length;
-    const activeEdges = links.filter(([a,b]) => systems.find(s => s.id === a)?.active && systems.find(s => s.id === b)?.active).length;
-    const roverCount = Math.max(0, Number(document.getElementById('roverCount')?.value || 0));
-    const plantCount = Math.max(0, Number(document.getElementById('plantCount')?.value || 0));
-    const distance = Math.max(0, Number(document.getElementById('distanceKm')?.value || 0));
-    const score = Math.max(0, Math.min(99, Math.round(52 + activeCount * 4 + roverCount * 3 + plantCount * 5 - distance * 0.6)));
-
-    document.getElementById('activeSystemsMetric').textContent = activeCount;
-    document.getElementById('networkEdgesMetric').textContent = activeEdges;
-    document.getElementById('missionScoreMetric').textContent = score;
+    const setEl = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+    setEl('activeSystemsMetric', activeCount);
+    setEl('networkEdgesMetric', '—');
+    setEl('missionScoreMetric', '—');
   }
 
   function flattenTree(nodes, depth = 0, path = []) {
@@ -3595,8 +3593,8 @@ window.addEventListener('load',()=>setTimeout(initPolarMap,200));
               setGraphStatus('Timeout — check the Actions tab on GitHub.', '#ffd36e');
               return;
             }
-            const done = await fetchGraphResult(runTimestamp, activeSysmlNames);
-            if (done) clearInterval(poll);
+            const done = await fetchGraphResult(runTimestamp);
+            if (done) { clearInterval(poll); btn.textContent = '▶ Run Graph'; btn.disabled = false; }
           }, 8000);
         } else {
           const err = await res.json().catch(() => ({}));
@@ -3614,7 +3612,7 @@ window.addEventListener('load',()=>setTimeout(initPolarMap,200));
       }
     }
 
-    async function fetchGraphResult(runTimestamp, expectedNodes) {
+    async function fetchGraphResult(runTimestamp) {
       const token = sessionStorage.getItem('gh_pat');
       const url = `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/outputs/graph.json`;
       try {
@@ -3629,14 +3627,14 @@ window.addEventListener('load',()=>setTimeout(initPolarMap,200));
         const text = atob(meta.content.replace(/\n/g, ''));
         const data = JSON.parse(text);
 
-        // Check that the file contains exactly the nodes we requested
-        const returnedNodes = [...(data.active_nodes || [])].sort().join(',');
-        const sentNodes = [...expectedNodes].sort().join(',');
-        console.log('[POLL] returned:', returnedNodes);
-        console.log('[POLL] expected:', sentNodes);
+        // Check that the file was written AFTER we dispatched the workflow
+        // This prevents matching stale results from a previous run
+        const writtenAt = data.written_at ? new Date(data.written_at).getTime() : 0;
+        console.log('[POLL] returned nodes:', [...(data.active_nodes||[])].sort().join(','));
+        console.log('[POLL] written_at:', data.written_at, '| dispatched_at:', new Date(runTimestamp).toISOString());
 
-        if (returnedNodes !== sentNodes) {
-          console.log('[POLL] nodes mismatch — still waiting…');
+        if (writtenAt < runTimestamp) {
+          console.log('[POLL] result is stale — still waiting…');
           return false;
         }
 
@@ -3792,7 +3790,7 @@ window.addEventListener('load',()=>setTimeout(initPolarMap,200));
     }
 
     // ─── Step 3 — Auto-populate metadata from SysML ───────────────────────
-    let sysmlPartsCache = {};
+    // sysmlPartsCache declared globally above — do not redeclare here
 
     function populateStep3(data) {
       sysmlPartsCache = data.parts || {};
