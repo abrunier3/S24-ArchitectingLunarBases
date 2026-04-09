@@ -2691,186 +2691,251 @@ iframe{
     </button>
   </div>
 
-  <!-- ── Sub-step 4.1: Site Selection ───────────────────────────── -->
+  <!-- ── Sub-step 4.1 ─────────────────────────────────────────────── -->
   <div id="upPanel1" style="display:block;">
-    <div style="display:grid;grid-template-columns:1fr 380px;gap:16px;height:560px;">
+    <div style="display:grid;grid-template-columns:1fr 380px;gap:16px;height:580px;">
 
-      <!-- LEFT: Moon globe -->
+      <!-- LEFT: Three.js globe -->
       <div style="position:relative;background:#0c1119;border:1px solid var(--border);border-radius:12px;overflow:hidden;">
-        <div style="position:absolute;top:10px;left:14px;z-index:10;">
-          <div style="font-size:11px;font-weight:600;color:var(--text2);">Lunar South Pole — Candidate Sites</div>
-          <div style="font-size:9px;color:var(--text3);">Hover over a site to preview · Click to view details</div>
+        <canvas id="moonGlobe" style="width:100%;height:100%;display:block;"></canvas>
+        <!-- Source credit -->
+        <div style="position:absolute;bottom:8px;left:12px;font-size:9px;color:rgba(255,255,255,0.3);">
+          Texture: NASA/GSFC/Arizona State University · Model: NASA Solar System Exploration
         </div>
-
-        <!-- Moon model via iframe embed -->
-        <div id="moonContainer" style="width:100%;height:100%;position:relative;">
-          <iframe
-            src="https://solarsystem.nasa.gov/gltf_embed/2366/"
-            style="width:100%;height:100%;border:none;pointer-events:auto;"
-            allow="fullscreen"
-            title="Moon 3D Model">
-          </iframe>
-
-          <!-- SVG overlay for site pins (positioned over iframe) -->
-          <svg id="sitePinsSvg" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;">
-            <!-- Pins will be injected by JS -->
-          </svg>
-
-          <!-- Note about model interaction -->
-          <div style="position:absolute;bottom:10px;left:14px;font-size:9px;color:rgba(255,255,255,0.4);">
-            Drag to rotate · Scroll to zoom · Sites shown near south pole
-          </div>
+        <div style="position:absolute;top:10px;left:14px;font-size:10px;color:rgba(255,255,255,0.5);pointer-events:none;">
+          Drag to rotate · Scroll to zoom · Click a pin to select site
         </div>
       </div>
 
-      <!-- RIGHT: Site info panel -->
-      <div style="display:flex;flex-direction:column;gap:12px;">
+      <!-- RIGHT: Info panel -->
+      <div style="display:flex;flex-direction:column;gap:10px;overflow:hidden;">
 
-        <!-- Hover tooltip (shown on hover) -->
+        <!-- Hover tooltip -->
         <div id="upHoverCard" style="display:none;background:var(--panel);border:1px solid var(--border);
-          border-radius:12px;padding:14px;">
-          <div id="upHoverName" style="font-size:14px;font-weight:700;color:var(--text1);margin-bottom:4px;"></div>
-          <div id="upHoverDesc" style="font-size:11px;color:var(--text3);margin-bottom:8px;line-height:1.5;"></div>
-          <div style="display:flex;gap:8px;">
-            <div style="background:rgba(0,212,255,0.1);border-radius:6px;padding:4px 8px;font-size:11px;">
-              Score: <span id="upHoverScore" style="font-weight:700;color:var(--accent);"></span>
-            </div>
+          border-radius:10px;padding:12px;">
+          <div id="upHoverName" style="font-size:13px;font-weight:700;color:var(--text1);margin-bottom:3px;"></div>
+          <div id="upHoverDesc" style="font-size:10px;color:var(--text3);margin-bottom:6px;line-height:1.5;"></div>
+          <div style="font-size:11px;">Score: <span id="upHoverScore" style="font-weight:700;color:var(--accent);"></span></div>
+        </div>
+
+        <!-- Detail card -->
+        <div id="upDetailCard" style="flex:1;background:var(--panel);border:1px solid var(--border);
+          border-radius:10px;padding:14px;overflow-y:auto;min-height:0;">
+          <div style="color:var(--text3);font-size:11px;text-align:center;margin-top:30px;">
+            Click a site pin to see detailed analysis.
           </div>
         </div>
 
-        <!-- Selected site detail card -->
-        <div id="upDetailCard" style="flex:1;background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:14px;overflow-y:auto;">
-          <div style="color:var(--text3);font-size:12px;text-align:center;margin-top:30px;">
-            Click a site on the map to see detailed analysis.
-          </div>
-        </div>
-
-        <!-- Compare button -->
-        <div style="display:flex;gap:8px;">
-          <button id="upCompareBtn" class="btn" style="flex:1;padding:10px;font-size:11px;" onclick="toggleCompareMode()">
+        <!-- Buttons -->
+        <div style="display:flex;gap:8px;flex-shrink:0;">
+          <button id="upCompareBtn" class="btn" style="flex:1;padding:9px;font-size:11px;" onclick="toggleCompareMode()">
             ⇄ Compare Two Sites
           </button>
-          <button id="upSelectBtn" class="btn btn-primary" style="flex:1;padding:10px;font-size:11px;display:none;" onclick="confirmSiteSelection()">
+          <button id="upSelectBtn" class="btn btn-primary" style="flex:1;padding:9px;font-size:11px;display:none;" onclick="confirmSiteSelection()">
             ✓ Select This Site
           </button>
         </div>
 
-        <!-- Selected site indicator -->
-        <div id="upSelectedIndicator" style="display:none;background:rgba(0,212,255,0.1);border:1px solid var(--accent);
-          border-radius:8px;padding:8px 12px;font-size:11px;color:var(--accent);text-align:center;">
+        <div id="upSelectedIndicator" style="display:none;flex-shrink:0;background:rgba(0,212,255,0.1);
+          border:1px solid var(--accent);border-radius:8px;padding:8px 12px;
+          font-size:11px;color:var(--accent);text-align:center;">
           ✓ Selected: <span id="upSelectedName" style="font-weight:700;"></span>
         </div>
-
       </div>
     </div>
   </div>
 
-  <!-- ── Sub-step 4.2: Module Placement ─────────────────────────── -->
+  <!-- ── Sub-step 4.2 ─────────────────────────────────────────────── -->
   <div id="upPanel2" style="display:none;">
-    <div style="background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:20px;text-align:center;">
-      <div style="font-size:13px;color:var(--text3);margin-bottom:8px;">Module placement will be available once Jenny provides the heatmaps.</div>
-      <div style="font-size:11px;color:var(--text3);">First complete Step 4.1 — Site Selection.</div>
+    <div style="background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:24px;text-align:center;">
+      <div style="font-size:13px;color:var(--text3);margin-bottom:6px;">Module placement heatmaps coming soon.</div>
+      <div style="font-size:11px;color:var(--text3);">Complete Step 4.1 first, then heatmaps for each module will appear here.</div>
     </div>
   </div>
 
 </section>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
-  // ── Site data from Jenny's Excel ─────────────────────────────────
+  // ── Site data ────────────────────────────────────────────────────
   const UP_SITES = [
-    { id:'MMA', name:'Malapert Massif',     lat:-85.9, lon:-0.5,  slope2km:12.67, slope50m:9.41,  elevation:-3640, illumination:'very_high', dist_psr:30, psr_access:'low',       desc:'High-elevation ridge with excellent illumination and Earth visibility', pros:'Excellent solar access, strong comms visibility', cons:'Far from PSRs',                            score:0.83 },
-    { id:'SP',  name:'Slater Plain',         lat:-88.0, lon:22.0,  slope2km:18.22, slope50m:21.81, elevation:88,    illumination:'low',       dist_psr:2,  psr_access:'very_high', desc:'Flat basin near PSRs offering safe landing and resource proximity',    pros:'Safer terrain, strong PSR proximity',            cons:'Low illumination',                         score:0.81 },
-    { id:'MMP', name:'Mons Mouton Plateau',  lat:-85.0, lon:32.5,  slope2km:11.91, slope50m:8.6,   elevation:-2079, illumination:'high',      dist_psr:25, psr_access:'low',       desc:'Flat plateau with stable terrain ideal for infrastructure deployment', pros:'Low slope, safe landing conditions',             cons:'Limited PSR proximity',                    score:0.80 },
-    { id:'NR1', name:'Nobile Rim 1',         lat:-85.3, lon:55.0,  slope2km:19.13, slope50m:16.69, elevation:-7019, illumination:'high',      dist_psr:10, psr_access:'medium',    desc:'Balanced site with good illumination and moderate PSR access',         pros:'Good solar + access balance',                   cons:'Moderate terrain variability',             score:0.79 },
-    { id:'PCB', name:'Peak near Cabeus B',   lat:-84.9, lon:-35.5, slope2km:24.23, slope50m:10.95, elevation:504,   illumination:'medium',    dist_psr:5,  psr_access:'high',      desc:'Near Cabeus PSRs with moderate terrain and strong scientific value',   pros:'Close to confirmed water ice, moderate slopes',  cons:'Less optimal illumination',                score:0.78 },
-    { id:'NR2', name:'Nobile Rim 2',         lat:-84.7, lon:35.0,  slope2km:26.65, slope50m:18.41, elevation:-6479, illumination:'medium',    dist_psr:15, psr_access:'medium',    desc:'Strong balance of PSR access and solar conditions for exploration',    pros:'Good tradeoff between resources and lighting',   cons:'Slightly rougher terrain',                 score:0.77 },
-    { id:'dGR2',name:'de Gerlache Rim 2',    lat:-88.7, lon:60.0,  slope2km:24.78, slope50m:36.25, elevation:-7850, illumination:'medium',    dist_psr:3,  psr_access:'very_high', desc:'Extremely close to PSRs with high scientific value but rough terrain', pros:'Excellent resource access',                      cons:'High slopes, challenging mobility',         score:0.76 },
-    { id:'HW',  name:'Haworth',              lat:-87.3, lon:-4.5,  slope2km:30.28, slope50m:31.07, elevation:-2758, illumination:'low',       dist_psr:2,  psr_access:'very_high', desc:'PSR-rich crater with strong volatile sampling potential',              pros:'Extremely close to PSRs, high ice potential',   cons:'Very steep terrain, low illumination',     score:0.72 },
-    { id:'MMO', name:'Mons Mouton',          lat:-84.6, lon:32.8,  slope2km:29.08, slope50m:38.05, elevation:-625,  illumination:'medium',    dist_psr:20, psr_access:'medium_low',desc:'Elevated terrain with mixed slopes and moderate access to PSRs',       pros:'Diverse terrain, moderate illumination',         cons:'Steeper localized slopes',                 score:0.68 },
+    { id:'MMA',  name:'Malapert Massif',    lat:-85.9, lon:-0.5,  slope2km:12.67, slope50m:9.41,  elevation:-3640, illumination:'very_high', dist_psr:30, psr_access:'low',        desc:'High-elevation ridge with excellent illumination and Earth visibility', pros:'Excellent solar access, strong comms visibility', cons:'Far from PSRs',                          sources:'NASA Artemis III; Malapert studies', score:0.83 },
+    { id:'SP',   name:'Slater Plain',        lat:-88.0, lon:22.0,  slope2km:18.22, slope50m:21.81, elevation:88,    illumination:'low',       dist_psr:2,  psr_access:'very_high',  desc:'Flat basin near PSRs offering safe landing and resource proximity',    pros:'Safer terrain, strong PSR proximity',            cons:'Low illumination',                       sources:'NASA Artemis study', score:0.81 },
+    { id:'MMP',  name:'Mons Mouton Plateau', lat:-85.0, lon:32.5,  slope2km:11.91, slope50m:8.6,   elevation:-2079, illumination:'high',      dist_psr:25, psr_access:'low',        desc:'Flat plateau with stable terrain ideal for infrastructure deployment', pros:'Low slope, safe landing conditions',             cons:'Limited PSR proximity',                  sources:'NASA Artemis candidate studies', score:0.80 },
+    { id:'NR1',  name:'Nobile Rim 1',        lat:-85.3, lon:55.0,  slope2km:19.13, slope50m:16.69, elevation:-7019, illumination:'high',      dist_psr:10, psr_access:'medium',     desc:'Balanced site with good illumination and moderate PSR access',         pros:'Good solar + access balance',                   cons:'Moderate terrain variability',           sources:'NASA SDT regional comparison', score:0.79 },
+    { id:'PCB',  name:'Peak near Cabeus B',  lat:-84.9, lon:-35.5, slope2km:24.23, slope50m:10.95, elevation:504,   illumination:'medium',    dist_psr:5,  psr_access:'high',       desc:'Near Cabeus PSRs with moderate terrain and strong scientific value',   pros:'Close to confirmed water ice, moderate slopes',  cons:'Less optimal illumination',              sources:'NASA Artemis III SDT; LCROSS findings', score:0.78 },
+    { id:'NR2',  name:'Nobile Rim 2',        lat:-84.7, lon:35.0,  slope2km:26.65, slope50m:18.41, elevation:-6479, illumination:'medium',    dist_psr:15, psr_access:'medium',     desc:'Strong balance of PSR access and solar conditions',                    pros:'Good tradeoff between resources and lighting',   cons:'Slightly rougher terrain',               sources:'NASA SDT; illumination study', score:0.77 },
+    { id:'dGR2', name:'de Gerlache Rim 2',   lat:-88.7, lon:60.0,  slope2km:24.78, slope50m:36.25, elevation:-7850, illumination:'medium',    dist_psr:3,  psr_access:'very_high',  desc:'Extremely close to PSRs with high scientific value but rough terrain', pros:'Excellent resource access',                      cons:'High slopes, challenging mobility',      sources:'NASA SDT', score:0.76 },
+    { id:'HW',   name:'Haworth',             lat:-87.3, lon:-4.5,  slope2km:30.28, slope50m:31.07, elevation:-2758, illumination:'low',       dist_psr:2,  psr_access:'very_high',  desc:'PSR-rich crater with strong volatile sampling potential',              pros:'Extremely close to PSRs, high ice potential',   cons:'Very steep terrain, low illumination',   sources:'NASA SDT', score:0.72 },
+    { id:'MMO',  name:'Mons Mouton',         lat:-84.6, lon:32.8,  slope2km:29.08, slope50m:38.05, elevation:-625,  illumination:'medium',    dist_psr:20, psr_access:'medium_low', desc:'Elevated terrain with mixed slopes and moderate PSR access',           pros:'Diverse terrain, moderate illumination',         cons:'Steeper localized slopes',               sources:'NASA Artemis III analysis', score:0.68 },
   ];
 
   // ── Color helpers ─────────────────────────────────────────────────
-  function scoreColor(score) {
-    if (score >= 0.80) return '#00ff9d';
-    if (score >= 0.75) return '#ffd166';
-    return '#ff7a8a';
-  }
-  function illumColor(level) {
-    const map = { very_high:'#00ff9d', high:'#7ee0b1', medium:'#ffd166', low:'#ff7a8a' };
-    return map[level] || '#888';
-  }
-  function slopeColor(deg) {
-    if (deg < 12) return '#00ff9d';
-    if (deg < 20) return '#ffd166';
-    return '#ff7a8a';
-  }
-  function psrColor(access) {
-    const map = { very_high:'#00ff9d', high:'#7ee0b1', medium:'#ffd166', medium_low:'#ffd166', low:'#ff7a8a' };
-    return map[access] || '#ffd166';
-  }
+  function scoreColor(s)  { return s >= 0.80 ? '#00ff9d' : s >= 0.75 ? '#ffd166' : '#ff7a8a'; }
+  function illumColor(l)  { return {very_high:'#00ff9d',high:'#7ee0b1',medium:'#ffd166',low:'#ff7a8a'}[l]||'#888'; }
+  function slopeColor(d)  { return d < 12 ? '#00ff9d' : d < 20 ? '#ffd166' : '#ff7a8a'; }
+  function psrColor(a)    { return {very_high:'#00ff9d',high:'#7ee0b1',medium:'#ffd166',medium_low:'#ffd166',low:'#ff7a8a'}[a]||'#ffd166'; }
   function badge(label, value, color) {
-    return `<div style="background:rgba(255,255,255,0.05);border-radius:6px;padding:6px 10px;display:flex;justify-content:space-between;align-items:center;">
+    return `<div style="background:rgba(255,255,255,0.04);border-radius:6px;padding:6px 10px;display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
       <span style="font-size:10px;color:var(--text3);">${label}</span>
       <span style="font-size:11px;font-weight:700;color:${color};">${value}</span>
     </div>`;
   }
 
-  // ── Site pins on SVG ──────────────────────────────────────────────
-  // All sites cluster near south pole, project them onto the iframe
-  // using a simplified polar projection centered on south pole
-  function polarProject(lat, lon, cx, cy, radius) {
-    // Distance from south pole in degrees
-    const d = (90 + lat); // 0 at pole, increases away
-    const r = (d / 10) * radius * 0.7; // scale: 10 degrees fills ~70% of radius
-    const angle = (lon * Math.PI) / 180;
-    const x = cx + r * Math.sin(angle);
-    const y = cy - r * Math.cos(angle);
-    return { x, y };
+  // ── Three.js globe ────────────────────────────────────────────────
+  let upScene, upCamera, upRenderer, upMoon, upPinMeshes = [], upRaycaster, upMouse;
+  let upSelectedSite = null, upHoveredSite = null;
+  let upCompareMode = false, upCompareSite1 = null, upCompareSite2 = null;
+  let upIsDragging = false, upPrevMouse = {x:0,y:0};
+
+  function latLonToVec3(lat, lon, r) {
+    const phi   = (90 + lat) * Math.PI / 180;
+    const theta = (lon + 180) * Math.PI / 180;
+    return new THREE.Vector3(
+      -r * Math.sin(phi) * Math.cos(theta),
+       r * Math.cos(phi),
+       r * Math.sin(phi) * Math.sin(theta)
+    );
   }
 
-  let upSelectedSite = null;
-  let upCompareSite1 = null;
-  let upCompareSite2 = null;
-  let upCompareMode = false;
+  function hexToThreeColor(hex) {
+    return new THREE.Color(hex);
+  }
 
-  function initSitePins() {
-    const svg = document.getElementById('sitePinsSvg');
-    if (!svg) return;
-    const W = svg.clientWidth || 600;
-    const H = svg.clientHeight || 560;
-    const cx = W * 0.45, cy = H * 0.5;
-    const r  = Math.min(W, H) * 0.3;
+  function initGlobe() {
+    const canvas = document.getElementById('moonGlobe');
+    if (!canvas || typeof THREE === 'undefined') { setTimeout(initGlobe, 200); return; }
 
-    let html = '';
+    const W = canvas.clientWidth, H = canvas.clientHeight;
+
+    upScene    = new THREE.Scene();
+    upCamera   = new THREE.PerspectiveCamera(45, W / H, 0.1, 100);
+    upCamera.position.set(0, 0, 3.2);
+
+    upRenderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+    upRenderer.setSize(W, H);
+    upRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    upRenderer.setClearColor(0x0c1119, 1);
+
+    // Lighting
+    const ambient = new THREE.AmbientLight(0xffffff, 0.6);
+    upScene.add(ambient);
+    const sun = new THREE.DirectionalLight(0xffffff, 1.2);
+    sun.position.set(5, 3, 5);
+    upScene.add(sun);
+
+    // Moon sphere with NASA texture
+    const geo = new THREE.SphereGeometry(1, 64, 64);
+    const loader = new THREE.TextureLoader();
+    const mat = new THREE.MeshLambertMaterial({ color: 0xaaaaaa });
+
+    // Try to load the NASA moon texture
+    loader.load(
+      'https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/textures/planets/moon_1024.jpg',
+      (tex) => { mat.map = tex; mat.color.set(0xffffff); mat.needsUpdate = true; },
+      undefined,
+      () => { mat.color.set(0x888888); } // fallback grey
+    );
+
+    upMoon = new THREE.Mesh(geo, mat);
+    upScene.add(upMoon);
+
+    // Orient so south pole faces camera initially
+    upMoon.rotation.x = Math.PI * 0.3;
+
+    // Site pins
+    upRaycaster = new THREE.Raycaster();
+    upMouse = new THREE.Vector2();
+
     UP_SITES.forEach(site => {
-      const pos = polarProject(site.lat, site.lon, cx, cy, r);
-      const col = scoreColor(site.score);
-      html += `
-        <g class="site-pin" data-id="${site.id}" style="cursor:pointer;pointer-events:all;"
-          onmouseenter="showHoverCard('${site.id}', event)"
-          onmouseleave="hideHoverCard()"
-          onclick="showDetailCard('${site.id}')">
-          <circle cx="${pos.x}" cy="${pos.y}" r="10" fill="${col}" fill-opacity="0.25" stroke="${col}" stroke-width="1.5"/>
-          <circle cx="${pos.x}" cy="${pos.y}" r="5"  fill="${col}"/>
-          <text x="${pos.x + 14}" y="${pos.y + 4}" fill="white" font-size="10" font-weight="600">${site.id}</text>
-        </g>`;
+      const pos = latLonToVec3(site.lat, site.lon, 1.0);
+
+      // Pin sphere
+      const pinGeo = new THREE.SphereGeometry(0.025, 8, 8);
+      const pinMat = new THREE.MeshBasicMaterial({ color: hexToThreeColor(scoreColor(site.score)) });
+      const pin    = new THREE.Mesh(pinGeo, pinMat);
+      pin.position.copy(pos);
+      pin.userData = { siteId: site.id, baseColor: scoreColor(site.score) };
+
+      // Halo ring
+      const haloGeo = new THREE.RingGeometry(0.032, 0.042, 16);
+      const haloMat = new THREE.MeshBasicMaterial({ color: hexToThreeColor(scoreColor(site.score)), side: THREE.DoubleSide, transparent: true, opacity: 0.5 });
+      const halo    = new THREE.Mesh(haloGeo, haloMat);
+      halo.position.copy(pos.clone().multiplyScalar(1.001));
+      halo.lookAt(pos.clone().multiplyScalar(2));
+
+      // Group pin + halo under the moon so they rotate with it
+      upMoon.add(pin);
+      upMoon.add(halo);
+      upPinMeshes.push(pin);
     });
-    svg.innerHTML = html;
+
+    // Mouse events
+    canvas.addEventListener('mousedown', e => { upIsDragging = false; upPrevMouse = {x:e.clientX, y:e.clientY}; });
+    canvas.addEventListener('mousemove', e => {
+      const rect = canvas.getBoundingClientRect();
+      upMouse.x =  ((e.clientX - rect.left)  / rect.width)  * 2 - 1;
+      upMouse.y = -((e.clientY - rect.top)   / rect.height) * 2 + 1;
+
+      const dx = e.clientX - upPrevMouse.x, dy = e.clientY - upPrevMouse.y;
+      if (e.buttons === 1 && (Math.abs(dx) > 1 || Math.abs(dy) > 1)) {
+        upIsDragging = true;
+        upMoon.rotation.y += dx * 0.005;
+        upMoon.rotation.x += dy * 0.005;
+        upPrevMouse = {x:e.clientX, y:e.clientY};
+      }
+      checkHover();
+    });
+    canvas.addEventListener('click', e => { if (!upIsDragging) checkClick(); });
+    canvas.addEventListener('wheel',  e => {
+      e.preventDefault();
+      upCamera.position.z = Math.max(1.5, Math.min(6, upCamera.position.z + e.deltaY * 0.005));
+    }, { passive: false });
+
+    // Animate
+    (function animate() {
+      requestAnimationFrame(animate);
+      upRenderer.render(upScene, upCamera);
+    })();
+
+    // Resize
+    window.addEventListener('resize', () => {
+      const W2 = canvas.clientWidth, H2 = canvas.clientHeight;
+      upCamera.aspect = W2 / H2;
+      upCamera.updateProjectionMatrix();
+      upRenderer.setSize(W2, H2);
+    });
   }
 
-  function showHoverCard(siteId, event) {
-    const site = UP_SITES.find(s => s.id === siteId);
-    if (!site) return;
-    const card = document.getElementById('upHoverCard');
-    document.getElementById('upHoverName').textContent = site.name;
-    document.getElementById('upHoverDesc').textContent = site.desc;
-    document.getElementById('upHoverScore').textContent = (site.score * 100).toFixed(0) + '%';
-    if (card) card.style.display = 'block';
+  function checkHover() {
+    if (!upRaycaster || !upCamera) return;
+    upRaycaster.setFromCamera(upMouse, upCamera);
+    const hits = upRaycaster.intersectObjects(upPinMeshes);
+    if (hits.length > 0) {
+      const site = UP_SITES.find(s => s.id === hits[0].object.userData.siteId);
+      if (site && site !== upHoveredSite) {
+        upHoveredSite = site;
+        document.getElementById('upHoverName').textContent = site.name;
+        document.getElementById('upHoverDesc').textContent = site.desc;
+        document.getElementById('upHoverScore').textContent = (site.score*100).toFixed(0)+'%';
+        document.getElementById('upHoverCard').style.display = 'block';
+        document.getElementById('moonGlobe').style.cursor = 'pointer';
+      }
+    } else {
+      upHoveredSite = null;
+      document.getElementById('upHoverCard').style.display = 'none';
+      document.getElementById('moonGlobe').style.cursor = 'grab';
+    }
   }
 
-  function hideHoverCard() {
-    const card = document.getElementById('upHoverCard');
-    if (card) card.style.display = 'none';
+  function checkClick() {
+    if (!upRaycaster || !upCamera) return;
+    upRaycaster.setFromCamera(upMouse, upCamera);
+    const hits = upRaycaster.intersectObjects(upPinMeshes);
+    if (hits.length > 0) {
+      const siteId = hits[0].object.userData.siteId;
+      showDetailCard(siteId);
+    }
   }
 
   function showDetailCard(siteId) {
@@ -2878,101 +2943,97 @@ iframe{
     if (!site) return;
 
     if (upCompareMode) {
-      if (!upCompareSite1) { upCompareSite1 = site; }
-      else if (!upCompareSite2 && site.id !== upCompareSite1.id) {
-        upCompareSite2 = site;
-        renderComparison();
-        return;
-      }
+      if (!upCompareSite1) { upCompareSite1 = site; return; }
+      if (!upCompareSite2 && site.id !== upCompareSite1.id) { upCompareSite2 = site; renderComparison(); return; }
     }
 
     upSelectedSite = site;
     document.getElementById('upSelectBtn').style.display = 'block';
 
     // Highlight selected pin
-    document.querySelectorAll('.site-pin circle:first-child').forEach(c => c.setAttribute('fill-opacity','0.25'));
-    const pin = document.querySelector(`.site-pin[data-id="${siteId}"] circle`);
-    if (pin) pin.setAttribute('fill-opacity', '0.5');
+    upPinMeshes.forEach(p => {
+      const base = p.userData.baseColor;
+      p.material.color.set(p.userData.siteId === siteId ? 0xffffff : hexToThreeColor(base));
+      p.scale.setScalar(p.userData.siteId === siteId ? 1.5 : 1.0);
+    });
 
     const card = document.getElementById('upDetailCard');
     card.innerHTML = `
-      <div style="margin-bottom:12px;">
-        <div style="font-size:15px;font-weight:700;color:var(--text1);">${site.name}</div>
+      <div style="margin-bottom:10px;">
+        <div style="font-size:14px;font-weight:700;color:var(--text1);">${site.name}</div>
         <div style="font-size:10px;color:var(--text3);margin-top:2px;">${site.id} · ${site.lat}°, ${site.lon}°</div>
       </div>
-      <div style="font-size:11px;color:var(--text2);line-height:1.6;margin-bottom:12px;">${site.desc}</div>
-
-      <!-- Suitability score -->
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;padding:10px;
+      <div style="font-size:11px;color:var(--text2);line-height:1.6;margin-bottom:10px;">${site.desc}</div>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;padding:10px;
         background:rgba(255,255,255,0.04);border-radius:8px;">
-        <div style="font-size:28px;font-weight:700;color:${scoreColor(site.score)};">${(site.score*100).toFixed(0)}%</div>
+        <div style="font-size:26px;font-weight:700;color:${scoreColor(site.score)};">${(site.score*100).toFixed(0)}%</div>
         <div>
           <div style="font-size:10px;color:var(--text3);">Overall Suitability</div>
-          <div style="font-size:10px;color:${scoreColor(site.score)};">${site.score >= 0.80 ? 'Excellent' : site.score >= 0.75 ? 'Good' : 'Acceptable'}</div>
+          <div style="font-size:10px;color:${scoreColor(site.score)};">${site.score>=0.80?'Excellent':site.score>=0.75?'Good':'Acceptable'}</div>
         </div>
       </div>
-
-      <!-- Criteria grid -->
-      <div style="display:grid;gap:6px;">
-        ${badge('Slope (2km avg)', site.slope2km.toFixed(1)+'°', slopeColor(site.slope2km))}
-        ${badge('Slope (50m precision)', site.slope50m.toFixed(1)+'°', slopeColor(site.slope50m))}
-        ${badge('Illumination', site.illumination.replace('_',' '), illumColor(site.illumination))}
-        ${badge('Distance to PSR', site.dist_psr+' km', psrColor(site.psr_access))}
-        ${badge('PSR Access Quality', site.psr_access.replace('_',' '), psrColor(site.psr_access))}
-        ${badge('Elevation', site.elevation.toLocaleString()+' m', '#7ee0b1')}
-      </div>
-
-      <!-- Pros / Cons -->
-      <div style="margin-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+      ${badge('Slope (2km avg)', site.slope2km.toFixed(1)+'°', slopeColor(site.slope2km))}
+      ${badge('Slope (50m precision)', site.slope50m.toFixed(1)+'°', slopeColor(site.slope50m))}
+      ${badge('Illumination', site.illumination.replace('_',' '), illumColor(site.illumination))}
+      ${badge('Distance to PSR', site.dist_psr+' km', psrColor(site.psr_access))}
+      ${badge('PSR Access', site.psr_access.replace('_',' '), psrColor(site.psr_access))}
+      ${badge('Elevation', site.elevation.toLocaleString()+' m', '#7ee0b1')}
+      <div style="margin-top:10px;display:grid;grid-template-columns:1fr 1fr;gap:6px;">
         <div style="background:rgba(0,255,157,0.07);border-radius:8px;padding:8px;">
-          <div style="font-size:9px;color:#00ff9d;margin-bottom:4px;font-weight:600;">PROS</div>
+          <div style="font-size:9px;color:#00ff9d;margin-bottom:3px;font-weight:600;">PROS</div>
           <div style="font-size:10px;color:var(--text2);line-height:1.5;">${site.pros}</div>
         </div>
         <div style="background:rgba(255,122,138,0.07);border-radius:8px;padding:8px;">
-          <div style="font-size:9px;color:#ff7a8a;margin-bottom:4px;font-weight:600;">CONS</div>
+          <div style="font-size:9px;color:#ff7a8a;margin-bottom:3px;font-weight:600;">CONS</div>
           <div style="font-size:10px;color:var(--text2);line-height:1.5;">${site.cons}</div>
         </div>
+      </div>
+      <div style="margin-top:10px;padding:8px;background:rgba(255,255,255,0.03);border-radius:8px;border-left:2px solid var(--border2);">
+        <div style="font-size:9px;color:var(--text3);margin-bottom:2px;font-weight:600;">SOURCES</div>
+        <div style="font-size:10px;color:var(--text3);line-height:1.5;">${site.sources}</div>
       </div>`;
   }
 
   function renderComparison() {
     const s1 = upCompareSite1, s2 = upCompareSite2;
     const card = document.getElementById('upDetailCard');
-
-    function compRow(label, v1, v2, color1, color2) {
+    function cr(label, v1, v2, c1, c2) {
       return `<tr>
         <td style="font-size:10px;color:var(--text3);padding:5px 0;">${label}</td>
-        <td style="font-size:11px;font-weight:600;color:${color1};text-align:center;padding:5px 4px;">${v1}</td>
-        <td style="font-size:11px;font-weight:600;color:${color2};text-align:center;padding:5px 4px;">${v2}</td>
+        <td style="font-size:11px;font-weight:600;color:${c1};text-align:center;padding:5px 4px;">${v1}</td>
+        <td style="font-size:11px;font-weight:600;color:${c2};text-align:center;padding:5px 4px;">${v2}</td>
       </tr>`;
     }
-
     card.innerHTML = `
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
-        <div style="text-align:center;">
-          <div style="font-size:13px;font-weight:700;color:${scoreColor(s1.score)};">${s1.name}</div>
-          <div style="font-size:10px;color:var(--text3);">${s1.id}</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px;">
+        <div style="text-align:center;padding:8px;background:rgba(255,255,255,0.04);border-radius:8px;">
+          <div style="font-size:12px;font-weight:700;color:${scoreColor(s1.score)};">${s1.name}</div>
+          <div style="font-size:9px;color:var(--text3);">${s1.id}</div>
         </div>
-        <div style="text-align:center;">
-          <div style="font-size:13px;font-weight:700;color:${scoreColor(s2.score)};">${s2.name}</div>
-          <div style="font-size:10px;color:var(--text3);">${s2.id}</div>
+        <div style="text-align:center;padding:8px;background:rgba(255,255,255,0.04);border-radius:8px;">
+          <div style="font-size:12px;font-weight:700;color:${scoreColor(s2.score)};">${s2.name}</div>
+          <div style="font-size:9px;color:var(--text3);">${s2.id}</div>
         </div>
       </div>
       <table style="width:100%;border-collapse:collapse;">
         <tr style="border-bottom:1px solid var(--border);">
-          <th style="font-size:9px;color:var(--text3);text-align:left;padding-bottom:6px;">Criterion</th>
-          <th style="font-size:9px;color:var(--text3);text-align:center;padding-bottom:6px;">${s1.id}</th>
-          <th style="font-size:9px;color:var(--text3);text-align:center;padding-bottom:6px;">${s2.id}</th>
+          <th style="font-size:9px;color:var(--text3);text-align:left;padding-bottom:5px;">Criterion</th>
+          <th style="font-size:9px;color:var(--text3);text-align:center;padding-bottom:5px;">${s1.id}</th>
+          <th style="font-size:9px;color:var(--text3);text-align:center;padding-bottom:5px;">${s2.id}</th>
         </tr>
-        ${compRow('Overall Score', (s1.score*100).toFixed(0)+'%', (s2.score*100).toFixed(0)+'%', scoreColor(s1.score), scoreColor(s2.score))}
-        ${compRow('Slope 2km', s1.slope2km+'°', s2.slope2km+'°', slopeColor(s1.slope2km), slopeColor(s2.slope2km))}
-        ${compRow('Slope 50m', s1.slope50m+'°', s2.slope50m+'°', slopeColor(s1.slope50m), slopeColor(s2.slope50m))}
-        ${compRow('Illumination', s1.illumination.replace('_',' '), s2.illumination.replace('_',' '), illumColor(s1.illumination), illumColor(s2.illumination))}
-        ${compRow('Dist. to PSR', s1.dist_psr+' km', s2.dist_psr+' km', psrColor(s1.psr_access), psrColor(s2.psr_access))}
-        ${compRow('PSR Access', s1.psr_access.replace('_',' '), s2.psr_access.replace('_',' '), psrColor(s1.psr_access), psrColor(s2.psr_access))}
-        ${compRow('Elevation', s1.elevation.toLocaleString()+'m', s2.elevation.toLocaleString()+'m', '#7ee0b1', '#7ee0b1')}
+        ${cr('Score',(s1.score*100).toFixed(0)+'%',(s2.score*100).toFixed(0)+'%',scoreColor(s1.score),scoreColor(s2.score))}
+        ${cr('Slope 2km',s1.slope2km+'°',s2.slope2km+'°',slopeColor(s1.slope2km),slopeColor(s2.slope2km))}
+        ${cr('Slope 50m',s1.slope50m+'°',s2.slope50m+'°',slopeColor(s1.slope50m),slopeColor(s2.slope50m))}
+        ${cr('Illumination',s1.illumination.replace('_',' '),s2.illumination.replace('_',' '),illumColor(s1.illumination),illumColor(s2.illumination))}
+        ${cr('Dist. PSR',s1.dist_psr+' km',s2.dist_psr+' km',psrColor(s1.psr_access),psrColor(s2.psr_access))}
+        ${cr('PSR Access',s1.psr_access.replace('_',' '),s2.psr_access.replace('_',' '),psrColor(s1.psr_access),psrColor(s2.psr_access))}
+        ${cr('Elevation',s1.elevation.toLocaleString()+'m',s2.elevation.toLocaleString()+'m','#7ee0b1','#7ee0b1')}
       </table>
-      <button onclick="resetCompare()" style="margin-top:12px;width:100%;padding:7px;background:none;
+      <div style="margin-top:10px;display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:9px;color:var(--text3);">
+        <div><span style="font-weight:600;">Sources:</span> ${s1.sources}</div>
+        <div><span style="font-weight:600;">Sources:</span> ${s2.sources}</div>
+      </div>
+      <button onclick="resetCompare()" style="margin-top:10px;width:100%;padding:6px;background:none;
         border:1px solid var(--border2);border-radius:6px;color:var(--text3);font-size:10px;cursor:pointer;">
         ✕ Close comparison
       </button>`;
@@ -2983,47 +3044,42 @@ iframe{
     upCompareSite1 = null; upCompareSite2 = null;
     const btn = document.getElementById('upCompareBtn');
     if (upCompareMode) {
-      btn.textContent = '✕ Cancel comparison';
-      btn.style.borderColor = 'var(--accent)';
+      btn.textContent = '✕ Cancel';
       btn.style.color = 'var(--accent)';
       document.getElementById('upDetailCard').innerHTML =
-        '<div style="color:var(--text3);font-size:11px;text-align:center;margin-top:30px;">Click two sites to compare them.</div>';
-    } else {
-      resetCompare();
-    }
+        '<div style="color:var(--text3);font-size:11px;text-align:center;margin-top:30px;">Click two site pins to compare.</div>';
+    } else { resetCompare(); }
   }
 
   function resetCompare() {
     upCompareMode = false; upCompareSite1 = null; upCompareSite2 = null;
     const btn = document.getElementById('upCompareBtn');
-    btn.textContent = '⇄ Compare Two Sites';
-    btn.style.borderColor = ''; btn.style.color = '';
+    btn.textContent = '⇄ Compare Two Sites'; btn.style.color = '';
     document.getElementById('upDetailCard').innerHTML =
-      '<div style="color:var(--text3);font-size:12px;text-align:center;margin-top:30px;">Click a site on the map to see detailed analysis.</div>';
+      '<div style="color:var(--text3);font-size:11px;text-align:center;margin-top:30px;">Click a site pin to see details.</div>';
   }
 
   function confirmSiteSelection() {
     if (!upSelectedSite) return;
     document.getElementById('upSelectedName').textContent = upSelectedSite.name;
     document.getElementById('upSelectedIndicator').style.display = 'block';
-    // Switch to tab 2
-    setTimeout(() => showUpTab(2), 600);
+    setTimeout(() => showUpTab(2), 500);
   }
 
   function showUpTab(n) {
-    document.getElementById('upPanel1').style.display = n === 1 ? 'block' : 'none';
-    document.getElementById('upPanel2').style.display = n === 2 ? 'block' : 'none';
-    document.getElementById('upTab1').style.color = n === 1 ? 'var(--accent)' : 'var(--text3)';
-    document.getElementById('upTab2').style.color = n === 2 ? 'var(--accent)' : 'var(--text3)';
-    document.getElementById('upTab1').style.borderBottom = n === 1 ? '2px solid var(--accent)' : '2px solid transparent';
-    document.getElementById('upTab2').style.borderBottom = n === 2 ? '2px solid var(--accent)' : '2px solid transparent';
+    document.getElementById('upPanel1').style.display = n===1?'block':'none';
+    document.getElementById('upPanel2').style.display = n===2?'block':'none';
+    ['upTab1','upTab2'].forEach((id,i) => {
+      const active = i+1===n;
+      document.getElementById(id).style.color = active?'var(--accent)':'var(--text3)';
+      document.getElementById(id).style.borderBottom = active?'2px solid var(--accent)':'2px solid transparent';
+    });
   }
 
-  // Init pins after DOM loads (wait for iframe + SVG sizing)
-  window.addEventListener('load', () => {
-    setTimeout(initSitePins, 500);
-  });
+  window.addEventListener('load', () => setTimeout(initGlobe, 300));
 </script>
+
+
 
 <section class="section" id="des">
   <div class="section-head">
