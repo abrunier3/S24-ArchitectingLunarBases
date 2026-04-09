@@ -3503,464 +3503,486 @@ window.addEventListener('load',()=>setTimeout(initPolarMap,200));
   <!-- ============================================================
        STEP 2 — Run Graph via GitHub Actions
        ============================================================ -->
-  <script>
-    // ⚠️  À ADAPTER : tes infos de repo
-    const GH_OWNER = "abrunier3";
-    const GH_REPO  = "S24-ArchitectingLunarBases";
-    const GH_REF   = "main";
+<script>
+  window.UI_POLL = window.UI_POLL || {
+    runLookupMs: 1000,
+    workflowPollMs: 2000,
+    outputPollMs: 1000,
+    maxWorkflowPolls: 90
+  };
 
-    // ⚠️  À COMPLÉTER si besoin : mapping HTML id → nom exact dans le SysML
-    // All known SysML node names — sent when no graph has run yet
-    const ALL_SYSML_NODES = [
-      "LaunchLandingZone", "HabitationModule", "SolarPowerSystem",
-      "ISRUPlant", "Propellant_Depot", "Rover"
-    ];
+  // ⚠️  À ADAPTER : tes infos de repo
+  const GH_OWNER = "abrunier3";
+  const GH_REPO  = "S24-ArchitectingLunarBases";
+  const GH_REF   = "main";
 
-    // Legacy mapping (kept for toggleSystem compatibility)
-    const NODE_NAME_MAP = {
-      "lander":  "LaunchLandingZone",
-      "habitat": "HabitationModule",
-      "power":   "SolarPowerSystem",
-      "isru":    "ISRUPlant",
-      "depot":   "Propellant_Depot",
-      "rover":   "Rover",
-      "reactor": null,
-      "rail":    null,
-    };
+  // All known SysML node names — sent when no graph has run yet
+  const ALL_SYSML_NODES = [
+    "LaunchLandingZone", "HabitationModule", "SolarPowerSystem",
+    "ISRUPlant", "Propellant_Depot", "Rover"
+  ];
 
-    function setGraphStatus(msg, color) {
-      const el = document.getElementById('graphStatus');
-      if (el) { el.textContent = msg; el.style.color = color || 'var(--text2)'; }
+  // Legacy mapping (kept for toggleSystem compatibility)
+  const NODE_NAME_MAP = {
+    "lander":  "LaunchLandingZone",
+    "habitat": "HabitationModule",
+    "power":   "SolarPowerSystem",
+    "isru":    "ISRUPlant",
+    "depot":   "Propellant_Depot",
+    "rover":   "Rover",
+    "reactor": null,
+    "rail":    null,
+  };
+
+  function setGraphStatus(msg, color) {
+    const el = document.getElementById('graphStatus');
+    if (el) {
+      el.textContent = msg;
+      el.style.color = color || 'var(--text2)';
+    }
+  }
+
+  async function triggerGraphWorkflow() {
+    const btn = document.getElementById('runGraphBtn');
+
+    let activeSysmlNames;
+    if (systems.length > 0) {
+      activeSysmlNames = systems.filter(s => s.active).map(s => s.id);
+    } else {
+      activeSysmlNames = ALL_SYSML_NODES;
     }
 
-    async function triggerGraphWorkflow() {
-      const btn = document.getElementById('runGraphBtn');
-
-      // If systems already loaded from SysML, use active ones; otherwise send all known nodes
-      let activeSysmlNames;
-      if (systems.length > 0) {
-        activeSysmlNames = systems.filter(s => s.active).map(s => s.id);
-      } else {
-        // First run — send all known SysML nodes, graph will return what's in the file
-        activeSysmlNames = ALL_SYSML_NODES;
-      }
-
-      if (activeSysmlNames.length === 0) {
-        setGraphStatus('No active nodes. Toggle at least one module on.', '#ff7a8a');
-        return;
-      }
-
-      let token = sessionStorage.getItem('gh_pat');
-      if (!token) {
-        token = prompt('Enter your GitHub Personal Access Token (classic):\n(stored in memory for this session only)');
-        if (!token) return;
-        sessionStorage.setItem('gh_pat', token);
-      }
-
-      btn.textContent = '⏳ Triggering…';
-      btn.disabled = true;
-      setGraphStatus('Dispatching to GitHub Actions workflow…', 'var(--text2)');
-      console.log('[DEBUG] Sending active_nodes to workflow:', activeSysmlNames);
-
-      try {
-        const res = await fetch(
-          `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/actions/workflows/run_graph.yml/dispatches`,
-          {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${token}`,
-              'Accept': 'application/vnd.github+json',
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              ref: GH_REF,
-              inputs: { active_nodes: JSON.stringify(activeSysmlNames) },
-            }),
-          }
-        );
-
-        if (res.status === 204) {
-          btn.textContent = '⏳ Running…';
-          const runTimestamp = Date.now();
-          setGraphStatus(`Workflow triggered for: ${activeSysmlNames.join(', ')}. Polling for results…`, '#7ee0b1');
-          let attempts = 0;
-          const poll = setInterval(async () => {
-            attempts++;
-            if (attempts > 20) {
-              clearInterval(poll);
-              btn.textContent = '▶ Run Graph';
-              btn.disabled = false;
-              setGraphStatus('Timeout — check the Actions tab on GitHub.', '#ffd36e');
-              return;
-            }
-            const done = await fetchGraphResult(runTimestamp);
-            if (done) { clearInterval(poll); btn.textContent = '▶ Run Graph'; btn.disabled = false; }
-          }, 8000);
-        } else {
-          const err = await res.json().catch(() => ({}));
-          btn.textContent = '▶ Run Graph';
-          btn.disabled = false;
-          if (res.status === 401) sessionStorage.removeItem('gh_pat');
-          setGraphStatus(`Error ${res.status}: ${err.message || 'see console'}`, '#ff7a8a');
-          console.error('GitHub API error:', err);
-        }
-      } catch (e) {
-        btn.textContent = '▶ Run Graph';
-        btn.disabled = false;
-        setGraphStatus('Network error — see console.', '#ff7a8a');
-        console.error(e);
-      }
+    if (activeSysmlNames.length === 0) {
+      setGraphStatus('No active nodes. Toggle at least one module on.', '#ff7a8a');
+      return;
     }
 
-    async function fetchGraphResult(runTimestamp) {
-      const token = sessionStorage.getItem('gh_pat');
-      const url = `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/outputs/graph.json`;
-      try {
-        const res = await fetch(url, {
+    let token = sessionStorage.getItem('gh_pat');
+    if (!token) {
+      token = prompt('Enter your GitHub Personal Access Token (classic):\n(stored in memory for this session only)');
+      if (!token) return;
+      sessionStorage.setItem('gh_pat', token);
+    }
+
+    btn.textContent = 'Triggering...';
+    btn.disabled = true;
+    setGraphStatus('Dispatching to GitHub Actions workflow...', 'var(--text2)');
+    console.log('[DEBUG] Sending active_nodes to workflow:', activeSysmlNames);
+
+    try {
+      const res = await fetch(
+        `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/actions/workflows/run_graph.yml/dispatches`,
+        {
+          method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`,
             'Accept': 'application/vnd.github+json',
-          }
-        });
-        if (!res.ok) return false;
-        const meta = await res.json();
-        const text = atob(meta.content.replace(/\n/g, ''));
-        const data = JSON.parse(text);
-
-        // Check that the file was written AFTER we dispatched the workflow
-        // This prevents matching stale results from a previous run
-        const writtenAt = data.written_at ? new Date(data.written_at).getTime() : 0;
-        console.log('[POLL] returned nodes:', [...(data.active_nodes||[])].sort().join(','));
-        console.log('[POLL] written_at:', data.written_at, '| dispatched_at:', new Date(runTimestamp).toISOString());
-
-        if (writtenAt < runTimestamp) {
-          console.log('[POLL] result is stale — still waiting…');
-          return false;
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            ref: GH_REF,
+            inputs: { active_nodes: JSON.stringify(activeSysmlNames) },
+          }),
+          cache: 'no-store'
         }
-
-        applyGraphResult(data);
-        return true;
-      } catch (e) {
-        console.log('[POLL] fetch failed:', e);
-        return false;
-      }
-    }
-
-    function applyGraphResult(data) {
-      const btn = document.getElementById('runGraphBtn');
-      if (btn) { btn.textContent = '✓ Graph Updated'; btn.disabled = false; }
-
-      const activeSysEl = document.getElementById('activeSystemsMetric');
-      const edgesEl = document.getElementById('networkEdgesMetric');
-      if (activeSysEl) activeSysEl.textContent = data.active_nodes_count ?? data.active_nodes?.length ?? '—';
-      if (edgesEl) edgesEl.textContent = data.connections?.length ?? '—';
-
-      const caption = document.getElementById('opsCaption');
-      if (caption) caption.textContent = data.active_nodes?.length
-        ? `[Live — SysML] ${data.active_nodes_count} active nodes · ${data.connections?.length ?? 0} connections.`
-        : 'No active nodes returned from pipeline.';
-
-      setGraphStatus(
-        `✓ ${data.active_nodes_count} nodes · ${data.connections?.length} connections — live data from SysML`,
-        '#7ee0b1'
       );
 
-      renderLiveGraph(data);
-      window._lastGraphData = data;
-      if (data.parts) populateStep3(data);
-      // Refresh system cards from SysML nodes
-      renderSystems();
-      console.log('[GRAPH RESULT]', data);
+      if (res.status === 204) {
+        btn.textContent = 'Running...';
+        const runTimestamp = Date.now();
+        setGraphStatus(`Workflow triggered for: ${activeSysmlNames.join(', ')}. Polling for results...`, '#7ee0b1');
+
+        let attempts = 0;
+        const poll = setInterval(async () => {
+          attempts++;
+          if (attempts > window.UI_POLL.maxWorkflowPolls) {
+            clearInterval(poll);
+            btn.textContent = 'Run Graph';
+            btn.disabled = false;
+            setGraphStatus('Timeout - check the Actions tab on GitHub.', '#ffd36e');
+            return;
+          }
+
+          const done = await fetchGraphResult(runTimestamp);
+          if (done) {
+            clearInterval(poll);
+            btn.textContent = 'Run Graph';
+            btn.disabled = false;
+          }
+        }, window.UI_POLL.workflowPollMs);
+      } else {
+        const err = await res.json().catch(() => ({}));
+        btn.textContent = 'Run Graph';
+        btn.disabled = false;
+        if (res.status === 401) sessionStorage.removeItem('gh_pat');
+        setGraphStatus(`Error ${res.status}: ${err.message || 'see console'}`, '#ff7a8a');
+        console.error('GitHub API error:', err);
+      }
+    } catch (e) {
+      btn.textContent = 'Run Graph';
+      btn.disabled = false;
+      setGraphStatus('Network error - see console.', '#ff7a8a');
+      console.error(e);
     }
+  }
 
-    // Positions as percentages of container size (avoids pixel overflow on any screen)
-    // Node width = 118px, height = 58px
-    const LIVE_NODE_POSITIONS_PCT = {
-      'SolarPowerSystem':  { px: 0.52, py: 0.05 },
-      'HabitationModule':  { px: 0.04, py: 0.05 },
-      'ISRUPlant':         { px: 0.80, py: 0.30 },
-      'LaunchLandingZone': { px: 0.04, py: 0.72 },
-      'Propellant_Depot':  { px: 0.80, py: 0.72 },
-      'Rover':             { px: 0.52, py: 0.45 },
-    };
+  async function fetchGraphResult(runTimestamp) {
+    const token = sessionStorage.getItem('gh_pat');
+    const url = `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/outputs/graph.json?ts=${Date.now()}`;
 
-    const FLOW_COLORS = { 'Power': '#7ee0b1', 'LOX': '#57c7ff' };
+    try {
+      const res = await fetch(url, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/vnd.github+json',
+        },
+        cache: 'no-store'
+      });
+      if (!res.ok) return false;
 
-    function renderLiveGraph(data) {
-      const container = document.getElementById('opsGraph');
-      const svgLayer  = document.getElementById('linkLayer');
+      const meta = await res.json();
+      const text = atob(meta.content.replace(/\n/g, ''));
+      const data = JSON.parse(text);
 
-      container.querySelectorAll('.node').forEach(n => n.remove());
-      svgLayer.innerHTML = '<defs></defs>';
-      const defs = svgLayer.querySelector('defs');
+      const writtenAt = data.written_at ? new Date(data.written_at).getTime() : 0;
+      console.log('[POLL] returned nodes:', [...(data.active_nodes || [])].sort().join(','));
+      console.log('[POLL] written_at:', data.written_at, '| dispatched_at:', new Date(runTimestamp).toISOString());
 
-      const nodes = data.active_nodes || [];
-      const conns = data.connections  || [];
-
-      const cW = container.offsetWidth  || 700;
-      const cH = container.offsetHeight || 470;
-      const NODE_W = 118, NODE_H = 58;
-      const vbW = 1000, vbH = 520;
-
-      // Convert percentage position to CSS px (top-left of node)
-      function toPx(pct) {
-        return {
-          x: Math.round(pct.px * (cW - NODE_W)),
-          y: Math.round(pct.py * (cH - NODE_H)),
-        };
+      if (writtenAt < runTimestamp) {
+        console.log('[POLL] result is stale - still waiting...');
+        return false;
       }
 
-      // Convert CSS px center to SVG viewBox coords
-      function toSVG(px) {
-        return {
-          x: ((px.x + NODE_W / 2) / cW) * vbW,
-          y: ((px.y + NODE_H / 2) / cH) * vbH,
-        };
+      applyGraphResult(data);
+      return true;
+    } catch (e) {
+      console.log('[POLL] fetch failed:', e);
+      return false;
+    }
+  }
+
+  function applyGraphResult(data) {
+    const btn = document.getElementById('runGraphBtn');
+    if (btn) {
+      btn.textContent = 'Graph Updated';
+      btn.disabled = false;
+    }
+
+    const activeSysEl = document.getElementById('activeSystemsMetric');
+    const edgesEl = document.getElementById('networkEdgesMetric');
+    if (activeSysEl) activeSysEl.textContent = data.active_nodes_count ?? data.active_nodes?.length ?? '—';
+    if (edgesEl) edgesEl.textContent = data.connections?.length ?? '—';
+
+    const caption = document.getElementById('opsCaption');
+    if (caption) {
+      caption.textContent = data.active_nodes?.length
+        ? `[Live - SysML] ${data.active_nodes_count} active nodes · ${data.connections?.length ?? 0} connections.`
+        : 'No active nodes returned from pipeline.';
+    }
+
+    setGraphStatus(
+      `${data.active_nodes_count} nodes · ${data.connections?.length} connections - live data from SysML`,
+      '#7ee0b1'
+    );
+
+    renderLiveGraph(data);
+    window._lastGraphData = data;
+    if (data.parts) populateStep3(data);
+    renderSystems();
+    console.log('[GRAPH RESULT]', data);
+  }
+
+  const LIVE_NODE_POSITIONS_PCT = {
+    'SolarPowerSystem':  { px: 0.52, py: 0.05 },
+    'HabitationModule':  { px: 0.04, py: 0.05 },
+    'ISRUPlant':         { px: 0.80, py: 0.30 },
+    'LaunchLandingZone': { px: 0.04, py: 0.72 },
+    'Propellant_Depot':  { px: 0.80, py: 0.72 },
+    'Rover':             { px: 0.52, py: 0.45 },
+  };
+
+  const FLOW_COLORS = { 'Power': '#7ee0b1', 'LOX': '#57c7ff' };
+
+  function renderLiveGraph(data) {
+    const container = document.getElementById('opsGraph');
+    const svgLayer  = document.getElementById('linkLayer');
+
+    container.querySelectorAll('.node').forEach(n => n.remove());
+    svgLayer.innerHTML = '<defs></defs>';
+    const defs = svgLayer.querySelector('defs');
+
+    const nodes = data.active_nodes || [];
+    const conns = data.connections || [];
+
+    const cW = container.offsetWidth || 700;
+    const cH = container.offsetHeight || 470;
+    const NODE_W = 118;
+    const NODE_H = 58;
+    const vbW = 1000;
+    const vbH = 520;
+
+    function toPx(pct) {
+      return {
+        x: Math.round(pct.px * (cW - NODE_W)),
+        y: Math.round(pct.py * (cH - NODE_H)),
+      };
+    }
+
+    function toSVG(px) {
+      return {
+        x: ((px.x + NODE_W / 2) / cW) * vbW,
+        y: ((px.y + NODE_H / 2) / cH) * vbH,
+      };
+    }
+
+    const resolvedPx = {};
+    nodes.forEach(name => {
+      const pct = LIVE_NODE_POSITIONS_PCT[name];
+      if (pct) resolvedPx[name] = toPx(pct);
+    });
+
+    conns.forEach(c => {
+      const fromName = c.from?.part || c.from;
+      const toName = c.to?.part || c.to;
+      const flow = c.flow || 'Power';
+      const pxA = resolvedPx[fromName];
+      const pxB = resolvedPx[toName];
+      if (!pxA || !pxB) return;
+
+      const color = FLOW_COLORS[flow] || '#ffb347';
+      const markerId = `arrowhead-${flow}`;
+
+      if (!defs.querySelector(`#${markerId}`)) {
+        const marker = document.createElementNS('http://www.w3.org/2000/svg', 'marker');
+        marker.setAttribute('id', markerId);
+        marker.setAttribute('viewBox', '0 0 10 10');
+        marker.setAttribute('refX', '8');
+        marker.setAttribute('refY', '5');
+        marker.setAttribute('markerWidth', '6');
+        marker.setAttribute('markerHeight', '6');
+        marker.setAttribute('orient', 'auto-start-reverse');
+        marker.innerHTML = `<path d="M2 1L8 5L2 9" fill="none" stroke="${color}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>`;
+        defs.appendChild(marker);
       }
 
-      // Build resolved px positions for all nodes
-      const resolvedPx = {};
-      nodes.forEach(name => {
-        const pct = LIVE_NODE_POSITIONS_PCT[name];
-        if (pct) resolvedPx[name] = toPx(pct);
-      });
+      const a = toSVG(pxA);
+      const b = toSVG(pxB);
 
-      // Draw edges
-      conns.forEach(c => {
-        const fromName = c.from?.part || c.from;
-        const toName   = c.to?.part   || c.to;
-        const flow     = c.flow || 'Power';
-        const pxA = resolvedPx[fromName];
-        const pxB = resolvedPx[toName];
-        if (!pxA || !pxB) return;
+      const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      line.setAttribute('x1', a.x);
+      line.setAttribute('y1', a.y);
+      line.setAttribute('x2', b.x);
+      line.setAttribute('y2', b.y);
+      line.setAttribute('stroke', color);
+      line.setAttribute('stroke-width', '2.5');
+      line.setAttribute('stroke-opacity', '0.9');
+      line.setAttribute('marker-end', `url(#${markerId})`);
+      svgLayer.appendChild(line);
 
-        const color = FLOW_COLORS[flow] || '#ffb347';
-        const markerId = `arrowhead-${flow}`;
+      const txt = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      txt.setAttribute('x', (a.x + b.x) / 2);
+      txt.setAttribute('y', (a.y + b.y) / 2 - 6);
+      txt.setAttribute('text-anchor', 'middle');
+      txt.setAttribute('fill', color);
+      txt.setAttribute('font-size', '11');
+      txt.setAttribute('opacity', '0.85');
+      txt.textContent = flow;
+      svgLayer.appendChild(txt);
+    });
 
-        if (!defs.querySelector(`#${markerId}`)) {
-          const marker = document.createElementNS('http://www.w3.org/2000/svg', 'marker');
-          marker.setAttribute('id', markerId);
-          marker.setAttribute('viewBox', '0 0 10 10');
-          marker.setAttribute('refX', '8'); marker.setAttribute('refY', '5');
-          marker.setAttribute('markerWidth', '6'); marker.setAttribute('markerHeight', '6');
-          marker.setAttribute('orient', 'auto-start-reverse');
-          marker.innerHTML = `<path d="M2 1L8 5L2 9" fill="none" stroke="${color}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>`;
-          defs.appendChild(marker);
-        }
+    nodes.forEach(name => {
+      const px = resolvedPx[name];
+      if (!px) return;
 
-        const a = toSVG(pxA);
-        const b = toSVG(pxB);
+      const label = name
+        .replace('SolarPowerSystem', 'Solar Power')
+        .replace('HabitationModule', 'Habitat')
+        .replace('LaunchLandingZone', 'Launch Zone')
+        .replace('Propellant_Depot', 'Propellant Depot');
 
-        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-        line.setAttribute('x1', a.x); line.setAttribute('y1', a.y);
-        line.setAttribute('x2', b.x); line.setAttribute('y2', b.y);
-        line.setAttribute('stroke', color);
-        line.setAttribute('stroke-width', '2.5');
-        line.setAttribute('stroke-opacity', '0.9');
-        line.setAttribute('marker-end', `url(#${markerId})`);
-        svgLayer.appendChild(line);
+      const div = document.createElement('div');
+      div.className = 'node active';
+      div.style.left = px.x + 'px';
+      div.style.top = px.y + 'px';
+      div.innerHTML = `<div class="node-title">${label}</div><div class="node-tag">${name}</div>`;
+      container.appendChild(div);
+    });
+  }
 
-        const txt = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-        txt.setAttribute('x', (a.x + b.x) / 2);
-        txt.setAttribute('y', (a.y + b.y) / 2 - 6);
-        txt.setAttribute('text-anchor', 'middle');
-        txt.setAttribute('fill', color);
-        txt.setAttribute('font-size', '11');
-        txt.setAttribute('opacity', '0.85');
-        txt.textContent = flow;
-        svgLayer.appendChild(txt);
-      });
+  let sysmlPartsCache = {};
 
-      // Draw node boxes
-      nodes.forEach(name => {
-        const px = resolvedPx[name];
-        if (!px) return;
-        const label = name
-          .replace('SolarPowerSystem', 'Solar Power')
-          .replace('HabitationModule', 'Habitat')
-          .replace('LaunchLandingZone', 'Launch Zone')
-          .replace('Propellant_Depot', 'Propellant Depot');
-        const div = document.createElement('div');
-        div.className = 'node active';
-        div.style.left = px.x + 'px';
-        div.style.top  = px.y + 'px';
-        div.innerHTML  = `<div class="node-title">${label}</div><div class="node-tag">${name}</div>`;
-        container.appendChild(div);
-      });
-    }
+  function populateStep3(data) {
+    sysmlPartsCache = data.parts || {};
+    const nodes = data.active_nodes || [];
+    const box = document.getElementById('assemblyTree');
+    if (!box) return;
 
-    // ─── Step 3 — Auto-populate metadata from SysML ───────────────────────
-    // sysmlPartsCache declared globally above — do not redeclare here
+    box.innerHTML = '';
 
-    function populateStep3(data) {
-      sysmlPartsCache = data.parts || {};
-      const nodes = data.active_nodes || [];
+    nodes.forEach(name => {
+      const part = sysmlPartsCache[name];
+      if (!part) return;
 
-      const box = document.getElementById('assemblyTree');
-      if (!box) return;
-      box.innerHTML = '';
+      const row = document.createElement('div');
+      row.className = 'tree-node-row';
+      row.innerHTML = `
+        <div class="tree-bullet"></div>
+        <div class="tree-label">${name}</div>
+        <div class="tree-type">${part.ports?.length ?? 0} ports</div>
+      `;
+      row.onclick = () => {
+        box.querySelectorAll('.tree-node-row').forEach(r => r.classList.remove('selected'));
+        row.classList.add('selected');
+        resetStep3View();
+        loadSysmlIntoForm(name, part);
+        loadCachedCadMeta(name);
+      };
+      box.appendChild(row);
+    });
 
-      nodes.forEach(name => {
-        const part = sysmlPartsCache[name];
-        if (!part) return;
-        const row = document.createElement('div');
-        row.className = 'tree-node-row';
-        row.innerHTML = `
-          <div class="tree-bullet"></div>
-          <div class="tree-label">${name}</div>
-          <div class="tree-type">${part.ports?.length ?? 0} ports</div>
-        `;
-        row.onclick = () => {
-          box.querySelectorAll('.tree-node-row').forEach(r => r.classList.remove('selected'));
-          row.classList.add('selected');
-          resetStep3View();
-          loadSysmlIntoForm(name, part);
-          // Load cached GLB if already converted
-          loadCachedCadMeta(name);
-        };
-        box.appendChild(row);
-      });
+    if (nodes.length > 0) box.querySelector('.tree-node-row')?.click();
 
-      if (nodes.length > 0) box.querySelector('.tree-node-row')?.click();
+    const pathEl = document.getElementById('selectedPath');
+    if (pathEl) pathEl.textContent = `${nodes.length} active modules loaded from SysML`;
+  }
 
-      const pathEl = document.getElementById('selectedPath');
-      if (pathEl) pathEl.textContent = `${nodes.length} active modules loaded from SysML`;
-    }
-
-    function resetStep3View() {
-      // Hide 3D viewer
-      const wrap = document.getElementById('viewer3dWrap');
-      if (wrap) { wrap.style.display = 'none'; wrap.innerHTML = ''; }
-      // Reset material section
-      const fromUsdWrap = document.getElementById('materialFromUsdWrap');
-      if (fromUsdWrap) fromUsdWrap.style.display = 'none';
-      const libWrap = document.getElementById('materialLibraryWrap');
-      if (libWrap) libWrap.style.display = 'block';
-      const sel = document.getElementById('materialSelect');
-      if (sel) sel.value = '';
-      const propsWrap = document.getElementById('materialPropsWrap');
-      if (propsWrap) { propsWrap.style.display = 'none'; }
-      document.getElementById('usdPbrBlock')?.remove();
-      // Reset mass and file status
-      const massEl = document.getElementById('cadMass');
-      if (massEl) massEl.value = '';
-      const statusEl = document.getElementById('cadUploadStatus');
-      if (statusEl) statusEl.textContent = 'No CAD file loaded yet.';
-      const fileEl = document.getElementById('sourceFileName');
-      if (fileEl) fileEl.value = '';
-      window._cadSizeM = null;
-      currentCadFile = null;
-    }
-
-    async function loadCachedCadMeta(moduleName) {
-      // Try to load existing _meta.json for this module (from a previous conversion)
-      const token = sessionStorage.getItem('gh_pat');
-      if (!token) return;
-      const url = `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/outputs/cad_previews/${moduleName}_meta.json`;
-      try {
-        const res = await fetch(url, {
-          headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github+json' }
-        });
-        if (!res.ok) return;
-        const meta = await res.json();
-        const data = JSON.parse(atob(meta.content.replace(/\n/g,'')));
-        applyCadMeta(data);
-        const statusEl = document.getElementById('cadUploadStatus');
-        if (statusEl) statusEl.textContent = `✓ CAD previously converted · ${data.mesh_count} meshes · ${data.size_m[0]}×${data.size_m[1]}×${data.size_m[2]} m`;
-      } catch(e) { /* no cached meta — that's fine */ }
-    }
-
-    function loadSysmlIntoForm(name, part) {
-      const pathEl = document.getElementById('selectedPath');
-      if (pathEl) pathEl.textContent = `Selected: ${name}`;
-
-      const dim = part.dimensions?.size_m || {};
-      setField('omlLength', dim.length ?? '');
-      setField('omlWidth',  dim.width  ?? '');
-      setField('omlHeight', dim.height ?? '');
-
-      const pos = part.transform?.position_m || [0, 0, 0];
-      setField('posX', pos[0] ?? 0);
-      setField('posY', pos[1] ?? 0);
-      setField('posZ', pos[2] ?? 0);
-
-      const rot = part.transform?.rotation_deg || [0, 0, 0];
-      setField('rotX', rot[0] ?? 0);
-      setField('rotY', rot[1] ?? 0);
-      setField('rotZ', rot[2] ?? 0);
-
-      const units = part.dimensions || {};
-      setField('metersPerUnit', units.metersPerUnit ?? 1);
-      setSelectField('upAxis',       units.upAxis       ?? 'Z');
-      setSelectField('angleUnit',    units.angleUnit    ?? 'deg');
-      setSelectField('massUnit',     units.massUnit     ?? 'kg');
-      setSelectField('pressureUnit', units.pressureUnit ?? 'kPa');
-      setSelectField('lengthUnit',   units.lengthUnit   ?? 'm');
-
-      setField('material',    part.materialRef ?? '');
-      setField('pipelineUid', part.id ?? '');
-      setField('cadTitle',    name);
-
-      renderSysmlAttributes(part.attributes || {}, part.ports || []);
-    }
-
-    function setField(id, val) {
-      const el = document.getElementById(id);
-      if (el) el.value = val;
-    }
-
-    function setSelectField(id, val) {
-      const el = document.getElementById(id);
-      if (!el) return;
-      if ([...el.options].find(o => o.value === val)) el.value = val;
-    }
-
-    function renderSysmlAttributes(attributes, ports) {
-      const wrap = document.getElementById('customAttrs');
-      if (!wrap) return;
-      wrap.style.display = 'block';
+  function resetStep3View() {
+    const wrap = document.getElementById('viewer3dWrap');
+    if (wrap) {
+      wrap.style.display = 'none';
       wrap.innerHTML = '';
+    }
 
-      const attrHeader = document.createElement('div');
-      attrHeader.className = 'form-section-title';
-      attrHeader.style.cssText = 'grid-column:span 12;margin-top:10px;';
-      attrHeader.textContent = 'SysML Attributes';
-      wrap.appendChild(attrHeader);
+    const fromUsdWrap = document.getElementById('materialFromUsdWrap');
+    if (fromUsdWrap) fromUsdWrap.style.display = 'none';
 
-      Object.entries(attributes).forEach(([k, v]) => {
+    const libWrap = document.getElementById('materialLibraryWrap');
+    if (libWrap) libWrap.style.display = 'block';
+
+    const sel = document.getElementById('materialSelect');
+    if (sel) sel.value = '';
+
+    const propsWrap = document.getElementById('materialPropsWrap');
+    if (propsWrap) propsWrap.style.display = 'none';
+
+    document.getElementById('usdPbrBlock')?.remove();
+
+    const massEl = document.getElementById('cadMass');
+    if (massEl) massEl.value = '';
+
+    const statusEl = document.getElementById('cadUploadStatus');
+    if (statusEl) statusEl.textContent = 'No CAD file loaded yet.';
+
+    const fileEl = document.getElementById('sourceFileName');
+    if (fileEl) fileEl.value = '';
+
+    window._cadSizeM = null;
+    currentCadFile = null;
+  }
+
+  function loadSysmlIntoForm(name, part) {
+    const pathEl = document.getElementById('selectedPath');
+    if (pathEl) pathEl.textContent = `Selected: ${name}`;
+
+    const dim = part.dimensions?.size_m || {};
+    setField('omlLength', dim.length ?? '');
+    setField('omlWidth', dim.width ?? '');
+    setField('omlHeight', dim.height ?? '');
+
+    const pos = part.transform?.position_m || [0, 0, 0];
+    setField('posX', pos[0] ?? 0);
+    setField('posY', pos[1] ?? 0);
+    setField('posZ', pos[2] ?? 0);
+
+    const rot = part.transform?.rotation_deg || [0, 0, 0];
+    setField('rotX', rot[0] ?? 0);
+    setField('rotY', rot[1] ?? 0);
+    setField('rotZ', rot[2] ?? 0);
+
+    const units = part.dimensions || {};
+    setField('metersPerUnit', units.metersPerUnit ?? 1);
+    setSelectField('upAxis', units.upAxis ?? 'Z');
+    setSelectField('angleUnit', units.angleUnit ?? 'deg');
+    setSelectField('massUnit', units.massUnit ?? 'kg');
+    setSelectField('pressureUnit', units.pressureUnit ?? 'kPa');
+    setSelectField('lengthUnit', units.lengthUnit ?? 'm');
+
+    setField('material', part.materialRef ?? '');
+    setField('pipelineUid', part.id ?? '');
+    setField('cadTitle', name);
+
+    renderSysmlAttributes(part.attributes || {}, part.ports || []);
+  }
+
+  function setField(id, val) {
+    const el = document.getElementById(id);
+    if (el) el.value = val;
+  }
+
+  function setSelectField(id, val) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if ([...el.options].find(o => o.value === val)) el.value = val;
+  }
+
+  function renderSysmlAttributes(attributes, ports) {
+    const wrap = document.getElementById('customAttrs');
+    if (!wrap) return;
+
+    wrap.style.display = 'block';
+    wrap.innerHTML = '';
+
+    const attrHeader = document.createElement('div');
+    attrHeader.className = 'form-section-title';
+    attrHeader.style.cssText = 'grid-column:span 12;margin-top:10px;';
+    attrHeader.textContent = 'SysML Attributes';
+    wrap.appendChild(attrHeader);
+
+    Object.entries(attributes).forEach(([k, v]) => {
+      const row = document.createElement('div');
+      row.className = 'attr-row';
+      row.innerHTML = `
+        <input class="attr-name" value="${k}" readonly style="opacity:0.7;">
+        <input class="attr-value" value="${v}" readonly style="opacity:0.7;">
+        <input class="attr-unit" value="" readonly style="opacity:0.7;">
+      `;
+      wrap.appendChild(row);
+    });
+
+    if (ports.length > 0) {
+      const portHeader = document.createElement('div');
+      portHeader.className = 'form-section-title';
+      portHeader.style.cssText = 'grid-column:span 12;margin-top:10px;';
+      portHeader.textContent = 'Ports';
+      wrap.appendChild(portHeader);
+
+      ports.forEach(port => {
         const row = document.createElement('div');
         row.className = 'attr-row';
         row.innerHTML = `
-          <input class="attr-name"  value="${k}" readonly style="opacity:0.7;">
-          <input class="attr-value" value="${v}" readonly style="opacity:0.7;">
-          <input class="attr-unit"  value="" readonly style="opacity:0.7;">
+          <input class="attr-name" value="${port.name}" readonly style="opacity:0.7;">
+          <input class="attr-value" value="${port.direction?.join('/')}" readonly style="opacity:0.7;">
+          <input class="attr-unit" value="${port.items?.join(',')}" readonly style="opacity:0.7;">
         `;
         wrap.appendChild(row);
       });
-
-      if (ports.length > 0) {
-        const portHeader = document.createElement('div');
-        portHeader.className = 'form-section-title';
-        portHeader.style.cssText = 'grid-column:span 12;margin-top:10px;';
-        portHeader.textContent = 'Ports';
-        wrap.appendChild(portHeader);
-        ports.forEach(port => {
-          const row = document.createElement('div');
-          row.className = 'attr-row';
-          row.innerHTML = `
-            <input class="attr-name"  value="${port.name}" readonly style="opacity:0.7;">
-            <input class="attr-value" value="${port.direction?.join('/')}" readonly style="opacity:0.7;">
-            <input class="attr-unit"  value="${port.items?.join(',')}" readonly style="opacity:0.7;">
-          `;
-          wrap.appendChild(row);
-        });
-      }
     }
-  </script>
+  }
+</script>
+
+
 
  <!-- Step 3 JS -->
+<!-- Step 3 JS -->
 <script>
-  // --- Step 3: CAD Upload + Convert + Preview ---
+  window.UI_POLL = window.UI_POLL || {
+    runLookupMs: 1000,
+    workflowPollMs: 2000,
+    outputPollMs: 1000,
+    maxWorkflowPolls: 90
+  };
+
+  // --- Step 3 — CAD Upload + Convert + Preview ---
   let materialLibrary = [];
   let currentCadFile = null;
   let currentModuleName = null;
@@ -4039,6 +4061,7 @@ window.addEventListener('load',()=>setTimeout(initPolarMap,200));
 
   function onMaterialSelect(id) {
     if (!id) return;
+
     const mat = materialLibrary.find(m => m.materialId === id);
     if (!mat) return;
 
@@ -4290,6 +4313,35 @@ window.addEventListener('load',()=>setTimeout(initPolarMap,200));
     }
   }
 
+  async function waitForFreshCadPreview(moduleName, previewRequest) {
+    const meta = await fetchCadMetaWithSha(moduleName, Date.now());
+    if (!meta?.data) return false;
+
+    const writtenAt = meta.data.written_at ? new Date(meta.data.written_at).getTime() : 0;
+    const isFresh =
+      (meta.sha && meta.sha !== previewRequest.previousMetaSha) ||
+      (writtenAt && writtenAt >= previewRequest.requestedAt);
+
+    if (!isFresh) return false;
+
+    cadPreviewState[moduleName] = {
+      ...(cadPreviewState[moduleName] || {}),
+      metaSha: meta.sha || null,
+      lastWrittenAt: writtenAt
+    };
+
+    if (moduleName === currentModuleName) {
+      await applyCadMeta(meta.data);
+    }
+
+    updateModuleDot(moduleName, 'preview');
+
+    const pubStatus = document.getElementById('publishStatus');
+    if (pubStatus) pubStatus.textContent = `${moduleName} preview ready.`;
+
+    return true;
+  }
+
   async function publishAll() {
     const btn = document.getElementById('publishAllBtn');
     const pubStatus = document.getElementById('publishStatus');
@@ -4320,6 +4372,7 @@ window.addEventListener('load',()=>setTimeout(initPolarMap,200));
       }
 
       await deleteOldCadFiles(moduleName, file.name);
+
       const uploaded = await uploadCadToGitHub(file, moduleName);
       await writeAssetJson(moduleName, file);
 
@@ -4328,7 +4381,7 @@ window.addEventListener('load',()=>setTimeout(initPolarMap,200));
         const runInfo = await triggerConvertWorkflow(moduleName, usdPath, previewRequest.requestedAt);
 
         updateModuleDot(moduleName, 'done');
-        pollForMeta(moduleName, runInfo, previewRequest);
+        await pollForMeta(moduleName, runInfo, previewRequest);
       } else {
         updateModuleDot(moduleName, 'error');
       }
@@ -4340,7 +4393,7 @@ window.addEventListener('load',()=>setTimeout(initPolarMap,200));
     btn.disabled = false;
 
     if (pubStatus) {
-      pubStatus.textContent = `${done} module(s) submitted. Waiting for fresh previews...`;
+      pubStatus.textContent = `${done} module(s) submitted.`;
     }
 
     const banner = document.getElementById('saveBanner');
@@ -4377,7 +4430,7 @@ window.addEventListener('load',()=>setTimeout(initPolarMap,200));
 
     if (res.status !== 204) return null;
 
-    await sleep(4000);
+    await sleep(window.UI_POLL.runLookupMs);
 
     try {
       const runsRes = await fetch(
@@ -4391,7 +4444,9 @@ window.addEventListener('load',()=>setTimeout(initPolarMap,200));
         }
       );
 
-      if (!runsRes.ok) return { runId: null, dispatchedAt };
+      if (!runsRes.ok) {
+        return { runId: null, dispatchedAt };
+      }
 
       const runs = await runsRes.json();
       const run = (runs.workflow_runs || []).find(item => {
@@ -4409,40 +4464,10 @@ window.addEventListener('load',()=>setTimeout(initPolarMap,200));
     }
   }
 
-  async function waitForFreshCadPreview(moduleName, previewRequest) {
-    const meta = await fetchCadMetaWithSha(moduleName, Date.now());
-    if (!meta?.data) return false;
-
-    const writtenAt = meta.data.written_at ? new Date(meta.data.written_at).getTime() : 0;
-
-    const isFresh =
-      (meta.sha && meta.sha !== previewRequest.previousMetaSha) ||
-      (writtenAt && writtenAt >= previewRequest.requestedAt);
-
-    if (!isFresh) return false;
-
-    cadPreviewState[moduleName] = {
-      ...(cadPreviewState[moduleName] || {}),
-      metaSha: meta.sha || null,
-      lastWrittenAt: writtenAt
-    };
-
-    if (moduleName === currentModuleName) {
-      await applyCadMeta(meta.data);
-    }
-
-    updateModuleDot(moduleName, 'preview');
-
-    const pubStatus = document.getElementById('publishStatus');
-    if (pubStatus) pubStatus.textContent = `${moduleName} preview ready.`;
-
-    return true;
-  }
-
   async function pollForMeta(moduleName, runInfo, previewRequest) {
     const token = sessionStorage.getItem('gh_pat');
 
-    for (let attempt = 0; attempt < 30; attempt++) {
+    for (let attempt = 0; attempt < window.UI_POLL.maxWorkflowPolls; attempt++) {
       try {
         if (runInfo?.runId) {
           const runRes = await fetch(
@@ -4456,36 +4481,58 @@ window.addEventListener('load',()=>setTimeout(initPolarMap,200));
             }
           );
 
-          if (!runRes.ok) {
-            await sleep(10000);
-            continue;
-          }
+          if (runRes.ok) {
+            const run = await runRes.json();
 
-          const run = await runRes.json();
+            if (run.status !== 'completed') {
+              await sleep(window.UI_POLL.workflowPollMs);
+              continue;
+            }
 
-          if (run.status !== 'completed') {
-            await sleep(10000);
-            continue;
-          }
-
-          if (run.conclusion !== 'success') {
-            updateModuleDot(moduleName, 'error');
-            return;
+            if (run.conclusion !== 'success') {
+              updateModuleDot(moduleName, 'error');
+              return;
+            }
           }
         }
 
-        const fresh = await waitForFreshCadPreview(moduleName, previewRequest);
-        if (fresh) return;
+        for (let i = 0; i < 8; i++) {
+          const fresh = await waitForFreshCadPreview(moduleName, previewRequest);
+          if (fresh) return;
+          await sleep(window.UI_POLL.outputPollMs);
+        }
       } catch (e) {
         console.warn(`[pollForMeta:${moduleName}]`, e);
       }
 
-      await sleep(10000);
+      await sleep(window.UI_POLL.workflowPollMs);
     }
 
     updateModuleDot(moduleName, 'error');
     const pubStatus = document.getElementById('publishStatus');
-    if (pubStatus) pubStatus.textContent = `Preview timeout for ${moduleName}.`;
+    if (pubStatus) {
+      pubStatus.textContent = `Preview timeout for ${moduleName}.`;
+    }
+  }
+
+  async function loadAndApplyFreshMeta(moduleName) {
+    try {
+      const meta = await fetchCadMetaWithSha(moduleName, Date.now());
+      if (!meta?.data) return;
+
+      if (moduleName === currentModuleName) {
+        await applyCadMeta(meta.data);
+      }
+
+      updateModuleDot(moduleName, 'preview');
+
+      const pubStatus = document.getElementById('publishStatus');
+      if (pubStatus) {
+        pubStatus.textContent = `${moduleName} preview ready - click module to view.`;
+      }
+    } catch (e) {
+      console.warn('[loadAndApplyFreshMeta]', e);
+    }
   }
 
   function buildAssetJson(moduleName, cadFile) {
@@ -4498,6 +4545,7 @@ window.addEventListener('load',()=>setTimeout(initPolarMap,200));
     const upAxis = saved.upAxis || part.dimensions?.upAxis || 'Z';
     const massUnit = saved.massUnit || 'kg';
     const lengthUnit = saved.lengthUnit || 'm';
+
     const sizeM = part.dimensions?.size_m
       ? [part.dimensions.size_m.length, part.dimensions.size_m.width, part.dimensions.size_m.height]
       : null;
@@ -4587,89 +4635,8 @@ window.addEventListener('load',()=>setTimeout(initPolarMap,200));
     }
   }
 
-  async function fetchFreshGlb(moduleName) {
-    const meta = await fetchGithubContentMeta(`outputs/cad_previews/${moduleName}.glb`, Date.now());
-    if (!meta?.download_url) return null;
-
-    const separator = meta.download_url.includes('?') ? '&' : '?';
-    const downloadUrl =
-      `${meta.download_url}${separator}ts=${Date.now()}&sha=${encodeURIComponent(meta.sha || '')}`;
-
-    const binRes = await fetch(downloadUrl, { cache: 'no-store' });
-    if (!binRes.ok) return null;
-
-    const blob = await binRes.blob();
-    return {
-      blobUrl: URL.createObjectURL(blob),
-      sha: meta.sha || null
-    };
-  }
-
-  async function showModelViewer(moduleName, meshCount, sizeM) {
-    const wrap = document.getElementById('viewer3dWrap');
-    if (!wrap) return;
-
-    wrap.style.display = 'block';
-    wrap.innerHTML = `
-      <div style="height:360px;border-radius:12px;border:1px solid var(--border2);background:#0c1119;
-        display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:13px;">
-        Loading 3D model...
-      </div>`;
-
-    const glb = await fetchFreshGlb(moduleName);
-    if (!glb) {
-      wrap.innerHTML = `
-        <div style="height:360px;border-radius:12px;border:1px solid var(--border2);background:#0c1119;
-          display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:13px;">
-          Preview not available
-        </div>`;
-      return;
-    }
-
-    if (!customElements.get('model-viewer')) {
-      await new Promise(resolve => {
-        const s = document.createElement('script');
-        s.type = 'module';
-        s.src = 'https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js';
-        s.onload = resolve;
-        document.head.appendChild(s);
-      });
-    }
-
-    if (cadPreviewState[moduleName]?.blobUrl) {
-      URL.revokeObjectURL(cadPreviewState[moduleName].blobUrl);
-    }
-
-    cadPreviewState[moduleName] = {
-      ...(cadPreviewState[moduleName] || {}),
-      blobUrl: glb.blobUrl,
-      glbSha: glb.sha
-    };
-
-    wrap.innerHTML = `
-      <div style="position:relative;border-radius:12px;overflow:hidden;border:1px solid var(--border2);">
-        <model-viewer
-          id="mv-${moduleName}"
-          src="${glb.blobUrl}"
-          alt="3D model of ${moduleName}"
-          camera-controls
-          touch-action="none"
-          shadow-intensity="0.5"
-          exposure="1.2"
-          camera-orbit="45deg 90deg auto"
-          min-camera-orbit="auto 0deg auto"
-          max-camera-orbit="auto 180deg auto"
-          style="width:100%;height:360px;background:#0c1119;display:block;"
-        ></model-viewer>
-        <div style="position:absolute;bottom:10px;left:12px;font-size:10px;
-          color:rgba(255,255,255,0.7);background:rgba(0,0,0,0.6);padding:3px 8px;border-radius:4px;">
-          ${meshCount} meshes - ${sizeM[0]}x${sizeM[1]}x${sizeM[2]} m
-        </div>
-        <div style="position:absolute;top:10px;right:10px;font-size:10px;
-          color:rgba(255,255,255,0.5);background:rgba(0,0,0,0.5);padding:3px 8px;border-radius:4px;">
-          Drag to rotate - Scroll to zoom
-        </div>
-      </div>`;
+  function saveSelectedNode() {
+    publishAll();
   }
 
   function showUsdMaterialProps(usdMat) {
@@ -4770,6 +4737,7 @@ window.addEventListener('load',()=>setTimeout(initPolarMap,200));
 
     return new Promise(resolve => {
       const reader = new FileReader();
+
       reader.onload = async e => {
         const bytes = new Uint8Array(e.target.result);
         let binary = '';
@@ -4822,6 +4790,91 @@ window.addEventListener('load',()=>setTimeout(initPolarMap,200));
     });
   }
 
+  async function fetchFreshGlb(moduleName) {
+    const meta = await fetchGithubContentMeta(`outputs/cad_previews/${moduleName}.glb`, Date.now());
+    if (!meta?.download_url) return null;
+
+    const separator = meta.download_url.includes('?') ? '&' : '?';
+    const downloadUrl =
+      `${meta.download_url}${separator}ts=${Date.now()}&sha=${encodeURIComponent(meta.sha || '')}`;
+
+    const binRes = await fetch(downloadUrl, { cache: 'no-store' });
+    if (!binRes.ok) return null;
+
+    const blob = await binRes.blob();
+    return {
+      blobUrl: URL.createObjectURL(blob),
+      sha: meta.sha || null
+    };
+  }
+
+  async function showModelViewer(moduleName, meshCount, sizeM) {
+    const wrap = document.getElementById('viewer3dWrap');
+    if (!wrap) return;
+
+    wrap.style.display = 'block';
+    wrap.innerHTML = `
+      <div style="height:360px;border-radius:12px;border:1px solid var(--border2);background:#0c1119;
+        display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:13px;">
+        Loading 3D model...
+      </div>`;
+
+    const glb = await fetchFreshGlb(moduleName);
+    if (!glb) {
+      wrap.innerHTML = `
+        <div style="height:360px;border-radius:12px;border:1px solid var(--border2);background:#0c1119;
+          display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:13px;">
+          Preview not available
+        </div>`;
+      return;
+    }
+
+    if (!customElements.get('model-viewer')) {
+      await new Promise(resolve => {
+        const s = document.createElement('script');
+        s.type = 'module';
+        s.src = 'https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js';
+        s.onload = resolve;
+        document.head.appendChild(s);
+      });
+    }
+
+    if (cadPreviewState[moduleName]?.blobUrl) {
+      URL.revokeObjectURL(cadPreviewState[moduleName].blobUrl);
+    }
+
+    cadPreviewState[moduleName] = {
+      ...(cadPreviewState[moduleName] || {}),
+      blobUrl: glb.blobUrl,
+      glbSha: glb.sha
+    };
+
+    wrap.innerHTML = `
+      <div style="position:relative;border-radius:12px;overflow:hidden;border:1px solid var(--border2);">
+        <model-viewer
+          id="mv-${moduleName}"
+          src="${glb.blobUrl}"
+          alt="3D model of ${moduleName}"
+          camera-controls
+          touch-action="none"
+          shadow-intensity="0.5"
+          exposure="1.2"
+          camera-orbit="45deg 90deg auto"
+          min-camera-orbit="auto 0deg auto"
+          max-camera-orbit="auto 180deg auto"
+          style="width:100%;height:360px;background:#0c1119;display:block;"
+        ></model-viewer>
+        <div style="position:absolute;bottom:10px;left:12px;font-size:10px;
+          color:rgba(255,255,255,0.7);background:rgba(0,0,0,0.6);padding:3px 8px;border-radius:4px;">
+          ${meshCount} meshes - ${sizeM[0]}x${sizeM[1]}x${sizeM[2]} m
+        </div>
+        <div style="position:absolute;top:10px;right:10px;font-size:10px;
+          color:rgba(255,255,255,0.5);background:rgba(0,0,0,0.5);padding:3px 8px;border-radius:4px;">
+          Drag to rotate - Scroll to zoom
+        </div>
+      </div>`;
+  }
+
   async function applyCadMeta(data) {
     const status = document.getElementById('cadUploadStatus');
 
@@ -4850,10 +4903,6 @@ window.addEventListener('load',()=>setTimeout(initPolarMap,200));
     }
   }
 
-  function saveSelectedNode() {
-    publishAll();
-  }
-
   window.addEventListener('load', () => {
     loadMaterialLibrary();
     initDesNodes();
@@ -4861,470 +4910,502 @@ window.addEventListener('load',()=>setTimeout(initPolarMap,200));
 </script>
 
 
+
   <!-- ── Step 4 DES ── -->
   <script>
-    const DES_NODES = [
-      { id: 'ISRUPlant',          label: 'ISRU Plant',           required: true  },
-      { id: 'RegolithRover',      label: 'Regolith Rover',       required: true  },
-      { id: 'SolarPowerSystem',   label: 'Solar Power System',   required: false },
-      { id: 'LOXRover',           label: 'LOX Rover',            required: false },
-      { id: 'LaunchLandingZone',  label: 'Launch & Landing Zone',required: false },
-      { id: 'HabitationModule',   label: 'Habitation Module',    required: false },
-      { id: 'CommunicationModule',label: 'Communication Module', required: false },
-    ];
+  window.UI_POLL = window.UI_POLL || {
+    runLookupMs: 1000,
+    workflowPollMs: 2000,
+    outputPollMs: 1000,
+    maxWorkflowPolls: 90
+  };
 
-    function initDesNodes() {
-      const grid = document.getElementById('desNodeGrid');
-      if (!grid) return;
-      grid.innerHTML = '';
-      DES_NODES.forEach(node => {
-        const row = document.createElement('div');
-        row.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border-radius:8px;border:1px solid var(--border2);background:rgba(255,255,255,0.02);';
-        row.innerHTML = `
-          <div style="font-size:13px;">${node.label}${node.required ? ' <span style="color:var(--accent);font-size:10px;">required</span>' : ''}</div>
-          <input type="checkbox" id="desNode_${node.id}" ${node.required ? 'checked disabled' : 'checked'}
-            style="width:16px;height:16px;accent-color:var(--accent2);cursor:${node.required ? 'not-allowed' : 'pointer'};">
-        `;
-        grid.appendChild(row);
-      });
-    }
+  const DES_NODES = [
+    { id: 'ISRUPlant', label: 'ISRU Plant', required: true },
+    { id: 'RegolithRover', label: 'Regolith Rover', required: true },
+    { id: 'SolarPowerSystem', label: 'Solar Power System', required: false },
+    { id: 'LOXRover', label: 'LOX Rover', required: false },
+    { id: 'LaunchLandingZone', label: 'Launch & Landing Zone', required: false },
+    { id: 'HabitationModule', label: 'Habitation Module', required: false },
+    { id: 'CommunicationModule', label: 'Communication Module', required: false },
+  ];
 
-    function getDesActiveNodes() {
-      // Map Step 2 SysML active nodes → DES valid node names
-      const SYSML_TO_DES = {
-        'ISRUPlant':         ['ISRUPlant'],
-        'SolarPowerSystem':  ['SolarPowerSystem'],
-        'HabitationModule':  ['HabitationModule'],
-        'LaunchLandingZone': ['LaunchLandingZone'],
-        'Rover':             ['RegolithRover', 'LOXRover'],
-        'Propellant_Depot':  [], // not in DES
-      };
+  function initDesNodes() {
+    const grid = document.getElementById('desNodeGrid');
+    if (!grid) return;
 
-      const DES_VALID = new Set([
-        'ISRUPlant','RegolithRover','SolarPowerSystem',
-        'LOXRover','LaunchLandingZone','HabitationModule','CommunicationModule'
-      ]);
+    grid.innerHTML = '';
+    DES_NODES.forEach(node => {
+      const row = document.createElement('div');
+      row.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border-radius:8px;border:1px solid var(--border2);background:rgba(255,255,255,0.02);';
+      row.innerHTML = `
+        <div style="font-size:13px;">${node.label}${node.required ? ' <span style="color:var(--accent);font-size:10px;">required</span>' : ''}</div>
+        <input type="checkbox" id="desNode_${node.id}" ${node.required ? 'checked disabled' : 'checked'}
+          style="width:16px;height:16px;accent-color:var(--accent2);cursor:${node.required ? 'not-allowed' : 'pointer'};">
+      `;
+      grid.appendChild(row);
+    });
+  }
 
-      // Always required
-      const desNodes = new Set(['ISRUPlant', 'RegolithRover', 'CommunicationModule']);
+  function getDesActiveNodes() {
+    const SYSML_TO_DES = {
+      'ISRUPlant': ['ISRUPlant'],
+      'SolarPowerSystem': ['SolarPowerSystem'],
+      'HabitationModule': ['HabitationModule'],
+      'LaunchLandingZone': ['LaunchLandingZone'],
+      'Rover': ['RegolithRover', 'LOXRover'],
+      'Propellant_Depot': [],
+    };
 
-      // Get active SysML nodes from Step 2
-      const activeSysml = Object.keys(sysmlPartsCache);
-      if (activeSysml.length > 0) {
-        for (const sysmlName of activeSysml) {
-          const mapped = SYSML_TO_DES[sysmlName] || [];
-          mapped.forEach(n => desNodes.add(n));
-        }
-      } else {
-        // No Step 2 data — use all valid nodes
-        DES_VALID.forEach(n => desNodes.add(n));
+    const DES_VALID = new Set([
+      'ISRUPlant', 'RegolithRover', 'SolarPowerSystem',
+      'LOXRover', 'LaunchLandingZone', 'HabitationModule', 'CommunicationModule'
+    ]);
+
+    const desNodes = new Set(['ISRUPlant', 'RegolithRover', 'CommunicationModule']);
+
+    const activeSysml = Object.keys(sysmlPartsCache);
+    if (activeSysml.length > 0) {
+      for (const sysmlName of activeSysml) {
+        const mapped = SYSML_TO_DES[sysmlName] || [];
+        mapped.forEach(n => desNodes.add(n));
       }
-
-      return [...desNodes].filter(n => DES_VALID.has(n));
+    } else {
+      DES_VALID.forEach(n => desNodes.add(n));
     }
 
-    function setDesStatus(msg, color) {
-      const el = document.getElementById('desStatus');
-      if (el) { el.textContent = msg; el.style.color = color || 'var(--text2)'; }
+    return [...desNodes].filter(n => DES_VALID.has(n));
+  }
+
+  function setDesStatus(msg, color) {
+    const el = document.getElementById('desStatus');
+    if (el) {
+      el.textContent = msg;
+      el.style.color = color || 'var(--text2)';
+    }
+  }
+
+  async function triggerDesWorkflow() {
+    const btn = document.getElementById('runDesBtn');
+    const activeNodes = getDesActiveNodes();
+
+    let token = sessionStorage.getItem('gh_pat');
+    if (!token) {
+      token = prompt('Enter your GitHub Personal Access Token (classic):');
+      if (!token) return;
+      sessionStorage.setItem('gh_pat', token);
     }
 
-    async function triggerDesWorkflow() {
-      const btn = document.getElementById('runDesBtn');
-      const activeNodes = getDesActiveNodes();
+    btn.disabled = true;
+    btn.textContent = 'Submitting...';
+    setDesStatus('Dispatching to GitHub Actions...', 'var(--text2)');
 
-      let token = sessionStorage.getItem('gh_pat');
-      if (!token) {
-        token = prompt('Enter your GitHub Personal Access Token (classic):');
-        if (!token) return;
-        sessionStorage.setItem('gh_pat', token);
-      }
+    const inputs = {
+      active_nodes: JSON.stringify(activeNodes),
+      Num_Regolith_Rovers: document.getElementById('desRoverCount').value,
+      Num_ISRU_Plants: document.getElementById('desPlantCount').value,
+      Regolith_Haul_Distance: document.getElementById('desRegDist').value,
+      LOX_Haul_Distance: document.getElementById('desLoxDist').value,
+      Rover_Energy_Consumption: document.getElementById('desRoverEnergy').value,
+      Rover_Travel_Time: document.getElementById('desRoverTravel').value,
+      ISRU_Plant_Processing_Rate: document.getElementById('desProcessRate').value,
+      LOX_Transport_Threshold: document.getElementById('desLoxThresh').value,
+    };
 
-      btn.disabled = true; btn.textContent = '⏳ Submitting…';
-      setDesStatus('Dispatching to GitHub Actions…', 'var(--text2)');
-
-      const inputs = {
-        active_nodes:               JSON.stringify(activeNodes),
-        Num_Regolith_Rovers:        document.getElementById('desRoverCount').value,
-        Num_ISRU_Plants:            document.getElementById('desPlantCount').value,
-        Regolith_Haul_Distance:     document.getElementById('desRegDist').value,
-        LOX_Haul_Distance:          document.getElementById('desLoxDist').value,
-        Rover_Energy_Consumption:   document.getElementById('desRoverEnergy').value,
-        Rover_Travel_Time:          document.getElementById('desRoverTravel').value,
-        ISRU_Plant_Processing_Rate: document.getElementById('desProcessRate').value,
-        LOX_Transport_Threshold:    document.getElementById('desLoxThresh').value,
-      };
-
-      try {
-        const res = await fetch(
-          `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/actions/workflows/run_des.yml/dispatches`,
-          {
-            method: 'POST',
-            headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github+json', 'Content-Type': 'application/json' },
-            body: JSON.stringify({ ref: GH_REF, inputs }),
-          }
-        );
-
-        if (res.status === 204) {
-          btn.textContent = '⏳ Running…';
-          setDesStatus('Workflow triggered. Polling for results (~60s)…', '#7ee0b1');
-          // Get run ID after 4s
-          await new Promise(r => setTimeout(r, 4000));
-          let runId = null;
-          try {
-            const runsRes = await fetch(
-              `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/actions/workflows/run_des.yml/runs?per_page=1`,
-              { headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github+json' } }
-            );
-            if (runsRes.ok) runId = (await runsRes.json()).workflow_runs?.[0]?.id;
-          } catch(e) {}
-          pollDesResults(runId, token);
-        } else {
-          const err = await res.json().catch(() => ({}));
-          if (res.status === 401) sessionStorage.removeItem('gh_pat');
-          setDesStatus(`Error ${res.status}: ${err.message || 'see console'}`, '#ff7a8a');
-          btn.textContent = '▶ Run DES Simulation'; btn.disabled = false;
+    try {
+      const res = await fetch(
+        `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/actions/workflows/run_des.yml/dispatches`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/vnd.github+json',
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ ref: GH_REF, inputs }),
+          cache: 'no-store'
         }
-      } catch(e) {
-        setDesStatus('Network error — see console.', '#ff7a8a');
-        btn.textContent = '▶ Run DES Simulation'; btn.disabled = false;
-      }
-    }
+      );
 
-    function pollDesResults(runId, token) {
-      let attempts = 0;
-      const poll = setInterval(async () => {
-        attempts++;
-        if (attempts > 30) {
-          clearInterval(poll);
-          setDesStatus('Timeout — check Actions tab on GitHub.', '#ffd36e');
-          document.getElementById('runDesBtn').textContent = '▶ Run DES Simulation';
-          document.getElementById('runDesBtn').disabled = false;
-          return;
-        }
+      if (res.status === 204) {
+        btn.textContent = 'Running...';
+        setDesStatus('Workflow triggered. Polling for results...', '#7ee0b1');
+
+        await new Promise(r => setTimeout(r, window.UI_POLL.runLookupMs));
+
+        let runId = null;
         try {
-          if (runId) {
-            const runRes = await fetch(
-              `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/actions/runs/${runId}`,
-              { headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github+json' } }
-            );
-            if (!runRes.ok) return;
-            const run = await runRes.json();
-            console.log(`[DES POLL] ${run.status}/${run.conclusion}`);
-            if (run.status !== 'completed') return;
-            clearInterval(poll);
-            if (run.conclusion !== 'success') {
-              setDesStatus('Workflow failed — check Actions tab.', '#ff7a8a');
-              document.getElementById('runDesBtn').textContent = '▶ Run DES Simulation';
-              document.getElementById('runDesBtn').disabled = false;
-              return;
+          const runsRes = await fetch(
+            `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/actions/workflows/run_des.yml/runs?per_page=1&ts=${Date.now()}`,
+            {
+              headers: {
+                'Authorization': `Bearer ${token}`,
+                'Accept': 'application/vnd.github+json'
+              },
+              cache: 'no-store'
             }
-          } else { clearInterval(poll); }
-          await loadDesResults(token);
-          document.getElementById('runDesBtn').textContent = '▶ Run DES Simulation';
-          document.getElementById('runDesBtn').disabled = false;
-        } catch(e) {}
-      }, 10000);
+          );
+          if (runsRes.ok) runId = (await runsRes.json()).workflow_runs?.[0]?.id;
+        } catch (e) {}
+
+        pollDesResults(runId, token);
+      } else {
+        const err = await res.json().catch(() => ({}));
+        if (res.status === 401) sessionStorage.removeItem('gh_pat');
+        setDesStatus(`Error ${res.status}: ${err.message || 'see console'}`, '#ff7a8a');
+        btn.textContent = 'Run DES Simulation';
+        btn.disabled = false;
+      }
+    } catch (e) {
+      setDesStatus('Network error - see console.', '#ff7a8a');
+      btn.textContent = 'Run DES Simulation';
+      btn.disabled = false;
     }
+  }
 
-    async function loadDesResults(token) {
-      try {
-        const res = await fetch(
-          `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/outputs/des_results.json`,
-          { headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github+json' } }
-        );
-        if (!res.ok) return;
-        const meta = await res.json();
-        const data = JSON.parse(atob(meta.content.replace(/\n/g, '')));
-        renderDesResults(data);
-      } catch(e) { console.error('[DES]', e); }
-    }
+  function pollDesResults(runId, token) {
+    let attempts = 0;
 
-    // ── DES state ─────────────────────────────────────────────────────────
-    let desData = null;
-    let desLogTimes = [];
-
-    function renderDesResults(data) {
-      desData = data;
-
-      if (data.status === 'error') {
-        document.getElementById('desMetricsWrap').innerHTML =
-          `<div style="color:#ff7a8a;padding:12px;grid-column:span 3;">${(data.errors||[]).join('<br>')}</div>`;
-        setDesStatus('Simulation failed — see errors above.', '#ff7a8a');
+    const poll = setInterval(async () => {
+      attempts++;
+      if (attempts > window.UI_POLL.maxWorkflowPolls) {
+        clearInterval(poll);
+        setDesStatus('Timeout - check Actions tab on GitHub.', '#ffd36e');
+        document.getElementById('runDesBtn').textContent = 'Run DES Simulation';
+        document.getElementById('runDesBtn').disabled = false;
         return;
       }
 
-      const activeNodes = data.results?.Sim_Metrics?.Active_Nodes || [];
-      setDesStatus(`✓ Complete · ${activeNodes.join(', ')}`, '#7ee0b1');
+      try {
+        if (runId) {
+          const runRes = await fetch(
+            `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/actions/runs/${runId}?ts=${Date.now()}`,
+            {
+              headers: {
+                'Authorization': `Bearer ${token}`,
+                'Accept': 'application/vnd.github+json'
+              },
+              cache: 'no-store'
+            }
+          );
+          if (!runRes.ok) return;
 
-      // Warnings
-      const warnWrap = document.getElementById('desWarningsWrap');
-      if (data.warnings?.length) {
-        warnWrap.style.display = 'block';
-        warnWrap.innerHTML = `<div style="background:rgba(255,211,74,0.08);border:1px solid rgba(255,211,74,0.3);
-          border-radius:8px;padding:10px;font-size:12px;color:#ffd36e;">
-          ${data.warnings.map(w=>`<div>${w}</div>`).join('')}</div>`;
-      }
+          const run = await runRes.json();
+          console.log(`[DES POLL] ${run.status}/${run.conclusion}`);
 
-      // Setup time slider if log present
-      if (data.log) {
-        desLogTimes = Object.keys(data.log).map(Number).sort((a,b)=>a-b);
-        const maxT = desLogTimes[desLogTimes.length-1] || 60;
-        const slider = document.getElementById('desTimeSlider');
-        if (slider) { slider.max = Math.round(maxT); slider.value = Math.round(maxT); }
-        const label = document.getElementById('desTimeLabel');
-        if (label) label.textContent = `t = ${Math.round(maxT)} hr`;
-        const sliderPanel = document.getElementById('desTimeSliderPanel');
-        if (sliderPanel) sliderPanel.style.display = 'flex';
-        // Render immediately at final time
-        renderDesGraph(data.log, maxT);
-        renderDesMetrics(data.log, maxT, data.results);
-      } else {
-        renderFinalMetrics(data.results);
-      }
-    }
+          if (run.status !== 'completed') return;
 
-    function onDesTimeSlider(t) {
-      document.getElementById('desTimeLabel').textContent = `t = ${t} hr`;
-      if (!desData?.log) return;
-      renderDesGraph(desData.log, Number(t));
-      renderDesMetrics(desData.log, Number(t), desData.results);
-    }
+          clearInterval(poll);
 
-    function getLogAtTime(log, t) {
-      const tNum = Number(t);
-      // Build a map from numeric value to original string key
-      const entries = Object.keys(log).map(k => ({ num: Number(k), key: k })).sort((a,b) => a.num - b.num);
-      let best = entries[0];
-      for (const entry of entries) {
-        if (entry.num <= tNum) best = entry;
-        else break;
-      }
-      return best ? (log[best.key] || {}) : {};
-    }
-
-    // ── Metrics cards matching screenshot ─────────────────────────────────
-    function renderDesMetrics(log, t, results) {
-      const snap = getLogAtTime(log, t);
-      const wrap = document.getElementById('desMetricsWrap');
-      if (!wrap) return;
-
-      let loxAtPlants = 0, energyConsumed = 0, uptime = 0;
-      let battCharge = 500, battCap = 500, roverBattCharge = 100, roverBattCap = 100;
-      let loxAtLZ = 0, peakDemand = 0, thresholdTime = null;
-
-      for (const attrs of Object.values(snap)) {
-        if (attrs.processingRate !== undefined && attrs.LOX_Stored !== undefined) {
-          loxAtPlants += attrs.LOX_Stored;
-          energyConsumed += attrs.total_energy_consumed || 0;
-          uptime += attrs.processing_uptime || 0;
-        }
-        if (attrs.current_power_output !== undefined && attrs.battery_charge !== undefined) {
-          battCharge = attrs.battery_charge;
-          battCap = attrs.battery_capacity || 500;
-        }
-        if (attrs.LOX_Capacity !== undefined) loxAtLZ = attrs.LOX_Stored || 0;
-        if (attrs.rover_type === 'cargo' && (attrs.Name||'').includes('Regolith')) {
-          roverBattCharge = attrs.battery_charge;
-          roverBattCap = attrs.battery_capacity || 100;
-        }
-        if (attrs.current_energy_demand !== undefined) peakDemand = attrs.current_energy_demand;
-      }
-
-      // Derived
-      const roverBattPct = Math.round((roverBattCharge / roverBattCap) * 100);
-      const numPlants = parseInt(desData?.inputs?.Num_ISRU_Plants || 1);
-      const avgUptime = numPlants > 0 ? (uptime / numPlants) : uptime;
-
-      // Find threshold crossing from log
-      for (const [key, snapT] of Object.entries(log)) {
-        if (Number(key) > t) break;
-        for (const attrs of Object.values(snapT)) {
-          if (attrs.LOX_Capacity !== undefined && (attrs.LOX_Stored||0) > 0 && thresholdTime === null) {
-            thresholdTime = Number(key);
+          if (run.conclusion !== 'success') {
+            setDesStatus('Workflow failed - check Actions tab.', '#ff7a8a');
+            document.getElementById('runDesBtn').textContent = 'Run DES Simulation';
+            document.getElementById('runDesBtn').disabled = false;
+            return;
           }
+        } else {
+          clearInterval(poll);
+        }
+
+        await loadDesResults(token);
+        document.getElementById('runDesBtn').textContent = 'Run DES Simulation';
+        document.getElementById('runDesBtn').disabled = false;
+      } catch (e) {}
+    }, window.UI_POLL.workflowPollMs);
+  }
+
+  async function loadDesResults(token) {
+    try {
+      const res = await fetch(
+        `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/outputs/des_results.json?ts=${Date.now()}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/vnd.github+json'
+          },
+          cache: 'no-store'
+        }
+      );
+      if (!res.ok) return;
+
+      const meta = await res.json();
+      const data = JSON.parse(atob(meta.content.replace(/\n/g, '')));
+      renderDesResults(data);
+    } catch (e) {
+      console.error('[DES]', e);
+    }
+  }
+
+  let desData = null;
+  let desLogTimes = [];
+
+  function renderDesResults(data) {
+    desData = data;
+
+    if (data.status === 'error') {
+      document.getElementById('desMetricsWrap').innerHTML =
+        `<div style="color:#ff7a8a;padding:12px;grid-column:span 3;">${(data.errors || []).join('<br>')}</div>`;
+      setDesStatus('Simulation failed - see errors above.', '#ff7a8a');
+      return;
+    }
+
+    const activeNodes = data.results?.Sim_Metrics?.Active_Nodes || [];
+    setDesStatus(`Complete - ${activeNodes.join(', ')}`, '#7ee0b1');
+
+    const warnWrap = document.getElementById('desWarningsWrap');
+    if (data.warnings?.length) {
+      warnWrap.style.display = 'block';
+      warnWrap.innerHTML = `<div style="background:rgba(255,211,74,0.08);border:1px solid rgba(255,211,74,0.3);
+        border-radius:8px;padding:10px;font-size:12px;color:#ffd36e;">
+        ${data.warnings.map(w => `<div>${w}</div>`).join('')}</div>`;
+    }
+
+    if (data.log) {
+      desLogTimes = Object.keys(data.log).map(Number).sort((a, b) => a - b);
+      const maxT = desLogTimes[desLogTimes.length - 1] || 60;
+
+      const slider = document.getElementById('desTimeSlider');
+      if (slider) {
+        slider.max = Math.round(maxT);
+        slider.value = Math.round(maxT);
+      }
+
+      const label = document.getElementById('desTimeLabel');
+      if (label) label.textContent = `t = ${Math.round(maxT)} hr`;
+
+      const sliderPanel = document.getElementById('desTimeSliderPanel');
+      if (sliderPanel) sliderPanel.style.display = 'flex';
+
+      renderDesGraph(data.log, maxT);
+      renderDesMetrics(data.log, maxT, data.results);
+    } else {
+      renderFinalMetrics(data.results);
+    }
+  }
+
+  function onDesTimeSlider(t) {
+    document.getElementById('desTimeLabel').textContent = `t = ${t} hr`;
+    if (!desData?.log) return;
+    renderDesGraph(desData.log, Number(t));
+    renderDesMetrics(desData.log, Number(t), desData.results);
+  }
+
+  function getLogAtTime(log, t) {
+    const tNum = Number(t);
+    const entries = Object.keys(log)
+      .map(k => ({ num: Number(k), key: k }))
+      .sort((a, b) => a.num - b.num);
+
+    let best = entries[0];
+    for (const entry of entries) {
+      if (entry.num <= tNum) best = entry;
+      else break;
+    }
+
+    return best ? (log[best.key] || {}) : {};
+  }
+
+  function renderDesMetrics(log, t, results) {
+    const snap = getLogAtTime(log, t);
+    const wrap = document.getElementById('desMetricsWrap');
+    if (!wrap) return;
+
+    let loxAtPlants = 0, energyConsumed = 0, uptime = 0;
+    let battCharge = 500, battCap = 500, roverBattCharge = 100, roverBattCap = 100;
+    let loxAtLZ = 0, peakDemand = 0, thresholdTime = null;
+
+    for (const attrs of Object.values(snap)) {
+      if (attrs.processingRate !== undefined && attrs.LOX_Stored !== undefined) {
+        loxAtPlants += attrs.LOX_Stored;
+        energyConsumed += attrs.total_energy_consumed || 0;
+        uptime += attrs.processing_uptime || 0;
+      }
+      if (attrs.current_power_output !== undefined && attrs.battery_charge !== undefined) {
+        battCharge = attrs.battery_charge;
+        battCap = attrs.battery_capacity || 500;
+      }
+      if (attrs.LOX_Capacity !== undefined) loxAtLZ = attrs.LOX_Stored || 0;
+      if (attrs.rover_type === 'cargo' && (attrs.Name || '').includes('Regolith')) {
+        roverBattCharge = attrs.battery_charge;
+        roverBattCap = attrs.battery_capacity || 100;
+      }
+      if (attrs.current_energy_demand !== undefined) peakDemand = attrs.current_energy_demand;
+    }
+
+    const roverBattPct = Math.round((roverBattCharge / roverBattCap) * 100);
+    const numPlants = parseInt(desData?.inputs?.Num_ISRU_Plants || 1);
+    const avgUptime = numPlants > 0 ? (uptime / numPlants) : uptime;
+
+    for (const [key, snapT] of Object.entries(log)) {
+      if (Number(key) > t) break;
+      for (const attrs of Object.values(snapT)) {
+        if (attrs.LOX_Capacity !== undefined && (attrs.LOX_Stored || 0) > 0 && thresholdTime === null) {
+          thresholdTime = Number(key);
         }
       }
-
-      // Total LOX = plants + LZ
-      const totalLox = loxAtPlants + loxAtLZ;
-
-      const metrics = [
-        {
-          label: 'TOTAL LOX BY 60 HR',
-          value: `${totalLox.toFixed(1)} kg`,
-          sub: '+0% vs baseline',
-          subColor: '#7ee0b1',
-        },
-        {
-          label: 'PLANT UPTIME',
-          value: `${avgUptime.toFixed(1)} hr`,
-          sub: 'Improved throughput',
-          subColor: '#7ee0b1',
-        },
-        {
-          label: 'ROVER BATTERY RESERVE',
-          value: `${roverBattPct}%`,
-          sub: roverBattPct > 50 ? 'Healthy margin' : 'Low margin',
-          subColor: roverBattPct > 50 ? '#7ee0b1' : '#ff7a8a',
-        },
-        {
-          label: 'THRESHOLD CROSSING',
-          value: thresholdTime !== null ? `${thresholdTime} hr` : '—',
-          sub: 'No shift',
-          subColor: 'var(--text3)',
-        },
-        {
-          label: 'PEAK POWER DEMAND',
-          value: `${peakDemand.toFixed(0)} kW`,
-          sub: peakDemand > 100 ? 'Above supply' : 'Below supply',
-          subColor: peakDemand > 100 ? '#ff7a8a' : '#ffd166',
-        },
-        {
-          label: 'ENERGY CONSUMED',
-          value: `${(energyConsumed/1000).toFixed(1)} MWh`,
-          sub: `${energyConsumed.toFixed(0)} kWh total`,
-          subColor: 'var(--text3)',
-        },
-      ];
-
-      wrap.innerHTML = metrics.map(m => `
-        <div style="border-bottom:1px solid var(--border);padding-bottom:10px;">
-          <div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">${m.label}</div>
-          <div style="font-size:22px;font-weight:700;color:white;line-height:1;">${m.value}</div>
-          <div style="font-size:10px;color:${m.subColor};margin-top:3px;">${m.sub}</div>
-        </div>`).join('');
-
-      // Interpretation text
-      const interp = document.createElement('div');
-      interp.style.cssText = 'margin-top:8px;';
-      interp.innerHTML = `
-        <div style="font-size:10px;color:var(--text3);font-weight:600;margin-bottom:4px;">Interpretation:</div>
-        <div style="font-size:11px;color:var(--text2);line-height:1.5;">
-          At t = ${t} hr, using ${desData?.inputs?.Num_Regolith_Rovers||1} rover(s) and ${numPlants} ISRU plant(s),
-          the system has produced ${totalLox.toFixed(1)} kg LOX total,
-          with ${loxAtLZ.toFixed(1)} kg delivered to the landing zone.
-          Peak power demand is ${peakDemand.toFixed(0)} kW.
-        </div>`;
-      wrap.appendChild(interp);
     }
 
-    // ── Graph with rectangular nodes ──────────────────────────────────────
-    function renderDesGraph(log, t) {
-      const svg = document.getElementById('desGraphSvg');
-      if (!svg) return;
-      const W = svg.clientWidth || svg.parentElement?.clientWidth || 700;
-      const H = svg.clientHeight || 480;
-      svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+    const totalLox = loxAtPlants + loxAtLZ;
 
-      const snap = getLogAtTime(log, t);
-      const activeNodes = desData?.results?.Sim_Metrics?.Active_Nodes || Object.keys(DES_GRAPH_NODES);
+    const metrics = [
+      { label: 'TOTAL LOX BY 60 HR', value: `${totalLox.toFixed(1)} kg`, sub: '+0% vs baseline', subColor: '#7ee0b1' },
+      { label: 'PLANT UPTIME', value: `${avgUptime.toFixed(1)} hr`, sub: 'Improved throughput', subColor: '#7ee0b1' },
+      { label: 'ROVER BATTERY RESERVE', value: `${roverBattPct}%`, sub: roverBattPct > 50 ? 'Healthy margin' : 'Low margin', subColor: roverBattPct > 50 ? '#7ee0b1' : '#ff7a8a' },
+      { label: 'THRESHOLD CROSSING', value: thresholdTime !== null ? `${thresholdTime} hr` : '—', sub: 'No shift', subColor: 'var(--text3)' },
+      { label: 'PEAK POWER DEMAND', value: `${peakDemand.toFixed(0)} kW`, sub: peakDemand > 100 ? 'Above supply' : 'Below supply', subColor: peakDemand > 100 ? '#ff7a8a' : '#ffd166' },
+      { label: 'ENERGY CONSUMED', value: `${(energyConsumed / 1000).toFixed(1)} MWh`, sub: `${energyConsumed.toFixed(0)} kWh total`, subColor: 'var(--text3)' },
+    ];
 
-      // Extract values
-      let loxAtPlants = 0, battPct = 1, roverLoad = 0, loxRoverLoad = 0;
-      let loxAtLZ = 0, numPlants = 1;
-      for (const attrs of Object.values(snap)) {
-        if (attrs.processingRate !== undefined && attrs.LOX_Stored !== undefined) {
-          loxAtPlants += attrs.LOX_Stored; numPlants++;
-        }
-        if (attrs.current_power_output !== undefined && attrs.battery_capacity !== undefined)
-          battPct = (attrs.battery_charge || 500) / (attrs.battery_capacity || 500);
-        if (attrs.rover_type === 'cargo' && (attrs.Name||'').includes('Regolith'))
-          roverLoad = (attrs.current_load || 0) / (attrs.max_capacity || 5000);
-        if (attrs.Name === 'LOX Cargo Rover')
-          loxRoverLoad = (attrs.current_load || 0) / (attrs.max_capacity || 5000);
-        if (attrs.LOX_Capacity !== undefined) loxAtLZ = attrs.LOX_Stored || 0;
+    wrap.innerHTML = metrics.map(m => `
+      <div style="border-bottom:1px solid var(--border);padding-bottom:10px;">
+        <div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">${m.label}</div>
+        <div style="font-size:22px;font-weight:700;color:white;line-height:1;">${m.value}</div>
+        <div style="font-size:10px;color:${m.subColor};margin-top:3px;">${m.sub}</div>
+      </div>`).join('');
+
+    const interp = document.createElement('div');
+    interp.style.cssText = 'margin-top:8px;';
+    interp.innerHTML = `
+      <div style="font-size:10px;color:var(--text3);font-weight:600;margin-bottom:4px;">Interpretation:</div>
+      <div style="font-size:11px;color:var(--text2);line-height:1.5;">
+        At t = ${t} hr, using ${desData?.inputs?.Num_Regolith_Rovers || 1} rover(s) and ${numPlants} ISRU plant(s),
+        the system has produced ${totalLox.toFixed(1)} kg LOX total,
+        with ${loxAtLZ.toFixed(1)} kg delivered to the landing zone.
+        Peak power demand is ${peakDemand.toFixed(0)} kW.
+      </div>`;
+    wrap.appendChild(interp);
+  }
+
+  function renderDesGraph(log, t) {
+    const svg = document.getElementById('desGraphSvg');
+    if (!svg) return;
+
+    const W = svg.clientWidth || svg.parentElement?.clientWidth || 700;
+    const H = svg.clientHeight || 480;
+    svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+
+    const snap = getLogAtTime(log, t);
+    const activeNodes = desData?.results?.Sim_Metrics?.Active_Nodes || Object.keys(DES_GRAPH_NODES || {});
+
+    let loxAtPlants = 0, battPct = 1, roverLoad = 0, loxRoverLoad = 0;
+    let loxAtLZ = 0, numPlants = 1;
+
+    for (const attrs of Object.values(snap)) {
+      if (attrs.processingRate !== undefined && attrs.LOX_Stored !== undefined) {
+        loxAtPlants += attrs.LOX_Stored;
+        numPlants++;
       }
-      numPlants = Math.max(numPlants - 1, 1);
-      const loxPct = Math.min(loxAtPlants / (numPlants * 120), 1);
-
-      const BG = '#0d1117';
-      let html = `<rect width="${W}" height="${H}" fill="${BG}"/>`;
-
-      // Node positions (relative)
-      const NW = 110, NH = 60, R = 10;
-      const nodes = {
-        RegolithRover:      { x: 0.18, y: 0.22 },
-        ISRUPlant:          { x: 0.45, y: 0.40 },
-        SolarPowerSystem:   { x: 0.22, y: 0.72 },
-        LOXRover:           { x: 0.65, y: 0.50 },
-        LaunchLandingZone:  { x: 0.85, y: 0.22 },
-        HabitationModule:   { x: 0.50, y: 0.80 },
-        CommunicationModule:{ x: 0.78, y: 0.80 },
-      };
-
-      // Draw edges first
-      const edges = [
-        { from:'RegolithRover', to:'ISRUPlant',          type:'regolith', color:'#4cc9f0', w: 1.5 + roverLoad*8 },
-        { from:'ISRUPlant',     to:'LOXRover',           type:'lox',      color:'#ffd166', w: 1.5 + loxPct*7 },
-        { from:'LOXRover',      to:'LaunchLandingZone',  type:'lox',      color:'#f4a261', w: 1.5 + loxRoverLoad*7 },
-        { from:'SolarPowerSystem',to:'ISRUPlant',        type:'power',    color:'#7ee0b1', w: 1 + battPct*3 },
-        { from:'SolarPowerSystem',to:'HabitationModule', type:'power',    color:'#7ee0b1', w: 1 + battPct*2 },
-        { from:'SolarPowerSystem',to:'CommunicationModule',type:'power',  color:'#7ee0b1', w: 1 + battPct*2 },
-        { from:'SolarPowerSystem',to:'LaunchLandingZone',type:'power',    color:'#7ee0b1', w: 1 + battPct*2 },
-        { from:'SolarPowerSystem',to:'LOXRover',         type:'power',    color:'#7ee0b1', w: 1, dash: '4,6' },
-      ];
-
-      for (const e of edges) {
-        if (!activeNodes.includes(e.from) || !activeNodes.includes(e.to)) continue;
-        const n1 = nodes[e.from], n2 = nodes[e.to];
-        const x1 = n1.x * W, y1 = n1.y * H;
-        const x2 = n2.x * W, y2 = n2.y * H;
-        const dashAttr = e.dash ? `stroke-dasharray="${e.dash}"` : '';
-        html += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"
-          stroke="${e.color}" stroke-width="${e.w.toFixed(1)}" stroke-opacity="0.8"
-          stroke-linecap="round" ${dashAttr}/>`;
+      if (attrs.current_power_output !== undefined && attrs.battery_capacity !== undefined) {
+        battPct = (attrs.battery_charge || 500) / (attrs.battery_capacity || 500);
       }
-
-      // Draw rectangular nodes
-      const nodeLabels = {
-        RegolithRover:       { l1:'Regolith Rover', l2: () => `Count: ${desData?.inputs?.Num_Regolith_Rovers||1} | Load: ${roverLoad*5000|0} kg | Haul: ${desData?.inputs?.Regolith_Haul_Distance||1} km`, stroke:'#4cc9f0' },
-        ISRUPlant:           { l1:'ISRU Plant',     l2: () => `Plants: ${numPlants} | LOX: ${loxAtPlants.toFixed(1)} kg @ t=${t} hr`, stroke:'#7ee0b1' },
-        SolarPowerSystem:    { l1:'Solar + Power',  l2: () => `${(battPct*100).toFixed(0)}% battery | ${(battPct*100).toFixed(0)} kW available`, stroke:'#ffd166' },
-        LOXRover:            { l1:'LOX Rover',      l2: () => loxRoverLoad > 0 ? `Load: ${(loxRoverLoad*5000).toFixed(0)} kg` : 'Idle', stroke:'#f4a261' },
-        LaunchLandingZone:   { l1:'LZ / Depot',     l2: () => `${loxAtLZ.toFixed(1)} kg stored | ${desData?.inputs?.LOX_Haul_Distance||1} km`, stroke:'#4cc9f0' },
-        HabitationModule:    { l1:'Habitat',        l2: () => '5 kW', stroke:'#a78bfa' },
-        CommunicationModule: { l1:'Comms',          l2: () => '2 kW', stroke:'#a78bfa' },
-      };
-
-      for (const [id, pos] of Object.entries(nodes)) {
-        if (!activeNodes.includes(id)) continue;
-        const cx = pos.x * W, cy = pos.y * H;
-        const x = cx - NW/2, y = cy - NH/2;
-        const info = nodeLabels[id];
-        const strokeW = id === 'RegolithRover' || id === 'ISRUPlant' ? 2.5 : 1.5;
-        html += `<rect x="${x}" y="${y}" width="${NW}" height="${NH}" rx="${R}" ry="${R}"
-          fill="#111827" stroke="${info.stroke}" stroke-width="${strokeW}"/>`;
-        html += `<text x="${cx}" y="${cy - 8}" text-anchor="middle" dominant-baseline="middle"
-          fill="white" font-size="13" font-weight="700">${info.l1}</text>`;
-        html += `<text x="${cx}" y="${cy + 10}" text-anchor="middle" dominant-baseline="middle"
-          fill="#8899aa" font-size="9">${info.l2()}</text>`;
+      if (attrs.rover_type === 'cargo' && (attrs.Name || '').includes('Regolith')) {
+        roverLoad = (attrs.current_load || 0) / (attrs.max_capacity || 5000);
       }
-
-      svg.innerHTML = html;
+      if (attrs.Name === 'LOX Cargo Rover') {
+        loxRoverLoad = (attrs.current_load || 0) / (attrs.max_capacity || 5000);
+      }
+      if (attrs.LOX_Capacity !== undefined) {
+        loxAtLZ = attrs.LOX_Stored || 0;
+      }
     }
 
-    function renderFinalMetrics(r) {
-      const wrap = document.getElementById('desMetricsWrap');
-      if (!wrap || !r) return;
-      const ft = r.ISRU_Plants?.Fleet_Totals;
-      const sol = r.Solar_Power_System;
-      const lz = r.Landing_Zone;
-      const cards = [
-        { label: 'Total LOX Production', value: ft ? `${ft.Total_LOX_Production_kg} kg` : '—', color: '#7ee0b1', icon: '🧊' },
-        { label: 'LOX at Landing Zone',  value: lz ? `${lz.LOX_Stored_kg} kg` : '—',           color: '#4cc9f0', icon: '🚀' },
-        { label: 'Energy Consumed',       value: ft ? `${ft.Energy_Consumed_kWh} kWh` : '—',    color: '#ffd166', icon: '⚡' },
-        { label: 'Solar Generated',       value: sol ? `${sol.Total_Generated_kWh} kWh` : '—',  color: '#a78bfa', icon: '☀️' },
-        { label: 'ISRU Plants',           value: ft ? `${ft.Num_Plants}` : '—',                  color: 'var(--text2)', icon: '🏭' },
-        { label: 'Sim Duration',          value: '60 hr',                                         color: 'var(--text2)', icon: '🕐' },
-      ];
-      wrap.innerHTML = cards.map(c => `
-        <div style="background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:14px;">
-          <div style="font-size:18px;margin-bottom:6px;">${c.icon}</div>
-          <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">${c.label}</div>
-          <div style="font-size:20px;font-weight:700;color:${c.color};">${c.value}</div>
-        </div>`).join('');
+    numPlants = Math.max(numPlants - 1, 1);
+    const loxPct = Math.min(loxAtPlants / (numPlants * 120), 1);
+
+    const BG = '#0d1117';
+    let html = `<rect width="${W}" height="${H}" fill="${BG}"/>`;
+
+    const NW = 110, NH = 60, R = 10;
+    const nodes = {
+      RegolithRover: { x: 0.18, y: 0.22 },
+      ISRUPlant: { x: 0.45, y: 0.40 },
+      SolarPowerSystem: { x: 0.22, y: 0.72 },
+      LOXRover: { x: 0.65, y: 0.50 },
+      LaunchLandingZone: { x: 0.85, y: 0.22 },
+      HabitationModule: { x: 0.50, y: 0.80 },
+      CommunicationModule: { x: 0.78, y: 0.80 },
+    };
+
+    const edges = [
+      { from: 'RegolithRover', to: 'ISRUPlant', type: 'regolith', color: '#4cc9f0', w: 1.5 + roverLoad * 8 },
+      { from: 'ISRUPlant', to: 'LOXRover', type: 'lox', color: '#ffd166', w: 1.5 + loxPct * 7 },
+      { from: 'LOXRover', to: 'LaunchLandingZone', type: 'lox', color: '#f4a261', w: 1.5 + loxRoverLoad * 7 },
+      { from: 'SolarPowerSystem', to: 'ISRUPlant', type: 'power', color: '#7ee0b1', w: 1 + battPct * 3 },
+      { from: 'SolarPowerSystem', to: 'HabitationModule', type: 'power', color: '#7ee0b1', w: 1 + battPct * 2 },
+      { from: 'SolarPowerSystem', to: 'CommunicationModule', type: 'power', color: '#7ee0b1', w: 1 + battPct * 2 },
+      { from: 'SolarPowerSystem', to: 'LaunchLandingZone', type: 'power', color: '#7ee0b1', w: 1 + battPct * 2 },
+      { from: 'SolarPowerSystem', to: 'LOXRover', type: 'power', color: '#7ee0b1', w: 1, dash: '4,6' },
+    ];
+
+    for (const e of edges) {
+      if (!activeNodes.includes(e.from) || !activeNodes.includes(e.to)) continue;
+
+      const n1 = nodes[e.from];
+      const n2 = nodes[e.to];
+      const x1 = n1.x * W, y1 = n1.y * H;
+      const x2 = n2.x * W, y2 = n2.y * H;
+      const dashAttr = e.dash ? `stroke-dasharray="${e.dash}"` : '';
+
+      html += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"
+        stroke="${e.color}" stroke-width="${e.w.toFixed(1)}" stroke-opacity="0.8"
+        stroke-linecap="round" ${dashAttr}/>`;
     }
-  </script>
+
+    const nodeLabels = {
+      RegolithRover: { l1: 'Regolith Rover', l2: () => `Count: ${desData?.inputs?.Num_Regolith_Rovers || 1} | Load: ${roverLoad * 5000 | 0} kg | Haul: ${desData?.inputs?.Regolith_Haul_Distance || 1} km`, stroke: '#4cc9f0' },
+      ISRUPlant: { l1: 'ISRU Plant', l2: () => `Plants: ${numPlants} | LOX: ${loxAtPlants.toFixed(1)} kg @ t=${t} hr`, stroke: '#7ee0b1' },
+      SolarPowerSystem: { l1: 'Solar + Power', l2: () => `${(battPct * 100).toFixed(0)}% battery | ${(battPct * 100).toFixed(0)} kW available`, stroke: '#ffd166' },
+      LOXRover: { l1: 'LOX Rover', l2: () => loxRoverLoad > 0 ? `Load: ${(loxRoverLoad * 5000).toFixed(0)} kg` : 'Idle', stroke: '#f4a261' },
+      LaunchLandingZone: { l1: 'LZ / Depot', l2: () => `${loxAtLZ.toFixed(1)} kg stored | ${desData?.inputs?.LOX_Haul_Distance || 1} km`, stroke: '#4cc9f0' },
+      HabitationModule: { l1: 'Habitat', l2: () => '5 kW', stroke: '#a78bfa' },
+      CommunicationModule: { l1: 'Comms', l2: () => '2 kW', stroke: '#a78bfa' },
+    };
+
+    for (const [id, pos] of Object.entries(nodes)) {
+      if (!activeNodes.includes(id)) continue;
+
+      const cx = pos.x * W, cy = pos.y * H;
+      const x = cx - NW / 2, y = cy - NH / 2;
+      const info = nodeLabels[id];
+      const strokeW = id === 'RegolithRover' || id === 'ISRUPlant' ? 2.5 : 1.5;
+
+      html += `<rect x="${x}" y="${y}" width="${NW}" height="${NH}" rx="${R}" ry="${R}"
+        fill="#111827" stroke="${info.stroke}" stroke-width="${strokeW}"/>`;
+      html += `<text x="${cx}" y="${cy - 8}" text-anchor="middle" dominant-baseline="middle"
+        fill="white" font-size="13" font-weight="700">${info.l1}</text>`;
+      html += `<text x="${cx}" y="${cy + 10}" text-anchor="middle" dominant-baseline="middle"
+        fill="#8899aa" font-size="9">${info.l2()}</text>`;
+    }
+
+    svg.innerHTML = html;
+  }
+
+  function renderFinalMetrics(r) {
+    const wrap = document.getElementById('desMetricsWrap');
+    if (!wrap || !r) return;
+
+    const ft = r.ISRU_Plants?.Fleet_Totals;
+    const sol = r.Solar_Power_System;
+    const lz = r.Landing_Zone;
+
+    const cards = [
+      { label: 'Total LOX Production', value: ft ? `${ft.Total_LOX_Production_kg} kg` : '—', color: '#7ee0b1', icon: '🧊' },
+      { label: 'LOX at Landing Zone', value: lz ? `${lz.LOX_Stored_kg} kg` : '—', color: '#4cc9f0', icon: '🚀' },
+      { label: 'Energy Consumed', value: ft ? `${ft.Energy_Consumed_kWh} kWh` : '—', color: '#ffd166', icon: '⚡' },
+      { label: 'Solar Generated', value: sol ? `${sol.Total_Generated_kWh} kWh` : '—', color: '#a78bfa', icon: '☀️' },
+      { label: 'ISRU Plants', value: ft ? `${ft.Num_Plants}` : '—', color: 'var(--text2)', icon: '🏭' },
+      { label: 'Sim Duration', value: '60 hr', color: 'var(--text2)', icon: '🕐' },
+    ];
+
+    wrap.innerHTML = cards.map(c => `
+      <div style="background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:14px;">
+        <div style="font-size:18px;margin-bottom:6px;">${c.icon}</div>
+        <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">${c.label}</div>
+        <div style="font-size:20px;font-weight:700;color:${c.color};">${c.value}</div>
+      </div>`).join('');
+  }
+</script>
+
 
 
 
