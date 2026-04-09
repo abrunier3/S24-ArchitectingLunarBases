@@ -1801,33 +1801,9 @@
 
       <div class="grid-2">
         <div class="panel">
-          <div class="panel-title">Activate Systems (Note: Dummy Elements Displayed for Demo Only) </div>
+          <div class="panel-title">Activate Systems</div>
+          <div class="mini-note" style="margin-bottom:12px;">Run Graph first to load modules from SysML. You can then toggle which ones to activate.</div>
           <div class="system-grid" id="systemGrid"></div>
-
-
-
-          <div class="summary-bar">
-            <div class="metric">
-              <div class="metric-label">Active Systems</div>
-              <div class="metric-value" id="activeSystemsMetric">5</div>
-              <div class="metric-sub">Assets currently available to the DES</div>
-            </div>
-            <div class="metric">
-              <div class="metric-label">Network Edges</div>
-              <div class="metric-value" id="networkEdgesMetric">8</div>
-              <div class="metric-sub">Potential operational interactions</div>
-            </div>
-            <div class="metric">
-              <div class="metric-label">Feasible Plans</div>
-              <div class="metric-value" id="planCountMetric">3</div>
-              <div class="metric-sub">Dummy DES outputs ready for screening</div>
-            </div>
-            <div class="metric">
-              <div class="metric-label">Placeholder</div>
-              <div class="metric-value" id="missionScoreMetric">78</div>
-              <div class="metric-sub">Placeholder</div>
-            </div>
-          </div>
 
           <!-- Run Graph button -->
           <div style="margin-top:16px; display:flex; align-items:center; gap:14px; flex-wrap:wrap;">
@@ -2024,16 +2000,8 @@
 
 <BODY>
 <script>
-  const systems = [
-    { id: 'lander', name: 'Lander', meta: 'Entry point for cargo / crew', active: true, type: 'logistics' },
-    { id: 'habitat', name: 'Habitat', meta: 'Crew support and shelter', active: true, type: 'support' },
-    { id: 'power', name: 'Power Grid', meta: 'Primary surface distribution', active: true, type: 'support' },
-    { id: 'isru', name: 'ISRU Plant', meta: 'Resource extraction and processing', active: true, type: 'production' },
-    { id: 'depot', name: 'Propellant Depot', meta: 'Storage and dispatch node', active: true, type: 'logistics' },
-    { id: 'rover', name: 'Rover Fleet', meta: 'Surface mobility and transfer', active: true, type: 'transport' },
-    { id: 'reactor', name: 'Nuclear Reactor', meta: 'High-stability power source', active: false, type: 'support' },
-    { id: 'rail', name: 'Train System', meta: 'Bulk haul surface logistics', active: false, type: 'transport' }
-  ];
+  // Systems populated dynamically from SysML graph result
+  const systems = [];
 
   const graphPositions = {
     lander: { x: 110, y: 110 },
@@ -2184,6 +2152,42 @@ function buildAssemblyTreeFromActiveSystems() {
   function renderSystems() {
     const wrap = document.getElementById('systemGrid');
     wrap.innerHTML = '';
+
+    // If SysML graph has run, use those nodes instead of hardcoded list
+    const sysmlNodes = Object.keys(sysmlPartsCache);
+    if (sysmlNodes.length > 0) {
+      // Build/update systems array from SysML parts
+      sysmlNodes.forEach(name => {
+        const part = sysmlPartsCache[name];
+        if (!systems.find(s => s.id === name)) {
+          systems.push({
+            id: name,
+            name: name,
+            meta: part?.description || `${part?.ports?.length || 0} port(s)`,
+            active: true,
+            type: 'sysml'
+          });
+        }
+      });
+      // Remove systems not in SysML
+      systems.length = 0;
+      sysmlNodes.forEach(name => {
+        const part = sysmlPartsCache[name];
+        systems.push({
+          id: name,
+          name: name,
+          meta: `${part?.ports?.length || 0} port(s) · from SysML`,
+          active: true,
+          type: 'sysml'
+        });
+      });
+    }
+
+    if (systems.length === 0) {
+      wrap.innerHTML = '<div style="color:var(--text3);font-size:12px;padding:12px 0;">Run Graph to load modules from SysML.</div>';
+      return;
+    }
+
     systems.forEach(sys => {
       const card = document.createElement('div');
       card.className = 'sys-card' + (sys.active ? ' active' : '');
@@ -2197,7 +2201,6 @@ function buildAssemblyTreeFromActiveSystems() {
       wrap.appendChild(card);
     });
     updateTopMetrics();
-    // renderOpsGraph() intentionally removed — graph only renders after Run Graph
   }
 
 function toggleSystem(id) {
@@ -3659,6 +3662,8 @@ window.addEventListener('load',()=>setTimeout(initPolarMap,200));
 
       renderLiveGraph(data);
       if (data.parts) populateStep3(data);
+      // Refresh system cards from SysML nodes
+      renderSystems();
       console.log('[GRAPH RESULT]', data);
     }
 
