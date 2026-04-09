@@ -17,6 +17,7 @@ The hub gives access to both tools:
 ## 🛰 S24 Pipeline Interface (NEW)
 
 👉 **[Open ECLIPSE DEE Pipeline](https://abrunier3.github.io/S24-ArchitectingLunarBases/index.html)**
+👉V2 **[Open ECLIPSE DEE Pipeline](https://abrunier3.github.io/S24-ArchitectingLunarBases/index_UP.html)**
 
 The full end-to-end pipeline interface. Covers:
 - **Step 1** — Build Requirements (MSOSA)
