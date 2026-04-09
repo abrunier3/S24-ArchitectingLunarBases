@@ -1,14 +1,13 @@
 {
-  "written_at": 1775758957608,
+  "written_at": 1775759000462,
   "active_nodes": [
-    "LaunchLandingZone",
-    "HabitationModule",
-    "SolarPowerSystem",
     "ISRUPlant",
+    "LaunchLandingZone",
     "Propellant_Depot",
-    "Rover"
+    "Rover",
+    "SolarPowerSystem"
   ],
-  "active_nodes_count": 6,
+  "active_nodes_count": 5,
   "connections": [
     {
       "name": "ISRUPlantToRover",
@@ -63,19 +62,6 @@
       }
     },
     {
-      "name": "PowerGenToHabMod",
-      "type": "PowerMovement",
-      "flow": "Power",
-      "from": {
-        "part": "SolarPowerSystem",
-        "port": "Power_PowerPortOutToHabitationModule"
-      },
-      "to": {
-        "part": "HabitationModule",
-        "port": "Habitation_PowerPortIn"
-      }
-    },
-    {
       "name": "PowerGenToLaunch",
       "type": "PowerMovement",
       "flow": "Power",
@@ -103,50 +89,6 @@
     }
   ],
   "parts": {
-    "HabitationModule": {
-      "id": "urn:S24_PIPELINE:part:HabitationModule:001",
-      "dimensions": {
-        "size_m": {
-          "length": 20.0,
-          "width": 10.0,
-          "height": 8.0
-        },
-        "metersPerUnit": 1,
-        "upAxis": "Z"
-      },
-      "transform": {
-        "position_m": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "rotation_deg": [
-          0.0,
-          0.0,
-          0.0
-        ]
-      },
-      "attributes": {
-        "constantPowerRate": 5.0,
-        "totalEnergyConsumed": 0.0,
-        "HabitationModule_volume_m3": 1600.0
-      },
-      "materialRef": null,
-      "ports": [
-        {
-          "name": "Habitation_PowerPortIn",
-          "direction": [
-            "in"
-          ],
-          "items": [
-            "PowerIn"
-          ]
-        }
-      ],
-      "metadata": {
-        "geometryRef": "assets/geom/HabitationModule_geom.usda"
-      }
-    },
     "ISRUPlant": {
       "id": "urn:S24_PIPELINE:part:ISRUPlant:001",
       "dimensions": {
