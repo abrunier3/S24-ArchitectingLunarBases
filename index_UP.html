@@ -2194,6 +2194,18 @@ function toggleSystem(id) {
   sys.active = !sys.active;
   renderSystems();
   buildAssemblyTreeFromActiveSystems();
+  // Re-render live graph filtered to active nodes only
+  if (window._lastGraphData) {
+    const activeIds = new Set(systems.filter(s => s.active).map(s => s.id));
+    const filtered = {
+      ...window._lastGraphData,
+      active_nodes: window._lastGraphData.active_nodes.filter(n => activeIds.has(n)),
+      connections: (window._lastGraphData.connections || []).filter(c =>
+        activeIds.has(c.from?.part) && activeIds.has(c.to?.part)
+      ),
+    };
+    renderLiveGraph(filtered);
+  }
 }
 
   function renderOpsGraph() {
@@ -3656,6 +3668,7 @@ window.addEventListener('load',()=>setTimeout(initPolarMap,200));
       );
 
       renderLiveGraph(data);
+      window._lastGraphData = data;
       if (data.parts) populateStep3(data);
       // Refresh system cards from SysML nodes
       renderSystems();
