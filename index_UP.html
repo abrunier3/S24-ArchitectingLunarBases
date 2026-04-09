@@ -2851,15 +2851,15 @@ iframe{
       const pos = latLonToVec3(site.lat, site.lon, 1.0);
 
       // Pin sphere
-      const pinGeo = new THREE.SphereGeometry(0.025, 8, 8);
+      const pinGeo = new THREE.SphereGeometry(1, 8, 8);
       const pinMat = new THREE.MeshBasicMaterial({ color: hexToThreeColor(scoreColor(site.score)) });
       const pin    = new THREE.Mesh(pinGeo, pinMat);
       pin.position.copy(pos);
-      pin.userData = { siteId: site.id, baseColor: scoreColor(site.score) };
+      pin.userData = { siteId: site.id, baseColor: scoreColor(site.score), basePos: pos.clone() };
 
       // Halo ring
-      const haloGeo = new THREE.RingGeometry(0.032, 0.042, 16);
-      const haloMat = new THREE.MeshBasicMaterial({ color: hexToThreeColor(scoreColor(site.score)), side: THREE.DoubleSide, transparent: true, opacity: 0.5 });
+      const haloGeo = new THREE.RingGeometry(1.3, 1.7, 16);
+      const haloMat = new THREE.MeshBasicMaterial({ color: hexToThreeColor(scoreColor(site.score)), side: THREE.DoubleSide, transparent: true, opacity: 0.4 });
       const halo    = new THREE.Mesh(haloGeo, haloMat);
       halo.position.copy(pos.clone().multiplyScalar(1.001));
       halo.lookAt(pos.clone().multiplyScalar(2));
@@ -2889,12 +2889,18 @@ iframe{
     canvas.addEventListener('click', e => { if (!upIsDragging) checkClick(); });
     canvas.addEventListener('wheel',  e => {
       e.preventDefault();
-      upCamera.position.z = Math.max(1.5, Math.min(6, upCamera.position.z + e.deltaY * 0.005));
+      upCamera.position.z = Math.max(1.1, Math.min(8, upCamera.position.z + e.deltaY * 0.004));
     }, { passive: false });
 
     // Animate
     (function animate() {
       requestAnimationFrame(animate);
+      // Keep pins at constant screen size regardless of zoom
+      const pinSize = upCamera.position.z * 0.012;
+      upPinMeshes.forEach(p => {
+        const isSelected = upSelectedSite && p.userData.siteId === upSelectedSite.id;
+        p.scale.setScalar(isSelected ? pinSize * 1.6 : pinSize);
+      });
       upRenderer.render(upScene, upCamera);
     })();
 
@@ -2952,9 +2958,9 @@ iframe{
 
     // Highlight selected pin
     upPinMeshes.forEach(p => {
-      const base = p.userData.baseColor;
-      p.material.color.set(p.userData.siteId === siteId ? 0xffffff : hexToThreeColor(base));
-      p.scale.setScalar(p.userData.siteId === siteId ? 1.5 : 1.0);
+      p.material.color.set(p.userData.siteId === siteId
+        ? new THREE.Color(0xffffff)
+        : hexToThreeColor(p.userData.baseColor));
     });
 
     const card = document.getElementById('upDetailCard');
