@@ -2209,7 +2209,6 @@ function toggleSystem(id) {
   sys.active = !sys.active;
   renderSystems();
   buildAssemblyTreeFromActiveSystems();
-  generatePlans();
 }
 
   function renderOpsGraph() {
@@ -3516,6 +3515,13 @@ window.addEventListener('load',()=>setTimeout(initPolarMap,200));
     const GH_REF   = "main";
 
     // ⚠️  À COMPLÉTER si besoin : mapping HTML id → nom exact dans le SysML
+    // All known SysML node names — sent when no graph has run yet
+    const ALL_SYSML_NODES = [
+      "LaunchLandingZone", "HabitationModule", "SolarPowerSystem",
+      "ISRUPlant", "Propellant_Depot", "Rover"
+    ];
+
+    // Legacy mapping (kept for toggleSystem compatibility)
     const NODE_NAME_MAP = {
       "lander":  "LaunchLandingZone",
       "habitat": "HabitationModule",
@@ -3535,13 +3541,17 @@ window.addEventListener('load',()=>setTimeout(initPolarMap,200));
     async function triggerGraphWorkflow() {
       const btn = document.getElementById('runGraphBtn');
 
-      const activeSysmlNames = systems
-        .filter(s => s.active)
-        .map(s => NODE_NAME_MAP[s.id])
-        .filter(Boolean);
+      // If systems already loaded from SysML, use active ones; otherwise send all known nodes
+      let activeSysmlNames;
+      if (systems.length > 0) {
+        activeSysmlNames = systems.filter(s => s.active).map(s => s.id);
+      } else {
+        // First run — send all known SysML nodes, graph will return what's in the file
+        activeSysmlNames = ALL_SYSML_NODES;
+      }
 
       if (activeSysmlNames.length === 0) {
-        setGraphStatus('No active nodes mapped to SysML.', '#ff7a8a');
+        setGraphStatus('No active nodes. Toggle at least one module on.', '#ff7a8a');
         return;
       }
 
