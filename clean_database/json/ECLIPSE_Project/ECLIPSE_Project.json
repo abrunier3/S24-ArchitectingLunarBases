@@ -2,12 +2,9 @@
   "metadata": {
     "package": "ECLIPSE_LSP1",
     "num_parts": 9,
-    "num_connections": 4,
+    "num_connections": 9,
     "validation_errors": [
-      "Invalid interface format: {'name': 'ISRUPlantToRover', 'type': 'LOXMovement', 'flow': 'LOX', 'from': 'LSP1.LOXRover.LOXRover_LOXPortInOut', 'to': 'LSP1.ISRUPlant.ISRU_LOXPortOut'}",
-      "Invalid interface format: {'name': 'RoverToPropellantDepot', 'type': 'LOXMovement', 'flow': 'LOX', 'from': 'LSP1.LOXRover.LOXRover_LOXPortInOut', 'to': 'LSP1.PropellantDepot.Propellant_LOXPortIn'}",
-      "Invalid interface format: {'name': 'PowerGenToISRUPlant', 'type': 'PowerMovement', 'flow': 'Power', 'from': 'LSP1.SolarPowerSystem.Power_PowerPortOutToISRUPlant', 'to': 'LSP1.ISRUPlant.ISRU_PowerPortIn'}",
-      "Invalid interface format: {'name': 'PowerGenToHabMod', 'type': 'PowerMovement', 'flow': 'Power', 'from': 'LSP1.SolarPowerSystem.Power_PowerPortOutToHabitationModule', 'to': 'LSP1.HabitationModule.Habitation_PowerPortIn'}"
+      "Direction mismatch: LOXRover.LOXRover_LOXPortInOut -> ISRUPlant.ISRU_LOXPortOut"
     ]
   },
   "parts": [
@@ -544,12 +541,12 @@
       "type": "LOXMovement",
       "flow": "LOX",
       "from": {
-        "part": "LSP1",
-        "port": "LOXRover.LOXRover_LOXPortInOut"
+        "part": "LOXRover",
+        "port": "LOXRover_LOXPortInOut"
       },
       "to": {
-        "part": "LSP1",
-        "port": "ISRUPlant.ISRU_LOXPortOut"
+        "part": "ISRUPlant",
+        "port": "ISRU_LOXPortOut"
       }
     },
     {
@@ -557,12 +554,25 @@
       "type": "LOXMovement",
       "flow": "LOX",
       "from": {
-        "part": "LSP1",
-        "port": "LOXRover.LOXRover_LOXPortInOut"
+        "part": "LOXRover",
+        "port": "LOXRover_LOXPortInOut"
       },
       "to": {
-        "part": "LSP1",
-        "port": "PropellantDepot.Propellant_LOXPortIn"
+        "part": "PropellantDepot",
+        "port": "Propellant_LOXPortIn"
+      }
+    },
+    {
+      "name": "PowerGenToPropellant",
+      "type": "PowerMovement",
+      "flow": "Power",
+      "from": {
+        "part": "SolarPowerSystem",
+        "port": "Power_PowerPortOutToPropellantDepot"
+      },
+      "to": {
+        "part": "PropellantDepot",
+        "port": "Propellant_PowerPortIn"
       }
     },
     {
@@ -570,12 +580,12 @@
       "type": "PowerMovement",
       "flow": "Power",
       "from": {
-        "part": "LSP1",
-        "port": "SolarPowerSystem.Power_PowerPortOutToISRUPlant"
+        "part": "SolarPowerSystem",
+        "port": "Power_PowerPortOutToISRUPlant"
       },
       "to": {
-        "part": "LSP1",
-        "port": "ISRUPlant.ISRU_PowerPortIn"
+        "part": "ISRUPlant",
+        "port": "ISRU_PowerPortIn"
       }
     },
     {
@@ -583,12 +593,64 @@
       "type": "PowerMovement",
       "flow": "Power",
       "from": {
-        "part": "LSP1",
-        "port": "SolarPowerSystem.Power_PowerPortOutToHabitationModule"
+        "part": "SolarPowerSystem",
+        "port": "Power_PowerPortOutToHabitationModule"
       },
       "to": {
-        "part": "LSP1",
-        "port": "HabitationModule.Habitation_PowerPortIn"
+        "part": "HabitationModule",
+        "port": "Habitation_PowerPortIn"
+      }
+    },
+    {
+      "name": "PowerGenToLaunch",
+      "type": "PowerMovement",
+      "flow": "Power",
+      "from": {
+        "part": "SolarPowerSystem",
+        "port": "Power_PowerPortOutToLaunchLandingZone"
+      },
+      "to": {
+        "part": "LaunchLandingZone",
+        "port": "LaunchZone_PowerPortIn"
+      }
+    },
+    {
+      "name": "ISRUExcavationToRegolithRover",
+      "type": "RegolithMovement",
+      "flow": "Regolith",
+      "from": {
+        "part": "ISRUExcavation",
+        "port": "Excavation_RegolithPortOut"
+      },
+      "to": {
+        "part": "RegolithRover",
+        "port": "RegolithRover_RegolithPortInOut"
+      }
+    },
+    {
+      "name": "RegolithRoverToISRUPlant",
+      "type": "RegolithMovement",
+      "flow": "Regolith",
+      "from": {
+        "part": "RegolithRover",
+        "port": "RegolithRover_RegolithPortInOut"
+      },
+      "to": {
+        "part": "ISRUPlant",
+        "port": "ISRU_RegolithPortIn"
+      }
+    },
+    {
+      "name": "PowerGenToISRUExcavation",
+      "type": "PowerMovement",
+      "flow": "Power",
+      "from": {
+        "part": "SolarPowerSystem",
+        "port": "Power_PowerPortOutToISRUExcavation"
+      },
+      "to": {
+        "part": "ISRUExcavation",
+        "port": "Excavation_PowerPortIn"
       }
     }
   ]
