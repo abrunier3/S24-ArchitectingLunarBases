@@ -9,6 +9,7 @@ def parse_sysml(sysml_text: str) -> Model:
     '''
 
     sysml_text = _normalize_multiline_attributes(sysml_text)
+    sysml_text = _normalize_multiline_interfaces(sysml_text)
 
     model = Model()
     current_stack: List[PartNode] = []
@@ -78,7 +79,7 @@ def parse_sysml(sysml_text: str) -> Model:
             continue
 
         m = re.match(
-            r"interface\s+(\w+)\s*:\s*([\w:]+)\s+connect\s+([\w\.]+)\s+to\s+([\w\.]+);",
+            r"interface\s+(\w+)\s*:\s*([\w:]+)\s+connect\s+([\w\.:]+)\s+to\s+([\w\.:]+)\s*;",
             line
         )
         if m:
@@ -154,6 +155,33 @@ def _normalize_multiline_attributes(text: str) -> str:
                 buffer = stripped
             else:
                 new_lines.append(line)
+
+    if buffer:
+        new_lines.append(buffer)
+
+    return "\n".join(new_lines)
+
+
+def _normalize_multiline_interfaces(text: str) -> str:
+    lines = text.splitlines()
+    new_lines = []
+    buffer = ""
+
+    for line in lines:
+        stripped = _strip_comment(line).strip()
+
+        if buffer:
+            buffer += " " + stripped
+            if ";" in stripped:
+                new_lines.append(buffer)
+                buffer = ""
+            continue
+
+        if stripped.startswith("interface ") and "{" not in stripped and ";" not in stripped:
+            buffer = stripped
+            continue
+
+        new_lines.append(line)
 
     if buffer:
         new_lines.append(buffer)
