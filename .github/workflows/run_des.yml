@@ -6,7 +6,11 @@ on:
       active_nodes:
         description: 'JSON array of DES active nodes'
         required: true
-        default: '["ISRUPlant","RegolithRover","SolarPowerSystem","LOXRover","LaunchLandingZone","HabitationModule","CommunicationModule"]'
+        default: '[]'
+      slider_values:
+        description: 'JSON object of DES slider values'
+        required: false
+        default: '{}'
       Num_Regolith_Rovers:
         description: 'Number of regolith rovers'
         required: true
@@ -70,6 +74,7 @@ jobs:
       - name: Run DES simulation
         env:
           ACTIVE_NODES:               ${{ github.event.inputs.active_nodes }}
+          SLIDER_VALUES_JSON:         ${{ github.event.inputs.slider_values }}
           NUM_REGOLITH_ROVERS:        ${{ github.event.inputs.Num_Regolith_Rovers }}
           NUM_ISRU_PLANTS:            ${{ github.event.inputs.Num_ISRU_Plants }}
           REGOLITH_HAUL_DISTANCE:     ${{ github.event.inputs.Regolith_Haul_Distance }}
@@ -84,21 +89,83 @@ jobs:
           import json, os, time, sys
           sys.path.insert(0, '.')
 
-          from S24.DES_pipeline_version.ISRU_DES_Model_V5_2_PV import run_scenario, check_scenario_validity
-
           active_nodes = json.loads(os.environ['ACTIVE_NODES'])
+          if not active_nodes:
+              try:
+                  with open("outputs/graph.json") as f:
+                      graph_data = json.load(f)
+                  active_nodes = graph_data.get("active_nodes") or []
+                  print(f"[DES] Loaded {len(active_nodes)} active node(s) from outputs/graph.json.")
+              except FileNotFoundError:
+                  print("[DES] No active_nodes input and no outputs/graph.json found.")
+
+          slider_values = json.loads(os.environ.get("SLIDER_VALUES_JSON") or "{}")
+          if not isinstance(slider_values, dict):
+              slider_values = {}
+
+          def slider_number(name, env_name, cast=float):
+              raw_value = slider_values.get(name, os.environ[env_name])
+              return cast(raw_value)
 
           slider_value_dict = {
               "active_nodes":               active_nodes,
-              "Num_Regolith_Rovers":        int(os.environ['NUM_REGOLITH_ROVERS']),
-              "Num_ISRU_Plants":            int(os.environ['NUM_ISRU_PLANTS']),
-              "Regolith_Haul_Distance":     float(os.environ['REGOLITH_HAUL_DISTANCE']),
-              "LOX_Haul_Distance":          float(os.environ['LOX_HAUL_DISTANCE']),
-              "Rover_Energy_Consumption":   float(os.environ['ROVER_ENERGY_CONSUMPTION']),
-              "Rover_Travel_Time":          float(os.environ['ROVER_TRAVEL_TIME']),
-              "ISRU_Plant_Processing_Rate": float(os.environ['ISRU_PLANT_PROCESSING_RATE']),
-              "LOX_Transport_Threshold":    float(os.environ['LOX_TRANSPORT_THRESHOLD']),
+              "Num_Regolith_Rovers":        slider_number("Num_Regolith_Rovers", "NUM_REGOLITH_ROVERS", int),
+              "Num_ISRU_Plants":            slider_number("Num_ISRU_Plants", "NUM_ISRU_PLANTS", int),
+              "Regolith_Haul_Distance":     slider_number("Regolith_Haul_Distance", "REGOLITH_HAUL_DISTANCE"),
+              "LOX_Haul_Distance":          slider_number("LOX_Haul_Distance", "LOX_HAUL_DISTANCE"),
+              "Rover_Energy_Consumption":   slider_number("Rover_Energy_Consumption", "ROVER_ENERGY_CONSUMPTION"),
+              "Rover_Travel_Time":          slider_number("Rover_Travel_Time", "ROVER_TRAVEL_TIME"),
+              "ISRU_Plant_Processing_Rate": slider_number("ISRU_Plant_Processing_Rate", "ISRU_PLANT_PROCESSING_RATE"),
+              "LOX_Transport_Threshold":    slider_number("LOX_Transport_Threshold", "LOX_TRANSPORT_THRESHOLD"),
           }
+          slider_value_dict.update({
+              key: value for key, value in slider_values.items()
+              if key not in slider_value_dict
+          })
+
+          def normalize_des_asset_attributes():
+              """
+              Compatibility bridge for the modular SysML model:
+              excavationEnergyCoeff now belongs to ISRUExcavation, while the
+              current DES ISRUPlant class still reads it from ISRUPlant.
+              """
+              from pathlib import Path
+
+              asset_dirs = list(Path("clean_database/json").glob("*/assets"))
+              if not asset_dirs:
+                  print("[DES] Asset normalization skipped: no clean_database/json/*/assets directory found.")
+                  return
+
+              normalized = 0
+              for assets_dir in asset_dirs:
+                  plant_path = assets_dir / "ISRUPlant.json"
+                  excavation_path = assets_dir / "ISRUExcavation.json"
+
+                  if not plant_path.exists() or not excavation_path.exists():
+                      continue
+
+                  with plant_path.open() as f:
+                      plant = json.load(f)
+                  with excavation_path.open() as f:
+                      excavation = json.load(f)
+
+                  plant_attrs = plant.setdefault("attributes", {})
+                  excavation_attrs = excavation.get("attributes", {})
+
+                  if "excavationEnergyCoeff" not in plant_attrs and "excavationEnergyCoeff" in excavation_attrs:
+                      plant_attrs["excavationEnergyCoeff"] = excavation_attrs["excavationEnergyCoeff"]
+                      with plant_path.open("w") as f:
+                          json.dump(plant, f, indent=2)
+                      normalized += 1
+
+              if normalized:
+                  print(f"[DES] Copied excavationEnergyCoeff into {normalized} ISRUPlant asset(s) for DES compatibility.")
+              else:
+                  print("[DES] No ISRUPlant asset required excavationEnergyCoeff normalization.")
+
+          normalize_des_asset_attributes()
+
+          from S24.DES_pipeline_version.ISRU_DES_Model_V5_2_PV import run_scenario, check_scenario_validity
 
           # Validate before running
           print("[DES] Checking scenario validity...")
