@@ -102,38 +102,51 @@ def build_connections_json(model: Model) -> List[Dict[str, Any]]:
 
 def validate_connections(model: Model) -> List[str]:
     errors = []
+    part_index: Dict[str, PartNode] = {}
+
+    def walk(part: PartNode) -> None:
+        part_index[part.name] = part
+        for child_name, child in part.children.items():
+            if child_name.lower().endswith("dims"):
+                continue
+            walk(child)
+
+    for top in model.parts.values():
+        walk(top)
 
     for iface in model.interfaces:
-        src = iface["from"].split(".")
-        dst = iface["to"].split(".")
+        src = _split_endpoint(iface["from"])
+        dst = _split_endpoint(iface["to"])
 
-        if len(src) != 2 or len(dst) != 2:
+        src_part = src["part"]
+        src_port = src["port"]
+        dst_part = dst["part"]
+        dst_port = dst["port"]
+
+        if not src_part or not src_port or not dst_part or not dst_port:
             errors.append(f"Invalid interface format: {iface}")
             continue
 
-        src_part, src_port = src
-        dst_part, dst_port = dst
-
-        if src_part not in model.parts:
+        if src_part not in part_index:
             errors.append(f"Unknown source part: {src_part}")
             continue
 
-        if dst_part not in model.parts:
+        if dst_part not in part_index:
             errors.append(f"Unknown target part: {dst_part}")
             continue
 
-        sp = model.parts[src_part].ports.get(src_port)
-        dp = model.parts[dst_part].ports.get(dst_port)
+        sp = part_index[src_part].ports.get(src_port)
+        dp = part_index[dst_part].ports.get(dst_port)
 
         if not sp:
-            errors.append(f"Missing source port: {src_port}")
+            errors.append(f"Missing source port: {src_part}.{src_port}")
         if not dp:
-            errors.append(f"Missing target port: {dst_port}")
+            errors.append(f"Missing target port: {dst_part}.{dst_port}")
 
         if sp and dp:
             if "out" not in sp["direction"] or "in" not in dp["direction"]:
                 errors.append(
-                    f"Direction mismatch: {src_part}.{src_port} → {dst_part}.{dst_port}"
+                    f"Direction mismatch: {src_part}.{src_port} -> {dst_part}.{dst_port}"
                 )
 
     return errors
@@ -174,11 +187,19 @@ def _convert_numeric_with_units(name: str, value: float) -> Tuple[str, float]:
 
 def _split_endpoint(endpoint: str) -> Dict[str, str]:
     """
-    "Rover.RoverFleet_LOXPortInOut" →
+    "LSP1::Rover.RoverFleet_LOXPortInOut" ->
     {"part": "Rover", "port": "RoverFleet_LOXPortInOut"}
     """
-    if "." not in endpoint:
-        return {"part": endpoint, "port": None}
+    if not endpoint:
+        return {"part": None, "port": None}
 
-    part, port = endpoint.split(".", 1)
-    return {"part": part, "port": port}
+    normalized = endpoint.replace("::", ".")
+    tokens = [token for token in normalized.split(".") if token]
+
+    if len(tokens) >= 2:
+        return {"part": tokens[-2], "port": tokens[-1]}
+
+    if len(tokens) == 1:
+        return {"part": tokens[0], "port": None}
+
+    return {"part": None, "port": None}
