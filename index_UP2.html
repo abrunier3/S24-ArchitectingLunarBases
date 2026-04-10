@@ -2780,21 +2780,171 @@ let pmCanvas, pmCtx, pmW, pmH, pmImg;
 let upSelectedSite = null, upCompareMode = false, upCompareSite1 = null, upCompareSite2 = null;
 let upHoveredSite = null;
 
-// NASA LRO polar mosaic (hosted in the repo — fallback to generated terrain if not found)
-const POLAR_IMG_URL = 'https://raw.githubusercontent.com/abrunier3/S24-ArchitectingLunarBases/main/database/images/lunar_south_pole.png';
+const MOON_RADIUS_M = 1737400;
+const POLAR_RASTER_BOUNDS_M = {
+  xmin: -75000,
+  xmax: 75000,
+  ymin: -75000,
+  ymax: 75000
+};
+const POLAR_IMG_SOURCES = [
+  './clean_database/LDEM_Image.jpeg',
+  './clean_database/images/LDEM_Image.jpeg',
+  './clean_database/images/lunar_south_pole.jpeg',
+  './clean_database/images/lunar_south_pole.png',
+  'https://raw.githubusercontent.com/abrunier3/S24-ArchitectingLunarBases/main/clean_database/LDEM_Image.jpeg',
+  'https://raw.githubusercontent.com/abrunier3/S24-ArchitectingLunarBases/main/clean_database/images/LDEM_Image.jpeg',
+  'https://raw.githubusercontent.com/abrunier3/S24-ArchitectingLunarBases/main/clean_database/images/lunar_south_pole.jpeg',
+  'https://raw.githubusercontent.com/abrunier3/S24-ArchitectingLunarBases/main/clean_database/images/lunar_south_pole.png'
+];
+
+function getProjectedSiteBounds() {
+  const projected = UP_SITES.map(site => projectSouthPole(site.lat, site.lon));
+  const xs = projected.map(p => p.x);
+  const ys = projected.map(p => p.y);
+  const minX = Math.min(...xs);
+  const maxX = Math.max(...xs);
+  const minY = Math.min(...ys);
+  const maxY = Math.max(...ys);
+  const width = maxX - minX;
+  const height = maxY - minY;
+  const span = Math.max(width, height) * 1.18;
+  const half = span / 2;
+  const cx = (minX + maxX) / 2;
+  const cy = (minY + maxY) / 2;
+
+  return {
+    xmin: cx - half,
+    xmax: cx + half,
+    ymin: cy - half,
+    ymax: cy + half,
+    cx,
+    cy,
+    span
+  };
+}
+
+const POLAR_VIEW_BOUNDS_M = getProjectedSiteBounds();
+
+function projectSouthPole(lat, lon) {
+  const latRad = lat * Math.PI / 180;
+  const lonRad = lon * Math.PI / 180;
+  const rho = 2 * MOON_RADIUS_M * Math.tan(Math.PI / 4 + latRad / 2);
+
+  return {
+    x: rho * Math.sin(lonRad),
+    y: -rho * Math.cos(lonRad)
+  };
+}
+
+function projectedToCanvas(xM, yM) {
+  const cx = pmW / 2 + pmPan.x;
+  const cy = pmH / 2 + pmPan.y;
+  const scale = Math.min(pmW, pmH) / POLAR_VIEW_BOUNDS_M.span;
+  const xLocal = xM - POLAR_VIEW_BOUNDS_M.cx;
+  const yLocal = yM - POLAR_VIEW_BOUNDS_M.cy;
+
+  return {
+    x: cx + xLocal * scale * pmZoom,
+    y: cy + yLocal * scale * pmZoom
+  };
+}
 
 function latLonToCanvas(lat, lon) {
-  // Distance from south pole (lat=-90 = center)
-  const d = (90 + lat); // 0..~10 degrees from pole
-  const scale = Math.min(pmW, pmH) * 0.42;
-  const r = (d / 8) * scale;
-  const angle = (lon - 90) * Math.PI / 180; // rotate so 0° lon = top
-  const cx = pmW/2 + pmPan.x;
-  const cy = pmH/2 + pmPan.y;
+  const projected = projectSouthPole(lat, lon);
+  return projectedToCanvas(projected.x, projected.y);
+}
+
+function getPolarImageFrame() {
+  const topLeft = projectedToCanvas(POLAR_VIEW_BOUNDS_M.xmin, POLAR_VIEW_BOUNDS_M.ymin);
+  const bottomRight = projectedToCanvas(POLAR_VIEW_BOUNDS_M.xmax, POLAR_VIEW_BOUNDS_M.ymax);
   return {
-    x: cx + r * pmZoom * Math.cos(angle),
-    y: cy + r * pmZoom * Math.sin(angle),
+    x: topLeft.x,
+    y: topLeft.y,
+    w: bottomRight.x - topLeft.x,
+    h: bottomRight.y - topLeft.y
   };
+}
+
+function drawPolarRaster() {
+  const frame = getPolarImageFrame();
+
+  if (pmImg && pmImg.complete && pmImg.naturalWidth > 0) {
+    pmCtx.save();
+    pmCtx.globalAlpha = 0.94;
+    pmCtx.drawImage(pmImg, frame.x, frame.y, frame.w, frame.h);
+    pmCtx.restore();
+    return;
+  }
+
+  const gradient = pmCtx.createRadialGradient(
+    pmW / 2 + pmPan.x,
+    pmH / 2 + pmPan.y,
+    0,
+    pmW / 2 + pmPan.x,
+    pmH / 2 + pmPan.y,
+    Math.max(frame.w, frame.h) * 0.5
+  );
+  gradient.addColorStop(0, 'rgba(104, 181, 255, 0.22)');
+  gradient.addColorStop(0.35, 'rgba(79, 209, 197, 0.12)');
+  gradient.addColorStop(0.7, 'rgba(229, 231, 95, 0.12)');
+  gradient.addColorStop(1, 'rgba(12, 17, 25, 0)');
+  pmCtx.fillStyle = gradient;
+  pmCtx.fillRect(frame.x, frame.y, frame.w, frame.h);
+}
+
+function drawPolarGrid() {
+  if (pmImg && pmImg.complete && pmImg.naturalWidth > 0) return;
+
+  const center = projectedToCanvas(0, 0);
+  const ringLats = [-89.5, -89, -88.5, -88, -87.5, -87, -86, -85];
+
+  pmCtx.save();
+  pmCtx.strokeStyle = 'rgba(255,255,255,0.08)';
+  pmCtx.fillStyle = 'rgba(255,255,255,0.22)';
+  pmCtx.lineWidth = 1;
+
+  ringLats.forEach(lat => {
+    const ringPoint = projectSouthPole(lat, 0);
+    const ringRadius = Math.abs(projectedToCanvas(ringPoint.x, ringPoint.y).y - center.y);
+    pmCtx.beginPath();
+    pmCtx.arc(center.x, center.y, ringRadius, 0, Math.PI * 2);
+    pmCtx.stroke();
+
+    pmCtx.font = '10px monospace';
+    pmCtx.fillText(`${lat}°`, center.x + 6, center.y - ringRadius + 12);
+  });
+
+  for (let lon = -180; lon < 180; lon += 30) {
+    const edge = projectSouthPole(-87.5, lon);
+    const edgePt = projectedToCanvas(edge.x, edge.y);
+    pmCtx.beginPath();
+    pmCtx.moveTo(center.x, center.y);
+    pmCtx.lineTo(edgePt.x, edgePt.y);
+    pmCtx.stroke();
+  }
+
+  pmCtx.strokeStyle = 'rgba(255,255,255,0.22)';
+  pmCtx.lineWidth = 1.5;
+  const rim = projectSouthPole(-87.5, 0);
+  const rimRadius = Math.abs(projectedToCanvas(rim.x, rim.y).y - center.y);
+  pmCtx.beginPath();
+  pmCtx.arc(center.x, center.y, rimRadius, 0, Math.PI * 2);
+  pmCtx.stroke();
+  pmCtx.restore();
+}
+
+function tryLoadPolarImage(index = 0) {
+  if (index >= POLAR_IMG_SOURCES.length) {
+    drawMap();
+    return;
+  }
+
+  pmImg = new Image();
+  pmImg.crossOrigin = 'anonymous';
+  pmImg.onload = drawMap;
+  pmImg.onerror = () => tryLoadPolarImage(index + 1);
+  pmImg.src = POLAR_IMG_SOURCES[index];
 }
 
 function drawMap() {
@@ -2805,52 +2955,8 @@ function drawMap() {
   pmCtx.fillStyle = '#0c1119';
   pmCtx.fillRect(0, 0, pmW, pmH);
 
-  const cx = pmW/2 + pmPan.x, cy = pmH/2 + pmPan.y;
-  const r = Math.min(pmW, pmH) * 0.42 * pmZoom;
-
-  // Draw image or fallback terrain
-  if (pmImg && pmImg.complete && pmImg.naturalWidth > 0) {
-    pmCtx.save();
-    pmCtx.beginPath();
-    pmCtx.arc(cx, cy, r * 1.06, 0, Math.PI*2);
-    pmCtx.clip();
-    pmCtx.drawImage(pmImg, cx-r*1.06, cy-r*1.06, r*2.12, r*2.12);
-    pmCtx.restore();
-  } else {
-    // Fallback: synthetic terrain rings
-    for (let i = 0; i <= 8; i++) {
-      const ri = r * (i/8);
-      const g = Math.round(20 + i*12);
-      pmCtx.beginPath();
-      pmCtx.arc(cx, cy, ri, 0, Math.PI*2);
-      pmCtx.strokeStyle = `rgba(${g+30},${g+40},${g+60},0.3)`;
-      pmCtx.lineWidth = 1;
-      pmCtx.stroke();
-    }
-    // Radial lines (longitude)
-    for (let lon = 0; lon < 360; lon += 30) {
-      const angle = (lon - 90) * Math.PI / 180;
-      pmCtx.beginPath();
-      pmCtx.moveTo(cx, cy);
-      pmCtx.lineTo(cx + r * 1.05 * Math.cos(angle), cy + r * 1.05 * Math.sin(angle));
-      pmCtx.strokeStyle = 'rgba(255,255,255,0.06)';
-      pmCtx.lineWidth = 0.5;
-      pmCtx.stroke();
-    }
-    // Moon circle
-    pmCtx.beginPath();
-    pmCtx.arc(cx, cy, r, 0, Math.PI*2);
-    pmCtx.strokeStyle = 'rgba(255,255,255,0.15)';
-    pmCtx.lineWidth = 1;
-    pmCtx.stroke();
-    // Lat rings labels
-    [2,4,6].forEach(deg => {
-      const rl = r*(deg/8);
-      pmCtx.font = '9px monospace';
-      pmCtx.fillStyle = 'rgba(255,255,255,0.2)';
-      pmCtx.fillText(`-${90-deg}°`, cx+4, cy-rl+3);
-    });
-  }
+  drawPolarRaster();
+  drawPolarGrid();
 
   // Draw site pins
   UP_SITES.forEach(site => {
@@ -2901,12 +3007,7 @@ function initPolarMap() {
   pmW = pmCanvas.offsetWidth; pmH = pmCanvas.offsetHeight;
   pmCanvas.width = pmW; pmCanvas.height = pmH;
 
-  // Try loading NASA image
-  pmImg = new Image();
-  pmImg.crossOrigin = 'anonymous';
-  pmImg.onload = drawMap;
-  pmImg.onerror = drawMap; // fallback
-  pmImg.src = POLAR_IMG_URL;
+  tryLoadPolarImage();
 
   // Mouse events
   pmCanvas.addEventListener('wheel', e => {
