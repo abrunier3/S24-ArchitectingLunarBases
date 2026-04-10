@@ -89,15 +89,76 @@ jobs:
           import json, os, time, sys
           sys.path.insert(0, '.')
 
-          active_nodes = json.loads(os.environ['ACTIVE_NODES'])
-          if not active_nodes:
+          sysml_active_nodes = json.loads(os.environ['ACTIVE_NODES'])
+          if not sysml_active_nodes:
               try:
                   with open("outputs/graph.json") as f:
                       graph_data = json.load(f)
-                  active_nodes = graph_data.get("active_nodes") or []
-                  print(f"[DES] Loaded {len(active_nodes)} active node(s) from outputs/graph.json.")
+                  sysml_active_nodes = graph_data.get("active_nodes") or []
+                  print(f"[DES] Loaded {len(sysml_active_nodes)} active node(s) from outputs/graph.json.")
               except FileNotFoundError:
                   print("[DES] No active_nodes input and no outputs/graph.json found.")
+
+          def normalize_name(value):
+              return "".join(ch for ch in str(value or "").lower() if ch.isalnum())
+
+          def load_sysml_part(node_name):
+              from pathlib import Path
+
+              for assets_dir in Path("clean_database/json").glob("*/assets"):
+                  asset_path = assets_dir / f"{node_name}.json"
+                  if asset_path.exists():
+                      with asset_path.open() as f:
+                          return json.load(f)
+              return {}
+
+          def infer_des_engine_nodes(sysml_nodes):
+              """
+              The current DES engine has a fixed vocabulary. Infer those engine
+              nodes from SysML modules/capabilities so check_scenario_validity()
+              does not receive raw modules it cannot recognize.
+              """
+              engine_nodes = set()
+
+              for node in sysml_nodes:
+                  part = load_sysml_part(node)
+                  attrs = list((part.get("attributes") or {}).keys())
+                  ports = []
+                  for port in part.get("ports") or []:
+                      ports.extend([
+                          port.get("name"),
+                          *(port.get("items") or []),
+                          *(port.get("direction") or []),
+                      ])
+
+                  text = normalize_name(" ".join([node, *attrs, *filter(None, ports)]))
+
+                  if "isru" in text and ("processingrate" in text or "loxstored" in text or "regolithportin" in text):
+                      engine_nodes.add("ISRUPlant")
+                  if "regolith" in text and "rover" in text:
+                      engine_nodes.add("RegolithRover")
+                  if "lox" in text and "rover" in text:
+                      engine_nodes.add("LOXRover")
+                  if (
+                      "poweroutput" in text
+                      or "totalenergygenerated" in text
+                      or "powerportout" in text
+                      or "powerout" in text
+                      or "solarpower" in text
+                  ):
+                      engine_nodes.add("SolarPowerSystem")
+                  if "habitation" in text or "habitat" in text:
+                      engine_nodes.add("HabitationModule")
+                  if "communication" in text or "comm" in text:
+                      engine_nodes.add("CommunicationModule")
+                  if "launch" in text or "landing" in text or "depot" in text or "loxcapacity" in text:
+                      engine_nodes.add("LaunchLandingZone")
+
+              return sorted(engine_nodes)
+
+          active_nodes = infer_des_engine_nodes(sysml_active_nodes)
+          print(f"[DES] SysML active nodes: {sysml_active_nodes}")
+          print(f"[DES] DES engine active nodes: {active_nodes}")
 
           slider_values = json.loads(os.environ.get("SLIDER_VALUES_JSON") or "{}")
           if not isinstance(slider_values, dict):
@@ -109,6 +170,7 @@ jobs:
 
           slider_value_dict = {
               "active_nodes":               active_nodes,
+              "sysml_active_nodes":         sysml_active_nodes,
               "Num_Regolith_Rovers":        slider_number("Num_Regolith_Rovers", "NUM_REGOLITH_ROVERS", int),
               "Num_ISRU_Plants":            slider_number("Num_ISRU_Plants", "NUM_ISRU_PLANTS", int),
               "Regolith_Haul_Distance":     slider_number("Regolith_Haul_Distance", "REGOLITH_HAUL_DISTANCE"),
@@ -178,6 +240,8 @@ jobs:
               result = {
                   "written_at": int(time.time() * 1000),
                   "status": "error",
+                  "sysml_active_nodes": sysml_active_nodes,
+                  "des_active_nodes": active_nodes,
                   "errors": errors,
                   "warnings": warnings,
               }
@@ -197,6 +261,8 @@ jobs:
                   "status": "success",
                   "warnings": warnings,
                   "inputs": slider_value_dict,
+                  "sysml_active_nodes": sysml_active_nodes,
+                  "des_active_nodes": active_nodes,
                   "results": sim_results,
                   "log": sim_log,
               }
