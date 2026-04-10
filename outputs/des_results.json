@@ -1,11 +1,17 @@
 {
-  "written_at": 1775855029911,
+  "written_at": 1775855990987,
   "status": "success",
-  "warnings": [
-    "[WARNING] Unrecognized active_nodes entry/entries will be ignored: ['ISRUExcavation', 'PropellantDepot']"
-  ],
+  "warnings": [],
   "inputs": {
     "active_nodes": [
+      "HabitationModule",
+      "ISRUPlant",
+      "LOXRover",
+      "LaunchLandingZone",
+      "RegolithRover",
+      "SolarPowerSystem"
+    ],
+    "sysml_active_nodes": [
       "HabitationModule",
       "ISRUPlant",
       "LaunchLandingZone",
@@ -21,12 +27,30 @@
     "LOX_Haul_Distance": 1.0,
     "Rover_Energy_Consumption": 0.00035,
     "Rover_Travel_Time": 5.0,
-    "ISRU_Plant_Processing_Rate": 2300.0,
+    "ISRU_Plant_Processing_Rate": 1600.0,
     "LOX_Transport_Threshold": 100.0
   },
+  "sysml_active_nodes": [
+    "HabitationModule",
+    "ISRUPlant",
+    "LaunchLandingZone",
+    "PropellantDepot",
+    "LOXRover",
+    "SolarPowerSystem",
+    "RegolithRover",
+    "ISRUExcavation"
+  ],
+  "des_active_nodes": [
+    "HabitationModule",
+    "ISRUPlant",
+    "LOXRover",
+    "LaunchLandingZone",
+    "RegolithRover",
+    "SolarPowerSystem"
+  ],
   "results": {
     "Sim_Metrics": {
-      "Simulation_Run_Time": 0.0029,
+      "Simulation_Run_Time": 0.0032,
       "Active_Nodes": [
         "HabitationModule",
         "ISRUPlant",
@@ -40,7 +64,7 @@
       "ISRU_Plant_1": {
         "LOX_Stored_kg": 10.11,
         "Energy_Consumed_kWh": 3358.82,
-        "Total_Operational_Hours": 19.13,
+        "Total_Operational_Hours": 27.5,
         "Regolith_Received_kg": 44000,
         "Total_LOX_Production_kg": 111.23
       },
@@ -48,7 +72,7 @@
         "Num_Plants": 1,
         "LOX_Stored_kg": 10.11,
         "Energy_Consumed_kWh": 3358.82,
-        "Total_Operational_Hours": 19.13,
+        "Total_Operational_Hours": 27.5,
         "Regolith_Received_kg": 44000,
         "Total_LOX_Production_kg": 111.23
       }
@@ -224,7 +248,7 @@
     "0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 2300.0,
+        "processingRate": 1600.0,
         "regHeadGrade": 0.1,
         "LOX_Stored": 0.0,
         "total_energy_consumed": 0.0,
@@ -304,7 +328,7 @@
     "1.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 2300.0,
+        "processingRate": 1600.0,
         "regHeadGrade": 0.1,
         "LOX_Stored": 0.0,
         "total_energy_consumed": 0.0,
@@ -384,7 +408,7 @@
     "2.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 2300.0,
+        "processingRate": 1600.0,
         "regHeadGrade": 0.1,
         "LOX_Stored": 0.0,
         "total_energy_consumed": 0.0,
@@ -464,7 +488,7 @@
     "3.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 2300.0,
+        "processingRate": 1600.0,
         "regHeadGrade": 0.1,
         "LOX_Stored": 0.0,
         "total_energy_consumed": 0.0,
@@ -544,7 +568,7 @@
     "4.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 2300.0,
+        "processingRate": 1600.0,
         "regHeadGrade": 0.1,
         "LOX_Stored": 0.0,
         "total_energy_consumed": 0.0,
@@ -624,7 +648,7 @@
     "5.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 2300.0,
+        "processingRate": 1600.0,
         "regHeadGrade": 0.1,
         "LOX_Stored": 0.0,
         "total_energy_consumed": 0.0,
@@ -704,7 +728,7 @@
     "6.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 2300.0,
+        "processingRate": 1600.0,
         "regHeadGrade": 0.1,
         "LOX_Stored": 10.11160806802452,
         "total_energy_consumed": 237.2406742425153,
@@ -715,7 +739,7 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 1.7391304347826086,
+        "processing_uptime": 2.5,
         "total_LOX_production": 10.11160806802452,
         "regolith_recieved": 4000
       },
@@ -784,7 +808,7 @@
     "7.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 2300.0,
+        "processingRate": 1600.0,
         "regHeadGrade": 0.1,
         "LOX_Stored": 10.11160806802452,
         "total_energy_consumed": 240.3752727436029,
@@ -795,7 +819,7 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 1.7391304347826086,
+        "processing_uptime": 2.5,
         "total_LOX_production": 10.11160806802452,
         "regolith_recieved": 4000
       },
@@ -864,7 +888,7 @@
     "8.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 2300.0,
+        "processingRate": 1600.0,
         "regHeadGrade": 0.1,
         "LOX_Stored": 10.11160806802452,
         "total_energy_consumed": 243.5098712446905,
@@ -875,7 +899,7 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 1.7391304347826086,
+        "processing_uptime": 2.5,
         "total_LOX_production": 10.11160806802452,
         "regolith_recieved": 4000
       },
@@ -944,7 +968,7 @@
     "9.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 2300.0,
+        "processingRate": 1600.0,
         "regHeadGrade": 0.1,
         "LOX_Stored": 10.11160806802452,
         "total_energy_consumed": 246.64446974577808,
@@ -955,7 +979,7 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 1.7391304347826086,
+        "processing_uptime": 2.5,
         "total_LOX_production": 10.11160806802452,
         "regolith_recieved": 4000
       },
@@ -1024,7 +1048,7 @@
     "10.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 2300.0,
+        "processingRate": 1600.0,
         "regHeadGrade": 0.1,
         "LOX_Stored": 10.11160806802452,
         "total_energy_consumed": 249.77906824686568,
@@ -1035,7 +1059,7 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 1.7391304347826086,
+        "processing_uptime": 2.5,
         "total_LOX_production": 10.11160806802452,
         "regolith_recieved": 4000
       },
@@ -1104,7 +1128,7 @@
     "11.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 2300.0,
+        "processingRate": 1600.0,
         "regHeadGrade": 0.1,
         "LOX_Stored": 20.22321613604904,
         "total_energy_consumed": 490.15434099046854,
@@ -1115,7 +1139,7 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 3.4782608695652173,
+        "processing_uptime": 5.0,
         "total_LOX_production": 20.22321613604904,
         "regolith_recieved": 8000
       },
@@ -1184,7 +1208,7 @@
     "12.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 2300.0,
+        "processingRate": 1600.0,
         "regHeadGrade": 0.1,
         "LOX_Stored": 20.22321613604904,
         "total_energy_consumed": 496.42353799264373,
@@ -1195,7 +1219,7 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 3.4782608695652173,
+        "processing_uptime": 5.0,
         "total_LOX_production": 20.22321613604904,
         "regolith_recieved": 8000
       },
@@ -1264,7 +1288,7 @@
     "13.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 2300.0,
+        "processingRate": 1600.0,
         "regHeadGrade": 0.1,
         "LOX_Stored": 20.22321613604904,
         "total_energy_consumed": 502.6927349948189,
@@ -1275,7 +1299,7 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 3.4782608695652173,
+        "processing_uptime": 5.0,
         "total_LOX_production": 20.22321613604904,
         "regolith_recieved": 8000
       },
@@ -1344,7 +1368,7 @@
     "14.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 2300.0,
+        "processingRate": 1600.0,
         "regHeadGrade": 0.1,
         "LOX_Stored": 20.22321613604904,
         "total_energy_consumed": 508.9619319969941,
@@ -1355,7 +1379,7 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 3.4782608695652173,
+        "processing_uptime": 5.0,
         "total_LOX_production": 20.22321613604904,
         "regolith_recieved": 8000
       },
@@ -1424,7 +1448,7 @@
     "15.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 2300.0,
+        "processingRate": 1600.0,
         "regHeadGrade": 0.1,
         "LOX_Stored": 20.22321613604904,
         "total_energy_consumed": 515.2311289991693,
@@ -1435,7 +1459,7 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 3.4782608695652173,
+        "processing_uptime": 5.0,
         "total_LOX_production": 20.22321613604904,
         "regolith_recieved": 8000
       },
@@ -1504,7 +1528,7 @@
     "16.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 2300.0,
+        "processingRate": 1600.0,
         "regHeadGrade": 0.1,
         "LOX_Stored": 30.33482420407356,
         "total_energy_consumed": 758.7410002438598,
@@ -1515,7 +1539,7 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 5.217391304347826,
+        "processing_uptime": 7.5,
         "total_LOX_production": 30.33482420407356,
         "regolith_recieved": 12000
       },
@@ -1584,7 +1608,7 @@
     "17.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 2300.0,
+        "processingRate": 1600.0,
         "regHeadGrade": 0.1,
         "LOX_Stored": 30.33482420407356,
         "total_energy_consumed": 768.1447957471227,
@@ -1595,7 +1619,7 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 5.217391304347826,
+        "processing_uptime": 7.5,
         "total_LOX_production": 30.33482420407356,
         "regolith_recieved": 12000
       },
@@ -1664,7 +1688,7 @@
     "18.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 2300.0,
+        "processingRate": 1600.0,
         "regHeadGrade": 0.1,
         "LOX_Stored": 30.33482420407356,
         "total_energy_consumed": 777.5485912503855,
@@ -1675,7 +1699,7 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 5.217391304347826,
+        "processing_uptime": 7.5,
         "total_LOX_production": 30.33482420407356,
         "regolith_recieved": 12000
       },
@@ -1744,7 +1768,7 @@
     "19.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 2300.0,
+        "processingRate": 1600.0,
         "regHeadGrade": 0.1,
         "LOX_Stored": 30.33482420407356,
         "total_energy_consumed": 786.9523867536483,
@@ -1755,7 +1779,7 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 5.217391304347826,
+        "processing_uptime": 7.5,
         "total_LOX_production": 30.33482420407356,
         "regolith_recieved": 12000
       },
@@ -1824,7 +1848,7 @@
     "20.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 2300.0,
+        "processingRate": 1600.0,
         "regHeadGrade": 0.1,
         "LOX_Stored": 30.33482420407356,
         "total_energy_consumed": 796.3561822569111,
@@ -1835,7 +1859,7 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 5.217391304347826,
+        "processing_uptime": 7.5,
         "total_LOX_production": 30.33482420407356,
         "regolith_recieved": 12000
       },
@@ -1904,7 +1928,7 @@
     "21.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 2300.0,
+        "processingRate": 1600.0,
         "regHeadGrade": 0.1,
         "LOX_Stored": 40.44643227209808,
         "total_energy_consumed": 1043.000652002689,
@@ -1915,7 +1939,7 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 6.956521739130435,
+        "processing_uptime": 10.0,
         "total_LOX_production": 40.44643227209808,
         "regolith_recieved": 16000
       },
@@ -1984,7 +2008,7 @@
     "22.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 2300.0,
+        "processingRate": 1600.0,
         "regHeadGrade": 0.1,
         "LOX_Stored": 40.44643227209808,
         "total_energy_consumed": 1055.5390460070396,
@@ -1995,7 +2019,7 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 6.956521739130435,
+        "processing_uptime": 10.0,
         "total_LOX_production": 40.44643227209808,
         "regolith_recieved": 16000
       },
@@ -2064,7 +2088,7 @@
     "23.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 2300.0,
+        "processingRate": 1600.0,
         "regHeadGrade": 0.1,
         "LOX_Stored": 40.44643227209808,
         "total_energy_consumed": 1068.07744001139,
@@ -2075,7 +2099,7 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 6.956521739130435,
+        "processing_uptime": 10.0,
         "total_LOX_production": 40.44643227209808,
         "regolith_recieved": 16000
       },
@@ -2144,7 +2168,7 @@
     "24.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 2300.0,
+        "processingRate": 1600.0,
         "regHeadGrade": 0.1,
         "LOX_Stored": 40.44643227209808,
         "total_energy_consumed": 1080.6158340157406,
@@ -2155,7 +2179,7 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 6.956521739130435,
+        "processing_uptime": 10.0,
         "total_LOX_production": 40.44643227209808,
         "regolith_recieved": 16000
       },
@@ -2224,7 +2248,7 @@
     "25.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 2300.0,
+        "processingRate": 1600.0,
         "regHeadGrade": 0.1,
         "LOX_Stored": 40.44643227209808,
         "total_energy_consumed": 1093.154228020091,
@@ -2235,7 +2259,7 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 6.956521739130435,
+        "processing_uptime": 10.0,
         "total_LOX_production": 40.44643227209808,
         "regolith_recieved": 16000
       },
@@ -2304,7 +2328,7 @@
     "26.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 2300.0,
+        "processingRate": 1600.0,
         "regHeadGrade": 0.1,
         "LOX_Stored": 50.5580403401226,
         "total_energy_consumed": 1342.9332962669569,
@@ -2315,7 +2339,7 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 8.695652173913043,
+        "processing_uptime": 12.5,
         "total_LOX_production": 50.5580403401226,
         "regolith_recieved": 20000
       },
@@ -2384,7 +2408,7 @@
     "27.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 2300.0,
+        "processingRate": 1600.0,
         "regHeadGrade": 0.1,
         "LOX_Stored": 50.5580403401226,
         "total_energy_consumed": 1358.606288772395,
@@ -2395,7 +2419,7 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 8.695652173913043,
+        "processing_uptime": 12.5,
         "total_LOX_production": 50.5580403401226,
         "regolith_recieved": 20000
       },
@@ -2464,7 +2488,7 @@
     "28.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 2300.0,
+        "processingRate": 1600.0,
         "regHeadGrade": 0.1,
         "LOX_Stored": 50.5580403401226,
         "total_energy_consumed": 1374.279281277833,
@@ -2475,7 +2499,7 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 8.695652173913043,
+        "processing_uptime": 12.5,
         "total_LOX_production": 50.5580403401226,
         "regolith_recieved": 20000
       },
@@ -2544,7 +2568,7 @@
     "29.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 2300.0,
+        "processingRate": 1600.0,
         "regHeadGrade": 0.1,
         "LOX_Stored": 50.5580403401226,
         "total_energy_consumed": 1389.952273783271,
@@ -2555,7 +2579,7 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 8.695652173913043,
+        "processing_uptime": 12.5,
         "total_LOX_production": 50.5580403401226,
         "regolith_recieved": 20000
       },
@@ -2624,7 +2648,7 @@
     "30.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 2300.0,
+        "processingRate": 1600.0,
         "regHeadGrade": 0.1,
         "LOX_Stored": 50.5580403401226,
         "total_energy_consumed": 1405.625266288709,
@@ -2635,7 +2659,7 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 8.695652173913043,
+        "processing_uptime": 12.5,
         "total_LOX_production": 50.5580403401226,
         "regolith_recieved": 20000
       },
@@ -2704,7 +2728,7 @@
     "31.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 2300.0,
+        "processingRate": 1600.0,
         "regHeadGrade": 0.1,
         "LOX_Stored": 60.669648408147125,
         "total_energy_consumed": 1658.5389330366625,
@@ -2715,7 +2739,7 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 10.434782608695652,
+        "processing_uptime": 15.0,
         "total_LOX_production": 60.669648408147125,
         "regolith_recieved": 24000
       },
@@ -2784,7 +2808,7 @@
     "32.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 2300.0,
+        "processingRate": 1600.0,
         "regHeadGrade": 0.1,
         "LOX_Stored": 60.669648408147125,
         "total_energy_consumed": 1677.346524043188,
@@ -2795,7 +2819,7 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 10.434782608695652,
+        "processing_uptime": 15.0,
         "total_LOX_production": 60.669648408147125,
         "regolith_recieved": 24000
       },
@@ -2864,7 +2888,7 @@
     "33.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 2300.0,
+        "processingRate": 1600.0,
         "regHeadGrade": 0.1,
         "LOX_Stored": 60.669648408147125,
         "total_energy_consumed": 1696.1541150497137,
@@ -2875,7 +2899,7 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 10.434782608695652,
+        "processing_uptime": 15.0,
         "total_LOX_production": 60.669648408147125,
         "regolith_recieved": 24000
       },
@@ -2944,7 +2968,7 @@
     "34.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 2300.0,
+        "processingRate": 1600.0,
         "regHeadGrade": 0.1,
         "LOX_Stored": 60.669648408147125,
         "total_energy_consumed": 1714.9617060562393,
@@ -2955,7 +2979,7 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 10.434782608695652,
+        "processing_uptime": 15.0,
         "total_LOX_production": 60.669648408147125,
         "regolith_recieved": 24000
       },
@@ -3024,7 +3048,7 @@
     "35.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 2300.0,
+        "processingRate": 1600.0,
         "regHeadGrade": 0.1,
         "LOX_Stored": 60.669648408147125,
         "total_energy_consumed": 1733.769297062765,
@@ -3035,7 +3059,7 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 10.434782608695652,
+        "processing_uptime": 15.0,
         "total_LOX_production": 60.669648408147125,
         "regolith_recieved": 24000
       },
@@ -3104,7 +3128,7 @@
     "36.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 2300.0,
+        "processingRate": 1600.0,
         "regHeadGrade": 0.1,
         "LOX_Stored": 70.78125647617165,
         "total_energy_consumed": 1989.817562311806,
@@ -3115,7 +3139,7 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 12.173913043478262,
+        "processing_uptime": 17.5,
         "total_LOX_production": 70.78125647617165,
         "regolith_recieved": 28000
       },
@@ -3184,7 +3208,7 @@
     "37.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 2300.0,
+        "processingRate": 1600.0,
         "regHeadGrade": 0.1,
         "LOX_Stored": 70.78125647617165,
         "total_energy_consumed": 2011.759751819419,
@@ -3195,7 +3219,7 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 12.173913043478262,
+        "processing_uptime": 17.5,
         "total_LOX_production": 70.78125647617165,
         "regolith_recieved": 28000
       },
@@ -3264,7 +3288,7 @@
     "38.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 2300.0,
+        "processingRate": 1600.0,
         "regHeadGrade": 0.1,
         "LOX_Stored": 70.78125647617165,
         "total_energy_consumed": 2033.7019413270323,
@@ -3275,7 +3299,7 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 12.173913043478262,
+        "processing_uptime": 17.5,
         "total_LOX_production": 70.78125647617165,
         "regolith_recieved": 28000
       },
@@ -3344,7 +3368,7 @@
     "39.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 2300.0,
+        "processingRate": 1600.0,
         "regHeadGrade": 0.1,
         "LOX_Stored": 70.78125647617165,
         "total_energy_consumed": 2055.6441308346457,
@@ -3355,7 +3379,7 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 12.173913043478262,
+        "processing_uptime": 17.5,
         "total_LOX_production": 70.78125647617165,
         "regolith_recieved": 28000
       },
@@ -3424,7 +3448,7 @@
     "40.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 2300.0,
+        "processingRate": 1600.0,
         "regHeadGrade": 0.1,
         "LOX_Stored": 70.78125647617165,
         "total_energy_consumed": 2077.586320342259,
@@ -3435,7 +3459,7 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 12.173913043478262,
+        "processing_uptime": 17.5,
         "total_LOX_production": 70.78125647617165,
         "regolith_recieved": 28000
       },
@@ -3504,7 +3528,7 @@
     "41.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 2300.0,
+        "processingRate": 1600.0,
         "regHeadGrade": 0.1,
         "LOX_Stored": 80.89286454419617,
         "total_energy_consumed": 2336.769184092388,
@@ -3515,7 +3539,7 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 13.913043478260871,
+        "processing_uptime": 20.0,
         "total_LOX_production": 80.89286454419617,
         "regolith_recieved": 32000
       },
@@ -3584,7 +3608,7 @@
     "42.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 2300.0,
+        "processingRate": 1600.0,
         "regHeadGrade": 0.1,
         "LOX_Stored": 80.89286454419617,
         "total_energy_consumed": 2361.845972101089,
@@ -3595,7 +3619,7 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 13.913043478260871,
+        "processing_uptime": 20.0,
         "total_LOX_production": 80.89286454419617,
         "regolith_recieved": 32000
       },
@@ -3664,7 +3688,7 @@
     "43.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 2300.0,
+        "processingRate": 1600.0,
         "regHeadGrade": 0.1,
         "LOX_Stored": 80.89286454419617,
         "total_energy_consumed": 2386.92276010979,
@@ -3675,7 +3699,7 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 13.913043478260871,
+        "processing_uptime": 20.0,
         "total_LOX_production": 80.89286454419617,
         "regolith_recieved": 32000
       },
@@ -3744,7 +3768,7 @@
     "44.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 2300.0,
+        "processingRate": 1600.0,
         "regHeadGrade": 0.1,
         "LOX_Stored": 80.89286454419617,
         "total_energy_consumed": 2411.999548118491,
@@ -3755,7 +3779,7 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 13.913043478260871,
+        "processing_uptime": 20.0,
         "total_LOX_production": 80.89286454419617,
         "regolith_recieved": 32000
       },
@@ -3824,7 +3848,7 @@
     "45.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 2300.0,
+        "processingRate": 1600.0,
         "regHeadGrade": 0.1,
         "LOX_Stored": 80.89286454419617,
         "total_energy_consumed": 2437.076336127192,
@@ -3835,7 +3859,7 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 13.913043478260871,
+        "processing_uptime": 20.0,
         "total_LOX_production": 80.89286454419617,
         "regolith_recieved": 32000
       },
@@ -3904,7 +3928,7 @@
     "46.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 2300.0,
+        "processingRate": 1600.0,
         "regHeadGrade": 0.1,
         "LOX_Stored": 91.0044726122207,
         "total_energy_consumed": 2699.393798378408,
@@ -3915,7 +3939,7 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 15.65217391304348,
+        "processing_uptime": 22.5,
         "total_LOX_production": 91.0044726122207,
         "regolith_recieved": 36000
       },
@@ -3984,7 +4008,7 @@
     "47.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 2300.0,
+        "processingRate": 1600.0,
         "regHeadGrade": 0.1,
         "LOX_Stored": 91.0044726122207,
         "total_energy_consumed": 2727.6051848881966,
@@ -3995,7 +4019,7 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 15.65217391304348,
+        "processing_uptime": 22.5,
         "total_LOX_production": 91.0044726122207,
         "regolith_recieved": 36000
       },
@@ -4064,7 +4088,7 @@
     "48.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 2300.0,
+        "processingRate": 1600.0,
         "regHeadGrade": 0.1,
         "LOX_Stored": 91.0044726122207,
         "total_energy_consumed": 2755.816571397985,
@@ -4075,7 +4099,7 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 15.65217391304348,
+        "processing_uptime": 22.5,
         "total_LOX_production": 91.0044726122207,
         "regolith_recieved": 36000
       },
@@ -4144,7 +4168,7 @@
     "49.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 2300.0,
+        "processingRate": 1600.0,
         "regHeadGrade": 0.1,
         "LOX_Stored": 91.0044726122207,
         "total_energy_consumed": 2784.0279579077737,
@@ -4155,7 +4179,7 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 15.65217391304348,
+        "processing_uptime": 22.5,
         "total_LOX_production": 91.0044726122207,
         "regolith_recieved": 36000
       },
@@ -4224,7 +4248,7 @@
     "50.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 2300.0,
+        "processingRate": 1600.0,
         "regHeadGrade": 0.1,
         "LOX_Stored": 91.0044726122207,
         "total_energy_consumed": 2812.2393444175623,
@@ -4235,7 +4259,7 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 15.65217391304348,
+        "processing_uptime": 22.5,
         "total_LOX_production": 91.0044726122207,
         "regolith_recieved": 36000
       },
@@ -4304,7 +4328,7 @@
     "51.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 2300.0,
+        "processingRate": 1600.0,
         "regHeadGrade": 0.1,
         "LOX_Stored": 101.11608068024522,
         "total_energy_consumed": 3077.691405169866,
@@ -4315,7 +4339,7 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 17.39130434782609,
+        "processing_uptime": 25.0,
         "total_LOX_production": 101.11608068024522,
         "regolith_recieved": 40000
       },
@@ -4384,7 +4408,7 @@
     "52.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 2300.0,
+        "processingRate": 1600.0,
         "regHeadGrade": 0.1,
         "LOX_Stored": 0,
         "total_energy_consumed": 3109.037390180742,
@@ -4395,7 +4419,7 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 17.39130434782609,
+        "processing_uptime": 25.0,
         "total_LOX_production": 101.11608068024522,
         "regolith_recieved": 40000
       },
@@ -4464,7 +4488,7 @@
     "53.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 2300.0,
+        "processingRate": 1600.0,
         "regHeadGrade": 0.1,
         "LOX_Stored": 0,
         "total_energy_consumed": 3109.037390180742,
@@ -4475,7 +4499,7 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 17.39130434782609,
+        "processing_uptime": 25.0,
         "total_LOX_production": 101.11608068024522,
         "regolith_recieved": 40000
       },
@@ -4544,7 +4568,7 @@
     "54.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 2300.0,
+        "processingRate": 1600.0,
         "regHeadGrade": 0.1,
         "LOX_Stored": 0,
         "total_energy_consumed": 3109.037390180742,
@@ -4555,7 +4579,7 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 17.39130434782609,
+        "processing_uptime": 25.0,
         "total_LOX_production": 101.11608068024522,
         "regolith_recieved": 40000
       },
@@ -4624,7 +4648,7 @@
     "55.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 2300.0,
+        "processingRate": 1600.0,
         "regHeadGrade": 0.1,
         "LOX_Stored": 0,
         "total_energy_consumed": 3109.037390180742,
@@ -4635,7 +4659,7 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 17.39130434782609,
+        "processing_uptime": 25.0,
         "total_LOX_production": 101.11608068024522,
         "regolith_recieved": 40000
       },
@@ -4704,7 +4728,7 @@
     "56.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 2300.0,
+        "processingRate": 1600.0,
         "regHeadGrade": 0.1,
         "LOX_Stored": 10.11160806802452,
         "total_energy_consumed": 3346.278064423257,
@@ -4715,7 +4739,7 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 19.1304347826087,
+        "processing_uptime": 27.5,
         "total_LOX_production": 111.22768874826974,
         "regolith_recieved": 44000
       },
@@ -4784,7 +4808,7 @@
     "57.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 2300.0,
+        "processingRate": 1600.0,
         "regHeadGrade": 0.1,
         "LOX_Stored": 10.11160806802452,
         "total_energy_consumed": 3349.4126629243447,
@@ -4795,7 +4819,7 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 19.1304347826087,
+        "processing_uptime": 27.5,
         "total_LOX_production": 111.22768874826974,
         "regolith_recieved": 44000
       },
@@ -4864,7 +4888,7 @@
     "58.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 2300.0,
+        "processingRate": 1600.0,
         "regHeadGrade": 0.1,
         "LOX_Stored": 10.11160806802452,
         "total_energy_consumed": 3352.547261425432,
@@ -4875,7 +4899,7 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 19.1304347826087,
+        "processing_uptime": 27.5,
         "total_LOX_production": 111.22768874826974,
         "regolith_recieved": 44000
       },
@@ -4944,7 +4968,7 @@
     "59.0": {
       "ISRU_Plant_1": {
         "Name": "ISRU_Plant_1",
-        "processingRate": 2300.0,
+        "processingRate": 1600.0,
         "regHeadGrade": 0.1,
         "LOX_Stored": 10.11160806802452,
         "total_energy_consumed": 3355.68185992652,
@@ -4955,7 +4979,7 @@
         "reactorEnergyCoeff": 0.385,
         "electrolysisEnergyCoeff": 8.26,
         "liquefactionEnergyCoeff": 1.17,
-        "processing_uptime": 19.1304347826087,
+        "processing_uptime": 27.5,
         "total_LOX_production": 111.22768874826974,
         "regolith_recieved": 44000
       },
