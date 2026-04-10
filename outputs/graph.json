@@ -1,60 +1,12 @@
 {
-  "written_at": 1775823280969,
+  "written_at": 1775823521992,
   "active_nodes": [
-    "LaunchLandingZone",
-    "HabitationModule",
-    "SolarPowerSystem",
     "ISRUPlant",
-    "Propellant_Depot",
-    "Rover"
+    "SolarPowerSystem"
   ],
-  "active_nodes_count": 4,
+  "active_nodes_count": 2,
   "connections": [],
   "parts": {
-    "HabitationModule": {
-      "id": "urn:S24_PIPELINE:part:HabitationModule:001",
-      "dimensions": {
-        "size_m": {
-          "length": 20.0,
-          "width": 10.0,
-          "height": 8.0
-        },
-        "metersPerUnit": 1,
-        "upAxis": "Z"
-      },
-      "transform": {
-        "position_m": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "rotation_deg": [
-          0.0,
-          0.0,
-          0.0
-        ]
-      },
-      "attributes": {
-        "constantPowerRate": 5.0,
-        "totalEnergyConsumed": 0.0,
-        "HabitationModule_volume_m3": 1600.0
-      },
-      "materialRef": null,
-      "ports": [
-        {
-          "name": "Habitation_PowerPortIn",
-          "direction": [
-            "in"
-          ],
-          "items": [
-            "PowerIn"
-          ]
-        }
-      ],
-      "metadata": {
-        "geometryRef": "assets/geom/HabitationModule_geom.usda"
-      }
-    },
     "ISRUPlant": {
       "id": "urn:S24_PIPELINE:part:ISRUPlant:001",
       "dimensions": {
@@ -124,53 +76,6 @@
       ],
       "metadata": {
         "geometryRef": "assets/geom/ISRUPlant_geom.usda"
-      }
-    },
-    "LaunchLandingZone": {
-      "id": "urn:S24_PIPELINE:part:LaunchLandingZone:001",
-      "dimensions": {
-        "size_m": {
-          "length": 50.0,
-          "width": 50.0,
-          "height": 10.0
-        },
-        "metersPerUnit": 1,
-        "upAxis": "Z"
-      },
-      "transform": {
-        "position_m": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "rotation_deg": [
-          0.0,
-          0.0,
-          0.0
-        ]
-      },
-      "attributes": {
-        "loxCapacity": 50000.0,
-        "loxStored": 0.0,
-        "utilitiesPowerRate": 3.0,
-        "totalEnergyConsumed": 0.0,
-        "chillingPowerPerKgLox": 0.31,
-        "LaunchLandingZone_volume_m3": 25000.0
-      },
-      "materialRef": null,
-      "ports": [
-        {
-          "name": "LaunchZone_PowerPortIn",
-          "direction": [
-            "in"
-          ],
-          "items": [
-            "PowerIn"
-          ]
-        }
-      ],
-      "metadata": {
-        "geometryRef": "assets/geom/LaunchLandingZone_geom.usda"
       }
     },
     "SolarPowerSystem": {
