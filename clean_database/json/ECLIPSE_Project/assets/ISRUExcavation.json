@@ -1,0 +1,59 @@
+{
+  "type": "Part",
+  "id": "urn:S24_PIPELINE:part:ISRUExcavation:001",
+  "name": "ISRUExcavation",
+  "dimensions": {
+    "size_m": {
+      "length": 4.0,
+      "width": 4.0,
+      "height": 2.5
+    },
+    "metersPerUnit": 1,
+    "upAxis": "Z",
+    "angleUnit": "deg",
+    "pressureUnit": "kPa",
+    "massUnit": "kg",
+    "lengthUnit": "m"
+  },
+  "transform": {
+    "position_m": [
+      0.0,
+      5.0,
+      0.0
+    ],
+    "rotation_deg": [
+      0.0,
+      0.0,
+      0.0
+    ]
+  },
+  "attributes": {
+    "ISRUExcavation_volume_m3": 40.0,
+    "excavationEnergyCoeff": 6.5e-06
+  },
+  "metadata": {
+    "geometryRef": "assets/geom/ISRUExcavation_geom.usda"
+  },
+  "materialRef": "Aluminum_2219_T87",
+  "ports": [
+    {
+      "name": "Excavation_PowerPortIn",
+      "direction": [
+        "in"
+      ],
+      "items": [
+        "PowerIn"
+      ]
+    },
+    {
+      "name": "Excavation_RegolithPortOut",
+      "direction": [
+        "out"
+      ],
+      "items": [
+        "RegolithOut"
+      ]
+    }
+  ],
+  "parent": "LSP1"
+}
