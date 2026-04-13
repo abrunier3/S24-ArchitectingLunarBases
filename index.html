@@ -3946,7 +3946,6 @@ function primMST(placed) {
 }
 
 function aStar(start, end, GRID) {
-  // Convert canvas px to grid cells
   const toGrid = (px,py) => ({
     gx: Math.min(GRID-1, Math.max(0, Math.round(px/up42W*(GRID-1)))),
     gy: Math.min(GRID-1, Math.max(0, Math.round(py/up42H*(GRID-1)))),
@@ -3957,92 +3956,84 @@ function aStar(start, end, GRID) {
   });
 
   const gs = toGrid(start.cx, start.cy);
-  const ge = toGrid(end.cx, end.cy);
+  const ge = toGrid(end.cx,   end.cy);
+  const key     = (gx,gy) => gx * GRID + gy;
+  const h       = (gx,gy) => Math.hypot(gx-ge.gx, gy-ge.gy);
+  const slopeAt = (gx,gy) => up42SyntheticTerrain?.[gy]?.[gx] ?? 0;
+  const dirs    = [[-1,0],[1,0],[0,-1],[0,1],[-1,-1],[1,-1],[-1,1],[1,1]];
 
-  const key = (gx,gy) => gx*GRID+gy;
-  const h = (gx,gy) => Math.hypot(gx-ge.gx, gy-ge.gy);
-  const slope = (gx,gy) => up42SyntheticTerrain?.[gy]?.[gx] ?? 0;
-
-  // Cost function: base distance + heavy penalty for slope >10°, blocking >15°
-  const cost = (fromGx,fromGy,toGx,toGy) => {
-    const s = slope(toGx,toGy);
-    if (s > 15) return Infinity; // impassable
-    const penalty = s > 10 ? (s-10)*8 : 0;
-    return 1 + penalty;
-  };
-
-  const open   = new Map();
-  const closed = new Set();
-  const gScore = new Map();
+  // parent stores key→key (integer→integer), NOT key→node object
   const parent = new Map();
+  const gScore = new Map();
+  const open   = new Map(); // key → f score
+  const closed = new Set();
 
-  gScore.set(key(gs.gx,gs.gy), 0);
-  open.set(key(gs.gx,gs.gy), { gx:gs.gx, gy:gs.gy, f:h(gs.gx,gs.gy) });
+  const startKey = key(gs.gx, gs.gy);
+  const endKey   = key(ge.gx, ge.gy);
+  gScore.set(startKey, 0);
+  open.set(startKey, h(gs.gx, gs.gy));
 
-  const dirs = [[-1,0],[1,0],[0,-1],[0,1],[-1,-1],[1,-1],[-1,1],[1,1]];
   let iterations = 0;
-
   while (open.size > 0 && iterations++ < 20000) {
-    // Get node with lowest f
-    let bestKey = null, bestF = Infinity;
-    for (const [k,n] of open) { if (n.f < bestF) { bestF=n.f; bestKey=k; } }
-    const cur = open.get(bestKey);
-    open.delete(bestKey);
+    // Pick lowest-f node
+    let curKey = null, curF = Infinity;
+    for (const [k, f] of open) { if (f < curF) { curF = f; curKey = k; } }
+    open.delete(curKey);
+    if (closed.has(curKey)) continue;
+    closed.add(curKey);
 
-    if (cur.gx===ge.gx && cur.gy===ge.gy) {
-      // Reconstruct path
+    if (curKey === endKey) {
+      // Reconstruct: follow parent keys back to start
       const pts = [];
-      let k = key(cur.gx,cur.gy);
+      let k = curKey;
       while (k !== undefined) {
-        const node = k === key(cur.gx,cur.gy) ? cur : { gx: Math.floor(k/GRID), gy: k%GRID };
-        const p = parent.get(k);
-        if (p) { const {gx,gy}=p; pts.unshift(toCanvas(gx,gy)); k=key(gx,gy); }
-        else break;
+        const gx = Math.floor(k / GRID);
+        const gy = k % GRID;
+        pts.unshift(toCanvas(gx, gy));
+        k = parent.get(k); // undefined at start node
       }
-      pts.push(toCanvas(ge.gx,ge.gy));
-      // Simplify: keep every Nth point + endpoints
       return simplifyPath(pts, 6);
     }
 
-    closed.add(bestKey);
+    const curGx = Math.floor(curKey / GRID);
+    const curGy = curKey % GRID;
+    const curG  = gScore.get(curKey) ?? 0;
 
-    for (const [dx,dy] of dirs) {
-      const nx=cur.gx+dx, ny=cur.gy+dy;
+    for (const [dx, dy] of dirs) {
+      const nx = curGx+dx, ny = curGy+dy;
       if (nx<0||ny<0||nx>=GRID||ny>=GRID) continue;
-      const nk = key(nx,ny);
+      const nk = key(nx, ny);
       if (closed.has(nk)) continue;
-      const diag = dx!==0&&dy!==0 ? Math.SQRT2 : 1;
-      const c = cost(cur.gx,cur.gy,nx,ny) * diag;
-      if (c === Infinity) continue;
-      const tentG = (gScore.get(bestKey)||0) + c;
+      const s = slopeAt(nx, ny);
+      if (s > 15) continue; // impassable
+      const moveCost = (dx!==0&&dy!==0 ? Math.SQRT2 : 1) * (1 + (s>10?(s-10)*8:0));
+      const tentG = curG + moveCost;
       if (!gScore.has(nk) || tentG < gScore.get(nk)) {
         gScore.set(nk, tentG);
-        parent.set(nk, cur);
-        open.set(nk, {gx:nx, gy:ny, f: tentG + h(nx,ny)});
+        parent.set(nk, curKey); // store integer key, not object
+        open.set(nk, tentG + h(nx, ny));
       }
     }
   }
-  // Fallback: A* exhausted — use greedy best-slope path instead of straight line
-  // Walk from start to end always choosing the neighbour with lowest slope toward goal
+
+  // Fallback — greedy slope-aware (never >15° if avoidable)
   const fallbackPts = [];
   let cx = gs.gx, cy = gs.gy;
   const visited = new Set();
-  for (let step = 0; step < GRID * 3; step++) {
+  for (let step=0; step<GRID*4; step++) {
     fallbackPts.push(toCanvas(cx, cy));
-    if (cx === ge.gx && cy === ge.gy) break;
+    if (cx===ge.gx && cy===ge.gy) break;
     visited.add(key(cx, cy));
-    let bestNx = ge.gx, bestNy = ge.gy, bestScore = Infinity;
-    for (const [dx, dy] of dirs) {
-      const nx = cx+dx, ny = cy+dy;
-      if (nx<0||ny<0||nx>=GRID||ny>=GRID) continue;
-      if (visited.has(key(nx,ny))) continue;
-      const s = slope(nx, ny);
+    let bestNx=ge.gx, bestNy=ge.gy, bestScore=Infinity;
+    for (const [dx,dy] of dirs) {
+      const nx=cx+dx, ny=cy+dy;
+      if (nx<0||ny<0||nx>=GRID||ny>=GRID||visited.has(key(nx,ny))) continue;
+      const s = slopeAt(nx,ny);
       const dist = Math.hypot(nx-ge.gx, ny-ge.gy);
-      // Score = distance to goal + slope penalty (prefer low slope even if longer)
-      const score = dist + (s > 10 ? (s-10)*4 : 0) + (s > 15 ? 999 : 0);
-      if (score < bestScore) { bestScore = score; bestNx = nx; bestNy = ny; }
+      const score = dist + (s>10?(s-10)*4:0) + (s>15?9999:0);
+      if (score < bestScore) { bestScore=score; bestNx=nx; bestNy=ny; }
     }
-    cx = bestNx; cy = bestNy;
+    cx=bestNx; cy=bestNy;
   }
   return simplifyPath(fallbackPts, 6);
 }
