@@ -3330,13 +3330,14 @@ const MODULE_COLORS = {
 
 // ── State ──────────────────────────────────────────────────────────
 let up42Canvas, up42Ctx, up42W, up42H;
-let up42ActiveModule  = null;   // currently selected module id
-let up42Phase         = 'place'; // 'place' | 'routes'
-let up42Placements    = {};      // { moduleId: { cx, cy } } in canvas px
-let up42Routes        = [];      // array of path arrays [{x,y}]
-let up42DragWaypoint  = null;    // { routeIdx, ptIdx } being dragged
-let up42HeatmapImgs   = {};      // loaded Image objects
-let up42SyntheticTerrain = null; // 2D slope array generated from selected site
+let up42ActiveModule  = null;
+let up42Phase         = 'place';
+let up42Placements    = {};
+let up42Routes        = [];
+let up42DragWaypoint  = null;
+let up42DragState     = null;   // { ri, pi } — waypoint being dragged
+let up42HeatmapImgs   = {};
+let up42SyntheticTerrain = null;
 
 // Bounding box of the polar map for this site (degrees)
 // Will be set from upSelectedSite when panel opens
@@ -3747,8 +3748,8 @@ function roundRect(ctx, x, y, w, h, r) {
 function canvasToSiteCoords(cx, cy) {
   const site = upSelectedSite;
   if (!site) return { lat:0, lon:0 };
-  // 1 pixel ≈ 200m at typical zoom — approximation until real bbox from Jenny
-  const kmPerPx = 0.2;
+  // 1 pixel ≈ 5m — realistic lunar base scale (~3.5 km across full canvas)
+  const kmPerPx = 0.005;
   const latPerKm = 1/111;
   const lonPerKm = 1/(111 * Math.cos(site.lat * Math.PI/180));
   const dx = (cx - up42W/2) * kmPerPx;
@@ -4091,7 +4092,7 @@ function drawRoutes() {
 
     // Route label at midpoint
     const mid = path[Math.floor(path.length/2)];
-    const KM_PER_PX = 0.2;
+    const KM_PER_PX = 0.005;
     let totalKm = 0;
     for (let i=1; i<path.length; i++) totalKm += Math.hypot(path[i].x-path[i-1].x, path[i].y-path[i-1].y) * KM_PER_PX;
     up42Ctx.fillStyle = 'rgba(0,0,0,0.6)';
@@ -4127,7 +4128,7 @@ function drawRoutes() {
 function renderRouteStats() {
   const wrap = document.getElementById('up42RouteStats');
   if (!wrap || !up42Routes.length) return;
-  const KM_PER_PX = 0.2;
+  const KM_PER_PX = 0.005;
   let totalKm = 0, maxSlope = 0;
   const routeDetails = up42Routes.map(route => {
     const path = route.pts;
@@ -4201,7 +4202,7 @@ function isLandingZone(nodeId) {
 }
 
 function updateDesDistances() {
-  const KM_PER_PX = 0.2;
+  const KM_PER_PX = 0.005;
   let regolithKm = null, loxKm = null;
 
   up42Routes.forEach(route => {
@@ -6895,47 +6896,60 @@ let up42MoonImg = null;
     const wrap = document.getElementById('desMetricsWrap');
     if (!wrap) return;
 
-    let loxAtPlants = 0, energyConsumed = 0, uptime = 0;
-    let roverBattCharge = 100, roverBattCap = 100;
-    let loxAtLZ = 0, finalPowerDemand = 0, thresholdTime = null;
+    // ── Primary: use structured results if available ──────────────────
+    const ft  = results?.ISRU_Plants?.Fleet_Totals;
+    const lzR = results?.Landing_Zone;
+    const sol = results?.Solar_Power_System;
 
-    for (const attrs of Object.values(snap)) {
-      if (attrs.processingRate !== undefined && attrs.LOX_Stored !== undefined) {
-        loxAtPlants += attrs.LOX_Stored;
-        energyConsumed += attrs.total_energy_consumed || 0;
-        uptime += attrs.processing_uptime || 0;
+    let loxAtPlants = ft?.Total_LOX_Production_kg ?? 0;
+    let loxAtLZ     = lzR?.LOX_Stored_kg ?? 0;
+    let energyConsumed = ft?.Energy_Consumed_kWh ?? sol?.Total_Generated_kWh ?? 0;
+    let uptime = ft?.Total_Uptime_hr ?? 0;
+    let finalPowerDemand = results?.Power_Demand_kW ?? 8;
+    let roverBattPct = 50;
+    let thresholdTime = null;
+
+    // ── Fallback: parse snap if results keys are missing ─────────────
+    if (!ft) {
+      for (const attrs of Object.values(snap)) {
+        if (attrs.LOX_Stored !== undefined && attrs.processingRate !== undefined) {
+          loxAtPlants += attrs.LOX_Stored;
+          energyConsumed += attrs.total_energy_consumed || 0;
+          uptime += attrs.processing_uptime || 0;
+        }
+        if (attrs.LOX_Capacity !== undefined && !attrs.processingRate) loxAtLZ = attrs.LOX_Stored || 0;
+        if ((attrs.Name || '').toLowerCase().includes('regolith')) {
+          const charge = attrs.battery_charge ?? 100;
+          const cap    = attrs.battery_capacity ?? 100;
+          roverBattPct = Math.round((charge / cap) * 100);
+        }
+        if (attrs.current_energy_demand !== undefined) finalPowerDemand += Number(attrs.current_energy_demand) || 0;
       }
-      if (attrs.LOX_Capacity !== undefined) loxAtLZ = attrs.LOX_Stored || 0;
-      if (attrs.rover_type === 'cargo' && (attrs.Name || '').includes('Regolith')) {
-        roverBattCharge = attrs.battery_charge;
-        roverBattCap = attrs.battery_capacity || 100;
-      }
-      if (attrs.current_energy_demand !== undefined) finalPowerDemand += Number(attrs.current_energy_demand) || 0;
     }
 
-    const roverBattPct = Math.round((roverBattCharge / roverBattCap) * 100);
-    const numPlants = parseInt(desData?.inputs?.Num_ISRU_Plants || 1);
-    const avgUptime = numPlants > 0 ? (uptime / numPlants) : uptime;
-
+    // ── Threshold crossing from log ───────────────────────────────────
     for (const entry of getLogEntries(log)) {
       if (entry.num > t) break;
       const snapT = log[entry.key] || {};
       for (const attrs of Object.values(snapT)) {
-        if (attrs.LOX_Capacity !== undefined && (attrs.LOX_Stored || 0) > 0 && thresholdTime === null) {
-          thresholdTime = entry.num;
-        }
+        if ((attrs.LOX_Stored || 0) > 0 && thresholdTime === null) thresholdTime = entry.num;
       }
     }
 
-    const totalLox = loxAtPlants + loxAtLZ;
+    const numPlants  = parseInt(desData?.inputs?.Num_ISRU_Plants || 1);
+    const avgUptime  = numPlants > 0 && uptime > 0 ? uptime / numPlants : uptime;
+    const totalLox   = loxAtPlants + loxAtLZ;
+
+    // Debug log so we can see actual values
+    console.log('[DES metrics] loxAtPlants:', loxAtPlants, 'loxAtLZ:', loxAtLZ, 'uptime:', uptime, 'energy:', energyConsumed, 'ft:', ft);
 
     const metrics = [
-      { label: `TOTAL LOX @ 60 HR`, value: `${totalLox.toFixed(1)} kg`, sub: 'Final simulation result', subColor: '#7ee0b1' },
-      { label: `PLANT UPTIME @ 60 HR`, value: `${avgUptime.toFixed(1)} hr`, sub: 'Final accumulated uptime', subColor: '#7ee0b1' },
-      { label: 'FINAL ROVER BATTERY', value: `${roverBattPct}%`, sub: roverBattPct > 50 ? 'Healthy margin' : 'Low margin', subColor: roverBattPct > 50 ? '#7ee0b1' : '#ff7a8a' },
-      { label: 'FIRST LOX DELIVERY', value: thresholdTime !== null ? `${thresholdTime} hr` : '—', sub: thresholdTime !== null ? 'Delivery occurred' : 'No LOX delivered by 60 hr', subColor: thresholdTime !== null ? '#7ee0b1' : 'var(--text3)' },
-      { label: `POWER DEMAND @ 60 HR`, value: `${finalPowerDemand.toFixed(0)} kWh`, sub: finalPowerDemand > 100 ? 'Above nominal supply' : 'Within nominal supply', subColor: finalPowerDemand > 100 ? '#ff7a8a' : '#ffd166' },
-      { label: `ENERGY CONSUMED @ 60 HR`, value: `${(energyConsumed / 1000).toFixed(1)} MWh`, sub: `${energyConsumed.toFixed(0)} kWh accumulated`, subColor: 'var(--text3)' },
+      { label: `TOTAL LOX @ 60 HR`,     value: `${totalLox.toFixed(1)} kg`,           sub: 'Final simulation result',                                          subColor: '#7ee0b1' },
+      { label: `PLANT UPTIME @ 60 HR`,  value: `${avgUptime.toFixed(1)} hr`,           sub: 'Final accumulated uptime',                                         subColor: '#7ee0b1' },
+      { label: 'FINAL ROVER BATTERY',   value: `${roverBattPct}%`,                     sub: roverBattPct > 50 ? 'Healthy margin' : 'Low margin',                subColor: roverBattPct > 50 ? '#7ee0b1' : '#ff7a8a' },
+      { label: 'FIRST LOX DELIVERY',    value: thresholdTime !== null ? `${thresholdTime} hr` : '—', sub: thresholdTime !== null ? 'Delivery occurred' : 'No LOX delivered by 60 hr', subColor: thresholdTime !== null ? '#7ee0b1' : 'var(--text3)' },
+      { label: `POWER DEMAND @ 60 HR`,  value: `${Number(finalPowerDemand).toFixed(0)} kW`, sub: finalPowerDemand > 100 ? 'Above nominal supply' : 'Within nominal supply', subColor: finalPowerDemand > 100 ? '#ff7a8a' : '#ffd166' },
+      { label: `ENERGY CONSUMED @ 60 HR`, value: `${(Number(energyConsumed)/1000).toFixed(1)} MWh`, sub: `${Number(energyConsumed).toFixed(0)} kWh accumulated`, subColor: 'var(--text3)' },
     ];
 
     wrap.innerHTML = metrics.map(m => `
@@ -6953,7 +6967,7 @@ let up42MoonImg = null;
         Final state at t = 60 hr, using ${desData?.inputs?.Num_Regolith_Rovers || 1} rover(s) and ${numPlants} ISRU plant(s),
         the system has produced ${totalLox.toFixed(1)} kg LOX total,
         with ${loxAtLZ.toFixed(1)} kg delivered to the landing zone.
-        Final power demand is ${finalPowerDemand.toFixed(0)} kWh.
+        Final power demand is ${Number(finalPowerDemand).toFixed(0)} kW.
       </div>`;
     wrap.appendChild(interp);
   }
