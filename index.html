@@ -3380,26 +3380,27 @@ function resizeUp42Canvas() {
 function generateSyntheticTerrain() {
   const GRID = 80;
   const site = upSelectedSite;
-  const baseSlopeDeg = site ? site.avg_slope_2km_deg || site.slope2km || 8 : 8;
+  // Cap base slope to reasonable values — terrain is mostly traversable
+  const baseSlopeDeg = Math.min(10, site ? site.avg_slope_2km_deg || site.slope2km || 6 : 6);
 
   up42SyntheticTerrain = [];
-  // Seed from site id for reproducibility
   let rng = mulberry32(site ? site.id.charCodeAt(0) * 1234 : 42);
 
   for (let y = 0; y < GRID; y++) {
     const row = [];
     for (let x = 0; x < GRID; x++) {
-      // Smooth perlin-ish noise via average of neighbours
-      const base = baseSlopeDeg * 0.6;
-      const noise = (rng() - 0.5) * baseSlopeDeg * 1.8;
-      // Add some crater-like hotspots
+      const base  = baseSlopeDeg * 0.5;
+      const noise = (rng() - 0.5) * baseSlopeDeg * 1.2;
+      // Crater hotspots — steep rims but limited extent
       let extra = 0;
       [[0.25,0.3],[0.7,0.6],[0.5,0.8]].forEach(([cx,cy]) => {
         const dx = x/GRID - cx, dy = y/GRID - cy;
         const d = Math.sqrt(dx*dx+dy*dy);
-        extra += Math.max(0, (0.15 - d) / 0.15) * 25;
+        // Only the rim is steep (ring between 0.06 and 0.12), not the whole crater
+        if (d > 0.06 && d < 0.12) extra += (0.12 - d) / 0.06 * 18;
       });
-      row.push(Math.max(0, Math.min(35, base + noise + extra)));
+      // Hard cap at 20° — realistic max for navigable lunar terrain patches
+      row.push(Math.max(0, Math.min(20, base + noise + extra)));
     }
     up42SyntheticTerrain.push(row);
   }
@@ -3981,7 +3982,7 @@ function aStar(start, end, GRID) {
   const dirs = [[-1,0],[1,0],[0,-1],[0,1],[-1,-1],[1,-1],[-1,1],[1,1]];
   let iterations = 0;
 
-  while (open.size > 0 && iterations++ < 8000) {
+  while (open.size > 0 && iterations++ < 20000) {
     // Get node with lowest f
     let bestKey = null, bestF = Infinity;
     for (const [k,n] of open) { if (n.f < bestF) { bestF=n.f; bestKey=k; } }
@@ -4021,8 +4022,29 @@ function aStar(start, end, GRID) {
       }
     }
   }
-  // Fallback: straight line if A* fails
-  return [toCanvas(gs.gx,gs.gy), toCanvas(ge.gx,ge.gy)];
+  // Fallback: A* exhausted — use greedy best-slope path instead of straight line
+  // Walk from start to end always choosing the neighbour with lowest slope toward goal
+  const fallbackPts = [];
+  let cx = gs.gx, cy = gs.gy;
+  const visited = new Set();
+  for (let step = 0; step < GRID * 3; step++) {
+    fallbackPts.push(toCanvas(cx, cy));
+    if (cx === ge.gx && cy === ge.gy) break;
+    visited.add(key(cx, cy));
+    let bestNx = ge.gx, bestNy = ge.gy, bestScore = Infinity;
+    for (const [dx, dy] of dirs) {
+      const nx = cx+dx, ny = cy+dy;
+      if (nx<0||ny<0||nx>=GRID||ny>=GRID) continue;
+      if (visited.has(key(nx,ny))) continue;
+      const s = slope(nx, ny);
+      const dist = Math.hypot(nx-ge.gx, ny-ge.gy);
+      // Score = distance to goal + slope penalty (prefer low slope even if longer)
+      const score = dist + (s > 10 ? (s-10)*4 : 0) + (s > 15 ? 999 : 0);
+      if (score < bestScore) { bestScore = score; bestNx = nx; bestNy = ny; }
+    }
+    cx = bestNx; cy = bestNy;
+  }
+  return simplifyPath(fallbackPts, 6);
 }
 
 function simplifyPath(pts, step) {
