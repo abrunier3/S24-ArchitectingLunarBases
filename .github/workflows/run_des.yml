@@ -43,6 +43,10 @@ on:
         description: 'LOX transport threshold (kg)'
         required: true
         default: '100'
+      urban_planning:
+        description: 'JSON object with site, module positions/orientations and route waypoints'
+        required: false
+        default: '{}'
 
 jobs:
   run-des:
@@ -83,6 +87,7 @@ jobs:
           ROVER_TRAVEL_TIME:          ${{ github.event.inputs.Rover_Travel_Time }}
           ISRU_PLANT_PROCESSING_RATE: ${{ github.event.inputs.ISRU_Plant_Processing_Rate }}
           LOX_TRANSPORT_THRESHOLD:    ${{ github.event.inputs.LOX_Transport_Threshold }}
+          URBAN_PLANNING_JSON:        ${{ github.event.inputs.urban_planning }}
         run: |
           mkdir -p outputs
           python - <<'EOF'
@@ -113,11 +118,6 @@ jobs:
               return {}
 
           def infer_des_engine_nodes(sysml_nodes):
-              """
-              The current DES engine has a fixed vocabulary. Infer those engine
-              nodes from SysML modules/capabilities so check_scenario_validity()
-              does not receive raw modules it cannot recognize.
-              """
               engine_nodes = set()
 
               for node in sysml_nodes:
@@ -186,11 +186,6 @@ jobs:
           })
 
           def normalize_des_asset_attributes():
-              """
-              Compatibility bridge for the modular SysML model:
-              excavationEnergyCoeff now belongs to ISRUExcavation, while the
-              current DES ISRUPlant class still reads it from ISRUPlant.
-              """
               from pathlib import Path
 
               asset_dirs = list(Path("clean_database/json").glob("*/assets"))
@@ -227,9 +222,78 @@ jobs:
 
           normalize_des_asset_attributes()
 
+          # ── Update SysML JSON with urban planning data ─────────────────────
+          def update_sysml_with_urban_planning(urban_planning):
+              from pathlib import Path
+
+              sysml_path = Path("clean_database/json/ECLIPSE_Project/ECLIPSE_Project.json")
+              if not sysml_path.exists():
+                  print("[UP] ECLIPSE_Project.json not found — skipping SysML update.")
+                  return
+
+              with sysml_path.open() as f:
+                  sysml = json.load(f)
+
+              modules   = urban_planning.get("modules", {})
+              conns     = urban_planning.get("connections", {})
+              site_id   = urban_planning.get("site", "unknown")
+              site_name = urban_planning.get("site_name", site_id)
+
+              updated_parts = 0
+              for part in sysml.get("parts", []):
+                  name = part.get("name")
+                  if name in modules:
+                      m = modules[name]
+                      part.setdefault("transform", {})
+                      part["transform"]["position_m"]  = m["position_m"]
+                      part["transform"]["rotation_deg"] = m["rotation_deg"]
+                      updated_parts += 1
+
+              updated_conns = 0
+              for conn in sysml.get("connections", []):
+                  # Match by SysML connection name OR by reconstructed key (FromTo)
+                  conn_name = conn.get("name", "")
+                  from_part = conn.get("from", {}).get("part", "")
+                  to_part   = conn.get("to",   {}).get("part", "")
+                  key       = f"{from_part}To{to_part}"
+
+                  match = conns.get(conn_name) or conns.get(key)
+                  if match:
+                      conn["path"] = {
+                          "waypoints_m":  match["waypoints_m"],
+                          "distance_km":  match["distance_km"],
+                      }
+                      updated_conns += 1
+
+              # Store urban planning metadata at root level
+              sysml["urban_planning"] = {
+                  "site":      site_id,
+                  "site_name": site_name,
+                  "site_lat":  urban_planning.get("site_lat"),
+                  "site_lon":  urban_planning.get("site_lon"),
+              }
+
+              with sysml_path.open("w") as f:
+                  json.dump(sysml, f, indent=2)
+
+              print(f"[UP] SysML updated — {updated_parts} part(s), {updated_conns} connection(s) | site: {site_name}")
+
+          urban_planning_raw = os.environ.get("URBAN_PLANNING_JSON", "{}").strip()
+          if urban_planning_raw and urban_planning_raw != "{}":
+              try:
+                  urban_planning = json.loads(urban_planning_raw)
+                  if urban_planning.get("modules"):
+                      update_sysml_with_urban_planning(urban_planning)
+                  else:
+                      print("[UP] urban_planning payload present but no modules — skipping SysML update.")
+              except json.JSONDecodeError as e:
+                  print(f"[UP] Failed to parse urban_planning JSON: {e}")
+          else:
+              print("[UP] No urban_planning data — skipping SysML update.")
+
+          # ── Run DES ────────────────────────────────────────────────────────
           from S24.DES_pipeline_version.ISRU_DES_Model_V5_2_PV import run_scenario, check_scenario_validity
 
-          # Validate before running
           print("[DES] Checking scenario validity...")
           messages = check_scenario_validity(active_nodes, raiseError=False)
           errors   = [m for m in messages if m.startswith('[ERROR]')]
@@ -249,7 +313,6 @@ jobs:
               print("[DES] Running scenario...")
               run_scenario(slider_value_dict)
 
-              # read the results written by run_scenario
               with open('lunar_spaceport_results.json') as f:
                   sim_results = json.load(f)
 
@@ -278,9 +341,11 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add outputs/des_results.json
+          git add clean_database/json/ECLIPSE_Project/ECLIPSE_Project.json
           STASHED=$(git stash 2>&1)
           git pull --rebase origin main
           echo "$STASHED" | grep -q "No local changes" || git stash pop
           git add outputs/des_results.json
-          git diff --staged --quiet || git commit -m "chore: DES results [skip ci]"
+          git add clean_database/json/ECLIPSE_Project/ECLIPSE_Project.json
+          git diff --staged --quiet || git commit -m "chore: DES results + SysML urban planning update [skip ci]"
           git push
