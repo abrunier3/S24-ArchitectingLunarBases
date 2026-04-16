@@ -4000,6 +4000,20 @@ function setPlacementPhase(phase) {
 // ── Route generation (MST + A* with slope constraint) ────────────
 // One route per pair in the Minimum Spanning Tree of placed modules
 // ── Route generation — MST (minimum routes to connect all modules) ─
+function inferRouteFlow(idA, idB) {
+  const a = idA.toLowerCase(), b = idB.toLowerCase();
+  const both = a + ' ' + b;
+  if (both.includes('isruexcavation') || (both.includes('regolith') && both.includes('rover')))
+    return 'Regolith';
+  if (both.includes('solar') || both.includes('power'))
+    return 'Power';
+  if (both.includes('lox') || both.includes('launch') || both.includes('propellant'))
+    return 'LOX';
+  if (both.includes('isruplant') && (both.includes('launch') || both.includes('propellant') || both.includes('lox')))
+    return 'LOX';
+  return 'Structural';
+}
+
 function plotBestPaths() {
   setPlacementPhase('routes');
   const placed = Object.entries(up42Placements);
@@ -4014,7 +4028,7 @@ function plotBestPaths() {
     const [idA, posA] = placed[idxA];
     const [idB, posB] = placed[idxB];
     const path = aStar(posA, posB, GRID);
-    if (path) up42Routes.push({ from: idA, to: idB, pts: path });
+    if (path) up42Routes.push({ from: idA, to: idB, pts: path, flow: inferRouteFlow(idA, idB) });
   });
 
   renderRouteStats();
@@ -4414,6 +4428,7 @@ function buildUrbanPlanningPayload() {
       distKm += Math.hypot(route.pts[i].x - route.pts[i-1].x, route.pts[i].y - route.pts[i-1].y) * KM_PER_PX;
     }
     connections[key] = {
+      flow: route.flow || 'Structural',
       waypoints_m: waypoints,
       distance_km: +distKm.toFixed(3)
     };
