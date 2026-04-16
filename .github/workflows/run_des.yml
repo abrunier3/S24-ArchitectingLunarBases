@@ -249,62 +249,27 @@ jobs:
                       part["transform"]["rotation_deg"] = m["rotation_deg"]
                       updated_parts += 1
 
-              # Classify frontend routes by flow type based on module names
-              def classify_route(key):
-                  k = key.lower()
-                  if "isruexcavation" in k or ("regolith" in k and "rover" in k):
-                      return "Regolith"
-                  if "lox" in k or "launch" in k or "propellant" in k:
-                      return "LOX"
-                  if "solar" in k or "power" in k or "habitation" in k:
-                      return "Power"
-                  return "Unknown"
+              # Frontend routes now carry a flow field: Regolith, LOX, Power, Structural
+              # Match SysML connections to frontend routes by flow type
+              regolith_routes = [v for v in conns.values() if v.get("flow") == "Regolith"]
+              lox_routes      = [v for v in conns.values() if v.get("flow") == "LOX"]
 
-              # Build typed route lookup
-              regolith_routes = {k: v for k, v in conns.items() if classify_route(k) == "Regolith"}
-              lox_routes      = {k: v for k, v in conns.items() if classify_route(k) == "LOX"}
-
-              def find_route_for_conn(from_part, to_part, flow):
-                  if flow == "Power":
-                      return None  # Power connections have no physical path on canvas
-                  routes = regolith_routes if flow == "Regolith" else lox_routes
-                  if not routes:
-                      routes = conns  # fallback to all routes
-
-                  # Direct match
-                  for key, val in routes.items():
-                      if key == f"{from_part}To{to_part}" or key == f"{to_part}To{from_part}":
-                          return val
-
-                  # Rover intermediary mapping
-                  rover_map = {
-                      "RegolithRover": ["ISRUExcavation", "ISRUPlant"],
-                      "LOXRover":      ["ISRUPlant", "LaunchLandingZone", "PropellantDepot"],
-                  }
-                  # Resolve actual endpoints (skip rover names)
-                  endpoints = set()
-                  for part in [from_part, to_part]:
-                      mapped = rover_map.get(part)
-                      if mapped:
-                          endpoints.update(mapped)
-                      else:
-                          endpoints.add(part)
-
-                  # Find route whose key contains at least 2 of the resolved endpoints
-                  for key, val in routes.items():
-                      matched = [p for p in endpoints if p in key]
-                      if len(matched) >= 2:
-                          return val
-
-                  return None
+              # Track assignment to avoid giving same route to multiple connections
+              regolith_idx = 0
+              lox_idx      = 0
 
               updated_conns = 0
               for conn in sysml.get("connections", []):
-                  from_part = conn.get("from", {}).get("part", "")
-                  to_part   = conn.get("to",   {}).get("part", "")
-                  flow      = conn.get("flow", "")
+                  flow = conn.get("flow", "")
 
-                  match = find_route_for_conn(from_part, to_part, flow)
+                  match = None
+                  if flow == "Regolith" and regolith_idx < len(regolith_routes):
+                      match = regolith_routes[regolith_idx]
+                      regolith_idx += 1
+                  elif flow == "LOX" and lox_idx < len(lox_routes):
+                      match = lox_routes[lox_idx]
+                      lox_idx += 1
+
                   if match:
                       conn["path"] = {
                           "waypoints_m": match["waypoints_m"],
@@ -312,7 +277,6 @@ jobs:
                       }
                       updated_conns += 1
                   else:
-                      # Remove stale path if previously set
                       conn.pop("path", None)
 
               # Store urban planning metadata at root level
