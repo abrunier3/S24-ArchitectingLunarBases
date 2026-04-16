@@ -92,20 +92,25 @@
     z-index: 1;
     max-width: 1540px;
     margin: 0 auto;
-    padding: 22px 22px 90px;
+    padding: 90px 22px 90px;
   }
 
   .topbar {
-    position: sticky;
+    position: fixed;
     top: 12px;
-    z-index: 100;
+    left: 50%;
+    transform: translateX(-50%);
+    width: calc(100% - 44px);
+    max-width: 1540px;
+    z-index: 9999;
     display: flex;
     align-items: center;
     gap: 16px;
     padding: 14px 18px;
     border: 1px solid var(--line-strong);
     border-radius: 22px;
-    background: linear-gradient(180deg, rgba(7,18,33,0.82), rgba(8,16,28,0.94));
+    background: linear-gradient(180deg, rgba(7,18,33,0.95), rgba(8,16,28,0.98));
+    backdrop-filter: blur(14px);
     backdrop-filter: blur(14px);
     box-shadow: var(--shadow);
   }
@@ -386,7 +391,7 @@
     padding: 22px;
     margin-top: 20px;
     position: relative;
-    overflow: hidden;
+    scroll-margin-top: 90px;
   }
 
   .section::before {
@@ -857,7 +862,8 @@
     gap: 10px;
   }
 
-  .attr-row {
+  .attr-row,
+  .sysml-attr-row {
     display: grid;
     grid-template-columns: 2fr 1.4fr 0.8fr;
     gap: 10px;
@@ -1063,32 +1069,32 @@
     .metrics,
     .scenario-metrics,
     .status-panel,
-    .attr-row { grid-template-columns: 1fr; }
+    .attr-row,
+    .sysml-attr-row { grid-template-columns: 1fr; }
     .form-grid { grid-template-columns: 1fr; }
     .span-12, .span-6, .span-4, .span-3, .subsection, .attr-list, .save-banner { grid-column: span 1; }
   }
 </style>
 </head>
 <body>
-  <div class="shell">
-    <header class="topbar">
-      <div class="brand-wrap">
-        <div class="brand-badge">ECLIPSE</div>
-        <div class="brand-copy">
-          <div class="kicker">Collaborative lunar systems engineering</div>
-          <div class="title">Digital Engineering Ecosystem</div>
-        </div>
-
+  <header class="topbar">
+    <div class="brand-wrap">
+      <div class="brand-badge">ECLIPSE</div>
+      <div class="brand-copy">
+        <div class="kicker">Collaborative lunar systems engineering</div>
+        <div class="title">Digital Engineering Ecosystem</div>
       </div>
-      <nav class="nav">
-        <a href="#MBSE">1. Build Requirements </a>
-        <a href="#activation">2. Mission Network Activation</a>
-        <a href="#assembly">3. Model Submission</a>
-        <a href="#consequence">4. Mission Tradespace Selection</a>
-        <a href="#Simulation">5. Simulator</a>        
-
-      </nav>
-    </header>
+    </div>
+    <nav class="nav">
+      <a href="#MBSE">1. Build Requirements</a>
+      <a href="#activation">2. Mission Network Activation</a>
+      <a href="#assembly">3. Model Submission</a>
+      <a href="#urban-planning">4. Urban Planning</a>
+      <a href="#des">5. Mission Tradespace Selection (DES)</a>
+      <a href="#consquence">6. Simulator</a>
+    </nav>
+  </header>
+  <div class="shell">
 
 <head>
 
@@ -1175,16 +1181,22 @@
   }
 
   .topbar {
-    position: sticky;
-    top: 0;
-    z-index: 100;
+    position: fixed;
+    top: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: calc(100% - 44px);
+    max-width: 1540px;
+    z-index: 1000;
     display: flex;
     align-items: center;
     gap: 16px;
-    padding: 14px 26px;
+    padding: 14px 18px;
     background: rgba(9, 12, 18, 0.88);
-    border-bottom: 1px solid var(--border);
+    border: 1px solid var(--border);
+    border-radius: 22px;
     backdrop-filter: blur(10px);
+    box-shadow: var(--shadow);
   }
   .brand {
     font-family: var(--sans);
@@ -1229,7 +1241,7 @@
   .page {
     max-width: 1480px;
     margin: 0 auto;
-    padding: 28px 24px 100px;
+    padding: 110px 24px 100px;
   }
 
   .hero {
@@ -1262,6 +1274,7 @@
     border: 1px solid var(--border);
     border-radius: 14px;
     box-shadow: var(--shadow);
+    scroll-margin-top: 90px;
   }
   .section-head {
     display: flex;
@@ -1447,6 +1460,20 @@
     color: var(--text2);
     font-size: 11px;
   }
+  .ops-legend span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .legend-module {
+    display: inline-block;
+    width: 18px;
+    height: 11px;
+    border-radius: 3px;
+    border: 1px solid #00d4ff;
+    background: rgba(0,212,255,0.16);
+    box-shadow: 0 0 10px rgba(0,212,255,0.16);
+  }
   .legend-dot {
     display: inline-block;
     width: 8px;
@@ -1604,7 +1631,15 @@
     display: grid;
     gap: 8px;
   }
-  .attr-row {
+  #sysmlAttrs {
+    grid-template-columns: 1fr;
+  }
+  #sysmlAttrs .form-section-title,
+  #sysmlAttrs .sysml-attr-row {
+    grid-column: 1 / -1;
+  }
+  .attr-row,
+  .sysml-attr-row {
     display: grid;
     grid-template-columns: 2fr 1.4fr 1fr;
     gap: 8px;
@@ -1743,11 +1778,17 @@
     .summary-bar, .scenario-meta { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   }
   @media (max-width: 760px) {
-    .page { padding: 18px 14px 90px; }
+    .topbar {
+      top: 8px;
+      width: calc(100% - 20px);
+      padding: 12px;
+    }
+    .page { padding: 96px 14px 90px; }
     .system-grid, .control-row, .summary-bar, .scenario-meta { grid-template-columns: 1fr; }
     .form-grid { grid-template-columns: repeat(1, minmax(0, 1fr)); }
     .full, .span-6, .span-4, .span-3, .form-section-title, .custom-attrs, .success-banner { grid-column: span 1; }
-    .attr-row { grid-template-columns: 1fr; }
+    .attr-row,
+    .sysml-attr-row { grid-template-columns: 1fr; }
     .nav { display: none; }
   }
 
@@ -1819,9 +1860,10 @@
         <div class="panel">
           <div class="panel-title">Mission Operations Graph</div>
           <div class="ops-legend">
-            <span><span class="legend-dot" style="background:#00d4ff"></span>Active node</span>
+            <span><span class="legend-module"></span>Module</span>
             <span><span class="legend-dot" style="background:#7ee0b1"></span>Power flow</span>
             <span><span class="legend-dot" style="background:#57c7ff"></span>LOX flow</span>
+            <span><span class="legend-dot" style="background:#ffb347"></span>Regolith flow</span>
           </div>
           <div class="ops-graph" id="opsGraph">
             <svg class="link-layer" id="linkLayer" viewBox="0 0 1000 520" preserveAspectRatio="none"></svg>
@@ -1956,7 +1998,7 @@
           <div class="field span-3"><label>lengthUnit</label><select id="lengthUnit"><option>m</option><option>cm</option><option>mm</option></select></div>
 
           <!-- SysML Attributes -->
-          <div class="custom-attrs" id="customAttrs" style="display:none;"></div>
+          <div class="custom-attrs" id="sysmlAttrs" style="display:none;"></div>
 
           <!-- Per-module save -->
           <div class="form-section-title">Actions</div>
@@ -1983,11 +2025,11 @@
     <pre id="sysmlPreview"></pre>
   </div>
 </div>
-</pre><div class="custom-attrs" id="customAttrs" style="display:none;"></div>
+<div class="custom-attrs" id="customAttrs" style="display:none;"></div>
 
 <div class="field full" style="display:none;">
   <div class="chart-box" style="margin-top:0;">
-    <pre id="sysmlPreview"></pre>
+    <pre id="sysmlPreviewLegacy"></pre>
   </div>
 </div>
                 </div>
@@ -2079,6 +2121,7 @@ let nodeCounter = 0;
 
   function getGraphActiveNodeList(data = {}) {
     const raw = data.active_nodes;
+    const hasExplicitActiveNodes = Array.isArray(raw) || Array.isArray(raw?.list);
     const explicit = Array.isArray(raw)
       ? raw
       : (Array.isArray(raw?.list) ? raw.list : []);
@@ -2088,8 +2131,9 @@ let nodeCounter = 0;
     ]).filter(Boolean);
     const connectedNames = new Set(fromConnections);
 
-    if (explicit.length > 0) {
+    if (hasExplicitActiveNodes) {
       const names = [...new Set(explicit.filter(Boolean))];
+      if (names.length === 0) return [];
       const leafNames = names.filter(name => {
         const part = getSysmlPartData(name);
         const hasPorts = (part?.ports?.length || 0) > 0;
@@ -2195,28 +2239,48 @@ function buildAssemblyTreeFromActiveSystems() {
     updateTopMetrics();
   }
 
+function buildActiveGraphDataFromSystems(baseData = window._lastGraphData || {}) {
+  const parts = baseData.parts || sysmlPartsCache || {};
+  const baseGraphNodes = getGraphActiveNodeList({
+    ...baseData,
+    parts,
+    active_nodes: baseData.active_nodes || Object.keys(parts)
+  });
+  const activeIds = new Set(
+    systems.length ? systems.filter(s => s.active).map(s => s.id) : baseGraphNodes
+  );
+  const normalized = normalizeSysmlConnections(baseData.connections || [], baseGraphNodes);
+  const activeNodes = baseGraphNodes.filter(n => activeIds.has(n));
+
+  return {
+    ...baseData,
+    parts,
+    active_nodes: activeNodes,
+    connections: normalized.filter(c =>
+      activeIds.has(c.fromName) && activeIds.has(c.toName)
+    )
+  };
+}
+
 function toggleSystem(id) {
   const sys = systems.find(s => s.id === id);
   if (!sys) return;
   sys.active = !sys.active;
   renderSystems();
-  buildAssemblyTreeFromActiveSystems();
-  // Re-render live graph filtered to active nodes only
-  if (window._lastGraphData) {
-    const activeIds = new Set(systems.filter(s => s.active).map(s => s.id));
-    const baseGraphNodes = getGraphActiveNodeList(window._lastGraphData);
-    const normalized = normalizeSysmlConnections(
-      window._lastGraphData.connections || [],
-      baseGraphNodes
-    );
-    const filtered = {
-      ...window._lastGraphData,
-      active_nodes: baseGraphNodes.filter(n => activeIds.has(n)),
-      connections: normalized.filter(c =>
-        activeIds.has(c.fromName) && activeIds.has(c.toName)
-      ),
-    };
+
+  // Re-render live graph and Step 3 from the same filtered active-node dataset.
+  const baseGraphData = window._lastGraphData || window._currentGraphData || {
+    parts: sysmlPartsCache,
+    active_nodes: Object.keys(sysmlPartsCache),
+    connections: []
+  };
+  if (baseGraphData) {
+    const filtered = buildActiveGraphDataFromSystems(baseGraphData);
+    window._currentGraphData = filtered;
     renderLiveGraph(filtered);
+    if (typeof populateStep3 === 'function') {
+      populateStep3(filtered, { preferredModule: currentModuleName });
+    }
     const caption = document.getElementById('opsCaption');
     if (caption) {
       caption.textContent = filtered.active_nodes?.length
@@ -2224,6 +2288,7 @@ function toggleSystem(id) {
         : 'No active nodes returned from pipeline.';
     }
   }
+  if (typeof updatePublishCounter === 'function') updatePublishCounter();
 }
 
   function updateTopMetrics() {
@@ -2310,8 +2375,10 @@ function updateSelectedPath() {
       if (el && data[id] !== undefined) el.value = data[id];
     });
     const wrap = document.getElementById('customAttrs');
-    wrap.innerHTML = '';
-    (data.customAttrs || []).forEach(attr => addCustomAttrRow(attr));
+    if (wrap) {
+      wrap.innerHTML = '';
+      (data.customAttrs || []).forEach(attr => addCustomAttrRow(attr));
+    }
     previewAssembly();
   }
 
@@ -2321,7 +2388,8 @@ function updateSelectedPath() {
       'stepFileName','partName','materialRef','partCategory','dimLength','dimWidth','dimHeight',
       'posX','posY','posZ','rotX','rotY','rotZ','metersPerUnit','upAxis','angleUnit','massUnit','pressureUnit','lengthUnit'
     ].forEach(id => data[id] = document.getElementById(id)?.value ?? '');
-    data.customAttrs = [...document.querySelectorAll('.attr-row')].map(row => ({
+    const legacyAttrsWrap = document.getElementById('customAttrs');
+    data.customAttrs = [...(legacyAttrsWrap?.querySelectorAll('.attr-row') || [])].map(row => ({
       name: row.querySelector('.attr-name')?.value ?? '',
       value: row.querySelector('.attr-value')?.value ?? '',
       unit: row.querySelector('.attr-unit')?.value ?? ''
@@ -2401,6 +2469,7 @@ function updateSelectedPath() {
 
   function addCustomAttrRow(attr = { name: '', value: '', unit: '' }) {
     const wrap = document.getElementById('customAttrs');
+    if (!wrap) return;
     const row = document.createElement('div');
     row.className = 'attr-row';
     row.innerHTML = `
@@ -2418,7 +2487,8 @@ function updateSelectedPath() {
   }
 
   function previewAssembly() {
-    document.getElementById('sysmlPreview').textContent = buildPreviewText();
+    const preview = document.getElementById('sysmlPreview');
+    if (preview) preview.textContent = buildPreviewText();
   }
 
   function pushToConsequence() {
@@ -2711,11 +2781,97 @@ iframe{
 
   <!-- ── 4.2 ──────────────────────────────────────────────────────── -->
   <div id="upPanel2" style="display:none;">
-    <div style="background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:24px;text-align:center;">
-      <div style="font-size:13px;color:var(--text3);margin-bottom:6px;">Module placement heatmaps coming soon.</div>
-      <div style="font-size:11px;color:var(--text3);">Complete Step 4.1 first.</div>
+
+    <!-- Phase tabs -->
+    <div style="display:flex;gap:0;margin-bottom:14px;border-bottom:1px solid var(--border);">
+      <button id="up42PhaseA" onclick="setPlacementPhase('place')"
+        style="padding:8px 18px;font-size:11px;font-weight:600;border:none;background:none;cursor:pointer;
+        color:var(--accent);border-bottom:2px solid var(--accent);">
+        Phase 1 — Module Placement
+      </button>
+      <button id="up42PhaseB" onclick="setPlacementPhase('routes')"
+        style="padding:8px 18px;font-size:11px;font-weight:600;border:none;background:none;cursor:pointer;
+        color:var(--text3);border-bottom:2px solid transparent;">
+        Phase 2 — Route Generation
+      </button>
+    </div>
+
+    <div style="display:grid;grid-template-columns:200px 1fr 220px;gap:12px;height:580px;min-height:580px;max-height:580px;overflow:hidden;">
+
+      <!-- LEFT: Module list -->
+      <div style="background:var(--panel);border:1px solid var(--border);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;">
+        <div style="padding:12px 14px;border-bottom:1px solid var(--border);">
+          <div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:2px;">Active Modules</div>
+          <div style="font-size:10px;color:var(--text3);">Click to load heatmap</div>
+        </div>
+        <div id="up42ModuleList" style="flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:6px;">
+          <div style="color:var(--text3);font-size:11px;text-align:center;margin-top:20px;">Run Graph first.</div>
+        </div>
+        <div style="padding:10px 14px;border-top:1px solid var(--border);">
+          <div style="font-size:9px;color:var(--text3);margin-bottom:6px;">
+            <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#4a5568;margin-right:4px;"></span>Not placed
+            <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#00ff9d;margin-right:4px;margin-left:8px;"></span>Placed
+          </div>
+        </div>
+      </div>
+
+      <!-- CENTER: Map canvas -->
+      <div style="position:relative;background:#0c1119;border:1px solid var(--border);border-radius:12px;overflow:hidden;">
+        <canvas id="up42Canvas" style="width:100%;height:100%;display:block;cursor:crosshair;"></canvas>
+
+        <!-- Overlay instructions -->
+        <div id="up42Hint" style="position:absolute;top:10px;left:50%;transform:translateX(-50%);
+          background:rgba(0,0,0,0.7);border:1px solid var(--border2);border-radius:8px;
+          padding:6px 14px;font-size:10px;color:var(--text2);pointer-events:none;white-space:nowrap;">
+          Select a module on the left to begin placement
+        </div>
+
+        <!-- Source credit -->
+        <div style="position:absolute;bottom:8px;left:12px;font-size:9px;color:rgba(255,255,255,0.3);pointer-events:none;">
+          Heatmap: Jenny Zheng (GT) · Terrain: NASA LRO LOLA
+        </div>
+
+        <!-- Phase 2 button -->
+        <div style="position:absolute;bottom:8px;right:12px;">
+          <button id="up42PlotBtn" onclick="plotBestPaths()"
+            style="padding:8px 14px;font-size:11px;font-weight:600;background:var(--accent);color:#000;
+            border:none;border-radius:8px;cursor:pointer;display:none;">
+            ▶ Plot Best Paths
+          </button>
+        </div>
+      </div>
+
+      <!-- RIGHT: Module info + route info -->
+      <div style="display:flex;flex-direction:column;gap:10px;overflow:hidden;min-height:0;">
+
+        <!-- Module detail card -->
+        <div id="up42InfoCard" style="background:var(--panel);border:1px solid var(--border);border-radius:12px;
+          padding:14px;flex:1;overflow-y:auto;">
+          <div style="color:var(--text3);font-size:11px;text-align:center;margin-top:30px;">
+            Select a module to place it.
+          </div>
+        </div>
+
+        <!-- Route stats card (phase 2) -->
+        <div id="up42RouteCard" style="display:none;background:var(--panel);border:1px solid var(--border);
+          border-radius:12px;padding:14px;overflow-y:auto;flex-shrink:0;max-height:260px;">
+          <div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:10px;">Route Statistics</div>
+          <div id="up42RouteStats"></div>
+        </div>
+
+        <!-- Confirm button -->
+        <div style="flex-shrink:0;">
+          <button id="up42ConfirmBtn" onclick="confirmPlacements()"
+            style="width:100%;padding:10px;font-size:11px;font-weight:600;
+            background:rgba(0,212,255,0.12);border:1px solid var(--accent);
+            color:var(--accent);border-radius:8px;cursor:pointer;display:none;">
+            ✓ Confirm Placements → Go to DES
+          </button>
+        </div>
+      </div>
     </div>
   </div>
+
 </section>
 
 <script>
@@ -3155,8 +3311,1152 @@ function showUpTab(n){
     document.getElementById(id).style.borderBottom=active?'2px solid var(--accent)':'2px solid transparent';
   });
   if(n===1) setTimeout(()=>{pmW=pmCanvas.offsetWidth;pmH=pmCanvas.offsetHeight;pmCanvas.width=pmW;pmCanvas.height=pmH;drawMap();},50);
+  if(n===2) onUp42TabOpen();
 }
 window.addEventListener('load',()=>setTimeout(initPolarMap,200));
+</script>
+
+<script>
+// ══════════════════════════════════════════════════════════════════
+// STEP 4.2 — MODULE PLACEMENT + ROUTE GENERATION
+// ══════════════════════════════════════════════════════════════════
+
+// Modules that make sense to place spatially (Rover is mobile, not fixed)
+// All SysML modules are placeable EXCEPT rovers (mobile — detected by name pattern)
+const isRoverNode = id => id.toLowerCase().includes('rover');
+const UP42_EXCLUDED = { has: id => isRoverNode(id) };
+
+// ── Heatmap image URLs per module (swap in real PNGs from Jenny) ──
+const MODULE_HEATMAPS = {
+  SolarPowerSystem:   null,
+  HabitationModule:   null,
+  ISRUPlant:          null,
+  LaunchLandingZone:  null,
+  Propellant_Depot:   null,
+};
+
+// Per-module heatmap criteria label (shown in info card)
+const MODULE_CRITERIA = {
+  SolarPowerSystem:  'Illumination (primary), Elevation/Ridge, Slope',
+  HabitationModule:  'Slope, Distance to PSR, Expandable Terrain',
+  ISRUPlant:         'Distance to PSR, Slope, Expandable Terrain',
+  LaunchLandingZone: 'Slope (critical), Expandable Terrain, Elevation/Ridge',
+  Propellant_Depot:  'Proximity to Landing Zone, Slope',
+};
+
+// Module rectangle size in pixels
+const MODULE_SIZE = {
+  SolarPowerSystem:  { w: 60, h: 40 },
+  HabitationModule:  { w: 50, h: 50 },
+  ISRUPlant:         { w: 55, h: 45 },
+  LaunchLandingZone: { w: 80, h: 80 },
+  Propellant_Depot:  { w: 50, h: 40 },
+};
+
+// Module colors
+const MODULE_COLORS = {
+  SolarPowerSystem:  '#ffd166',
+  HabitationModule:  '#7ee0b1',
+  ISRUPlant:         '#ff7a8a',
+  LaunchLandingZone: '#4cc9f0',
+  Propellant_Depot:  '#f4a261',
+};
+
+// ── State ──────────────────────────────────────────────────────────
+let up42Canvas, up42Ctx, up42W, up42H;
+let up42ActiveModule  = null;
+let up42Phase         = 'place';
+let up42Placements    = {};
+let up42Orientations  = {};   // { moduleId: degrees } — 0° by default
+let up42Routes        = [];
+let up42DragWaypoint  = null;
+let up42DragState     = null;   // { ri, pi } — waypoint being dragged
+let up42HeatmapImgs   = {};
+let up42SyntheticTerrain = null;
+
+// Bounding box of the polar map for this site (degrees)
+// Will be set from upSelectedSite when panel opens
+let up42BBox = { latMin: -90, latMax: -83, lonMin: -60, lonMax: 90 };
+
+// ── Init ───────────────────────────────────────────────────────────
+function initUp42() {
+  up42Canvas = document.getElementById('up42Canvas');
+  if (!up42Canvas) return;
+  up42Ctx = up42Canvas.getContext('2d');
+  resizeUp42Canvas();
+
+  // Generate synthetic terrain from selected site's slope data
+  generateSyntheticTerrain();
+
+  // Populate module list from Step 2 active systems
+  renderUp42ModuleList();
+
+  // Events
+  up42Canvas.addEventListener('click',     up42OnClick);
+  up42Canvas.addEventListener('mousemove', up42OnMouseMove);
+  up42Canvas.addEventListener('mousedown', up42OnMouseDown);
+  up42Canvas.addEventListener('mouseup',   up42OnMouseUp);
+  window.addEventListener('resize', resizeUp42Canvas);
+
+  drawUp42();
+}
+
+function resizeUp42Canvas() {
+  if (!up42Canvas) return;
+  up42W = up42Canvas.offsetWidth;
+  up42H = up42Canvas.offsetHeight;
+  up42Canvas.width  = up42W;
+  up42Canvas.height = up42H;
+  drawUp42();
+}
+
+// ── Synthetic terrain ──────────────────────────────────────────────
+// Generates a GRID_SIZE×GRID_SIZE slope array using the selected site's
+// known slope values + random perturbation. Jenny's real DEM will replace this.
+function generateSyntheticTerrain() {
+  const GRID = 80;
+  const site = upSelectedSite;
+  // Cap base slope to reasonable values — terrain is mostly traversable
+  const baseSlopeDeg = Math.min(10, site ? site.avg_slope_2km_deg || site.slope2km || 6 : 6);
+
+  up42SyntheticTerrain = [];
+  let rng = mulberry32(site ? site.id.charCodeAt(0) * 1234 : 42);
+
+  for (let y = 0; y < GRID; y++) {
+    const row = [];
+    for (let x = 0; x < GRID; x++) {
+      const base  = baseSlopeDeg * 0.5;
+      const noise = (rng() - 0.5) * baseSlopeDeg * 1.2;
+      // Crater hotspots — steep rims but limited extent
+      let extra = 0;
+      [[0.25,0.3],[0.7,0.6],[0.5,0.8]].forEach(([cx,cy]) => {
+        const dx = x/GRID - cx, dy = y/GRID - cy;
+        const d = Math.sqrt(dx*dx+dy*dy);
+        // Only the rim is steep (ring between 0.06 and 0.12), not the whole crater
+        if (d > 0.06 && d < 0.12) extra += (0.12 - d) / 0.06 * 18;
+      });
+      // Hard cap at 20° — realistic max for navigable lunar terrain patches
+      row.push(Math.max(0, Math.min(20, base + noise + extra)));
+    }
+    up42SyntheticTerrain.push(row);
+  }
+}
+
+function mulberry32(seed) {
+  return function() {
+    seed |= 0; seed = seed + 0x6D2B79F5 | 0;
+    let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+
+// ── Module list ────────────────────────────────────────────────────
+function renderUp42ModuleList() {
+  const list = document.getElementById('up42ModuleList');
+  if (!list) return;
+
+  // All active SysML modules except Rover (mobile, not placed)
+  const allItems = systems.filter(s => s.active && !UP42_EXCLUDED.has(s.id));
+
+  list.innerHTML = '';
+
+  if (allItems.length === 0) {
+    const msg = document.createElement('div');
+    msg.style.cssText = 'color:var(--text3);font-size:11px;text-align:center;margin-top:10px;';
+    msg.innerHTML = 'Run Graph first.<br><span style="font-size:9px;">Rovers are mobile — not placed.</span>';
+    list.appendChild(msg);
+    return;
+  }
+
+  allItems.forEach(sys => {
+    const placed   = !!up42Placements[sys.id];
+    const color    = MODULE_COLORS[sys.id] || '#888';
+    const isActive = up42ActiveModule === sys.id;
+
+    const btn = document.createElement('div');
+    btn.style.cssText = `
+      padding:10px 12px; border-radius:8px; cursor:pointer; transition:0.15s ease;
+      border:1px solid ${isActive ? color : 'var(--border2)'};
+      background:${isActive ? `rgba(${hexToRgb(color)},0.12)` : 'rgba(255,255,255,0.02)'};
+      display:flex; align-items:center; gap:8px;
+    `;
+    btn.innerHTML = `
+      <span style="display:inline-block;width:9px;height:9px;border-radius:50%;
+        background:${placed ? '#00ff9d' : '#4a5568'};flex-shrink:0;"></span>
+      <span style="font-size:11px;font-weight:600;color:${isActive ? color : 'var(--text2)'};">${sys.id}</span>
+    `;
+    btn.onclick = () => selectUp42Module(sys.id);
+    list.appendChild(btn);
+
+    // Orientation slider — shown inline when module is active AND placed
+    if (isActive && placed) {
+      const orientRow = document.createElement('div');
+      orientRow.style.cssText = `
+        padding:8px 12px 10px 12px;
+        background:rgba(${hexToRgb(color)},0.07);
+        border:1px solid ${color};
+        border-top:none;
+        border-radius:0 0 8px 8px;
+        margin-top:-4px;
+      `;
+      const deg = up42Orientations[sys.id] ?? 0;
+      orientRow.innerHTML = `
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">
+          <span style="font-size:9px;color:var(--text3);letter-spacing:0.05em;">ORIENTATION</span>
+          <span id="up42OrientValLeft" style="font-size:10px;color:${color};font-weight:700;">${deg}°</span>
+        </div>
+        <input type="range" min="0" max="359" step="1" value="${deg}"
+          style="width:100%;accent-color:${color};height:3px;"
+          oninput="up42SetOrientation('${sys.id}', parseInt(this.value))">
+      `;
+      list.appendChild(orientRow);
+    }
+  });
+
+  // Plot Paths available once at least 2 modules placed
+  const placedCount = allItems.filter(s => up42Placements[s.id]).length;
+  const plotBtn = document.getElementById('up42PlotBtn');
+  if (plotBtn) plotBtn.style.display = placedCount >= 2 ? 'block' : 'none';
+
+  const allPlaced = allItems.length > 0 && allItems.every(s => up42Placements[s.id]);
+  const confirmBtn = document.getElementById('up42ConfirmBtn');
+  if (confirmBtn) confirmBtn.style.display = allPlaced ? 'block' : 'none';
+}
+
+function hexToRgb(hex) {
+  const r = parseInt(hex.slice(1,3),16);
+  const g = parseInt(hex.slice(3,5),16);
+  const b = parseInt(hex.slice(5,7),16);
+  return `${r},${g},${b}`;
+}
+
+function selectUp42Module(moduleId) {
+  up42ActiveModule = moduleId;
+  renderUp42ModuleList();
+  updateUp42InfoCard();
+  loadHeatmap(moduleId);
+  setHint(`Click on the map to place ${moduleId}`);
+  drawUp42();
+}
+
+function setHint(msg) {
+  const el = document.getElementById('up42Hint');
+  if (el) el.textContent = msg;
+}
+
+// ── Heatmap loading ────────────────────────────────────────────────
+function loadHeatmap(moduleId) {
+  const url = MODULE_HEATMAPS[moduleId];
+  if (!url) { drawUp42(); return; } // placeholder
+  if (up42HeatmapImgs[moduleId]) { drawUp42(); return; }
+  const img = new Image();
+  img.crossOrigin = 'anonymous';
+  img.onload = () => { up42HeatmapImgs[moduleId] = img; drawUp42(); };
+  img.onerror = () => drawUp42();
+  img.src = url;
+}
+
+// ── Drawing ────────────────────────────────────────────────────────
+function drawUp42() {
+  if (!up42Ctx) return;
+  up42Ctx.clearRect(0, 0, up42W, up42H);
+
+  // Background
+  up42Ctx.fillStyle = '#0c1119';
+  up42Ctx.fillRect(0, 0, up42W, up42H);
+
+  // Draw terrain base
+  drawTerrain();
+
+  // Phase-specific overlay
+  if (up42Phase === 'routes') {
+    drawElevationHeatmap();   // elevation view for route planning
+  } else if (up42ActiveModule) {
+    drawHeatmapOverlay();     // suitability heatmap for placement
+  }
+
+  // Draw placed module rectangles
+  drawPlacedModules();
+
+  // Draw routes (phase 2)
+  if (up42Phase === 'routes' && up42Routes.length > 0) drawRoutes();
+}
+
+function drawElevationHeatmap() {
+  if (!up42SyntheticTerrain) return;
+  const GRID = up42SyntheticTerrain.length;
+  const cellW = up42W / GRID;
+  const cellH = up42H / GRID;
+
+  // Derive synthetic elevation from slope (integrate slope → elevation proxy)
+  // In production this will use Jenny's real DEM raster
+  for (let y = 0; y < GRID; y++) {
+    for (let x = 0; x < GRID; x++) {
+      const slope = up42SyntheticTerrain[y][x];
+      // Color ramp: dark blue (flat/low) → green → yellow → red (steep/high)
+      let r, g, b, a = 0.55;
+      if (slope < 5) {
+        // Very flat — blue/teal
+        r=20; g=180; b=220;
+      } else if (slope < 10) {
+        // Gentle — green
+        const t=(slope-5)/5;
+        r=Math.round(20+t*200); g=Math.round(180-t*60); b=Math.round(220-t*180);
+      } else if (slope < 15) {
+        // Moderate — yellow/orange
+        const t=(slope-10)/5;
+        r=255; g=Math.round(120-t*80); b=Math.round(40-t*30);
+      } else {
+        // Steep — red
+        r=220; g=Math.round(40-Math.min(30,slope-15)*2); b=30;
+      }
+      up42Ctx.fillStyle = `rgba(${r},${g},${b},${a})`;
+      up42Ctx.fillRect(Math.round(x*cellW), Math.round(y*cellH),
+        Math.ceil(cellW)+1, Math.ceil(cellH)+1);
+    }
+  }
+
+  // Slope legend
+  const lx = up42W - 110, ly = 12;
+  up42Ctx.fillStyle = 'rgba(0,0,0,0.65)';
+  up42Ctx.fillRect(lx-6, ly, 104, 80);
+  up42Ctx.font = '9px monospace';
+  up42Ctx.fillStyle = 'rgba(255,255,255,0.7)';
+  up42Ctx.fillText('Slope / Elevation', lx, ly+12);
+  [
+    [20,180,220,'< 5° — Ideal'],
+    [180,120,40,'5–10° — Good'],
+    [255,80,10,'10–15° — Limit'],
+    [220,40,30,'> 15° — Avoid'],
+  ].forEach(([r,g,b,label], i) => {
+    up42Ctx.fillStyle = `rgb(${r},${g},${b})`;
+    up42Ctx.fillRect(lx, ly+20+i*14, 10, 10);
+    up42Ctx.fillStyle = 'rgba(255,255,255,0.65)';
+    up42Ctx.fillText(label, lx+14, ly+29+i*14);
+  });
+
+  // Note
+  up42Ctx.fillStyle = 'rgba(255,255,255,0.3)';
+  up42Ctx.fillText('★ Synthetic — awaiting DEM from Jenny', 8, up42H-20);
+}
+
+function drawTerrain() {
+  // Draw moon image as base if loaded
+  if (up42MoonImg) {
+    up42Ctx.drawImage(up42MoonImg, 0, 0, up42W, up42H);
+  } else {
+    // Fallback dark background
+    up42Ctx.fillStyle = '#1a1f2e';
+    up42Ctx.fillRect(0, 0, up42W, up42H);
+  }
+
+  // Slope overlay (semi-transparent on top of moon image)
+  if (!up42SyntheticTerrain) return;
+  const GRID = up42SyntheticTerrain.length;
+  const cellW = up42W / GRID;
+  const cellH = up42H / GRID;
+
+  for (let y = 0; y < GRID; y++) {
+    for (let x = 0; x < GRID; x++) {
+      const slope = up42SyntheticTerrain[y][x];
+      const t = Math.min(1, slope / 20);
+      // Subtle tint only — moon texture stays visible underneath
+      up42Ctx.fillStyle = `rgba(${Math.round(t*80)},${Math.round((1-t)*40)},${Math.round((1-t)*60)},0.18)`;
+      up42Ctx.fillRect(Math.round(x*cellW), Math.round(y*cellH),
+        Math.ceil(cellW)+1, Math.ceil(cellH)+1);
+    }
+  }
+
+  // Subtle grid lines
+  up42Ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+  up42Ctx.lineWidth = 0.5;
+  for (let i = 0; i <= 10; i++) {
+    up42Ctx.beginPath(); up42Ctx.moveTo(i*up42W/10,0); up42Ctx.lineTo(i*up42W/10,up42H); up42Ctx.stroke();
+    up42Ctx.beginPath(); up42Ctx.moveTo(0,i*up42H/10); up42Ctx.lineTo(up42W,i*up42H/10); up42Ctx.stroke();
+  }
+
+  // Image credit
+  if (up42MoonImg) {
+    up42Ctx.font = '9px monospace';
+    up42Ctx.fillStyle = 'rgba(255,255,255,0.3)';
+    up42Ctx.fillText('Background: NASA/USGS Clementine mosaic (placeholder)', 8, up42H - 8);
+  }
+}
+
+function drawHeatmapOverlay() {
+  const img = up42HeatmapImgs[up42ActiveModule];
+  if (img) {
+    // Real heatmap image
+    up42Ctx.globalAlpha = 0.65;
+    up42Ctx.drawImage(img, 0, 0, up42W, up42H);
+    up42Ctx.globalAlpha = 1.0;
+  } else {
+    // Placeholder: synthetic suitability overlay for this module
+    drawSyntheticHeatmap(up42ActiveModule);
+  }
+}
+
+function drawSyntheticHeatmap(moduleId) {
+  if (!up42SyntheticTerrain) return;
+  const GRID = up42SyntheticTerrain.length;
+  const cellW = up42W / GRID;
+  const cellH = up42H / GRID;
+
+  // Criteria-based scoring: each module cares about different slope thresholds
+  const thresholdGood = moduleId === 'LaunchLandingZone' ? 5 :
+                        moduleId === 'SolarPowerSystem'  ? 8 :
+                        moduleId === 'Rover'              ? 12 : 10;
+  const thresholdWarn = thresholdGood + 5;
+
+  for (let y = 0; y < GRID; y++) {
+    for (let x = 0; x < GRID; x++) {
+      const slope = up42SyntheticTerrain[y][x];
+      let r, g, b, a;
+      if (slope <= thresholdGood) {
+        // Green — good placement
+        r=0; g=255; b=100; a=0.3;
+      } else if (slope <= thresholdWarn) {
+        // Orange — acceptable
+        r=255; g=180; b=50; a=0.3;
+      } else {
+        // Red — avoid
+        r=255; g=60; b=80; a=0.28;
+      }
+      up42Ctx.fillStyle = `rgba(${r},${g},${b},${a})`;
+      up42Ctx.fillRect(Math.round(x*cellW), Math.round(y*cellH),
+        Math.ceil(cellW)+1, Math.ceil(cellH)+1);
+    }
+  }
+
+  // Legend in top-left
+  up42Ctx.fillStyle = 'rgba(0,0,0,0.6)';
+  up42Ctx.fillRect(8, 8, 130, 52);
+  up42Ctx.font = '9px monospace';
+  const mod = moduleId.replace(/([A-Z])/g,' $1').trim();
+  up42Ctx.fillStyle = 'rgba(255,255,255,0.7)';
+  up42Ctx.fillText(`Heatmap: ${mod}`, 14, 22);
+  up42Ctx.fillText('★ Placeholder — awaiting Jenny', 14, 34);
+  [[0,255,100,'Good (<'+thresholdGood+'°)'], [255,180,50,'OK (<'+thresholdWarn+'°)'], [255,60,80,'Avoid (≥'+thresholdWarn+'°)']].forEach(([r,g,b,lbl],i) => {
+    up42Ctx.fillStyle=`rgb(${r},${g},${b})`;
+    up42Ctx.fillRect(14, 40+i*0, 0, 0);
+  });
+  // Compact single-line legend
+  [[0,255,100,'Good'],[255,180,50,'OK'],[255,60,80,'Avoid']].forEach(([r,g,b,lbl],i)=>{
+    up42Ctx.fillStyle=`rgba(${r},${g},${b},0.9)`;
+    up42Ctx.fillRect(14+i*43, 42, 8, 8);
+    up42Ctx.fillStyle='rgba(255,255,255,0.6)';
+    up42Ctx.fillText(lbl, 25+i*43, 50);
+  });
+}
+
+function drawPlacedModules() {
+  Object.entries(up42Placements).forEach(([moduleId, pos]) => {
+    const color    = MODULE_COLORS[moduleId] || '#888';
+    const isActive = moduleId === up42ActiveModule;
+
+    up42Ctx.shadowColor = color;
+    up42Ctx.shadowBlur  = isActive ? 14 : 6;
+
+    const sz = MODULE_SIZE[moduleId] || {w:50,h:50};
+    const x  = pos.cx - sz.w/2;
+    const y  = pos.cy - sz.h/2;
+
+    up42Ctx.fillStyle   = `rgba(${hexToRgb(color)},${isActive?0.25:0.18})`;
+    up42Ctx.strokeStyle = color;
+    up42Ctx.lineWidth   = isActive ? 2.5 : 1.5;
+    roundRect(up42Ctx, x, y, sz.w, sz.h, 5);
+    up42Ctx.fill();
+    up42Ctx.stroke();
+    up42Ctx.shadowBlur = 0;
+
+    up42Ctx.font      = '9px monospace';
+    up42Ctx.fillStyle = '#fff';
+    up42Ctx.textAlign = 'center';
+    const shortName = moduleId.replace('System','').replace('Module','').replace('Landing','Land.');
+    up42Ctx.fillText(shortName, pos.cx, pos.cy - 4);
+    const coords = canvasToSiteCoords(pos.cx, pos.cy);
+    up42Ctx.font      = '8px monospace';
+    up42Ctx.fillStyle = 'rgba(255,255,255,0.6)';
+    up42Ctx.fillText(`${coords.lat.toFixed(2)}°, ${coords.lon.toFixed(2)}°`, pos.cx, pos.cy + 8);
+    up42Ctx.textAlign = 'left';
+
+    up42Ctx.beginPath();
+    up42Ctx.arc(pos.cx, pos.cy, 3, 0, Math.PI*2);
+    up42Ctx.fillStyle = color;
+    up42Ctx.fill();
+
+    // Draw orientation arrow
+    const angleDeg = up42Orientations[moduleId] ?? 0;
+    const angleRad = (angleDeg - 90) * Math.PI / 180; // -90 so 0° points up
+    const arrowLen = Math.max(sz.w, sz.h) * 0.5 + 8;
+    const ax = pos.cx + Math.cos(angleRad) * arrowLen;
+    const ay = pos.cy + Math.sin(angleRad) * arrowLen;
+    up42Ctx.shadowBlur = 0;
+    up42Ctx.beginPath();
+    up42Ctx.moveTo(pos.cx, pos.cy);
+    up42Ctx.lineTo(ax, ay);
+    up42Ctx.strokeStyle = color;
+    up42Ctx.lineWidth = 2;
+    up42Ctx.stroke();
+    // Arrowhead
+    const headLen = 7;
+    const headAngle = 0.4;
+    up42Ctx.beginPath();
+    up42Ctx.moveTo(ax, ay);
+    up42Ctx.lineTo(ax - headLen * Math.cos(angleRad - headAngle), ay - headLen * Math.sin(angleRad - headAngle));
+    up42Ctx.moveTo(ax, ay);
+    up42Ctx.lineTo(ax - headLen * Math.cos(angleRad + headAngle), ay - headLen * Math.sin(angleRad + headAngle));
+    up42Ctx.stroke();
+  });
+}
+
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x+r, y);
+  ctx.lineTo(x+w-r, y);
+  ctx.quadraticCurveTo(x+w, y, x+w, y+r);
+  ctx.lineTo(x+w, y+h-r);
+  ctx.quadraticCurveTo(x+w, y+h, x+w-r, y+h);
+  ctx.lineTo(x+r, y+h);
+  ctx.quadraticCurveTo(x, y+h, x, y+h-r);
+  ctx.lineTo(x, y+r);
+  ctx.quadraticCurveTo(x, y, x+r, y);
+  ctx.closePath();
+}
+
+// ── Coordinate conversion ──────────────────────────────────────────
+// Maps canvas pixels ↔ site lat/lon using selected site as center
+function canvasToSiteCoords(cx, cy) {
+  const site = upSelectedSite;
+  if (!site) return { lat:0, lon:0 };
+  // 1 pixel ≈ 5m — realistic lunar base scale (~3.5 km across full canvas)
+  const kmPerPx = 0.005;
+  const latPerKm = 1/111;
+  const lonPerKm = 1/(111 * Math.cos(site.lat * Math.PI/180));
+  const dx = (cx - up42W/2) * kmPerPx;
+  const dy = (cy - up42H/2) * kmPerPx;
+  return {
+    lat: +(site.lat + dy * latPerKm * -1).toFixed(5),
+    lon: +(site.lon + dx * lonPerKm).toFixed(5),
+  };
+}
+
+// ── Canvas events ──────────────────────────────────────────────────
+function up42OnClick(e) {
+  const rect = up42Canvas.getBoundingClientRect();
+  const scaleX = up42Canvas.width  / rect.width;
+  const scaleY = up42Canvas.height / rect.height;
+  const mx = (e.clientX - rect.left) * scaleX;
+  const my = (e.clientY - rect.top)  * scaleY;
+
+  if (up42Phase === 'place') {
+    // Place active module
+    if (!up42ActiveModule) return;
+    up42Placements[up42ActiveModule] = { cx:mx, cy:my };
+    updateUp42InfoCard();
+    renderUp42ModuleList();
+
+    // Auto-advance to next unplaced module (exclude Rover)
+    const active = systems.filter(s => s.active && !UP42_EXCLUDED.has(s.id));
+    const nextUnplaced = active.find(s => !up42Placements[s.id] && s.id !== up42ActiveModule);
+    if (nextUnplaced) {
+      selectUp42Module(nextUnplaced.id);
+      setHint(`Placed ${up42ActiveModule}. Now place ${nextUnplaced.id}`);
+    } else {
+      setHint('All modules placed. Click ▶ Plot Best Paths or adjust positions.');
+    }
+  } else {
+    // Phase 2: check if clicking near a waypoint to drag
+  }
+  drawUp42();
+}
+
+function up42OnMouseDown(e) {
+  if (up42Phase !== 'routes') return;
+  const rect = up42Canvas.getBoundingClientRect();
+  const scaleX = up42Canvas.width  / rect.width;
+  const scaleY = up42Canvas.height / rect.height;
+  const mx = (e.clientX - rect.left) * scaleX;
+  const my = (e.clientY - rect.top)  * scaleY;
+  for (let ri=0; ri<up42Routes.length; ri++) {
+    const path = up42Routes[ri].pts;
+    for (let pi=0; pi<path.length; pi++) {
+      const isEndpoint = pi === 0 || pi === path.length - 1;
+      if (isEndpoint) continue;
+      if (Math.hypot(path[pi].x-mx, path[pi].y-my) < 16) {
+        up42DragState = {ri, pi};
+        up42Canvas.style.cursor = 'grabbing';
+        return;
+      }
+    }
+  }
+}
+function up42OnMouseMove(e) {
+  const rect = up42Canvas.getBoundingClientRect();
+  const scaleX = up42Canvas.width  / rect.width;
+  const scaleY = up42Canvas.height / rect.height;
+  const mx = (e.clientX - rect.left) * scaleX;
+  const my = (e.clientY - rect.top)  * scaleY;
+  if (up42DragState) {
+    up42Routes[up42DragState.ri].pts[up42DragState.pi] = {x:mx, y:my};
+    drawUp42();
+    renderRouteStats();
+    return;
+  }
+  if (up42Phase === 'routes') {
+    let overWaypoint = false;
+    for (const route of up42Routes) {
+      const path = route.pts;
+      for (let pi=1; pi<path.length-1; pi++) {
+        if (Math.hypot(path[pi].x-mx, path[pi].y-my) < 16) { overWaypoint = true; break; }
+      }
+      if (overWaypoint) break;
+    }
+    up42Canvas.style.cursor = overWaypoint ? 'grab' : 'default';
+  }
+}
+function up42OnMouseUp() {
+  up42DragState = null;
+  up42Canvas.style.cursor = up42Phase==='place' ? 'crosshair' : 'default';
+}
+
+// ── Info card ──────────────────────────────────────────────────────
+function updateUp42InfoCard() {
+  const card = document.getElementById('up42InfoCard');
+  if (!card) return;
+  if (!up42ActiveModule) {
+    card.innerHTML='<div style="color:var(--text3);font-size:11px;text-align:center;margin-top:30px;">Select a module.</div>';
+    return;
+  }
+  const color    = MODULE_COLORS[up42ActiveModule] || '#888';
+  const placed   = up42Placements[up42ActiveModule];
+  const coords   = placed ? canvasToSiteCoords(placed.cx, placed.cy) : null;
+  const criteria = MODULE_CRITERIA[up42ActiveModule] || '—';
+  const sz       = MODULE_SIZE[up42ActiveModule] || {w:50,h:50};
+
+  card.innerHTML = `
+    <div style="font-size:13px;font-weight:700;color:${color};margin-bottom:8px;">${up42ActiveModule}</div>
+    <div style="font-size:10px;color:var(--text3);margin-bottom:12px;line-height:1.5;">
+      <b style="color:var(--text2);">Criteria:</b> ${criteria}
+    </div>
+    <div style="background:rgba(255,255,255,0.04);border-radius:8px;padding:10px;margin-bottom:10px;">
+      <div style="font-size:10px;color:var(--text3);margin-bottom:6px;">FOOTPRINT</div>
+      <div style="font-size:12px;color:var(--text2);">${sz.w*20} m × ${sz.h*20} m</div>
+    </div>
+    ${placed ? `
+    <div style="background:rgba(${hexToRgb(color)},0.1);border:1px solid ${color};border-radius:8px;padding:10px;margin-bottom:10px;">
+      <div style="font-size:10px;color:${color};margin-bottom:6px;font-weight:600;">PLACED</div>
+      <div style="font-size:12px;color:var(--text1);font-weight:700;">${coords.lat}°</div>
+      <div style="font-size:12px;color:var(--text1);font-weight:700;">${coords.lon}°</div>
+      <div style="font-size:9px;color:var(--text3);margin-top:4px;">Click map to reposition</div>
+    </div>
+    <div style="background:rgba(255,255,255,0.04);border-radius:8px;padding:10px;margin-bottom:10px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+        <div style="font-size:10px;color:var(--text3);font-weight:600;">ORIENTATION</div>
+        <div id="up42OrientVal" style="font-size:11px;color:${color};font-weight:700;">${up42Orientations[up42ActiveModule]||0}°</div>
+      </div>
+      <input type="range" min="0" max="359" step="1" value="${up42Orientations[up42ActiveModule]||0}"
+        style="width:100%;accent-color:${color};"
+        oninput="up42SetOrientation('${up42ActiveModule}', parseInt(this.value))">
+    </div>` : `
+    <div style="background:rgba(255,255,255,0.03);border:1px dashed var(--border2);border-radius:8px;padding:10px;text-align:center;">
+      <div style="font-size:10px;color:var(--text3);">Not yet placed</div>
+      <div style="font-size:9px;color:var(--text3);margin-top:4px;">Click on the heatmap</div>
+    </div>`}
+    <div style="margin-top:10px;font-size:9px;color:var(--text3);line-height:1.5;">
+      ★ Heatmap: placeholder — awaiting Jenny's export
+    </div>`;
+}
+
+function up42SetOrientation(moduleId, deg) {
+  up42Orientations[moduleId] = deg;
+  const labelRight = document.getElementById('up42OrientVal');
+  if (labelRight) labelRight.textContent = deg + '°';
+  const labelLeft = document.getElementById('up42OrientValLeft');
+  if (labelLeft) labelLeft.textContent = deg + '°';
+  drawUp42();
+}
+
+// ── Phase switching ────────────────────────────────────────────────
+function setPlacementPhase(phase) {
+  up42Phase = phase;
+  ['place','routes'].forEach(p => {
+    const btn = document.getElementById(p==='place'?'up42PhaseA':'up42PhaseB');
+    if (!btn) return;
+    const active = p === phase;
+    btn.style.color = active ? 'var(--accent)' : 'var(--text3)';
+    btn.style.borderBottom = active ? '2px solid var(--accent)' : '2px solid transparent';
+  });
+  const routeCard = document.getElementById('up42RouteCard');
+  if (routeCard) routeCard.style.display = phase==='routes'?'block':'none';
+  up42Canvas.style.cursor = phase==='place'?'crosshair':'default';
+  if (phase==='routes') setHint('Drag waypoints to adjust routes');
+  else setHint('Click on map to place selected module');
+  drawUp42();
+}
+
+// ── Route generation (MST + A* with slope constraint) ────────────
+// One route per pair in the Minimum Spanning Tree of placed modules
+// ── Route generation — MST (minimum routes to connect all modules) ─
+function plotBestPaths() {
+  setPlacementPhase('routes');
+  const placed = Object.entries(up42Placements);
+  if (placed.length < 2) return;
+
+  up42Routes = [];
+  const GRID = up42SyntheticTerrain?.length || 80;
+
+  // Prim MST: n-1 routes for n placed modules
+  const mstEdges = primMST(placed);
+  mstEdges.forEach(([idxA, idxB]) => {
+    const [idA, posA] = placed[idxA];
+    const [idB, posB] = placed[idxB];
+    const path = aStar(posA, posB, GRID);
+    if (path) up42Routes.push({ from: idA, to: idB, pts: path });
+  });
+
+  renderRouteStats();
+  updateDesDistances();
+  setHint('Drag yellow waypoints to adjust routes');
+  drawUp42();
+}
+
+function primMST(placed) {
+  const n = placed.length;
+  if (n < 2) return [];
+  const dist = (a, b) => Math.hypot(
+    placed[a][1].cx - placed[b][1].cx,
+    placed[a][1].cy - placed[b][1].cy
+  );
+  const inMST  = new Array(n).fill(false);
+  const minD   = new Array(n).fill(Infinity);
+  const parent = new Array(n).fill(-1);
+  minD[0] = 0;
+  const edges = [];
+  for (let iter = 0; iter < n; iter++) {
+    let u = -1;
+    for (let i = 0; i < n; i++) if (!inMST[i] && (u === -1 || minD[i] < minD[u])) u = i;
+    inMST[u] = true;
+    if (parent[u] !== -1) edges.push([parent[u], u]);
+    for (let v = 0; v < n; v++) {
+      if (!inMST[v]) { const d = dist(u, v); if (d < minD[v]) { minD[v] = d; parent[v] = u; } }
+    }
+  }
+  return edges;
+}
+
+function aStar(start, end, GRID) {
+  const toGrid = (px,py) => ({
+    gx: Math.min(GRID-1, Math.max(0, Math.round(px/up42W*(GRID-1)))),
+    gy: Math.min(GRID-1, Math.max(0, Math.round(py/up42H*(GRID-1)))),
+  });
+  const toCanvas = (gx,gy) => ({
+    x: Math.round(gx/(GRID-1)*up42W),
+    y: Math.round(gy/(GRID-1)*up42H),
+  });
+
+  const gs = toGrid(start.cx, start.cy);
+  const ge = toGrid(end.cx,   end.cy);
+  const key     = (gx,gy) => gx * GRID + gy;
+  const h       = (gx,gy) => Math.hypot(gx-ge.gx, gy-ge.gy);
+  const slopeAt = (gx,gy) => up42SyntheticTerrain?.[gy]?.[gx] ?? 0;
+  const dirs    = [[-1,0],[1,0],[0,-1],[0,1],[-1,-1],[1,-1],[-1,1],[1,1]];
+
+  // parent stores key→key (integer→integer), NOT key→node object
+  const parent = new Map();
+  const gScore = new Map();
+  const open   = new Map(); // key → f score
+  const closed = new Set();
+
+  const startKey = key(gs.gx, gs.gy);
+  const endKey   = key(ge.gx, ge.gy);
+  gScore.set(startKey, 0);
+  open.set(startKey, h(gs.gx, gs.gy));
+
+  let iterations = 0;
+  while (open.size > 0 && iterations++ < 20000) {
+    // Pick lowest-f node
+    let curKey = null, curF = Infinity;
+    for (const [k, f] of open) { if (f < curF) { curF = f; curKey = k; } }
+    open.delete(curKey);
+    if (closed.has(curKey)) continue;
+    closed.add(curKey);
+
+    if (curKey === endKey) {
+      // Reconstruct: follow parent keys back to start
+      const pts = [];
+      let k = curKey;
+      while (k !== undefined) {
+        const gx = Math.floor(k / GRID);
+        const gy = k % GRID;
+        pts.unshift(toCanvas(gx, gy));
+        k = parent.get(k); // undefined at start node
+      }
+      return simplifyPath(pts, 6);
+    }
+
+    const curGx = Math.floor(curKey / GRID);
+    const curGy = curKey % GRID;
+    const curG  = gScore.get(curKey) ?? 0;
+
+    for (const [dx, dy] of dirs) {
+      const nx = curGx+dx, ny = curGy+dy;
+      if (nx<0||ny<0||nx>=GRID||ny>=GRID) continue;
+      const nk = key(nx, ny);
+      if (closed.has(nk)) continue;
+      const s = slopeAt(nx, ny);
+      if (s > 15) continue; // impassable
+      const moveCost = (dx!==0&&dy!==0 ? Math.SQRT2 : 1) * (1 + (s>10?(s-10)*8:0));
+      const tentG = curG + moveCost;
+      if (!gScore.has(nk) || tentG < gScore.get(nk)) {
+        gScore.set(nk, tentG);
+        parent.set(nk, curKey); // store integer key, not object
+        open.set(nk, tentG + h(nx, ny));
+      }
+    }
+  }
+
+  // Fallback — greedy slope-aware (never >15° if avoidable)
+  const fallbackPts = [];
+  let cx = gs.gx, cy = gs.gy;
+  const visited = new Set();
+  for (let step=0; step<GRID*4; step++) {
+    fallbackPts.push(toCanvas(cx, cy));
+    if (cx===ge.gx && cy===ge.gy) break;
+    visited.add(key(cx, cy));
+    let bestNx=ge.gx, bestNy=ge.gy, bestScore=Infinity;
+    for (const [dx,dy] of dirs) {
+      const nx=cx+dx, ny=cy+dy;
+      if (nx<0||ny<0||nx>=GRID||ny>=GRID||visited.has(key(nx,ny))) continue;
+      const s = slopeAt(nx,ny);
+      const dist = Math.hypot(nx-ge.gx, ny-ge.gy);
+      const score = dist + (s>10?(s-10)*4:0) + (s>15?9999:0);
+      if (score < bestScore) { bestScore=score; bestNx=nx; bestNy=ny; }
+    }
+    cx=bestNx; cy=bestNy;
+  }
+  return simplifyPath(fallbackPts, 6);
+}
+
+function simplifyPath(pts, step) {
+  if (pts.length <= 2) {
+    // Too short — inject 3 evenly-spaced intermediate waypoints
+    const [a, b] = [pts[0], pts[pts.length-1]];
+    return [
+      a,
+      { x: a.x + (b.x-a.x)*0.25, y: a.y + (b.y-a.y)*0.25 },
+      { x: a.x + (b.x-a.x)*0.50, y: a.y + (b.y-a.y)*0.50 },
+      { x: a.x + (b.x-a.x)*0.75, y: a.y + (b.y-a.y)*0.75 },
+      b,
+    ];
+  }
+  const result = [pts[0]];
+  for (let i=step; i<pts.length-1; i+=step) result.push(pts[i]);
+  result.push(pts[pts.length-1]);
+  // Guarantee at least 3 intermediates
+  if (result.length < 5) {
+    const [a, b] = [result[0], result[result.length-1]];
+    return [
+      a,
+      { x: a.x + (b.x-a.x)*0.25, y: a.y + (b.y-a.y)*0.25 },
+      { x: a.x + (b.x-a.x)*0.50, y: a.y + (b.y-a.y)*0.50 },
+      { x: a.x + (b.x-a.x)*0.75, y: a.y + (b.y-a.y)*0.75 },
+      b,
+    ];
+  }
+  return result;
+}
+
+// ── Route drawing ──────────────────────────────────────────────────
+function drawRoutes() {
+  up42Routes.forEach((route) => {
+    const path = route.pts;
+    if (!path || path.length < 2) return;
+    const colA = MODULE_COLORS[route.from] || '#ffd166';
+    const colB = MODULE_COLORS[route.to]   || '#ffd166';
+
+    // Gradient line from module A color to module B color
+    const grad = up42Ctx.createLinearGradient(path[0].x, path[0].y, path[path.length-1].x, path[path.length-1].y);
+    grad.addColorStop(0, colA);
+    grad.addColorStop(1, colB);
+
+    up42Ctx.beginPath();
+    up42Ctx.moveTo(path[0].x, path[0].y);
+    path.slice(1).forEach(pt => up42Ctx.lineTo(pt.x, pt.y));
+    up42Ctx.strokeStyle = grad;
+    up42Ctx.lineWidth   = 2.5;
+    up42Ctx.setLineDash([6,4]);
+    up42Ctx.stroke();
+    up42Ctx.setLineDash([]);
+
+    // Route label at midpoint
+    const mid = path[Math.floor(path.length/2)];
+    const KM_PER_PX = 0.005;
+    let totalKm = 0;
+    for (let i=1; i<path.length; i++) totalKm += Math.hypot(path[i].x-path[i-1].x, path[i].y-path[i-1].y) * KM_PER_PX;
+    up42Ctx.fillStyle = 'rgba(0,0,0,0.6)';
+    up42Ctx.fillRect(mid.x-22, mid.y-10, 44, 14);
+    up42Ctx.font = '9px monospace';
+    up42Ctx.fillStyle = '#ffd166';
+    up42Ctx.textAlign = 'center';
+    up42Ctx.fillText(`${totalKm.toFixed(1)} km`, mid.x, mid.y+1);
+    up42Ctx.textAlign = 'left';
+
+    // Waypoint dots — endpoints fixed, intermediates draggable
+    path.forEach((pt, pi) => {
+      const isEnd = pi===0||pi===path.length-1;
+      if (isEnd) {
+        // Fixed endpoint — small filled square, no interaction hint
+        up42Ctx.fillStyle = 'rgba(255,255,255,0.4)';
+        up42Ctx.fillRect(pt.x-4, pt.y-4, 8, 8);
+      } else {
+        // Draggable waypoint — circle with grab hint
+        up42Ctx.beginPath();
+        up42Ctx.arc(pt.x, pt.y, 5, 0, Math.PI*2);
+        up42Ctx.fillStyle = '#ffd166';
+        up42Ctx.strokeStyle = 'rgba(255,255,255,0.6)';
+        up42Ctx.lineWidth = 1.5;
+        up42Ctx.fill();
+        up42Ctx.stroke();
+      }
+    });
+  });
+}
+
+// ── Route statistics ───────────────────────────────────────────────
+function renderRouteStats() {
+  const wrap = document.getElementById('up42RouteStats');
+  if (!wrap || !up42Routes.length) return;
+  const KM_PER_PX = 0.005;
+  let totalKm = 0, maxSlope = 0;
+  const routeDetails = up42Routes.map(route => {
+    const path = route.pts;
+    let km = 0;
+    for (let i=1; i<path.length; i++) km += Math.hypot(path[i].x-path[i-1].x, path[i].y-path[i-1].y)*KM_PER_PX;
+    totalKm += km;
+    if (up42SyntheticTerrain) {
+      const GRID = up42SyntheticTerrain.length;
+      path.forEach(pt => {
+        const gx=Math.min(GRID-1,Math.round(pt.x/up42W*(GRID-1)));
+        const gy=Math.min(GRID-1,Math.round(pt.y/up42H*(GRID-1)));
+        maxSlope=Math.max(maxSlope,up42SyntheticTerrain[gy]?.[gx]||0);
+      });
+    }
+    return { from:route.from, to:route.to, km, label: route.label || '' };
+  });
+
+  wrap.innerHTML = routeDetails.map(r => `
+    <div style="background:rgba(255,255,255,0.04);border-radius:6px;padding:6px 8px;margin-bottom:4px;display:flex;justify-content:space-between;align-items:center;">
+      <div style="font-size:10px;color:var(--accent);font-weight:600;margin-bottom:2px;">${r.label}</div>
+      <span style="font-size:9px;color:var(--text3);">${r.from.replace('Module','').replace('System','')} → ${r.to.replace('Module','').replace('System','')}</span>
+      <span style="font-size:11px;font-weight:700;color:#ffd166;">${r.km.toFixed(1)} km</span>
+    </div>`).join('') + `
+    <div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border);">
+      <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+        <span style="font-size:10px;color:var(--text3);">Total network</span>
+        <span style="font-size:11px;font-weight:700;color:var(--accent);">${totalKm.toFixed(1)} km</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;">
+        <span style="font-size:10px;color:var(--text3);">Max slope</span>
+        <span style="font-size:11px;font-weight:700;color:${maxSlope>10?'#ff7a8a':maxSlope>5?'#ffd166':'#00ff9d'};">${maxSlope.toFixed(1)}°</span>
+      </div>
+      <div style="font-size:9px;color:var(--text3);margin-top:6px;line-height:1.5;">
+        Drag yellow waypoints to adjust. Constraint: ≤15° (prefer ≤10°).
+      </div>
+    </div>`;
+}
+
+// ── Push distances to DES sliders ─────────────────────────────────
+// ── Detect ISRU plant and excavation nodes from SysML ─────────────
+// Looks at node name and SysML attributes for 'plant' or 'excavat' keywords
+function isIsruPlant(nodeId) {
+  const lower = nodeId.toLowerCase();
+  if (lower.includes('plant')) return true;
+  const part = sysmlPartsCache[nodeId];
+  if (!part) return false;
+  const attrs = Object.entries(part.attributes || {});
+  return attrs.some(([k, v]) =>
+    String(k).toLowerCase().includes('plant') ||
+    String(v).toLowerCase().includes('plant')
+  );
+}
+
+function isIsruExcavation(nodeId) {
+  const lower = nodeId.toLowerCase();
+  if (lower.includes('excavat') || lower.includes('excavation') || lower.includes('mining') || lower.includes('regolith')) return true;
+  const part = sysmlPartsCache[nodeId];
+  if (!part) return false;
+  const attrs = Object.entries(part.attributes || {});
+  return attrs.some(([k, v]) =>
+    String(k).toLowerCase().includes('excavat') ||
+    String(v).toLowerCase().includes('excavat') ||
+    String(k).toLowerCase().includes('regolith') ||
+    String(v).toLowerCase().includes('regolith')
+  );
+}
+
+function isLandingZone(nodeId) {
+  const lower = nodeId.toLowerCase();
+  return lower.includes('launch') || lower.includes('landing') || lower.includes('lz');
+}
+
+function updateDesDistances() {
+  const KM_PER_PX = 0.005;
+  let regolithKm = null, loxKm = null;
+
+  up42Routes.forEach(route => {
+    const path = route.pts;
+    let km = 0;
+    for (let i=1; i<path.length; i++) km += Math.hypot(path[i].x-path[i-1].x, path[i].y-path[i-1].y)*KM_PER_PX;
+
+    const a = route.from.toLowerCase(), b = route.to.toLowerCase();
+
+    // LOX haul: any route between something ISRU-like and a landing/launch zone
+    const involveIsru    = a.includes('isru') || b.includes('isru');
+    const involveLanding = a.includes('launch') || a.includes('landing') || a.includes('lz') ||
+                           b.includes('launch') || b.includes('landing') || b.includes('lz');
+    if (involveIsru && involveLanding) {
+      if (loxKm === null || km < loxKm) loxKm = km;
+    }
+
+    // Regolith haul: route between two ISRU-related nodes (plant + excavation)
+    const bothIsru = (a.includes('isru') || a.includes('plant') || a.includes('excavat') || a.includes('regolith')) &&
+                     (b.includes('isru') || b.includes('plant') || b.includes('excavat') || b.includes('regolith'));
+    if (bothIsru && a !== b) {
+      if (regolithKm === null || km < regolithKm) regolithKm = km;
+    }
+
+    // Fallback: if nothing matched yet, use shortest route for regolith and longest for LOX
+    // so the DES always gets some value
+  });
+
+  // Fallback — if detection found nothing, use all routes sorted by length
+  if (loxKm === null || regolithKm === null) {
+    const sorted = up42Routes.map(route => {
+      let km = 0;
+      const path = route.pts;
+      for (let i=1; i<path.length; i++) km += Math.hypot(path[i].x-path[i-1].x, path[i].y-path[i-1].y)*KM_PER_PX;
+      return km;
+    }).sort((a,b) => a-b);
+    if (sorted.length >= 1 && regolithKm === null) regolithKm = sorted[0];
+    if (sorted.length >= 2 && loxKm === null)      loxKm      = sorted[sorted.length-1];
+    if (sorted.length === 1 && loxKm === null)      loxKm      = sorted[0];
+  }
+
+  const setDist = (id, labelId, val) => {
+    const input = document.getElementById(id);
+    const label = document.getElementById(labelId);
+    if (!input || val === null) return;
+    const rounded = parseFloat(val.toFixed(2));
+    input.value = rounded;
+    if (label) {
+      label.textContent = rounded.toFixed(1) + ' km';
+      label.style.color = '#00ff9d';
+      setTimeout(() => label.style.color = 'var(--accent)', 2500);
+    }
+  };
+
+  setDist('desRegDist', 'desRegDistVal', regolithKm);
+  setDist('desLoxDist', 'desLoxDistVal', loxKm);
+  console.log('[UP4.2] → DES: LOX haul', loxKm?.toFixed(2), 'km | Regolith haul', regolithKm?.toFixed(2), 'km');
+}
+
+// ── Confirm & pass to DES ──────────────────────────────────────────
+function confirmPlacements() {
+  window.up42FinalPlacements = {};
+  Object.entries(up42Placements).forEach(([id, pos]) => {
+    window.up42FinalPlacements[id] = canvasToSiteCoords(pos.cx, pos.cy);
+  });
+  // Re-push distances in case routes were manually adjusted
+  updateDesDistances();
+  document.getElementById('des')?.scrollIntoView({behavior:'smooth'});
+}
+
+// ── Build urban_planning payload for DES dispatch ─────────────────
+function buildUrbanPlanningPayload() {
+  const site = upSelectedSite;
+  if (!site) return null;
+
+  const R = 1737400; // lunar radius in metres
+  const cosLat = Math.cos(site.lat * Math.PI / 180);
+
+  // Convert canvas px → metres relative to site centre
+  function canvasToMeters(cx, cy) {
+    const dx = (cx - up42W / 2) * KM_PER_PX * 1000; // m east
+    const dy = (up42H / 2 - cy) * KM_PER_PX * 1000; // m north (y flipped)
+    return [+dx.toFixed(2), +dy.toFixed(2), 0.0];
+  }
+
+  // Modules → position_m + rotation_deg
+  const modules = {};
+  Object.entries(up42Placements).forEach(([id, pos]) => {
+    const orientation = up42Orientations[id] ?? 0;
+    modules[id] = {
+      position_m: canvasToMeters(pos.cx, pos.cy),
+      rotation_deg: [0.0, 0.0, orientation]
+    };
+  });
+
+  // Routes → waypoints_m + distance_km per connection name
+  const connections = {};
+  up42Routes.forEach(route => {
+    const key = `${route.from}To${route.to}`;
+    const waypoints = (route.pts || []).map(pt => canvasToMeters(pt.x, pt.y));
+    // Recalculate distance from pts
+    let distKm = 0;
+    for (let i = 1; i < (route.pts||[]).length; i++) {
+      distKm += Math.hypot(route.pts[i].x - route.pts[i-1].x, route.pts[i].y - route.pts[i-1].y) * KM_PER_PX;
+    }
+    connections[key] = {
+      waypoints_m: waypoints,
+      distance_km: +distKm.toFixed(3)
+    };
+  });
+
+  return {
+    site: site.id,
+    site_name: site.name,
+    site_lat: site.lat,
+    site_lon: site.lon,
+    modules,
+    connections
+  };
+}
+
+
+function onUp42TabOpen() {
+  setTimeout(() => {
+    // Init once — attaches event listeners and sets up canvas
+    if (!up42Canvas) {
+      initUp42();
+    } else {
+      resizeUp42Canvas();
+      generateSyntheticTerrain();
+      renderUp42ModuleList();
+      if (up42ActiveModule) { updateUp42InfoCard(); loadHeatmap(up42ActiveModule); }
+      drawUp42();
+    }
+  }, 80);
+}
+
+// Load moon south pole texture as map background placeholder
+let up42MoonImg = null;
+(function preloadMoonImg() {
+  const img = new Image();
+  img.crossOrigin = 'anonymous';
+  // NASA LRO WAC mosaic of south pole — publicly available
+  img.src = 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/Lunar_south_pole_Clementine_mosaic.jpg/1024px-Lunar_south_pole_Clementine_mosaic.jpg';
+  img.onload  = () => { up42MoonImg = img; if (up42Ctx) drawUp42(); };
+  img.onerror = () => {
+    // fallback: try another source
+    const img2 = new Image();
+    img2.crossOrigin = 'anonymous';
+    img2.src = 'https://svs.gsfc.nasa.gov/vis/a000000/a004700/a004720/lroc_color_poles_1k.jpg';
+    img2.onload = () => { up42MoonImg = img2; if (up42Ctx) drawUp42(); };
+  };
+})();
+
 </script>
 
 
@@ -3206,24 +4506,21 @@ window.addEventListener('load',()=>setTimeout(initPolarMap,200));
           <div style="font-size:9px;color:var(--text3);margin-top:2px;line-height:1.4;">Parallel processing units, shared infrastructure.</div>
         </div>
 
-        <div id="desControlRegDist">
-          <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+        <!-- Distances from Urban Planning (read-only, set by Step 4.2) -->
+        <div style="background:rgba(0,212,255,0.06);border:1px solid rgba(0,212,255,0.2);border-radius:8px;padding:10px;">
+          <div style="font-size:10px;color:var(--accent);font-weight:600;margin-bottom:8px;letter-spacing:1px;">FROM URBAN PLANNING</div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
             <span style="font-size:11px;color:var(--text2);">Regolith haul distance</span>
-            <span id="desRegDistVal" style="font-size:11px;font-weight:600;color:var(--accent);">1.0 km</span>
+            <span id="desRegDistVal" style="font-size:12px;font-weight:700;color:var(--accent);">—</span>
           </div>
-          <input id="desRegDist" type="range" min="0.5" max="10" step="0.5" value="1" style="width:100%;"
-            oninput="document.getElementById('desRegDistVal').textContent=Number(this.value).toFixed(1)+' km'">
-          <div style="font-size:9px;color:var(--text3);margin-top:2px;line-height:1.4;">Excavation site → ISRU plant distance.</div>
-        </div>
-
-        <div id="desControlLoxDist">
-          <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
             <span style="font-size:11px;color:var(--text2);">LOX haul distance</span>
-            <span id="desLoxDistVal" style="font-size:11px;font-weight:600;color:var(--accent);">1.0 km</span>
+            <span id="desLoxDistVal" style="font-size:12px;font-weight:700;color:var(--accent);">—</span>
           </div>
-          <input id="desLoxDist" type="range" min="0.5" max="10" step="0.5" value="1" style="width:100%;"
-            oninput="document.getElementById('desLoxDistVal').textContent=Number(this.value).toFixed(1)+' km'">
-          <div style="font-size:9px;color:var(--text3);margin-top:2px;line-height:1.4;">ISRU plant → landing zone distance.</div>
+          <div style="font-size:9px;color:var(--text3);margin-top:6px;">Set in Step 4.2 — Module Placement</div>
+          <!-- Hidden inputs keep the values for workflow dispatch -->
+          <input id="desRegDist" type="hidden" value="1">
+          <input id="desLoxDist" type="hidden" value="1">
         </div>
 
         <div id="desControlRoverEnergy">
@@ -3280,7 +4577,7 @@ window.addEventListener('load',()=>setTimeout(initPolarMap,200));
     <div style="position:relative;background:var(--panel);border:1px solid var(--border);border-radius:12px;overflow:hidden;">
       <div style="position:absolute;top:10px;left:14px;z-index:1;">
         <div style="font-size:11px;font-weight:600;color:var(--text2);">Coupled Mission State Network</div>
-        <div style="font-size:9px;color:var(--text3);">Node color = health/utilization. Edge thickness = current flow magnitude.</div>
+        <div style="font-size:9px;color:var(--text3);">Node color = system role. Edge label = current flow quantity.</div>
       </div>
       <svg id="desGraphSvg" width="100%" height="100%" style="display:block;"></svg>
       <div id="desWarningsWrap" style="display:none;position:absolute;bottom:8px;left:8px;right:8px;"></div>
@@ -3290,7 +4587,7 @@ window.addEventListener('load',()=>setTimeout(initPolarMap,200));
     <div style="display:flex;flex-direction:column;background:var(--panel);border:1px solid var(--border);border-radius:12px;overflow:hidden;">
       <div style="padding:12px 14px;border-bottom:1px solid var(--border);">
         <div style="font-size:12px;font-weight:600;color:var(--text1);">Downstream Consequences</div>
-        <div style="font-size:9px;color:var(--text3);margin-top:2px;">If I change one operational knob, what else changes?</div>
+        <div style="font-size:9px;color:var(--text3);margin-top:2px;">Final simulation outputs at t = 60 hr.</div>
       </div>
       <div id="desMetricsWrap" style="flex:1;overflow-y:auto;padding:12px 14px;display:flex;flex-direction:column;gap:0;">
         <div style="color:var(--text3);font-size:11px;text-align:center;margin-top:40px;">Run the simulation to see results.</div>
@@ -3447,11 +4744,9 @@ window.addEventListener('load',()=>setTimeout(initPolarMap,200));
     }
 
     function updateLinks(s) {
-      document.getElementById('regolithLink').setAttribute('stroke-width', Math.max(4, Math.min(18, s.discharge / 450)));
-      document.getElementById('powerPlantLink').setAttribute('stroke-width', Math.max(4, Math.min(14, s.powerPeak / 8)));
-      document.getElementById('loxLink').setAttribute('stroke-width', Math.max(3, Math.min(12, s.loxAtTime / 8)));
-      document.getElementById('transportLink').setAttribute('stroke-width', s.loxAtTime >= s.threshold ? 8 : 2);
-      document.getElementById('chargeLink').setAttribute('stroke-width', Math.max(2, Math.min(8, (100 - s.roverBattery) / 8)));
+      ['regolithLink', 'powerPlantLink', 'loxLink', 'transportLink', 'chargeLink'].forEach(id => {
+        document.getElementById(id)?.setAttribute('stroke-width', '3');
+      });
     }
 
     function polyline(points, width, height, color, dashed = false) {
@@ -3627,6 +4922,7 @@ window.addEventListener('load',()=>setTimeout(initPolarMap,200));
       token = prompt('Enter your GitHub Personal Access Token (classic):\n(stored in memory for this session only)');
       if (!token) return;
       sessionStorage.setItem('gh_pat', token);
+      loadMaterialLibrary(); // now that we have a token, load materials
     }
 
     btn.textContent = 'Triggering...';
@@ -3740,6 +5036,12 @@ window.addEventListener('load',()=>setTimeout(initPolarMap,200));
     const graphNodes = getGraphActiveNodeList(data);
     const resolvedConnections = normalizeSysmlConnections(data.connections || [], graphNodes);
     const visibleNodeCount = graphNodes.length;
+    const visibleGraphData = {
+      ...data,
+      parts: sysmlPartsCache,
+      active_nodes: graphNodes,
+      connections: resolvedConnections
+    };
 
     const btn = document.getElementById('runGraphBtn');
     if (btn) {
@@ -3764,15 +5066,15 @@ window.addEventListener('load',()=>setTimeout(initPolarMap,200));
       '#7ee0b1'
     );
 
-    renderLiveGraph({ ...data, active_nodes: graphNodes, connections: resolvedConnections });
     window._lastGraphData = data;
-    buildAssemblyTreeFromActiveSystems();
-    if (data.parts) populateStep3(data);
+    window._currentGraphData = visibleGraphData;
+    renderLiveGraph(visibleGraphData);
+    if (data.parts) populateStep3(visibleGraphData);
     renderSystems();
     console.log('[GRAPH RESULT]', data);
   }
 
-  const FLOW_COLORS = { 'Power': '#7ee0b1', 'LOX': '#57c7ff' };
+  const FLOW_COLORS = { 'Power': '#7ee0b1', 'LOX': '#57c7ff', 'Regolith': '#ffb347' };
 
   function buildPortOwnerMap() {
     const portOwners = new Map();
@@ -4002,7 +5304,6 @@ window.addEventListener('load',()=>setTimeout(initPolarMap,200));
       const b = getNodeCenter(pxB);
       const dx = b.x - a.x;
       const dy = b.y - a.y;
-
       if (Math.abs(dx) >= Math.abs(dy)) {
         return {
           a: { x: a.x + (dx >= 0 ? NODE_W / 2 : -NODE_W / 2), y: a.y },
@@ -4149,6 +5450,12 @@ window.addEventListener('load',()=>setTimeout(initPolarMap,200));
     const fileEl = document.getElementById('sourceFileName');
     if (fileEl) fileEl.value = '';
 
+    const attrsEl = document.getElementById('sysmlAttrs');
+    if (attrsEl) {
+      attrsEl.style.display = 'none';
+      attrsEl.innerHTML = '';
+    }
+
     window._cadSizeM = null;
     currentCadFile = null;
   }
@@ -4199,45 +5506,53 @@ window.addEventListener('load',()=>setTimeout(initPolarMap,200));
   }
 
   function renderSysmlAttributes(attributes, ports) {
-    const wrap = document.getElementById('customAttrs');
+    const wrap = document.getElementById('sysmlAttrs');
     if (!wrap) return;
 
-    wrap.style.display = 'block';
+    wrap.style.display = 'grid';
     wrap.innerHTML = '';
 
     const attrHeader = document.createElement('div');
     attrHeader.className = 'form-section-title';
-    attrHeader.style.cssText = 'grid-column:span 12;margin-top:10px;';
+    attrHeader.style.cssText = 'grid-column:1 / -1;margin-top:10px;';
     attrHeader.textContent = 'SysML Attributes';
     wrap.appendChild(attrHeader);
 
-    Object.entries(attributes).forEach(([k, v]) => {
+    const appendSysmlRow = (name, value, unit = '') => {
       const row = document.createElement('div');
-      row.className = 'attr-row';
-      row.innerHTML = `
-        <input class="attr-name" value="${k}" readonly style="opacity:0.7;">
-        <input class="attr-value" value="${v}" readonly style="opacity:0.7;">
-        <input class="attr-unit" value="" readonly style="opacity:0.7;">
-      `;
+      row.className = 'sysml-attr-row';
+      row.style.gridColumn = '1 / -1';
+
+      const nameInput = document.createElement('input');
+      nameInput.value = name ?? '';
+      nameInput.readOnly = true;
+      nameInput.style.opacity = '0.7';
+
+      const valueInput = document.createElement('input');
+      valueInput.value = value ?? '';
+      valueInput.readOnly = true;
+      valueInput.style.opacity = '0.7';
+
+      const unitInput = document.createElement('input');
+      unitInput.value = unit ?? '';
+      unitInput.readOnly = true;
+      unitInput.style.opacity = '0.7';
+
+      row.append(nameInput, valueInput, unitInput);
       wrap.appendChild(row);
-    });
+    };
+
+    Object.entries(attributes).forEach(([k, v]) => appendSysmlRow(k, v, ''));
 
     if (ports.length > 0) {
       const portHeader = document.createElement('div');
       portHeader.className = 'form-section-title';
-      portHeader.style.cssText = 'grid-column:span 12;margin-top:10px;';
+      portHeader.style.cssText = 'grid-column:1 / -1;margin-top:10px;';
       portHeader.textContent = 'Ports';
       wrap.appendChild(portHeader);
 
       ports.forEach(port => {
-        const row = document.createElement('div');
-        row.className = 'attr-row';
-        row.innerHTML = `
-          <input class="attr-name" value="${port.name}" readonly style="opacity:0.7;">
-          <input class="attr-value" value="${port.direction?.join('/')}" readonly style="opacity:0.7;">
-          <input class="attr-unit" value="${port.items?.join(',')}" readonly style="opacity:0.7;">
-        `;
-        wrap.appendChild(row);
+        appendSysmlRow(port.name, port.direction?.join('/'), port.items?.join(','));
       });
     }
   }
@@ -4305,25 +5620,20 @@ window.addEventListener('load',()=>setTimeout(initPolarMap,200));
   }
 
   async function loadMaterialLibrary() {
+    const token = sessionStorage.getItem('gh_pat');
+    if (!token) return; // silently skip — will load after Run Graph provides a token
     try {
-      const token = sessionStorage.getItem('gh_pat');
-      const headers = token
-        ? { 'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github+json' }
-        : { 'Accept': 'application/vnd.github+json' };
-
+      const headers = { 'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github+json' };
       const res = await fetch(
         `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/database/json/materials.json`,
         { headers, cache: 'no-store' }
       );
       if (!res.ok) return;
-
       const meta = await res.json();
       const data = JSON.parse(atob(meta.content.replace(/\n/g, '')));
       materialLibrary = data.materials || [];
-
       const sel = document.getElementById('materialSelect');
       if (!sel) return;
-
       sel.innerHTML = '<option value="">— select a material —</option>';
       materialLibrary.forEach(m => {
         const opt = document.createElement('option');
@@ -4332,7 +5642,7 @@ window.addEventListener('load',()=>setTimeout(initPolarMap,200));
         sel.appendChild(opt);
       });
     } catch (e) {
-      console.warn('[MATERIALS]', e);
+      // Silently ignore — materials are non-critical, loaded on demand
     }
   }
 
@@ -4494,11 +5804,14 @@ window.addEventListener('load',()=>setTimeout(initPolarMap,200));
   }
 
   function updatePublishCounter() {
-    const visibleModules = getGraphActiveNodeList({
-      parts: sysmlPartsCache,
-      active_nodes: window._lastGraphData?.active_nodes || Object.keys(sysmlPartsCache),
-      connections: window._lastGraphData?.connections || []
-    });
+    const graphData = typeof buildActiveGraphDataFromSystems === 'function'
+      ? buildActiveGraphDataFromSystems(window._lastGraphData || window._currentGraphData || {})
+      : {
+          parts: sysmlPartsCache,
+          active_nodes: window._currentGraphData?.active_nodes || Object.keys(sysmlPartsCache),
+          connections: window._currentGraphData?.connections || []
+        };
+    const visibleModules = getGraphActiveNodeList(graphData);
     const total = visibleModules.length;
     const ready = visibleModules.filter(name => !!moduleFiles[name]).length;
 
@@ -4509,8 +5822,8 @@ window.addEventListener('load',()=>setTimeout(initPolarMap,200));
     if (btn) btn.disabled = ready === 0;
   }
 
-  function populateStep3(data) {
-    sysmlPartsCache = data.parts || {};
+  function populateStep3(data, options = {}) {
+    sysmlPartsCache = data.parts || sysmlPartsCache || {};
     const nodes = getGraphActiveNodeList(data);
     const box = document.getElementById('assemblyTree');
     if (!box) return;
@@ -4557,11 +5870,19 @@ window.addEventListener('load',()=>setTimeout(initPolarMap,200));
       box.appendChild(row);
     });
 
-    currentModuleName = nodes[0] || null;
-    if (nodes.length > 0) box.querySelector('.tree-node-row')?.click();
+    const preferredModule = options.preferredModule || currentModuleName;
+    const rows = [...box.querySelectorAll('.tree-node-row')];
+    const preferredRow = rows.find(row => row.getAttribute('data-module') === preferredModule);
+    const rowToSelect = preferredRow || rows[0] || null;
 
     const pathEl = document.getElementById('selectedPath');
-    if (pathEl) pathEl.textContent = 'Select a module to review its metadata.';
+    if (rowToSelect) {
+      rowToSelect.click();
+    } else {
+      currentModuleName = null;
+      resetStep3View();
+      if (pathEl) pathEl.textContent = 'No active modules selected in Step 2.';
+    }
 
     updatePublishCounter();
   }
@@ -4596,17 +5917,25 @@ window.addEventListener('load',()=>setTimeout(initPolarMap,200));
     const fe = document.getElementById('sourceFileName');
     if (fe) fe.value = '';
 
+    const attrsEl = document.getElementById('sysmlAttrs');
+    if (attrsEl) {
+      attrsEl.style.display = 'none';
+      attrsEl.innerHTML = '';
+    }
+
     window._cadSizeM = null;
   }
 
   async function loadCachedCadMeta(moduleName) {
     try {
       if (cadPreviewState[moduleName]?.previewStale && moduleFiles[moduleName]) {
-        const status = document.getElementById('cadUploadStatus');
-        if (status) {
-          status.textContent = `File ready: ${moduleFiles[moduleName].name} - preview pending publish.`;
+        if (moduleName === currentModuleName) {
+          const status = document.getElementById('cadUploadStatus');
+          if (status) {
+            status.textContent = `File ready: ${moduleFiles[moduleName].name} - preview pending publish.`;
+          }
+          restoreModuleMeta(moduleName);
         }
-        restoreModuleMeta(moduleName);
         return;
       }
 
@@ -4614,7 +5943,6 @@ window.addEventListener('load',()=>setTimeout(initPolarMap,200));
       const glbMeta = await fetchCadGlbMeta(moduleName, Date.now());
       if (!meta?.data) return;
 
-      await applyCadMeta(meta.data, { glbSha: glbMeta?.sha || null });
       cadPreviewState[moduleName] = {
         ...(cadPreviewState[moduleName] || {}),
         metaSha: meta.sha || null,
@@ -4624,6 +5952,10 @@ window.addEventListener('load',()=>setTimeout(initPolarMap,200));
         pendingCadFileName: null
       };
       updateModuleDot(moduleName, 'preview');
+
+      if (moduleName !== currentModuleName) return;
+
+      await applyCadMeta(meta.data, { glbSha: glbMeta?.sha || null });
 
       if (!moduleFiles[moduleName]) {
         const s = document.getElementById('cadUploadStatus');
@@ -5510,10 +6842,12 @@ window.addEventListener('load',()=>setTimeout(initPolarMap,200));
     setDesStatus('Dispatching to GitHub Actions...', 'var(--text2)');
 
     const sliderValues = getDesSliderValues();
+    const urbanPlanning = buildUrbanPlanningPayload();
     const inputs = {
       active_nodes: JSON.stringify(activeNodes),
       slider_values: JSON.stringify(sliderValues),
       ...sliderValues,
+      ...(urbanPlanning ? { urban_planning: JSON.stringify(urbanPlanning) } : {}),
     };
 
     try {
@@ -5642,6 +6976,7 @@ window.addEventListener('load',()=>setTimeout(initPolarMap,200));
 
   let desData = null;
   let desLogTimes = [];
+  const DES_FINAL_TIME_HR = 60;
 
   function renderDesResults(data) {
     desData = data;
@@ -5672,18 +7007,18 @@ window.addEventListener('load',()=>setTimeout(initPolarMap,200));
 
       const slider = document.getElementById('desTimeSlider');
       if (slider) {
-        slider.max = Math.round(maxT);
-        slider.value = Math.round(maxT);
+        slider.max = Math.max(DES_FINAL_TIME_HR, Math.round(maxT));
+        slider.value = DES_FINAL_TIME_HR;
       }
 
       const label = document.getElementById('desTimeLabel');
-      if (label) label.textContent = `t = ${Math.round(maxT)} hr`;
+      if (label) label.textContent = `t = ${DES_FINAL_TIME_HR} hr`;
 
       const sliderPanel = document.getElementById('desTimeSliderPanel');
       if (sliderPanel) sliderPanel.style.display = 'flex';
 
-      renderDesGraph(data.log, maxT);
-      renderDesMetrics(data.log, maxT, data.results);
+      renderDesGraph(data.log, DES_FINAL_TIME_HR);
+      renderDesMetrics(data.log, DES_FINAL_TIME_HR, data.results);
     } else {
       renderFinalMetrics(data.results);
     }
@@ -5693,7 +7028,6 @@ window.addEventListener('load',()=>setTimeout(initPolarMap,200));
     document.getElementById('desTimeLabel').textContent = `t = ${t} hr`;
     if (!desData?.log) return;
     renderDesGraph(desData.log, Number(t));
-    renderDesMetrics(desData.log, Number(t), desData.results);
   }
 
   function getLogAtTime(log, t) {
@@ -5733,56 +7067,64 @@ window.addEventListener('load',()=>setTimeout(initPolarMap,200));
 
   function renderDesMetrics(log, t, results) {
     const currentEntry = getLogEntryAtTime(log, t);
-    const previousEntry = getPreviousLogEntry(log, t);
     const snap = currentEntry?.snap || {};
-    const prevSnap = previousEntry?.snap || {};
     const wrap = document.getElementById('desMetricsWrap');
     if (!wrap) return;
 
-    let loxAtPlants = 0, energyConsumed = 0, uptime = 0;
-    let battCharge = 500, battCap = 500, roverBattCharge = 100, roverBattCap = 100;
-    let loxAtLZ = 0, peakDemand = 0, thresholdTime = null;
+    // ── Primary: use structured results if available ──────────────────
+    const ft  = results?.ISRU_Plants?.Fleet_Totals;
+    const lzR = results?.Landing_Zone;
+    const sol = results?.Solar_Power_System;
 
-    for (const attrs of Object.values(snap)) {
-      if (attrs.processingRate !== undefined && attrs.LOX_Stored !== undefined) {
-        loxAtPlants += attrs.LOX_Stored;
-        energyConsumed += attrs.total_energy_consumed || 0;
-        uptime += attrs.processing_uptime || 0;
-      }
-      if (attrs.current_power_output !== undefined && attrs.battery_charge !== undefined) {
-        battCharge = attrs.battery_charge;
-        battCap = attrs.battery_capacity || 500;
-      }
-      if (attrs.LOX_Capacity !== undefined) loxAtLZ = attrs.LOX_Stored || 0;
-      if (attrs.rover_type === 'cargo' && (attrs.Name || '').includes('Regolith')) {
-        roverBattCharge = attrs.battery_charge;
-        roverBattCap = attrs.battery_capacity || 100;
-      }
-      if (attrs.current_energy_demand !== undefined) peakDemand += Number(attrs.current_energy_demand) || 0;
-    }
+    let loxAtPlants = ft?.Total_LOX_Production_kg ?? 0;
+    let loxAtLZ     = lzR?.LOX_Stored_kg ?? 0;
+    let energyConsumed = ft?.Energy_Consumed_kWh ?? sol?.Total_Generated_kWh ?? 0;
+    let uptime = ft?.Total_Operational_Hours ?? 0;
+    let finalPowerDemand = results?.Power_Demand_kW ?? 8;
+    let roverBattPct = 50;
+    let thresholdTime = null;
 
-    const roverBattPct = Math.round((roverBattCharge / roverBattCap) * 100);
-    const numPlants = parseInt(desData?.inputs?.Num_ISRU_Plants || 1);
-    const avgUptime = numPlants > 0 ? (uptime / numPlants) : uptime;
-
-    for (const [key, snapT] of Object.entries(log)) {
-      if (Number(key) > t) break;
-      for (const attrs of Object.values(snapT)) {
-        if (attrs.LOX_Capacity !== undefined && (attrs.LOX_Stored || 0) > 0 && thresholdTime === null) {
-          thresholdTime = Number(key);
+    // ── Fallback: parse snap if results keys are missing ─────────────
+    if (!ft) {
+      for (const attrs of Object.values(snap)) {
+        if (attrs.LOX_Stored !== undefined && attrs.processingRate !== undefined) {
+          loxAtPlants += attrs.LOX_Stored;
+          energyConsumed += attrs.total_energy_consumed || 0;
+          uptime += attrs.processing_uptime || 0;
         }
+        if (attrs.LOX_Capacity !== undefined && !attrs.processingRate) loxAtLZ = attrs.LOX_Stored || 0;
+        if ((attrs.Name || '').toLowerCase().includes('regolith')) {
+          const charge = attrs.battery_charge ?? 100;
+          const cap    = attrs.battery_capacity ?? 100;
+          roverBattPct = Math.round((charge / cap) * 100);
+        }
+        if (attrs.current_energy_demand !== undefined) finalPowerDemand += Number(attrs.current_energy_demand) || 0;
       }
     }
 
-    const totalLox = loxAtPlants + loxAtLZ;
+    // ── Threshold crossing from log ───────────────────────────────────
+    for (const entry of getLogEntries(log)) {
+      if (entry.num > t) break;
+      const snapT = log[entry.key] || {};
+      for (const attrs of Object.values(snapT)) {
+        if ((attrs.LOX_Stored || 0) > 0 && thresholdTime === null) thresholdTime = entry.num;
+      }
+    }
+
+    const numPlants  = parseInt(desData?.inputs?.Num_ISRU_Plants || 1);
+    const avgUptime  = numPlants > 0 && uptime > 0 ? uptime / numPlants : uptime;
+    const totalLox   = loxAtPlants + loxAtLZ;
+
+    // Debug log so we can see actual values
+    console.log('[DES metrics] loxAtPlants:', loxAtPlants, 'loxAtLZ:', loxAtLZ, 'uptime:', uptime, 'energy:', energyConsumed, 'ft:', ft);
 
     const metrics = [
-      { label: `TOTAL LOX @ T=${t} HR`, value: `${totalLox.toFixed(1)} kg`, sub: 'Current selected time', subColor: '#7ee0b1' },
-      { label: `PLANT UPTIME @ T=${t} HR`, value: `${avgUptime.toFixed(1)} hr`, sub: 'Accumulated so far', subColor: '#7ee0b1' },
-      { label: 'ROVER BATTERY RESERVE', value: `${roverBattPct}%`, sub: roverBattPct > 50 ? 'Healthy margin' : 'Low margin', subColor: roverBattPct > 50 ? '#7ee0b1' : '#ff7a8a' },
-      { label: 'THRESHOLD CROSSING', value: thresholdTime !== null ? `${thresholdTime} hr` : '—', sub: 'No shift', subColor: 'var(--text3)' },
-      { label: `POWER DEMAND @ T=${t} HR`, value: `${peakDemand.toFixed(0)} kWh`, sub: peakDemand > 100 ? 'Above nominal supply' : 'Within nominal supply', subColor: peakDemand > 100 ? '#ff7a8a' : '#ffd166' },
-      { label: `ENERGY CONSUMED @ T=${t} HR`, value: `${(energyConsumed / 1000).toFixed(1)} MWh`, sub: `${energyConsumed.toFixed(0)} kWh accumulated`, subColor: 'var(--text3)' },
+      { label: `TOTAL LOX @ 60 HR`,     value: `${totalLox.toFixed(1)} kg`,           sub: 'Final simulation result',                                          subColor: '#7ee0b1' },
+      { label: `PLANT UPTIME @ 60 HR`,  value: `${avgUptime.toFixed(1)} hr`,           sub: 'Final accumulated uptime',                                         subColor: '#7ee0b1' },
+      { label: 'FINAL ROVER BATTERY',   value: `${roverBattPct}%`,                     sub: roverBattPct > 50 ? 'Healthy margin' : 'Low margin',                subColor: roverBattPct > 50 ? '#7ee0b1' : '#ff7a8a' },
+      { label: 'FIRST LOX DELIVERY',    value: thresholdTime !== null ? `${thresholdTime} hr` : '—', sub: thresholdTime !== null ? 'Delivery occurred' : 'No LOX delivered by 60 hr', subColor: thresholdTime !== null ? '#7ee0b1' : 'var(--text3)' },
+      { label: `POWER DEMAND @ 60 HR`,  value: `${Number(finalPowerDemand).toFixed(0)} kW`, sub: finalPowerDemand > 100 ? 'Above nominal supply' : 'Within nominal supply', subColor: finalPowerDemand > 100 ? '#ff7a8a' : '#ffd166' },
+      { label: `ENERGY CONSUMED @ 60 HR`, value: `${(Number(energyConsumed)/1000).toFixed(1)} MWh`, sub: `${Number(energyConsumed).toFixed(0)} kWh accumulated`, subColor: 'var(--text3)' },
     ];
 
     wrap.innerHTML = metrics.map(m => `
@@ -5797,10 +7139,10 @@ window.addEventListener('load',()=>setTimeout(initPolarMap,200));
     interp.innerHTML = `
       <div style="font-size:10px;color:var(--text3);font-weight:600;margin-bottom:4px;">Interpretation:</div>
       <div style="font-size:11px;color:var(--text2);line-height:1.5;">
-        At t = ${t} hr, using ${desData?.inputs?.Num_Regolith_Rovers || 1} rover(s) and ${numPlants} ISRU plant(s),
+        Final state at t = 60 hr, using ${desData?.inputs?.Num_Regolith_Rovers || 1} rover(s) and ${numPlants} ISRU plant(s),
         the system has produced ${totalLox.toFixed(1)} kg LOX total,
         with ${loxAtLZ.toFixed(1)} kg delivered to the landing zone.
-        Power demand at this selected time is ${peakDemand.toFixed(0)} kWh.
+        Final power demand is ${Number(finalPowerDemand).toFixed(0)} kW.
       </div>`;
     wrap.appendChild(interp);
   }
@@ -5813,107 +7155,10 @@ window.addEventListener('load',()=>setTimeout(initPolarMap,200));
     const H = svg.clientHeight || 480;
     svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
 
-    const currentEntry = getLogEntryAtTime(log, t);
-    const previousEntry = getPreviousLogEntry(log, t);
-    const snap = currentEntry?.snap || {};
-    const prevSnap = previousEntry?.snap || {};
     const activeNodes =
       desData?.sysml_active_nodes ||
       desData?.inputs?.sysml_active_nodes ||
       getDesActiveNodes();
-
-    const numInputPlants = Math.max(Number(desData?.inputs?.Num_ISRU_Plants || 1), 1);
-    const loxThreshold = Math.max(Number(desData?.inputs?.LOX_Transport_Threshold || 100), 1);
-    const regolithNominalTrip = Math.max(Number(desData?.inputs?.Regolith_Delivery_Load || 4000), 1);
-    const nominalPowerOutput = Math.max(Number(getSysmlPartData('SolarPowerSystem')?.attributes?.powerOutput || 100), 1);
-
-    function asNumber(...values) {
-      for (const value of values) {
-        const n = Number(value);
-        if (Number.isFinite(n)) return n;
-      }
-      return 0;
-    }
-
-    function ratio(value, capacity, fallbackCapacity = 1) {
-      const cap = Math.max(asNumber(capacity, fallbackCapacity), 1);
-      return Math.max(0, Math.min(asNumber(value) / cap, 1));
-    }
-
-    function summarizeSnapshot(snapshot) {
-      const summary = {
-        loxAtPlants: 0,
-        loxAtLZ: 0,
-        regolithReceived: 0,
-        regolithLoadKg: 0,
-        loxRoverLoadKg: 0,
-        powerGenerated: 0,
-        powerDemand: 0
-      };
-
-      for (const [entityName, attrs] of Object.entries(snapshot || {})) {
-        const text = normalizeDesName([
-          entityName,
-          attrs.Name,
-          attrs.name,
-          attrs.type,
-          attrs.rover_type
-        ].filter(Boolean).join(' '));
-
-        const currentLoad = asNumber(attrs.current_load, attrs.Current_Load, attrs.load_kg, attrs.currentLoad);
-        const maxCapacity = asNumber(attrs.max_capacity, attrs.maxCapacity, attrs.capacity_kg, attrs.capacity, attrs.LOX_Capacity, 5000);
-
-        if (attrs.processingRate !== undefined && attrs.LOX_Stored !== undefined) {
-          summary.loxAtPlants += asNumber(attrs.LOX_Stored);
-          summary.regolithReceived += asNumber(attrs.Regolith_Received, attrs.regolith_received, attrs.regolithReceived);
-        }
-
-        if (attrs.LOX_Capacity !== undefined) {
-          summary.loxAtLZ += asNumber(attrs.LOX_Stored);
-        }
-
-        if (text.includes('regolith') && text.includes('rover')) {
-          summary.regolithLoadKg += Math.min(currentLoad, maxCapacity);
-        }
-
-        if (text.includes('lox') && text.includes('rover')) {
-          summary.loxRoverLoadKg += Math.min(currentLoad, maxCapacity);
-        }
-
-        summary.powerGenerated += asNumber(attrs.current_power_output, attrs.powerOutput, attrs.power_output);
-        summary.powerDemand += asNumber(attrs.current_energy_demand, attrs.energy_demand, attrs.power_demand);
-      }
-
-      return summary;
-    }
-
-    const cur = summarizeSnapshot(snap);
-    const prev = summarizeSnapshot(prevSnap);
-    const regolithMovedKg = Math.max(cur.regolithReceived - prev.regolithReceived, 0);
-    const loxProducedKg = Math.max(cur.loxAtPlants - prev.loxAtPlants, 0);
-    const loxDeliveredKg = Math.max(cur.loxAtLZ - prev.loxAtLZ, 0);
-    const powerDemandKwh = cur.powerDemand;
-    const powerCapacity = Math.max(cur.powerGenerated || nominalPowerOutput, nominalPowerOutput, 1);
-
-    const flowMetrics = {
-      Power: {
-        intensity: ratio(powerDemandKwh, powerCapacity, nominalPowerOutput),
-        label: `${powerDemandKwh.toFixed(0)} kWh`
-      },
-      LOX: {
-        produced: loxProducedKg,
-        delivered: loxDeliveredKg,
-        inTransit: cur.loxRoverLoadKg,
-        intensity: ratio(Math.max(loxProducedKg, loxDeliveredKg, cur.loxRoverLoadKg), loxThreshold, loxThreshold),
-        label: `${Math.max(loxProducedKg, loxDeliveredKg, cur.loxRoverLoadKg).toFixed(1)} kg`
-      },
-      Regolith: {
-        moved: regolithMovedKg,
-        inTransit: cur.regolithLoadKg,
-        intensity: regolithMovedKg > 0 ? ratio(regolithMovedKg, regolithNominalTrip, regolithNominalTrip) : 0.08,
-        label: `${regolithMovedKg.toFixed(0)} kg`
-      }
-    };
 
     const BG = '#0d1117';
     let html = `<rect width="${W}" height="${H}" fill="${BG}"/>`;
@@ -5950,33 +7195,12 @@ window.addEventListener('load',()=>setTimeout(initPolarMap,200));
       const b = nodeCenter(p2);
       const flow = conn.flow || conn.type || 'Flow';
       const color = colors[flow] || '#8fd3ff';
-      const fromCaps = inferDesCapabilities(conn.fromName, getSysmlPartData(conn.fromName));
-      const toCaps = inferDesCapabilities(conn.toName, getSysmlPartData(conn.toName));
-      const metric = flowMetrics[flow] || { intensity: 0.3, label: '' };
-      let intensity = metric.intensity;
-      let label = metric.label;
-
-      if (flow === 'LOX' && toCaps.has('storage')) {
-        intensity = ratio(flowMetrics.LOX.delivered, loxThreshold, loxThreshold);
-        label = `${flowMetrics.LOX.delivered.toFixed(1)} kg`;
-      } else if (flow === 'LOX' && (toCaps.has('lox_rover') || fromCaps.has('processing'))) {
-        const loxValue = Math.max(flowMetrics.LOX.produced, flowMetrics.LOX.inTransit);
-        intensity = ratio(loxValue, loxThreshold, loxThreshold);
-        label = `${loxValue.toFixed(1)} kg`;
-      } else if (flow === 'Regolith' && toCaps.has('processing')) {
-        intensity = flowMetrics.Regolith.moved > 0
-          ? ratio(flowMetrics.Regolith.moved, regolithNominalTrip, regolithNominalTrip)
-          : 0.08;
-        label = `${flowMetrics.Regolith.moved.toFixed(0)} kg`;
-      }
-
-      const width = 1.5 + intensity * 6;
 
       html += `<line x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}"
-        stroke="${color}" stroke-width="${width.toFixed(1)}" stroke-opacity="0.82"
+        stroke="${color}" stroke-width="3" stroke-opacity="0.82"
         stroke-linecap="round"/>`;
       html += `<text x="${(a.x + b.x) / 2}" y="${(a.y + b.y) / 2 - 6}" text-anchor="middle"
-        fill="${color}" font-size="9" font-weight="700">${esc(flow)} ${esc(label)}</text>`;
+        fill="${color}" font-size="9" font-weight="700">${esc(flow)}</text>`;
     });
 
     nodes.forEach(id => {
@@ -6037,16 +7261,6 @@ window.addEventListener('load',()=>setTimeout(initPolarMap,200));
 
 
 
-
-<div class="page">
-  
-  <div class="intro-cta">
-  <button class="intro-btn msosa-btn">
-    Generate Scenario
-  </button>
-</div>
- </body>
-</html> 
 
 
   <section class="section" id="consquence">
