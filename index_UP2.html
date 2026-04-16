@@ -3364,6 +3364,7 @@ const MODULE_COLORS = {
 
 // ── State ──────────────────────────────────────────────────────────
 let up42Canvas, up42Ctx, up42W, up42H;
+const KM_PER_PX       = 0.005; // 5m/px — ~3.5km canvas width
 let up42ActiveModule  = null;
 let up42Phase         = 'place';
 let up42Placements    = {};
@@ -6850,6 +6851,10 @@ let up42MoonImg = null;
       ...(urbanPlanning ? { urban_planning: JSON.stringify(urbanPlanning) } : {}),
     };
 
+    const bodyStr = JSON.stringify({ ref: GH_REF, inputs });
+    console.log('[DES DISPATCH] payload size:', bodyStr.length, 'bytes');
+    console.log('[DES DISPATCH] urban_planning size:', urbanPlanning ? JSON.stringify(urbanPlanning).length : 0, 'bytes');
+
     try {
       const res = await fetch(
         `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/actions/workflows/run_des.yml/dispatches`,
@@ -6860,10 +6865,12 @@ let up42MoonImg = null;
             'Accept': 'application/vnd.github+json',
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ ref: GH_REF, inputs }),
+          body: bodyStr,
           cache: 'no-store'
         }
       );
+
+      console.log('[DES DISPATCH] response status:', res.status);
 
       if (res.status === 204) {
         btn.textContent = 'Running...';
@@ -6888,7 +6895,9 @@ let up42MoonImg = null;
 
         pollDesResults(runId, token);
       } else {
-        const err = await res.json().catch(() => ({}));
+        const errBody = await res.text();
+        console.log('[DES DISPATCH] error body:', errBody);
+        const err = (() => { try { return JSON.parse(errBody); } catch { return {}; } })();
         if (res.status === 401) sessionStorage.removeItem('gh_pat');
         setDesStatus(`Error ${res.status}: ${err.message || 'see console'}`, '#ff7a8a');
         btn.textContent = 'Run DES Simulation';
