@@ -4389,6 +4389,9 @@ function buildUrbanPlanningPayload() {
     return [+dx.toFixed(2), +dy.toFixed(2), 0.0];
   }
 
+  console.log('[UP] up42Routes count:', up42Routes.length, up42Routes.map(r => `${r.from}To${r.to}`));
+  console.log('[UP] up42Placements:', Object.keys(up42Placements));
+
   // Modules → position_m + rotation_deg
   const modules = {};
   Object.entries(up42Placements).forEach(([id, pos]) => {
