@@ -4391,6 +4391,7 @@ function buildUrbanPlanningPayload() {
 
   console.log('[UP] up42Routes count:', up42Routes.length, up42Routes.map(r => `${r.from}To${r.to}`));
   console.log('[UP] up42Placements:', Object.keys(up42Placements));
+  console.log('[UP] first route pts count:', up42Routes[0]?.pts?.length, 'sample:', JSON.stringify(up42Routes[0]?.pts?.slice(0,2)));
 
   // Modules → position_m + rotation_deg
   const modules = {};
@@ -4418,7 +4419,7 @@ function buildUrbanPlanningPayload() {
     };
   });
 
-  return {
+  const payload = {
     site: site.id,
     site_name: site.name,
     site_lat: site.lat,
@@ -4426,6 +4427,9 @@ function buildUrbanPlanningPayload() {
     modules,
     connections
   };
+  console.log('[UP] connections keys:', Object.keys(connections));
+  console.log('[UP] first connection waypoints count:', Object.values(connections)[0]?.waypoints_m?.length);
+  return payload;
 }
 
 
