@@ -249,15 +249,45 @@ jobs:
                       part["transform"]["rotation_deg"] = m["rotation_deg"]
                       updated_parts += 1
 
+              # Build a lookup: for each frontend route key, extract the two endpoints
+              # Frontend keys look like "ISRUPlantToLaunchLandingZone"
+              # SysML connections involve parts like LOXRover, RegolithRover as intermediaries
+              # Strategy: for each SysML connection, find a frontend route whose key
+              # contains BOTH endpoint parts (in any order), ignoring rover intermediaries
+              def find_route_for_conn(from_part, to_part, conns):
+                  # Direct match first
+                  for key, val in conns.items():
+                      if key == f"{from_part}To{to_part}" or key == f"{to_part}To{from_part}":
+                          return val
+                  # Fuzzy: both part names appear somewhere in the key
+                  for key, val in conns.items():
+                      if from_part in key and to_part in key:
+                          return val
+                  # One-sided: either part appears in the key (rover connections)
+                  # Map rover names to their logical endpoints
+                  rover_map = {
+                      "RegolithRover": ["ISRUExcavation", "ISRUPlant"],
+                      "LOXRover":      ["ISRUPlant", "LaunchLandingZone", "PropellantDepot"],
+                  }
+                  endpoints = set()
+                  for part in [from_part, to_part]:
+                      mapped = rover_map.get(part)
+                      if mapped:
+                          endpoints.update(mapped)
+                      else:
+                          endpoints.add(part)
+                  for key, val in conns.items():
+                      parts_in_key = [p for p in endpoints if p in key]
+                      if len(parts_in_key) >= 2:
+                          return val
+                  return None
+
               updated_conns = 0
               for conn in sysml.get("connections", []):
-                  # Match by SysML connection name OR by reconstructed key (FromTo)
-                  conn_name = conn.get("name", "")
                   from_part = conn.get("from", {}).get("part", "")
                   to_part   = conn.get("to",   {}).get("part", "")
-                  key       = f"{from_part}To{to_part}"
 
-                  match = conns.get(conn_name) or conns.get(key)
+                  match = find_route_for_conn(from_part, to_part, conns)
                   if match:
                       conn["path"] = {
                           "waypoints_m":  match["waypoints_m"],
