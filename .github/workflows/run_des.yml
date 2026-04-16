@@ -254,7 +254,6 @@ jobs:
               regolith_routes = [v for v in conns.values() if v.get("flow") == "Regolith"]
               lox_routes      = [v for v in conns.values() if v.get("flow") == "LOX"]
 
-              # Track assignment to avoid giving same route to multiple connections
               regolith_idx = 0
               lox_idx      = 0
 
@@ -263,11 +262,12 @@ jobs:
                   flow = conn.get("flow", "")
 
                   match = None
-                  if flow == "Regolith" and regolith_idx < len(regolith_routes):
-                      match = regolith_routes[regolith_idx]
+                  if flow == "Regolith" and regolith_routes:
+                      # Cycle through available routes, reuse last one if exhausted
+                      match = regolith_routes[min(regolith_idx, len(regolith_routes) - 1)]
                       regolith_idx += 1
-                  elif flow == "LOX" and lox_idx < len(lox_routes):
-                      match = lox_routes[lox_idx]
+                  elif flow == "LOX" and lox_routes:
+                      match = lox_routes[min(lox_idx, len(lox_routes) - 1)]
                       lox_idx += 1
 
                   if match:
@@ -354,12 +354,10 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add outputs/des_results.json
-          git add clean_database/json/ECLIPSE_Project/ECLIPSE_Project.json
-          STASHED=$(git stash 2>&1)
           git pull --rebase origin main
-          echo "$STASHED" | grep -q "No local changes" || git stash pop
           git add outputs/des_results.json
           git add clean_database/json/ECLIPSE_Project/ECLIPSE_Project.json
+          echo "=== staged files ==="
+          git diff --staged --name-only
           git diff --staged --quiet || git commit -m "chore: DES results + SysML urban planning update [skip ci]"
           git push
