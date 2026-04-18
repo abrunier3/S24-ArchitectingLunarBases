@@ -249,32 +249,95 @@ jobs:
                       part["transform"]["rotation_deg"] = m["rotation_deg"]
                       updated_parts += 1
 
-              # Frontend routes now carry a flow field: Regolith, LOX, Power, Structural
-              # Match SysML connections to frontend routes by flow type
-              regolith_routes = [v for v in conns.values() if v.get("flow") == "Regolith"]
-              lox_routes      = [v for v in conns.values() if v.get("flow") == "LOX"]
+              # Build MST graph from frontend edges for path reconstruction
+              mst_edges = urban_planning.get("mst_edges", [])
 
-              regolith_idx = 0
-              lox_idx      = 0
+              # Adjacency: module → list of {neighbor, key, reverse}
+              adjacency = {}
+              for edge in mst_edges:
+                  a, b, key = edge["from"], edge["to"], edge["key"]
+                  adjacency.setdefault(a, []).append({"neighbor": b, "key": key, "reverse": False})
+                  adjacency.setdefault(b, []).append({"neighbor": a, "key": key, "reverse": True})
+
+              def find_mst_path(start, end):
+                  """BFS on MST graph — returns ordered list of (key, reverse) tuples."""
+                  if start == end:
+                      return []
+                  visited = {start}
+                  queue = [(start, [])]
+                  while queue:
+                      node, path = queue.pop(0)
+                      for edge in adjacency.get(node, []):
+                          nb = edge["neighbor"]
+                          if nb not in visited:
+                              new_path = path + [(edge["key"], edge["reverse"])]
+                              if nb == end:
+                                  return new_path
+                              visited.add(nb)
+                              queue.append((nb, new_path))
+                  return None  # no path found
+
+              def build_path_for_connection(from_part, to_part, flow):
+                  """Find physical path between two modules using rover endpoint mapping."""
+                  if flow == "Power":
+                      return None
+
+                  # Resolve rover intermediaries to their physical endpoints
+                  rover_map = {
+                      "RegolithRover": ["ISRUExcavation", "ISRUPlant"],
+                      "LOXRover":      ["ISRUPlant", "LaunchLandingZone"],
+                  }
+
+                  # Get physical endpoints (resolve rover to its endpoints)
+                  from_candidates = rover_map.get(from_part, [from_part])
+                  to_candidates   = rover_map.get(to_part,   [to_part])
+
+                  # Try all combinations of endpoints to find a path
+                  best_path = None
+                  best_dist = float('inf')
+
+                  for fc in from_candidates:
+                      for tc in to_candidates:
+                          if fc == tc:
+                              continue
+                          if fc not in adjacency and tc not in adjacency:
+                              continue
+                          path_keys = find_mst_path(fc, tc)
+                          if path_keys is None:
+                              continue
+
+                          # Concatenate waypoints from all segments
+                          all_waypoints = []
+                          total_dist = 0.0
+                          for key, reverse in path_keys:
+                              seg = conns.get(key)
+                              if not seg:
+                                  continue
+                              wpts = seg["waypoints_m"]
+                              if reverse:
+                                  wpts = list(reversed(wpts))
+                              # Avoid duplicate junction points
+                              if all_waypoints and wpts:
+                                  all_waypoints.extend(wpts[1:])
+                              else:
+                                  all_waypoints.extend(wpts)
+                              total_dist += seg["distance_km"]
+
+                          if all_waypoints and total_dist < best_dist:
+                              best_dist = total_dist
+                              best_path = {"waypoints_m": all_waypoints, "distance_km": round(total_dist, 3)}
+
+                  return best_path
 
               updated_conns = 0
               for conn in sysml.get("connections", []):
-                  flow = conn.get("flow", "")
+                  from_part = conn.get("from", {}).get("part", "")
+                  to_part   = conn.get("to",   {}).get("part", "")
+                  flow      = conn.get("flow", "")
 
-                  match = None
-                  if flow == "Regolith" and regolith_routes:
-                      # Cycle through available routes, reuse last one if exhausted
-                      match = regolith_routes[min(regolith_idx, len(regolith_routes) - 1)]
-                      regolith_idx += 1
-                  elif flow == "LOX" and lox_routes:
-                      match = lox_routes[min(lox_idx, len(lox_routes) - 1)]
-                      lox_idx += 1
-
+                  match = build_path_for_connection(from_part, to_part, flow)
                   if match:
-                      conn["path"] = {
-                          "waypoints_m": match["waypoints_m"],
-                          "distance_km": match["distance_km"],
-                      }
+                      conn["path"] = match
                       updated_conns += 1
                   else:
                       conn.pop("path", None)
