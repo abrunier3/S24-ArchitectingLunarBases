@@ -317,11 +317,18 @@ jobs:
               print(f"[UP] LOX path: {len(lox_path['waypoints_m']) if lox_path else 0} pts, {lox_path['distance_km'] if lox_path else 0} km")
 
               # Rename connections and assign paths
+              # ISRUPlantToLaunchLandingZone gets the full LOX path (Plant→Depot→LZ)
+              # ISRUPlantToPropellantDepot gets only the first leg (Plant→Depot)
               CONN_RENAME = {
                   "ISRUExcavationToRegolithRover": "ISRUExcavationToISRUPlant",
                   "RegolithRoverToISRUPlant":       "ISRUExcavationToISRUPlant",
                   "ISRUPlantToRover":               "ISRUPlantToLaunchLandingZone",
                   "RoverToPropellantDepot":         "ISRUPlantToPropellantDepot",
+              }
+
+              LOX_PATHS = {
+                  "ISRUPlantToLaunchLandingZone": lox_path,
+                  "ISRUPlantToPropellantDepot":   lox_leg1,
               }
 
               updated_conns = 0
@@ -344,12 +351,19 @@ jobs:
                       conn["path"] = regolith_path
                       seen_names.add(new_name)
                       updated_conns += 1
-                  elif flow == "LOX" and lox_path:
-                      conn["path"] = lox_path
+                  elif flow == "LOX" and new_name in LOX_PATHS and LOX_PATHS[new_name]:
+                      conn["path"] = LOX_PATHS[new_name]
                       seen_names.add(new_name)
                       updated_conns += 1
                   else:
                       conn.pop("path", None)
+
+              # Remove duplicate connection names — keep only first occurrence
+              seen_dedup = set()
+              sysml["connections"] = [
+                  c for c in sysml["connections"]
+                  if c["name"] not in seen_dedup and not seen_dedup.add(c["name"])
+              ]
 
               # Store urban planning metadata at root level
               sysml["urban_planning"] = {
