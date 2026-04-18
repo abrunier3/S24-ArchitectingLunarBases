@@ -1,17 +1,15 @@
 {
-  "written_at": 1776541926544,
+  "written_at": 1776541963337,
   "active_nodes": [
-    "LSP1",
     "HabitationModule",
     "ISRUPlant",
-    "LaunchLandingZone",
     "PropellantDepot",
     "LOXRover",
     "SolarPowerSystem",
     "RegolithRover",
     "ISRUExcavation"
   ],
-  "active_nodes_count": 9,
+  "active_nodes_count": 7,
   "connections": [
     {
       "name": "ISRUPlantToRover",
@@ -79,19 +77,6 @@
       }
     },
     {
-      "name": "PowerGenToLaunch",
-      "type": "PowerMovement",
-      "flow": "Power",
-      "from": {
-        "part": "SolarPowerSystem",
-        "port": "Power_PowerPortOutToLaunchLandingZone"
-      },
-      "to": {
-        "part": "LaunchLandingZone",
-        "port": "LaunchZone_PowerPortIn"
-      }
-    },
-    {
       "name": "ISRUExcavationToRegolithRover",
       "type": "RegolithMovement",
       "flow": "Regolith",
@@ -132,37 +117,6 @@
     }
   ],
   "parts": {
-    "LSP1": {
-      "id": "urn:S24_PIPELINE:part:LSP1:001",
-      "type": "Part",
-      "dimensions": {
-        "size_m": {
-          "length": 1000.0,
-          "width": 1000.0,
-          "height": 500.0
-        },
-        "metersPerUnit": 1,
-        "upAxis": "Z"
-      },
-      "transform": {
-        "position_m": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "rotation_deg": [
-          0.0,
-          0.0,
-          0.0
-        ]
-      },
-      "attributes": {
-        "missionDuration": 9.0
-      },
-      "materialRef": null,
-      "ports": [],
-      "metadata": {}
-    },
     "HabitationModule": {
       "id": "urn:S24_PIPELINE:part:HabitationModule:001",
       "type": "Part",
@@ -278,54 +232,6 @@
       ],
       "metadata": {
         "geometryRef": "assets/geom/ISRUPlant_geom.usda"
-      }
-    },
-    "LaunchLandingZone": {
-      "id": "urn:S24_PIPELINE:part:LaunchLandingZone:001",
-      "type": "Part",
-      "dimensions": {
-        "size_m": {
-          "length": 50.0,
-          "width": 50.0,
-          "height": 10.0
-        },
-        "metersPerUnit": 1,
-        "upAxis": "Z"
-      },
-      "transform": {
-        "position_m": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "rotation_deg": [
-          0.0,
-          0.0,
-          0.0
-        ]
-      },
-      "attributes": {
-        "loxCapacity": 50000.0,
-        "loxStored": 0.0,
-        "utilitiesPowerRate": 3.0,
-        "totalEnergyConsumed": 0.0,
-        "chillingPowerPerKgLox": 0.31,
-        "LaunchLandingZone_volume_m3": 25000.0
-      },
-      "materialRef": null,
-      "ports": [
-        {
-          "name": "LaunchZone_PowerPortIn",
-          "direction": [
-            "in"
-          ],
-          "items": [
-            "PowerIn"
-          ]
-        }
-      ],
-      "metadata": {
-        "geometryRef": "assets/geom/LaunchLandingZone_geom.usda"
       }
     },
     "PropellantDepot": {
