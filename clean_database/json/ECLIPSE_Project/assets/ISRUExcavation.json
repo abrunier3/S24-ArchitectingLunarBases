@@ -4,37 +4,47 @@
   "name": "ISRUExcavation",
   "dimensions": {
     "size_m": {
-      "length": 4.0,
-      "width": 4.0,
+      "length": 4,
+      "width": 4,
       "height": 2.5
     },
     "metersPerUnit": 1,
     "upAxis": "Z",
-    "angleUnit": "deg",
-    "pressureUnit": "kPa",
     "massUnit": "kg",
     "lengthUnit": "m"
   },
   "transform": {
     "position_m": [
-      0.0,
-      5.0,
-      0.0
+      0,
+      5,
+      0
     ],
     "rotation_deg": [
-      0.0,
-      0.0,
-      0.0
+      0,
+      0,
+      0
     ]
   },
   "attributes": {
-    "ISRUExcavation_volume_m3": 40.0,
-    "excavationEnergyCoeff": 6.5e-06
+    "ISRUExcavation_volume_m3": 40,
+    "excavationEnergyCoeff": 0.0000065
   },
   "metadata": {
-    "geometryRef": "assets/geom/ISRUExcavation_geom.usda"
+    "geometryRef": "clean_database/cad_models/ISRUExcavation/Construction_dig_site_and_heaps.usdz",
+    "cadFileName": "Construction_dig_site_and_heaps.usdz",
+    "cadUploadedAt": "2026-04-18T19:12:23.687Z",
+    "glbPreviewRef": "outputs/cad_previews/ISRUExcavation.glb"
   },
-  "materialRef": "Aluminum_2219_T87",
+  "materialRef": "Titanium_Ti6Al4V",
+  "materialProperties": {
+    "source": "library",
+    "density_kg_m3": 4430,
+    "youngModulus_Pa": 114000000000,
+    "poissonRatio": 0.34,
+    "yieldStrength_Pa": 880000000,
+    "ultimateStrength_Pa": 950000000,
+    "thermalConductivity_W_mK": 6.7
+  },
   "ports": [
     {
       "name": "Excavation_PowerPortIn",
@@ -54,6 +64,5 @@
         "RegolithOut"
       ]
     }
-  ],
-  "parent": "LSP1"
+  ]
 }
