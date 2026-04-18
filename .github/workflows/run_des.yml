@@ -277,67 +277,76 @@ jobs:
                               queue.append((nb, new_path))
                   return None  # no path found
 
-              def build_path_for_connection(from_part, to_part, flow):
-                  """Find physical path between two modules using rover endpoint mapping."""
-                  if flow == "Power":
+              def concat_path(start, end):
+                  """Concatenate waypoints along MST path from start to end."""
+                  path_keys = find_mst_path(start, end)
+                  if path_keys is None:
                       return None
+                  all_waypoints = []
+                  total_dist = 0.0
+                  for key, reverse in path_keys:
+                      seg = conns.get(key)
+                      if not seg:
+                          continue
+                      wpts = seg["waypoints_m"]
+                      if reverse:
+                          wpts = list(reversed(wpts))
+                      if all_waypoints and wpts:
+                          all_waypoints.extend(wpts[1:])
+                      else:
+                          all_waypoints.extend(wpts)
+                      total_dist += seg["distance_km"]
+                  if not all_waypoints:
+                      return None
+                  return {"waypoints_m": all_waypoints, "distance_km": round(total_dist, 3)}
 
-                  # Resolve rover intermediaries to their physical endpoints
-                  rover_map = {
-                      "RegolithRover": ["ISRUExcavation", "ISRUPlant"],
-                      "LOXRover":      ["ISRUPlant", "LaunchLandingZone"],
-                  }
+              # Build the two physical routes:
+              # 1. Regolith: ISRUExcavation → ISRUPlant
+              # 2. LOX: ISRUPlant → PropellantDepot → LaunchLandingZone
+              regolith_path = concat_path("ISRUExcavation", "ISRUPlant")
 
-                  # Get physical endpoints (resolve rover to its endpoints)
-                  from_candidates = rover_map.get(from_part, [from_part])
-                  to_candidates   = rover_map.get(to_part,   [to_part])
+              lox_leg1 = concat_path("ISRUPlant", "PropellantDepot")
+              lox_leg2 = concat_path("PropellantDepot", "LaunchLandingZone")
+              if lox_leg1 and lox_leg2:
+                  lox_waypoints = lox_leg1["waypoints_m"] + lox_leg2["waypoints_m"][1:]
+                  lox_path = {"waypoints_m": lox_waypoints, "distance_km": round(lox_leg1["distance_km"] + lox_leg2["distance_km"], 3)}
+              else:
+                  lox_path = lox_leg1 or lox_leg2 or None
 
-                  # Try all combinations of endpoints to find a path
-                  best_path = None
-                  best_dist = float('inf')
+              print(f"[UP] Regolith path: {len(regolith_path['waypoints_m']) if regolith_path else 0} pts, {regolith_path['distance_km'] if regolith_path else 0} km")
+              print(f"[UP] LOX path: {len(lox_path['waypoints_m']) if lox_path else 0} pts, {lox_path['distance_km'] if lox_path else 0} km")
 
-                  for fc in from_candidates:
-                      for tc in to_candidates:
-                          if fc == tc:
-                              continue
-                          if fc not in adjacency and tc not in adjacency:
-                              continue
-                          path_keys = find_mst_path(fc, tc)
-                          if path_keys is None:
-                              continue
-
-                          # Concatenate waypoints from all segments
-                          all_waypoints = []
-                          total_dist = 0.0
-                          for key, reverse in path_keys:
-                              seg = conns.get(key)
-                              if not seg:
-                                  continue
-                              wpts = seg["waypoints_m"]
-                              if reverse:
-                                  wpts = list(reversed(wpts))
-                              # Avoid duplicate junction points
-                              if all_waypoints and wpts:
-                                  all_waypoints.extend(wpts[1:])
-                              else:
-                                  all_waypoints.extend(wpts)
-                              total_dist += seg["distance_km"]
-
-                          if all_waypoints and total_dist < best_dist:
-                              best_dist = total_dist
-                              best_path = {"waypoints_m": all_waypoints, "distance_km": round(total_dist, 3)}
-
-                  return best_path
+              # Rename connections and assign paths
+              CONN_RENAME = {
+                  "ISRUExcavationToRegolithRover": "ISRUExcavationToISRUPlant",
+                  "RegolithRoverToISRUPlant":       "ISRUExcavationToISRUPlant",
+                  "ISRUPlantToRover":               "ISRUPlantToLaunchLandingZone",
+                  "RoverToPropellantDepot":         "ISRUPlantToPropellantDepot",
+              }
 
               updated_conns = 0
+              seen_names = set()
               for conn in sysml.get("connections", []):
-                  from_part = conn.get("from", {}).get("part", "")
-                  to_part   = conn.get("to",   {}).get("part", "")
-                  flow      = conn.get("flow", "")
+                  original_name = conn.get("name", "")
+                  flow = conn.get("flow", "")
+                  new_name = CONN_RENAME.get(original_name, original_name)
+                  conn["name"] = new_name
 
-                  match = build_path_for_connection(from_part, to_part, flow)
-                  if match:
-                      conn["path"] = match
+                  if flow == "Power":
+                      conn.pop("path", None)
+                      continue
+
+                  if new_name in seen_names:
+                      conn.pop("path", None)
+                      continue
+
+                  if flow == "Regolith" and regolith_path:
+                      conn["path"] = regolith_path
+                      seen_names.add(new_name)
+                      updated_conns += 1
+                  elif flow == "LOX" and lox_path:
+                      conn["path"] = lox_path
+                      seen_names.add(new_name)
                       updated_conns += 1
                   else:
                       conn.pop("path", None)
