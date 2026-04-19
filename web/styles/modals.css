@@ -1,0 +1,355 @@
+/* ============================================
+   MODALS SYSTEM
+   Handles:
+   - Overlay behavior
+   - Generic modal
+   - Paste modal
+   - Pipeline modal
+   - GitHub publish modal
+   - Modal action layouts
+============================================ */
+
+
+/* =================================================
+   GENERIC MODAL OVERLAY
+   Base overlay structure (dark background)
+================================================= */
+
+.modal-overlay {
+  display: none;              /* Hidden by default */
+  position: fixed;
+  inset: 0;                   /* Cover full viewport */
+  background: rgba(0,0,0,0.7);
+
+  z-index: 100;
+
+  align-items: center;
+  justify-content: center;
+}
+
+/* When JS adds .open → modal becomes visible */
+.modal-overlay.open {
+  display: flex;
+}
+
+
+/* =================================================
+   GENERIC MODAL BOX
+================================================= */
+
+.modal {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+
+  padding: 24px;
+  width: 360px;
+
+  animation: slideIn 0.2s ease;
+}
+
+.modal h3 {
+  font-family: var(--sans);
+  font-size: 15px;
+  margin-bottom: 16px;
+  color: var(--text);
+}
+
+.modal-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 20px;
+  justify-content: flex-end;
+}
+
+
+/* =================================================
+   PASTE MODAL (Large textarea version)
+================================================= */
+
+.paste-modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+
+  z-index: 200;
+
+  align-items: center;
+  justify-content: center;
+}
+
+.paste-modal-overlay.open {
+  display: flex;
+}
+
+.paste-modal {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 6px;
+
+  padding: 24px;
+  width: 560px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.paste-modal h3 {
+  font-family: var(--sans);
+  font-size: 14px;
+  color: var(--text);
+}
+
+/* Large textarea */
+.paste-modal textarea {
+  width: 100%;
+  height: 260px;
+
+  background: var(--bg);
+  border: 1px solid var(--border2);
+  border-radius: var(--r);
+
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 11px;
+
+  padding: 10px;
+  resize: vertical;
+  outline: none;
+}
+
+.paste-modal textarea:focus {
+  border-color: var(--accent2);
+}
+
+.paste-modal-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+
+/* =================================================
+   PIPELINE MODAL
+================================================= */
+
+.pipeline-modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+
+  z-index: 200;
+
+  align-items: center;
+  justify-content: center;
+}
+
+.pipeline-modal-overlay.open {
+  display: flex;
+}
+
+.pipeline-modal {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 6px;
+
+  padding: 24px;
+  width: 480px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.pipeline-modal h3 {
+  font-family: var(--sans);
+  font-size: 14px;
+  color: var(--text);
+}
+
+.pipeline-modal .field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.pipeline-modal label {
+  font-size: 10px;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.pipeline-modal input {
+  background: var(--bg);
+  border: 1px solid var(--border2);
+  border-radius: var(--r);
+
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 11px;
+
+  padding: 8px 10px;
+  outline: none;
+  width: 100%;
+}
+
+.pipeline-modal input:focus {
+  border-color: var(--green);
+}
+
+.pipeline-modal .hint {
+  font-size: 10px;
+  color: var(--text3);
+  line-height: 1.6;
+}
+
+.pipeline-modal .hint a {
+  color: var(--green);
+}
+
+.pipeline-modal-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+
+/* Run pipeline button */
+.btn-run {
+  background: rgba(0,255,157,0.1);
+  border: 1px solid var(--green);
+  color: var(--green);
+
+  padding: 6px 14px;
+  font-family: var(--mono);
+  font-size: 11px;
+  border-radius: var(--r);
+
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-run:hover {
+  background: rgba(0,255,157,0.2);
+}
+
+.btn-run:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+
+/* =================================================
+   GITHUB PUBLISH MODAL
+================================================= */
+
+.gh-modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+
+  z-index: 200;
+
+  align-items: center;
+  justify-content: center;
+}
+
+.gh-modal-overlay.open {
+  display: flex;
+}
+
+.gh-modal {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 6px;
+
+  padding: 24px;
+  width: 480px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.gh-modal h3 {
+  font-family: var(--sans);
+  font-size: 14px;
+  color: var(--text);
+}
+
+.gh-modal .field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.gh-modal label {
+  font-size: 10px;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.gh-modal input {
+  background: var(--bg);
+  border: 1px solid var(--border2);
+  border-radius: var(--r);
+
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 11px;
+
+  padding: 8px 10px;
+  outline: none;
+  width: 100%;
+}
+
+.gh-modal input:focus {
+  border-color: var(--accent2);
+}
+
+.gh-modal .hint {
+  font-size: 10px;
+  color: var(--text3);
+  line-height: 1.6;
+}
+
+.gh-modal .hint a {
+  color: var(--accent2);
+}
+
+.gh-modal-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+
+/* GitHub publish button */
+.btn-github {
+  background: rgba(0,212,255,0.1);
+  border: 1px solid var(--accent2);
+  color: var(--accent);
+
+  padding: 6px 14px;
+  font-family: var(--mono);
+  font-size: 11px;
+  border-radius: var(--r);
+
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-github:hover {
+  background: rgba(0,212,255,0.2);
+}
+
+.btn-github:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}

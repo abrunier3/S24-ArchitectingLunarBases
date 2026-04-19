@@ -1,4 +1,115 @@
-# S24 — SysML v2 → JSON → USD Pipeline (Digital Model Builder)
+# S24 Lunar Assets — CAD Model Registry
+
+This repository stores all CAD models (.step files) and their SysML metadata for the S24 lunar base DEE pipeline.
+
+---
+
+## 🚀 Mission Control Hub
+
+UPDATED 3-15-2026 ---- 👉 **[Open LSP-1 DEE ](https://abrunier3.github.io/S24-ArchitectingLunarBases/)**
+
+The hub gives access to both tools:
+- **Assembly Builder** — register STEP files, define metadata, generate SysML v2 for the USD pipeline
+- **DES Simulation Explorer** — load simulation logs and visualize time-series data
+
+---
+
+## 🛰 S24 Pipeline Interface (NEW)
+
+👉 **[Open ECLIPSE DEE Pipeline](https://abrunier3.github.io/S24-ArchitectingLunarBases/index.html)**
+👉V2 **[Open ECLIPSE DEE Pipeline](https://abrunier3.github.io/S24-ArchitectingLunarBases/index_UP.html)**
+
+👉V3 **[Open ECLIPSE DEE Pipeline](https://abrunier3.github.io/S24-ArchitectingLunarBases/index_UP2.html)**
+The full end-to-end pipeline interface. Covers:
+- **Step 1** — Build Requirements (MSOSA)
+- **Step 2** — Mission Network Activation — toggle active nodes and trigger `run_connectivity_graph()` via GitHub Actions
+- **Step 3** — Model Submission — upload CAD models and review SysML metadata per module
+- **Step 4** — DES Tradespace — set simulation parameters and run `run_scenario()`
+- **Step 5** — Simulator — link to Omniverse scene
+
+---
+
+## 📋 How to register a new CAD model
+
+### 1. Push your `.step` file
+
+Place your file in the appropriate subfolder under `models/`:
+
+```
+models/
+  HabitationModule/
+    HabitationModule.step
+  ISRUPlant/
+    ISRUPlant.step
+```
+
+### 2. Open the Assembly Builder
+
+👉 **[Open Assembly Builder directly](https://abrunier3.github.io/S24-ArchitectingLunarBases/assembly_builder.html?assembly=https://raw.githubusercontent.com/abrunier3/S24-ArchitectingLunarBases/main/database/sysml/assembly.sysml)**
+
+> The tool will automatically load the current `database/sysml/assembly.sysml` from this repo.
+
+### 3. Fill in your part's metadata
+
+- Click on your part's node in the tree (or create it with **+ Node**)
+- Fill in the dimensions, position, orientation, material, and any custom attributes
+- Click **💾 Save Changes**
+
+### 4. Publish or download
+
+- Click **☁ Publish to GitHub** to push directly to `database/sysml/assembly.sysml`
+- Or click **⬇ Download** and commit manually:
+
+```bash
+git add database/sysml/assembly.sysml
+git commit -m "feat: add metadata for <YourPartName>"
+git push
+```
+
+---
+
+## 🗂 Repository structure
+
+```
+models/
+  <PartName>/
+    <PartName>.step          ← CAD geometry
+database/
+  sysml/
+    assembly.sysml           ← single source of truth for all part metadata
+    materials.sysml
+  json/                      ← generated JSON (pipeline output)
+  scenes/                    ← generated USD scenes (pipeline output)
+  assets/                    ← generated USD assets (pipeline output)
+outputs/
+  graph.json                 ← connectivity graph output (Step 2, written by GitHub Actions)
+  des_results.json           ← DES simulation output (Step 4, written by GitHub Actions)
+.github/
+  workflows/
+    build_pipeline.yml       ← SysML → JSON → USD
+    deploy_pages.yml         ← Deploy GitHub Pages
+    step_detected.yml        ← Auto-register new STEP files
+    run_graph.yml            ← Step 2: run_connectivity_graph() on demand
+```
+
+---
+
+## 🔧 Tools
+
+| Tool | URL |
+|------|-----|
+| **ECLIPSE DEE Pipeline** | https://abrunier3.github.io/S24-ArchitectingLunarBases/index.html |
+| Mission Control Hub | https://abrunier3.github.io/S24-ArchitectingLunarBases/ |
+| Assembly Builder | https://abrunier3.github.io/S24-ArchitectingLunarBases/assembly_builder.html |
+| DES Simulation Explorer | https://abrunier3.github.io/S24-ArchitectingLunarBases/lunar_spaceport_plotter.html |
+| Single Part Form | https://abrunier3.github.io/S24-ArchitectingLunarBases/sysml_generator.html |
+| Unified Workbench | https://abrunier3.github.io/S24-ArchitectingLunarBases/unified_mission_workbench_r5.html |
+
+---
+
+*Maintained by the S24 DEE pipeline — any questions, open an Issue.*
+
+# S24 — SysML v2 → JSON → USD Pipeline (Digital Model Builder) (Framework Summary v1)
 
 S24 is a **Python package** that turns a **SysML v2 system model** into:
 
@@ -21,7 +132,7 @@ This repository is meant to be a clean foundation for a broader digital ecosyste
   The Python package. All core code lives here.
 
 - **`database/`**  
-  Persistent “model database” where generated assets and large datasets live.
+  Persistent "model database" where generated assets and large datasets live.
 
 - **`notebooks/`**  
   Demonstrations and case studies. The main one is `case_study.ipynb`.

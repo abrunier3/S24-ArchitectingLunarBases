@@ -1,0 +1,451 @@
+name: Step 4 — Run DES Simulation
+
+on:
+  workflow_dispatch:
+    inputs:
+      active_nodes:
+        description: 'JSON array of DES active nodes'
+        required: true
+        default: '[]'
+      slider_values:
+        description: 'JSON object of DES slider values'
+        required: false
+        default: '{}'
+      Num_Regolith_Rovers:
+        description: 'Number of regolith rovers'
+        required: true
+        default: '1'
+      Num_ISRU_Plants:
+        description: 'Number of ISRU plants'
+        required: true
+        default: '1'
+      Regolith_Haul_Distance:
+        description: 'Regolith haul distance (km)'
+        required: true
+        default: '1'
+      LOX_Haul_Distance:
+        description: 'LOX haul distance (km)'
+        required: true
+        default: '1'
+      Rover_Energy_Consumption:
+        description: 'Rover energy consumption (kWh/km/kg)'
+        required: true
+        default: '0.00034'
+      Rover_Travel_Time:
+        description: 'Rover travel time (hr/km)'
+        required: true
+        default: '5'
+      ISRU_Plant_Processing_Rate:
+        description: 'ISRU plant processing rate (kg/hr)'
+        required: true
+        default: '1600'
+      LOX_Transport_Threshold:
+        description: 'LOX transport threshold (kg)'
+        required: true
+        default: '100'
+      urban_planning:
+        description: 'JSON object with site, module positions/orientations and route waypoints'
+        required: false
+        default: '{}'
+
+jobs:
+  run-des:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: pip-${{ runner.os }}-${{ hashFiles('pyproject.toml') }}
+          restore-keys: pip-${{ runner.os }}-
+
+      - name: Install dependencies
+        run: |
+          pip install simpy
+          pip install -e .
+
+      - name: Run DES simulation
+        env:
+          ACTIVE_NODES:               ${{ github.event.inputs.active_nodes }}
+          SLIDER_VALUES_JSON:         ${{ github.event.inputs.slider_values }}
+          NUM_REGOLITH_ROVERS:        ${{ github.event.inputs.Num_Regolith_Rovers }}
+          NUM_ISRU_PLANTS:            ${{ github.event.inputs.Num_ISRU_Plants }}
+          REGOLITH_HAUL_DISTANCE:     ${{ github.event.inputs.Regolith_Haul_Distance }}
+          LOX_HAUL_DISTANCE:          ${{ github.event.inputs.LOX_Haul_Distance }}
+          ROVER_ENERGY_CONSUMPTION:   ${{ github.event.inputs.Rover_Energy_Consumption }}
+          ROVER_TRAVEL_TIME:          ${{ github.event.inputs.Rover_Travel_Time }}
+          ISRU_PLANT_PROCESSING_RATE: ${{ github.event.inputs.ISRU_Plant_Processing_Rate }}
+          LOX_TRANSPORT_THRESHOLD:    ${{ github.event.inputs.LOX_Transport_Threshold }}
+          URBAN_PLANNING_JSON:        ${{ github.event.inputs.urban_planning }}
+        run: |
+          mkdir -p outputs
+          python - <<'EOF'
+          import json, os, time, sys
+          sys.path.insert(0, '.')
+
+          sysml_active_nodes = json.loads(os.environ['ACTIVE_NODES'])
+          if not sysml_active_nodes:
+              try:
+                  with open("outputs/graph.json") as f:
+                      graph_data = json.load(f)
+                  sysml_active_nodes = graph_data.get("active_nodes") or []
+                  print(f"[DES] Loaded {len(sysml_active_nodes)} active node(s) from outputs/graph.json.")
+              except FileNotFoundError:
+                  print("[DES] No active_nodes input and no outputs/graph.json found.")
+
+          def normalize_name(value):
+              return "".join(ch for ch in str(value or "").lower() if ch.isalnum())
+
+          def load_sysml_part(node_name):
+              from pathlib import Path
+
+              for assets_dir in Path("clean_database/json").glob("*/assets"):
+                  asset_path = assets_dir / f"{node_name}.json"
+                  if asset_path.exists():
+                      with asset_path.open() as f:
+                          return json.load(f)
+              return {}
+
+          def infer_des_engine_nodes(sysml_nodes):
+              engine_nodes = set()
+
+              for node in sysml_nodes:
+                  part = load_sysml_part(node)
+                  attrs = list((part.get("attributes") or {}).keys())
+                  ports = []
+                  for port in part.get("ports") or []:
+                      ports.extend([
+                          port.get("name"),
+                          *(port.get("items") or []),
+                          *(port.get("direction") or []),
+                      ])
+
+                  text = normalize_name(" ".join([node, *attrs, *filter(None, ports)]))
+
+                  if "isru" in text and ("processingrate" in text or "loxstored" in text or "regolithportin" in text):
+                      engine_nodes.add("ISRUPlant")
+                  if "regolith" in text and "rover" in text:
+                      engine_nodes.add("RegolithRover")
+                  if "lox" in text and "rover" in text:
+                      engine_nodes.add("LOXRover")
+                  if (
+                      "poweroutput" in text
+                      or "totalenergygenerated" in text
+                      or "powerportout" in text
+                      or "powerout" in text
+                      or "solarpower" in text
+                  ):
+                      engine_nodes.add("SolarPowerSystem")
+                  if "habitation" in text or "habitat" in text:
+                      engine_nodes.add("HabitationModule")
+                  if "communication" in text or "comm" in text:
+                      engine_nodes.add("CommunicationModule")
+                  if "launch" in text or "landing" in text or "depot" in text or "loxcapacity" in text:
+                      engine_nodes.add("LaunchLandingZone")
+
+              return sorted(engine_nodes)
+
+          active_nodes = infer_des_engine_nodes(sysml_active_nodes)
+          print(f"[DES] SysML active nodes: {sysml_active_nodes}")
+          print(f"[DES] DES engine active nodes: {active_nodes}")
+
+          slider_values = json.loads(os.environ.get("SLIDER_VALUES_JSON") or "{}")
+          if not isinstance(slider_values, dict):
+              slider_values = {}
+
+          def slider_number(name, env_name, cast=float):
+              raw_value = slider_values.get(name, os.environ[env_name])
+              return cast(raw_value)
+
+          slider_value_dict = {
+              "active_nodes":               active_nodes,
+              "sysml_active_nodes":         sysml_active_nodes,
+              "Num_Regolith_Rovers":        slider_number("Num_Regolith_Rovers", "NUM_REGOLITH_ROVERS", int),
+              "Num_ISRU_Plants":            slider_number("Num_ISRU_Plants", "NUM_ISRU_PLANTS", int),
+              "Regolith_Haul_Distance":     slider_number("Regolith_Haul_Distance", "REGOLITH_HAUL_DISTANCE"),
+              "LOX_Haul_Distance":          slider_number("LOX_Haul_Distance", "LOX_HAUL_DISTANCE"),
+              "Rover_Energy_Consumption":   slider_number("Rover_Energy_Consumption", "ROVER_ENERGY_CONSUMPTION"),
+              "Rover_Travel_Time":          slider_number("Rover_Travel_Time", "ROVER_TRAVEL_TIME"),
+              "ISRU_Plant_Processing_Rate": slider_number("ISRU_Plant_Processing_Rate", "ISRU_PLANT_PROCESSING_RATE"),
+              "LOX_Transport_Threshold":    slider_number("LOX_Transport_Threshold", "LOX_TRANSPORT_THRESHOLD"),
+          }
+          slider_value_dict.update({
+              key: value for key, value in slider_values.items()
+              if key not in slider_value_dict
+          })
+
+          def normalize_des_asset_attributes():
+              from pathlib import Path
+
+              asset_dirs = list(Path("clean_database/json").glob("*/assets"))
+              if not asset_dirs:
+                  print("[DES] Asset normalization skipped: no clean_database/json/*/assets directory found.")
+                  return
+
+              normalized = 0
+              for assets_dir in asset_dirs:
+                  plant_path = assets_dir / "ISRUPlant.json"
+                  excavation_path = assets_dir / "ISRUExcavation.json"
+
+                  if not plant_path.exists() or not excavation_path.exists():
+                      continue
+
+                  with plant_path.open() as f:
+                      plant = json.load(f)
+                  with excavation_path.open() as f:
+                      excavation = json.load(f)
+
+                  plant_attrs = plant.setdefault("attributes", {})
+                  excavation_attrs = excavation.get("attributes", {})
+
+                  if "excavationEnergyCoeff" not in plant_attrs and "excavationEnergyCoeff" in excavation_attrs:
+                      plant_attrs["excavationEnergyCoeff"] = excavation_attrs["excavationEnergyCoeff"]
+                      with plant_path.open("w") as f:
+                          json.dump(plant, f, indent=2)
+                      normalized += 1
+
+              if normalized:
+                  print(f"[DES] Copied excavationEnergyCoeff into {normalized} ISRUPlant asset(s) for DES compatibility.")
+              else:
+                  print("[DES] No ISRUPlant asset required excavationEnergyCoeff normalization.")
+
+          normalize_des_asset_attributes()
+
+          # ── Update SysML JSON with urban planning data ─────────────────────
+          def update_sysml_with_urban_planning(urban_planning):
+              from pathlib import Path
+
+              sysml_path = Path("clean_database/json/ECLIPSE_Project/ECLIPSE_Project.json")
+              if not sysml_path.exists():
+                  print("[UP] ECLIPSE_Project.json not found — skipping SysML update.")
+                  return
+
+              with sysml_path.open() as f:
+                  sysml = json.load(f)
+
+              modules   = urban_planning.get("modules", {})
+              conns     = urban_planning.get("connections", {})
+              site_id   = urban_planning.get("site", "unknown")
+              site_name = urban_planning.get("site_name", site_id)
+
+              updated_parts = 0
+              for part in sysml.get("parts", []):
+                  name = part.get("name")
+                  if name in modules:
+                      m = modules[name]
+                      part.setdefault("transform", {})
+                      part["transform"]["position_m"]  = m["position_m"]
+                      part["transform"]["rotation_deg"] = m["rotation_deg"]
+                      updated_parts += 1
+
+              # Build MST graph from frontend edges for path reconstruction
+              mst_edges = urban_planning.get("mst_edges", [])
+
+              # Adjacency: module → list of {neighbor, key, reverse}
+              adjacency = {}
+              for edge in mst_edges:
+                  a, b, key = edge["from"], edge["to"], edge["key"]
+                  adjacency.setdefault(a, []).append({"neighbor": b, "key": key, "reverse": False})
+                  adjacency.setdefault(b, []).append({"neighbor": a, "key": key, "reverse": True})
+
+              def find_mst_path(start, end):
+                  """BFS on MST graph — returns ordered list of (key, reverse) tuples."""
+                  if start == end:
+                      return []
+                  visited = {start}
+                  queue = [(start, [])]
+                  while queue:
+                      node, path = queue.pop(0)
+                      for edge in adjacency.get(node, []):
+                          nb = edge["neighbor"]
+                          if nb not in visited:
+                              new_path = path + [(edge["key"], edge["reverse"])]
+                              if nb == end:
+                                  return new_path
+                              visited.add(nb)
+                              queue.append((nb, new_path))
+                  return None  # no path found
+
+              def concat_path(start, end):
+                  """Concatenate waypoints along MST path from start to end."""
+                  path_keys = find_mst_path(start, end)
+                  if path_keys is None:
+                      return None
+                  all_waypoints = []
+                  total_dist = 0.0
+                  for key, reverse in path_keys:
+                      seg = conns.get(key)
+                      if not seg:
+                          continue
+                      wpts = seg["waypoints_m"]
+                      if reverse:
+                          wpts = list(reversed(wpts))
+                      if all_waypoints and wpts:
+                          all_waypoints.extend(wpts[1:])
+                      else:
+                          all_waypoints.extend(wpts)
+                      total_dist += seg["distance_km"]
+                  if not all_waypoints:
+                      return None
+                  return {"waypoints_m": all_waypoints, "distance_km": round(total_dist, 3)}
+
+              # Build the two physical routes:
+              # 1. Regolith: ISRUExcavation → ISRUPlant
+              # 2. LOX: ISRUPlant → PropellantDepot → LaunchLandingZone
+              regolith_path = concat_path("ISRUExcavation", "ISRUPlant")
+
+              lox_leg1 = concat_path("ISRUPlant", "PropellantDepot")
+              lox_leg2 = concat_path("PropellantDepot", "LaunchLandingZone")
+              if lox_leg1 and lox_leg2:
+                  lox_waypoints = lox_leg1["waypoints_m"] + lox_leg2["waypoints_m"][1:]
+                  lox_path = {"waypoints_m": lox_waypoints, "distance_km": round(lox_leg1["distance_km"] + lox_leg2["distance_km"], 3)}
+              else:
+                  lox_path = lox_leg1 or lox_leg2 or None
+
+              print(f"[UP] Regolith path: {len(regolith_path['waypoints_m']) if regolith_path else 0} pts, {regolith_path['distance_km'] if regolith_path else 0} km")
+              print(f"[UP] LOX path: {len(lox_path['waypoints_m']) if lox_path else 0} pts, {lox_path['distance_km'] if lox_path else 0} km")
+
+              # Rename connections and assign paths
+              # ISRUPlantToLaunchLandingZone gets the full LOX path (Plant→Depot→LZ)
+              # ISRUPlantToPropellantDepot gets only the first leg (Plant→Depot)
+              CONN_RENAME = {
+                  "ISRUExcavationToRegolithRover": "ISRUExcavationToISRUPlant",
+                  "RegolithRoverToISRUPlant":       "ISRUExcavationToISRUPlant",
+                  "ISRUPlantToRover":               "ISRUPlantToLaunchLandingZone",
+                  "RoverToPropellantDepot":         "ISRUPlantToPropellantDepot",
+              }
+
+              LOX_PATHS = {
+                  "ISRUPlantToLaunchLandingZone": lox_path,
+                  "ISRUPlantToPropellantDepot":   lox_leg1,
+              }
+
+              updated_conns = 0
+              seen_names = set()
+              for conn in sysml.get("connections", []):
+                  original_name = conn.get("name", "")
+                  flow = conn.get("flow", "")
+                  new_name = CONN_RENAME.get(original_name, original_name)
+                  conn["name"] = new_name
+
+                  if flow == "Power":
+                      conn.pop("path", None)
+                      continue
+
+                  if new_name in seen_names:
+                      conn.pop("path", None)
+                      continue
+
+                  if flow == "Regolith" and regolith_path:
+                      conn["path"] = regolith_path
+                      seen_names.add(new_name)
+                      updated_conns += 1
+                  elif flow == "LOX" and new_name in LOX_PATHS and LOX_PATHS[new_name]:
+                      conn["path"] = LOX_PATHS[new_name]
+                      seen_names.add(new_name)
+                      updated_conns += 1
+                  else:
+                      conn.pop("path", None)
+
+              # Remove duplicate connection names — keep only first occurrence
+              seen_dedup = set()
+              sysml["connections"] = [
+                  c for c in sysml["connections"]
+                  if c["name"] not in seen_dedup and not seen_dedup.add(c["name"])
+              ]
+
+              # Store urban planning metadata at root level
+              sysml["urban_planning"] = {
+                  "site":      site_id,
+                  "site_name": site_name,
+                  "site_lat":  urban_planning.get("site_lat"),
+                  "site_lon":  urban_planning.get("site_lon"),
+              }
+
+              with sysml_path.open("w") as f:
+                  json.dump(sysml, f, indent=2)
+
+              print(f"[UP] SysML updated — {updated_parts} part(s), {updated_conns} connection(s) | site: {site_name}")
+
+          urban_planning_raw = os.environ.get("URBAN_PLANNING_JSON", "{}").strip()
+          if urban_planning_raw and urban_planning_raw != "{}":
+              try:
+                  urban_planning = json.loads(urban_planning_raw)
+                  if urban_planning.get("modules"):
+                      update_sysml_with_urban_planning(urban_planning)
+                  else:
+                      print("[UP] urban_planning payload present but no modules — skipping SysML update.")
+              except json.JSONDecodeError as e:
+                  print(f"[UP] Failed to parse urban_planning JSON: {e}")
+          else:
+              print("[UP] No urban_planning data — skipping SysML update.")
+
+          # ── Run DES ────────────────────────────────────────────────────────
+          from S24.DES_pipeline_version.ISRU_DES_Model_V5_2_PV import run_scenario, check_scenario_validity
+
+          print("[DES] Checking scenario validity...")
+          messages = check_scenario_validity(active_nodes, raiseError=False)
+          errors   = [m for m in messages if m.startswith('[ERROR]')]
+          warnings = [m for m in messages if m.startswith('[WARNING]') or m.startswith('[INFO]')]
+
+          if errors:
+              print("[DES] Scenario has errors — aborting.")
+              result = {
+                  "written_at": int(time.time() * 1000),
+                  "status": "error",
+                  "sysml_active_nodes": sysml_active_nodes,
+                  "des_active_nodes": active_nodes,
+                  "errors": errors,
+                  "warnings": warnings,
+              }
+          else:
+              print("[DES] Running scenario...")
+              run_scenario(slider_value_dict)
+
+              with open('lunar_spaceport_results.json') as f:
+                  sim_results = json.load(f)
+
+              with open('lunar_spaceport_log.json') as f:
+                  sim_log = json.load(f)
+
+              result = {
+                  "written_at": int(time.time() * 1000),
+                  "status": "success",
+                  "warnings": warnings,
+                  "inputs": slider_value_dict,
+                  "sysml_active_nodes": sysml_active_nodes,
+                  "des_active_nodes": active_nodes,
+                  "results": sim_results,
+                  "log": sim_log,
+              }
+
+          with open('outputs/des_results.json', 'w') as f:
+              json.dump(result, f, indent=2)
+
+          print(f"[DES] Done — outputs/des_results.json written")
+          EOF
+
+      - name: Commit results
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git stash --include-untracked
+          git pull --rebase origin main
+          git stash pop
+          git add outputs/des_results.json
+          git add clean_database/json/ECLIPSE_Project/ECLIPSE_Project.json
+          echo "=== staged files ==="
+          git diff --staged --name-only
+          git diff --staged --quiet || git commit -m "chore: DES results + SysML urban planning update [skip ci]"
+          git push

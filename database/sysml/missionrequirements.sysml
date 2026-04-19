@@ -1,4 +1,4 @@
-package 'Mission Requirements' {
+package MissionRequirements {
 
     private import SysML::*;
     private import SI::*;
@@ -76,5 +76,9 @@ package 'Mission Requirements' {
             landingLatitudeActual == landingLatitudeRequired and
             landingLongitudeActual == landingLongitudeRequired
         }
+    }
+
+    view MissionRequirementsTable : TabularViews::rt {
+        expose MissionRequirements::**;
     }
 }

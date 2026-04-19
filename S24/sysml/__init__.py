@@ -1,3 +1,6 @@
-from .parser import Model, PartNode, parse_sysml
-from .evaluator import evaluate_attributes
-from .exporter import sysml_to_json, write_json
+from .main_api import sysml_to_json_transformer
+
+
+__all__ = [
+    'sysml_to_json_transformer',
+]

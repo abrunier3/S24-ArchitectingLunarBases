@@ -1,0 +1,172 @@
+/* ============================================
+   INTERACTIONS & STATE TRANSITIONS
+   Handles:
+   - Animations
+   - Visibility toggles
+   - Load indicators
+   - Success banners
+   - Output preview state
+   - Edit mode state
+============================================ */
+
+
+/* =================================================
+   GENERIC SLIDE-IN ANIMATION
+   Used by:
+   - Modals
+   - Custom attribute rows
+   - Output preview
+================================================= */
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
+/* =================================================
+   SUCCESS BANNER ANIMATION
+================================================= */
+
+@keyframes bannerIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
+/* Apply animation to success banner */
+.success-banner {
+  animation: bannerIn 0.2s ease;
+}
+
+
+/* =================================================
+   LOAD DOT PULSE ANIMATION
+   Used for async states (GitHub load, pipeline run)
+================================================= */
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+/* Default load indicator */
+.load-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--text3);
+  flex-shrink: 0;
+}
+
+/* Success state */
+.load-dot.ok {
+  background: var(--green);
+}
+
+/* Error state */
+.load-dot.err {
+  background: var(--danger);
+}
+
+/* Loading state (animated) */
+.load-dot.loading {
+  background: var(--accent);
+  animation: pulse 1s infinite;
+}
+
+
+/* =================================================
+   OUTPUT PREVIEW VISIBILITY
+================================================= */
+
+/* Hidden by default */
+.output-wrap {
+  display: none;
+}
+
+/* When JS adds .visible */
+.output-wrap.visible {
+  display: block;
+  animation: slideIn 0.2s ease;
+}
+
+
+/* =================================================
+   EDIT MODE BANNER
+================================================= */
+
+/* Hidden by default */
+.edit-banner {
+  display: none;
+}
+
+/* When JS adds .visible */
+.edit-banner.visible {
+  display: flex;
+  animation: slideIn 0.2s ease;
+}
+
+
+/* =================================================
+   TREE CHILD COLLAPSE TRANSITION
+================================================= */
+
+/* Smooth height transition for expanding/collapsing nodes */
+.tree-children {
+  transition: height 0.2s ease;
+}
+
+
+/* =================================================
+   CUSTOM ATTRIBUTE ROW ENTRY
+================================================= */
+
+/* Applied when dynamically adding attribute rows */
+.custom-row {
+  animation: slideIn 0.15s ease;
+}
+
+
+/* =================================================
+   MODAL VISIBILITY STATES
+   (Ensures consistency across modal types)
+================================================= */
+
+.modal-overlay.open,
+.paste-modal-overlay.open,
+.pipeline-modal-overlay.open,
+.gh-modal-overlay.open {
+  display: flex;
+}
+
+
+/* =================================================
+   DRAGGING OPACITY TRANSITION
+================================================= */
+
+.tree-node-row.dragging {
+  opacity: 0.35;
+  transition: opacity 0.1s ease;
+}
+
+
+/* =================================================
+   DRAG-OVER HIGHLIGHT TRANSITION
+================================================= */
+
+.tree-node-row.drag-over {
+  transition: background 0.1s ease, outline 0.1s ease;
+}

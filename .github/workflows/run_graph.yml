@@ -1,0 +1,135 @@
+name: Step 1+2 - SysML Parse + Connectivity Graph
+
+on:
+  workflow_dispatch:
+    inputs:
+      active_nodes:
+        description: 'Optional JSON array of active node names, e.g. ["SolarPowerSystem","Rover"]'
+        required: false
+        default: '[]'
+
+concurrency:
+  group: run-graph-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  run-graph:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: pip-${{ runner.os }}-${{ hashFiles('setup.py', 'setup.cfg', 'pyproject.toml') }}
+
+      - name: Install dependencies
+        run: |
+          pip install -e .
+
+      - name: Run SysML parse + connectivity graph
+        env:
+          ACTIVE_NODES_JSON: ${{ github.event.inputs.active_nodes || '[]' }}
+        run: |
+          mkdir -p outputs
+          python - <<'EOF'
+          import json
+          import os
+          import time
+          from pathlib import Path
+
+          from S24.pipeline.connectivity_graph_runner import run_connectivity_graph
+          from S24.pipeline.sysml_pipeline_runner import run_sysml_to_json_pipeline
+
+          active_nodes_raw = os.environ.get("ACTIVE_NODES_JSON", "[]").strip() or "[]"
+          active_nodes = json.loads(active_nodes_raw)
+          if not active_nodes:
+              active_nodes = None
+
+          result = run_sysml_to_json_pipeline(
+              sysml_file="clean_database/sysml/ECLIPSE_Project.sysml",
+              verbose=0,
+          )
+
+          data = result["data"]
+          parts = data["parts"]
+          metadata = data["metadata"]
+          connections = data["connections"]
+          paths = result["paths"]
+          main_path = paths["main_json"]
+          assets = paths["assets"]
+
+          print("\n[METADATA]")
+          print(json.dumps(metadata, indent=2))
+
+          print("\n[CONNECTIONS]")
+          for conn in connections:
+              print(conn)
+
+          print(f"\nJSON FILE PATHS:\n[SUMMARY] Wrote {len(parts)} part files")
+          print(f"\n[WRITE] Full JSON -> {main_path}")
+          for file_path, part in zip(assets, parts):
+              print(f"[WRITE] {part['name']} -> {file_path}")
+
+          graph = run_connectivity_graph(
+              data=data,
+              active_nodes=active_nodes,
+              json_asset_paths=assets,
+              verbose=1,
+          )
+
+          graph_nodes = graph["active_nodes"]["list"]
+          graph_output = {
+              "written_at": int(time.time() * 1000),
+              "active_nodes": graph_nodes,
+              "active_nodes_count": graph["active_nodes"]["count"],
+              "connections": graph["connections"],
+              "parts": {
+                  part["name"]: {
+                      "id": part.get("id"),
+                      "type": part.get("type"),
+                      "dimensions": part.get("dimensions"),
+                      "transform": part.get("transform"),
+                      "attributes": part.get("attributes"),
+                      "materialRef": part.get("materialRef"),
+                      "ports": part.get("ports"),
+                      "metadata": part.get("metadata"),
+                  }
+                  for part in parts
+                  if part["name"] in set(graph_nodes)
+              }
+          }
+
+          output_path = Path("outputs/graph.json")
+          output_path.write_text(json.dumps(graph_output, indent=2))
+          print(f"\n[OK] graph.json written -> {output_path} ({len(graph['connections'])} connections)")
+          EOF
+
+      - name: Commit parsed JSON + graph output
+        env:
+          BRANCH_NAME: ${{ github.ref_name }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add outputs/graph.json clean_database/json/ECLIPSE_Project/
+
+          if git diff --staged --quiet; then
+            echo "No generated changes to commit."
+            exit 0
+          fi
+
+          git commit -m "chore: update SysML JSON + graph [skip ci]"
+          git pull --rebase origin "$BRANCH_NAME"
+          git push origin HEAD:"$BRANCH_NAME"

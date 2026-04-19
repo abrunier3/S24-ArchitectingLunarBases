@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>S24 DEE — Assembly Builder</title>
+
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./styles/app.css">
+</head>
+
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="topbar-logo">S24 DEE</div>
+  <div class="topbar-sep">·</div>
+  <div class="topbar-title">Assembly Builder</div>
+  <div class="topbar-actions">
+    <button class="btn-sm btn-outline" data-action="clear">Clear All</button>
+    <button class="btn-sm btn-outline" id="btnPublish" data-action="open-github">☁ Publish to GitHub</button>
+    <button class="btn-sm btn-outline" data-action="open-pipeline">▶ Run Pipeline</button>
+    <button class="btn-sm btn-primary" id="btnExport" data-action="download" disabled>⬇ Download</button>
+  </div>
+</div>
+
+
+<!-- LEFT PANEL -->
+<div class="panel-tree">
+
+  <div class="repo-loader">
+    <label>GitHub Raw URL — assembly.sysml</label>
+    <div class="repo-input-row">
+      <input type="text" id="repoUrl" placeholder="https://raw.githubusercontent.com/...">
+      <button class="btn-sm btn-outline" data-action="load-github">Load</button>
+    </div>
+  </div>
+
+  <div class="panel-header">
+    <span class="panel-label">Assembly Tree</span>
+    <div class="panel-header-actions">
+      <button class="btn-sm btn-outline" data-action="import">⊕ Import</button>
+      <button class="btn-sm btn-outline" data-action="add-root">+ Node</button>
+    </div>
+  </div>
+
+  <div class="tree-container" id="treeContainer">
+    <div class="drop-hint">Drop .sysml file here to import</div>
+    <div class="tree-empty">
+      <div class="big">🌲</div>
+      Load an existing assembly<br>
+      or add a root node to start
+    </div>
+  </div>
+
+  <div class="load-status">
+    <div class="load-dot" id="loadDot"></div>
+    <span id="loadMsg">No file loaded</span>
+  </div>
+
+</div>
+
+
+<!-- RIGHT PANEL -->
+<div class="panel-form">
+
+  <div class="placement-bar">
+    <span>📍 Placement:</span>
+    <span class="path" id="placementPath">— select a node in the tree —</span>
+  </div>
+
+  <div class="edit-banner" id="editBanner">
+    ✏️ Editing: <strong id="editingName"></strong>
+    <button data-action="cancel-edit">✕ Cancel</button>
+  </div>
+
+
+  <!-- IDENTITY -->
+  <div class="form-section">
+    <div class="section-label">Identity</div>
+
+    <div class="field-row-2">
+      <div class="field">
+        <label>STEP Filename</label>
+        <input type="text" id="stepFileName">
+      </div>
+      <div class="field">
+        <label>Part Name</label>
+        <input type="text" id="partName" required>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Material</label>
+      <select id="materialRef">
+        <option value="Aluminum_2219_T87">Aluminum 2219-T87</option>
+        <option value="Titanium_Ti6Al4V">Titanium Ti-6Al-4V</option>
+      </select>
+    </div>
+  </div>
+
+
+  <!-- DIMENSIONS -->
+  <div class="form-section">
+    <div class="section-label">Dimensions</div>
+    <div class="field-row">
+      <div class="field"><label>Length (m)</label><input type="number" id="dimLength" step="any"></div>
+      <div class="field"><label>Width (m)</label><input type="number" id="dimWidth" step="any"></div>
+      <div class="field"><label>Height (m)</label><input type="number" id="dimHeight" step="any"></div>
+    </div>
+  </div>
+
+
+  <!-- TRANSFORM -->
+  <div class="form-section">
+    <div class="section-label">Transform — Position</div>
+    <div class="field-row">
+      <div class="field"><label>X (m)</label><input type="number" id="posX" step="any" value="0"></div>
+      <div class="field"><label>Y (m)</label><input type="number" id="posY" step="any" value="0"></div>
+      <div class="field"><label>Z (m)</label><input type="number" id="posZ" step="any" value="0"></div>
+    </div>
+  </div>
+
+  <div class="form-section">
+    <div class="section-label">Transform — Orientation</div>
+    <div class="field-row">
+      <div class="field"><label>rX (deg)</label><input type="number" id="rotX" step="any" value="0"></div>
+      <div class="field"><label>rY (deg)</label><input type="number" id="rotY" step="any" value="0"></div>
+      <div class="field"><label>rZ (deg)</label><input type="number" id="rotZ" step="any" value="0"></div>
+    </div>
+  </div>
+
+<!-- UNITS -->
+<div class="form-section">
+  <div class="section-label">Units</div>
+
+  <div class="field-row">
+    <div class="field">
+      <label>metersPerUnit</label>
+      <input type="number" id="metersPerUnit" step="any" value="1">
+    </div>
+
+    <div class="field">
+      <label>upAxis</label>
+      <select id="upAxis">
+        <option value="Z" selected>Z</option>
+        <option value="Y">Y</option>
+        <option value="X">X</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>angleUnit</label>
+      <select id="angleUnit">
+        <option value="deg" selected>deg</option>
+        <option value="rad">rad</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="field-row">
+    <div class="field">
+      <label>pressureUnit</label>
+      <select id="pressureUnit">
+        <option value="kPa" selected>kPa</option>
+        <option value="Pa">Pa</option>
+        <option value="bar">bar</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>massUnit</label>
+      <select id="massUnit">
+        <option value="kg" selected>kg</option>
+        <option value="g">g</option>
+        <option value="lb">lb</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>lengthUnit</label>
+      <select id="lengthUnit">
+        <option value="m" selected>m</option>
+        <option value="cm">cm</option>
+        <option value="mm">mm</option>
+      </select>
+    </div>
+  </div>
+</div>
+
+<!-- CUSTOM ATTRIBUTES -->
+<div class="form-section">
+  <div class="section-label">Custom Attributes</div>
+
+  <div id="customAttrs"></div>
+
+  <button class="btn-add-attr" data-action="add-custom-attr">
+    + Add Attribute
+  </button>
+</div>
+
+  <!-- ADD PART -->
+  <div class="form-section">
+    <button class="btn-add-to-tree" data-action="add-part">＋ Add Part to Assembly Tree</button>
+    <button class="btn-add-to-tree" id="btnSaveEdit" data-action="save-edit">💾 Save Changes</button>
+
+    <div id="successBanner" class="success-banner"></div>
+  </div>
+
+
+  <!-- GENERATE -->
+  <div class="form-section" style="display:flex; gap:10px;">
+    <button class="btn-generate" data-action="preview">Preview</button>
+    <button class="btn-generate" data-action="open-github">☁ Publish to GitHub</button>
+  </div>
+
+  <!-- PREVIEW -->
+  <div class="output-wrap" id="outputWrap">
+    <div class="output-head">
+      <div class="section-label" style="margin:0">Preview</div>
+      <div style="display:flex; gap:8px;">
+        <button class="btn-sm btn-outline" data-action="copy">Copy</button>
+        <button class="btn-sm btn-outline" data-action="close-preview">✕ Close</button>
+      </div>
+    </div>
+    <pre id="sysmlOutput"></pre>
+  </div>
+
+</div>
+
+<div class="gh-modal-overlay" id="ghModalOverlay">
+  <div class="gh-modal">
+    <h3>☁ Publish to GitHub</h3>
+
+    <div class="field">
+      <label>Personal Access Token</label>
+      <input type="password" id="ghToken">
+    </div>
+
+    <div class="field">
+      <label>Commit Message</label>
+      <input type="text" id="ghCommitMsg" value="chore: update assembly.sysml">
+    </div>
+
+    <div class="gh-modal-actions">
+      <button class="btn-sm btn-outline" data-action="close-github">
+        Cancel
+      </button>
+      <button class="btn-github" data-action="publish-github">
+        Publish
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="pipeline-modal-overlay" id="pipelineModalOverlay">
+  <div class="pipeline-modal">
+    <h3>▶ Run Pipeline</h3>
+
+    <div class="field">
+      <label>GitHub Token</label>
+      <input type="password" id="pipelineToken">
+    </div>
+
+    <div class="field">
+      <label>Commit Message</label>
+      <input type="text" id="pipelineCommitMsg"
+             value="chore: rebuild USD assets from assembly.sysml">
+    </div>
+
+    <div class="pipeline-modal-actions">
+      <button class="btn-sm btn-outline" data-action="close-pipeline">
+        Cancel
+      </button>
+      <button class="btn-run" data-action="run-pipeline">
+        ▶ Run
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="paste-modal-overlay" id="pasteModalOverlay">
+  <div class="paste-modal">
+    <h3>⊕ Import SysML</h3>
+
+    <textarea id="pasteInput"
+      placeholder="Paste .sysml content here..."></textarea>
+
+    <div class="paste-modal-actions">
+      <button class="btn-sm btn-outline" data-action="close-paste">
+        Cancel
+      </button>
+      <button class="btn-sm btn-primary" data-action="confirm-paste">
+        Import
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <h3>Add Node</h3>
+
+    <div class="field">
+      <label>Node Name</label>
+      <input type="text" id="modalNodeName">
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-sm btn-outline" data-action="close-node-modal">
+        Cancel
+      </button>
+      <button class="btn-sm btn-primary" data-action="confirm-add-node">
+        Add
+      </button>
+    </div>
+  </div>
+</div>
+
+
+<!-- JS ENTRY -->
+<script type="module" src="./js/app.js"></script>
+
+</body>
+</html>

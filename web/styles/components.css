@@ -1,0 +1,297 @@
+/* ============================================
+   COMPONENTS
+   Reusable UI components:
+   - Buttons
+   - Form controls
+   - Labels
+   - Banners
+   - Utility UI elements
+============================================ */
+
+
+/* =================================================
+   BUTTON BASE
+   Applied to ALL <button> elements
+================================================= */
+
+button {
+  font-family: var(--sans);
+  border-radius: var(--r);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+
+/* ------------------------------------------------
+   SMALL BUTTON (Top bar, import, load, etc.)
+------------------------------------------------ */
+
+.btn-sm {
+  padding: 6px 14px;
+  font-size: 11px;
+  letter-spacing: 0.5px;
+}
+
+
+/* ------------------------------------------------
+   OUTLINE BUTTON
+------------------------------------------------ */
+
+.btn-outline {
+  background: transparent;
+  border: 1px solid var(--border2);
+  color: var(--text2);
+}
+
+.btn-outline:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+
+/* ------------------------------------------------
+   PRIMARY BUTTON
+------------------------------------------------ */
+
+.btn-primary {
+  background: var(--accent);
+  border: 1px solid var(--accent);
+  color: #000;
+  font-weight: 700;
+}
+
+.btn-primary:hover {
+  background: var(--accent2);
+}
+
+.btn-primary:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+
+/* ------------------------------------------------
+   GENERATE BUTTON (Large full-width)
+------------------------------------------------ */
+
+.btn-generate {
+  width: 100%;
+  padding: 13px;
+  background: var(--accent);
+  border: none;
+  border-radius: var(--r);
+  color: #000;
+  font-family: var(--sans);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+
+.btn-generate:hover {
+  background: var(--accent2);
+  box-shadow: 0 4px 24px rgba(0,212,255,0.3);
+}
+
+
+/* ------------------------------------------------
+   ADD TO TREE BUTTON (Green variant)
+------------------------------------------------ */
+
+.btn-add-to-tree {
+  width: 100%;
+  padding: 11px;
+  background: var(--green-dim);
+  border: 1px solid rgba(0,255,157,0.25);
+  border-radius: var(--r);
+  color: var(--green);
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  margin-top: 8px;
+}
+
+.btn-add-to-tree:hover {
+  background: rgba(0,255,157,0.15);
+  box-shadow: 0 0 20px rgba(0,255,157,0.1);
+}
+
+
+/* ------------------------------------------------
+   ICON BUTTON (Small square action buttons)
+------------------------------------------------ */
+
+.btn-icon {
+  width: 30px;
+  height: 32px;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  color: var(--text3);
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-icon:hover {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+
+/* ------------------------------------------------
+   ADD ATTRIBUTE BUTTON (Dashed)
+------------------------------------------------ */
+
+.btn-add-attr {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  background: transparent;
+  border: 1px dashed var(--border2);
+  border-radius: var(--r);
+  color: var(--text3);
+  font-family: var(--mono);
+  font-size: 11px;
+}
+
+.btn-add-attr:hover {
+  border-color: var(--accent2);
+  color: var(--accent);
+}
+
+
+/* ------------------------------------------------
+   RUN BUTTON (Pipeline modal)
+------------------------------------------------ */
+
+.btn-run {
+  background: rgba(0,255,157,0.1);
+  border: 1px solid var(--green);
+  color: var(--green);
+  padding: 6px 14px;
+  font-family: var(--mono);
+  font-size: 11px;
+  border-radius: var(--r);
+}
+
+.btn-run:hover {
+  background: rgba(0,255,157,0.2);
+}
+
+.btn-run:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+
+/* ------------------------------------------------
+   GITHUB BUTTON (Publish modal)
+------------------------------------------------ */
+
+.btn-github {
+  background: rgba(0,212,255,0.1);
+  border: 1px solid var(--accent2);
+  color: var(--accent);
+  padding: 6px 14px;
+  font-family: var(--mono);
+  font-size: 11px;
+  border-radius: var(--r);
+}
+
+.btn-github:hover {
+  background: rgba(0,212,255,0.2);
+}
+
+.btn-github:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+
+/* =================================================
+   FORM CONTROLS
+================================================= */
+
+label {
+  display: block;
+  font-size: 10px;
+  color: var(--text3);
+  margin-bottom: 5px;
+  letter-spacing: 0.5px;
+}
+
+input,
+select,
+textarea {
+  width: 100%;
+  padding: 8px 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 12px;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--accent2);
+  box-shadow: 0 0 0 2px rgba(0,212,255,0.1);
+}
+
+input::placeholder {
+  color: var(--text3);
+  opacity: 0.6;
+}
+
+
+/* =================================================
+   BANNERS
+================================================= */
+
+.success-banner {
+  margin-top: 14px;
+  padding: 12px 16px;
+  border-radius: var(--r);
+  border: 1px solid rgba(0,255,157,0.3);
+  background: rgba(0,255,157,0.1);
+  color: var(--green);
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.edit-banner {
+  padding: 10px 14px;
+  background: rgba(255,179,71,0.08);
+  border: 1px solid rgba(255,179,71,0.25);
+  border-radius: var(--r);
+  color: var(--warn);
+  font-size: 11px;
+  margin-bottom: 16px;
+  align-items: center;
+  gap: 10px;
+}
+
+.edit-banner button {
+  margin-left: auto;
+  padding: 3px 10px;
+  background: transparent;
+  border: 1px solid rgba(255,179,71,0.4);
+  border-radius: var(--r);
+  color: var(--warn);
+  font-family: var(--mono);
+  font-size: 10px;
+  cursor: pointer;
+}
+
+.edit-banner button:hover {
+  background: rgba(255,179,71,0.1);
+}

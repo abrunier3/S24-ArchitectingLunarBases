@@ -1,0 +1,73 @@
+#usda 1.0
+(
+    defaultPrim = "World"
+    metersPerUnit = 1
+    upAxis = "Z"
+)
+
+def Xform "World"
+{
+    def Xform "HabitationModule"
+    {
+        prepend references = @../../cad_models/HabitationModule/habitationmodule.usdc@
+        double3 xformOp:translate = (0, 0, 0)
+        double3 xformOp:rotateXYZ = (0, 0, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ"]
+    }
+
+    def Xform "ISRUPlant"
+    {
+        prepend references = @../../cad_models/ISRUPlant/isruplant.usdz@
+        double3 xformOp:translate = (-103.21, -438.81, 0)
+        double3 xformOp:rotateXYZ = (0, 0, 69)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ"]
+    }
+
+    def Xform "LaunchLandingZone"
+    {
+        prepend references = @../../cad_models/LaunchLandingZone/launchlandingzone.usdc@
+        double3 xformOp:translate = (-1418.59, -458.8, 0)
+        double3 xformOp:rotateXYZ = (0, 0, 74)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ"]
+    }
+
+    def Xform "Propellant_Depot"
+    {
+        prepend references = @../../cad_models/PropellantDepot/Propellant_depot.usdz@
+        double3 xformOp:translate = (-1083.49, -608.76, 0)
+        double3 xformOp:rotateXYZ = (0, 0, 69)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ"]
+    }
+
+    def Xform "SolarPowerSystem"
+    {
+        prepend references = @../../cad_models/SolarPowerSystem/Solar_Panels.usdz@
+        double3 xformOp:translate = (0, 0, 0)
+        double3 xformOp:rotateXYZ = (0, 0, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ"]
+    }
+
+    def Xform "LOXRover"
+    {
+        prepend references = @../../cad_models/LOXRover/rover2.usdc@
+        double3 xformOp:translate = (-110, -420, 0)
+        double3 xformOp:rotateXYZ = (0, 0, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ"]
+    }
+
+    def Xform "RegolithRover"
+    {
+        prepend references = @../../cad_models/LOXRover/rover2.usdc@
+        double3 xformOp:translate = (335, -350, 0)
+        double3 xformOp:rotateXYZ = (0, 0, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ"]
+    }
+
+    def Xform "ISRUExcavation"
+    {
+        prepend references = @../../cad_models/ISRUExcavation/Construction_dig_site_and_heaps.usdz@
+        double3 xformOp:translate = (341.92, -348.84, 0)
+        double3 xformOp:rotateXYZ = (0, 0, 263)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ"]
+    }
+}
