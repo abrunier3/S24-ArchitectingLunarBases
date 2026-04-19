@@ -7,8 +7,8 @@
                 double radius = 500
             }
             dictionary Perspective = {
-                double3 position = (-97.13764338334684, 39.685776711687865, 47.76862286413325)
-                double3 target = (1107.2664441925936, -447.46540997015666, -610.8597968130078)
+                double3 position = (46.43516675559326, 4.977927813897299, 1.9742371218218504)
+                double3 target = (16.992165656612087, -5.746121066467069, -5.447326827522447)
             }
             dictionary Right = {
                 double3 position = (0, -500, 0)
@@ -24,6 +24,24 @@
             string authoring_layer = "./lsp1_world.usda"
         }
         dictionary renderSettings = {
+            bool "rtx:directLighting:sampledLighting:ris:meshLights" = 1
+            int "rtx:directLighting:sampledLighting:samplesPerPixel" = 8
+            int "rtx:indirectDiffuse:fetchSampleCount" = 2
+            int "rtx:indirectDiffuse:maxBounces" = 8
+            int "rtx:pathtracing:maxBounces" = 8
+            int "rtx:pathtracing:maxSpecularAndTransmissionBounces" = 12
+            int "rtx:pathtracing:maxVolumeBounces" = 64
+            int "rtx:pathtracing:ptfog:maxBounces" = 4
+            bool "rtx:pathtracing:ris:meshLights" = 1
+            int "rtx:post:dlss:execMode" = 2
+            bool "rtx:raytracing:fractionalCutoutOpacity" = 1
+            bool "rtx:raytracing:subsurface:enabled" = 1
+            int "rtx:raytracing:subsurface:maxSamplePerFrame" = 32
+            int "rtx:reflections:maxReflectionBounces" = 2
+            double "rtx:reflections:maxRoughness" = 0.5
+            int "rtx:translucency:maxRefractionBounces" = 8
+            bool "rtx:translucency:reflectAtAllBounce" = 1
+            bool "rtx:translucency:sampleRoughness" = 1
         }
     }
     defaultPrim = "World"
@@ -32,7 +50,10 @@
 )
 
 def Xform "World" (
-    references = @../../../../../Downloads/Moon_-_Petavius_crater.usdz@
+    references = [
+        @../../../../../Downloads/Moon_-_Petavius_crater.usdz@,
+        @../../../../../Downloads/Lunar_Rover.usdz@
+    ]
 )
 {
     def Xform "Environment" (
@@ -121,6 +142,88 @@ def Xform "World" (
             {
                 double3 xformOp:translate = (40, 0, 0)
                 uniform token[] xformOpOrder = ["xformOp:translate"]
+
+                over "geom"
+                {
+                    token visibility = "invisible"
+                }
+            }
+
+            over "HabitationModule"
+            {
+                float3 xformOp:rotateXYZ = (96.422356, -2.4935079, -24.238575)
+                float3 xformOp:scale = (1, 1, 1)
+                double3 xformOp:translate = (30.99999999999996, -8.790038332796584e-14, -0.8269370494126366)
+                uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+                over "geom" (
+                    prepend references = @../../../../../Downloads/habmod_geometry.usda@
+                )
+                {
+                    over "Object_0"
+                    {
+                        token visibility = "invisible"
+                    }
+                }
+            }
+
+            over "ISRU_PLANT"
+            {
+                float3 xformOp:rotateXYZ = (65.79675, 11.594153, -8.184638)
+                float3 xformOp:scale = (1e-10, 0.0018143868, 0.0014266444)
+                double3 xformOp:translate = (9.999999999999668, 0.8267795568560734, 0.7295704138176391)
+                uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+                over "geom" (
+                    prepend references = @../../../../../Downloads/ISRU_processing_Plant.usdz@
+                )
+                {
+                    over "Meshes"
+                    {
+                        over "Sketchfab_model" (
+                            active = false
+                        )
+                        {
+                            matrix4d xformOp:transform = ( (0.6054974369794763, 2.31511584944163e-17, -0.0032650901514591395, 0), (2.1648047915727036e-17, -0.8456074407842133, -1.9812483138269673e-15, 0), (-0.005229549119024677, 2.27209195236164e-15, -0.9697982111497441, 0), (0, 0, 0, 1) )
+                        }
+                    }
+                }
+            }
+
+            over "Propellant_Depot"
+            {
+                float3 xformOp:rotateXYZ = (90, -0, 0)
+                float3 xformOp:scale = (0.0147252185, 0.0058387797, 0.008958088)
+                double3 xformOp:translate = (1, 5, 0)
+                uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+                over "geom" (
+                    prepend references = @../../../../../Downloads/Propellant_depot.usdz@
+                )
+                {
+                    over "Meshes"
+                    {
+                        over "Sketchfab_model"
+                        {
+                            over "Collada_visual_scene_group"
+                            {
+                                over "_01"
+                                {
+                                    over "defaultMaterial"
+                                    {
+                                        over "defaultMaterial"
+                                        {
+                                            float3 xformOp:rotateXYZ = (0, -0, 0)
+                                            float3 xformOp:scale = (1, 1, 1)
+                                            double3 xformOp:translate = (699.7802339660798, -633.3841075286502, -128.7820155953753)
+                                            uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
     }
@@ -289,8 +392,8 @@ def Xform "World" (
                             over "Petavius_ZB_LP_1_0"
                             {
                                 double3 xformOp:rotateXYZ = (90, 0, 0)
-                                double3 xformOp:scale
-                                double3 xformOp:translate
+                                double3 xformOp:scale = (1, 1, 1)
+                                double3 xformOp:translate = (0, 0, 0)
                                 uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
                             }
                         }
@@ -308,7 +411,107 @@ def Xform "World" (
                     }
                 }
             }
+
+            over "LUNAR_ROVE"
+            {
+                matrix4d xformOp:transform = ( (-0.000572342006306056, 0.000011330939771688711, -0.0010676370176328372, 0), (0.0008473516984792463, 0.00007023045815021263, -0.0004535054387085033, 0), (0.00010748167195582102, -0.0017916551623836084, -0.0000766341098647301, 0), (0.3392010836300795, 0.011853829280058988, 0.00997673604831135, 1) )
+
+                over "chasis"
+                {
+                    over "Object_7"
+                    {
+                        over "Object_2"
+                        {
+                            float3 xformOp:rotateXYZ = (0, 0, 0)
+                            float3 xformOp:scale = (1, 1, 1)
+                            double3 xformOp:translate = (0, 0, 0)
+                            uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+                        }
+                    }
+                }
+
+                over "Nulo_1"
+                {
+                    over "baterias"
+                    {
+                        over "Object_161"
+                        {
+                            over "Object_58"
+                            {
+                                float3 xformOp:rotateXYZ = (0, 0, 0)
+                                float3 xformOp:scale = (1, 1, 1)
+                                double3 xformOp:translate = (0, 0, 0)
+                                uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+                            }
+                        }
+                    }
+                }
+
+                over "Nulo_2"
+                {
+                    over "Nulo_5"
+                    {
+                        over "Cilin8"
+                        {
+                            over "_DSMeshMatrix"
+                            {
+                                over "Object_137"
+                                {
+                                    over "Object_48"
+                                    {
+                                        float3 xformOp:rotateXYZ = (0, -0, 0)
+                                        float3 xformOp:scale = (1, 1, 1)
+                                        double3 xformOp:translate = (-5.684341886080802e-14, 5.684341886080802e-14, 0)
+                                        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
+    }
+
+    def CylinderLight "CylinderLight" (
+        prepend apiSchemas = ["ShapingAPI"]
+    )
+    {
+        float3[] extent = [(-0.5, -5, -5), (0.5, 5, 5)]
+        float inputs:exposure = 0.1
+        float inputs:intensity = 3000000
+        float inputs:length = 1
+        float inputs:radius = 5
+        float inputs:shaping:cone:angle = 180
+        float inputs:shaping:cone:softness
+        float inputs:shaping:focus
+        color3f inputs:shaping:focusTint
+        asset inputs:shaping:ies:file
+        custom int omni:rtx:usdluxVersion = 2505
+        double3 xformOp:rotateXYZ = (90, 0, 90)
+        double3 xformOp:scale = (-4.744418559999546, -4.5371727275430125, -4.195783587406741)
+        double3 xformOp:translate = (37.90696716308594, 36.63705062866211, 15)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+    }
+
+    def CylinderLight "CylinderLight_01" (
+        prepend apiSchemas = ["ShapingAPI"]
+    )
+    {
+        float3[] extent = [(-0.5, -5, -5), (0.5, 5, 5)]
+        float inputs:intensity = 30000
+        float inputs:length = 1
+        float inputs:radius = 5
+        float inputs:shaping:cone:angle = 180
+        float inputs:shaping:cone:softness
+        float inputs:shaping:focus
+        color3f inputs:shaping:focusTint
+        asset inputs:shaping:ies:file
+        custom int omni:rtx:usdluxVersion = 2505
+        double3 xformOp:rotateXYZ = (90, 0, 90)
+        double3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (24.902248054922353, 8.2204128703242, 1.1131487812155063)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
     }
 }
 
@@ -335,26 +538,45 @@ def "Render" (
                 token omni:rtx:background:source:texture:textureMode = "repeatMirrored"
                 token omni:rtx:background:source:type = "domeLight"
                 bool omni:rtx:debug:view:pixelDebug:enableFixedTextPos = 1
+                token omni:rtx:debugMaterialType
                 token omni:rtx:directLighting:sampledLighting:denoisingTechnique = "None"
                 bool omni:rtx:dlss:frameGeneration = 1
                 bool omni:rtx:indirectDiffuse:denoiser:enabled = 0
+                token omni:rtx:post:dlss:execMode = "quality"
                 bool omni:rtx:post:registeredCompositing:invertColorCorrection = 1
                 bool omni:rtx:post:registeredCompositing:invertToneMap = 1
+                int omni:rtx:pt:limits:maxBounces = 8
+                int omni:rtx:pt:limits:maxFogBounces = 4
+                int omni:rtx:pt:limits:maxGlossyBounces = 12
                 int omni:rtx:pt:maxSamplesPerLaunch = 2073600
+                int omni:rtx:pt:maxVolumeBounces = 64
                 int omni:rtx:pt:mgpu:maxPixelsPerRegionExponent = 12
+                bool omni:rtx:pt:ris:meshLights = 1
                 bool omni:rtx:reflections:denoiser:enabled = 0
                 token omni:rtx:rendermode = "RealTimePathTracing"
                 color3f omni:rtx:rt:ambientLight:color = (0.1, 0.1, 0.1)
                 bool omni:rtx:rt:demoire = 0
+                bool omni:rtx:rt:directLighting:ris:meshLights = 1
+                uint omni:rtx:rt:directLighting:samples = 8
+                bool omni:rtx:rt:fractionalOpacity = 1
+                int omni:rtx:rt:indirectdiffuse:maxBounces = 8
+                int omni:rtx:rt:indirectdiffuse:samples = 2
                 bool omni:rtx:rt:lightcache:spatialCache:dontResolveConflicts = 1
-                int omni:rtx:rt:sss:samples = 1
+                int omni:rtx:rt:reflections:maxBounces = 2
+                float omni:rtx:rt:reflections:roughnessCacheThreshold = 0.5
+                int omni:rtx:rt:refractions:maxBounces = 8
+                bool omni:rtx:rt:refractions:reflectionInRefraction = 1
+                bool omni:rtx:rt:refractions:roughnessSampling = 1
+                bool omni:rtx:rt:sss:enabled = 1
+                int omni:rtx:rt:sss:samples
                 int omni:rtx:rtpt:maxVolumeBounces = 15
                 float omni:rtx:rtpt:modulatingRoughnessThreshold = 0.08
                 bool omni:rtx:scene:useViewLightingMode
                 uint omni:rtx:viewTile:limit = 4294967295
+                token omni:rtx:wireframe:mode
                 rel orderedVars = </Render/Vars/LdrColor>
                 custom bool overrideClipRange = 0
-                uniform int2 resolution = (1174, 603)
+                uniform int2 resolution = (1150, 626)
             }
         }
     }
@@ -399,10 +621,10 @@ over "OmniverseKit_Persp" (
     float exposure:time = 0.02
     float focalLength = 18.147562
     float focusDistance = 400
-    custom uniform vector3d omni:kit:centerOfInterest = (0, 0, -1456.604572305597)
-    float3 xformOp:rotateXYZ = (63.117203, 8.526513e-14, 607.9779)
+    custom uniform vector3d omni:kit:centerOfInterest = (0, 0, -32.20209852722735)
+    float3 xformOp:rotateXYZ = (76.675354, -8.526513e-14, 830.0132)
     float3 xformOp:scale = (1, 1, 1)
-    double3 xformOp:translate = (-97.13764338334684, 39.685776711687865, 47.76862286413325)
+    double3 xformOp:translate = (46.43516675559326, 4.977927813897299, 1.9742371218218504)
     uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
 }
 
