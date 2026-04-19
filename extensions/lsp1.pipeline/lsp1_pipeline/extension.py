@@ -63,16 +63,21 @@ class Lsp1PipelineExtension(omni.ext.IExt):
         self._window = None
 
     def _default_manifest_path(self) -> str:
-        ext_manager = omni.kit.app.get_app().get_extension_manager()
-        ext_path = ext_manager.get_extension_path(self._ext_id)
-        repo_root = os.path.normpath(os.path.join(ext_path, "..", ".."))
-        return os.path.join(repo_root, "database", "json", "world_build", "landing_site_world_build.json")
+    ext_manager = omni.kit.app.get_app().get_extension_manager()
+    ext_path = ext_manager.get_extension_path(self._ext_id)
+    repo_root = os.path.normpath(os.path.join(ext_path, "..", ".."))
+    print("MANIFEST ext_path =", ext_path)
+    print("MANIFEST repo_root =", repo_root)
+    return os.path.join(repo_root, "database", "json", "world_build", "landing_site_world_build.json")
 
     def _default_scenario_path(self) -> str:
         ext_manager = omni.kit.app.get_app().get_extension_manager()
         ext_path = ext_manager.get_extension_path(self._ext_id)
         repo_root = os.path.normpath(os.path.join(ext_path, "..", ".."))
+        print("SCENARIO ext_path =", ext_path)
+        print("SCENARIO repo_root =", repo_root)
         return os.path.join(repo_root, "database", "json", "scenarios", "isru_nominal_temp.json")
+
 
     def _set_status(self, msg: str):
         if hasattr(self, "_status") and self._status:
