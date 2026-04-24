@@ -13,7 +13,7 @@ def build_usd_scene_from_manifest(
     stage = Usd.Stage.CreateNew(output_path)
     UsdGeom.SetStageUpAxis(stage, UsdGeom.Tokens.z)
     UsdGeom.SetStageMetersPerUnit(stage, 1.0)
-
+    
     root = UsdGeom.Xform.Define(stage, f"/{stage_name}")
 
     for part in manifest["parts"]:
