@@ -53,7 +53,9 @@ def build_submission_manifest(
         part_name = part_data["name"]
 
 
-        cad_folder = cad_dir / part_name.lower()
+        cad_folder = cad_dir / part_name
+        if not cad_folder.exists():
+            cad_folder = cad_dir / part_name.lower()
         cad_file = None
 
         if cad_folder.exists():
