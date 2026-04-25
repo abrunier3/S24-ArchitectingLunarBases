@@ -459,6 +459,31 @@ jobs:
               print(f"[USD] Step 3 failed: {e}")
               sys.exit(0)
 
+          # ── Inject positions/rotations from ECLIPSE_Project.json ──────────
+          try:
+              eclipse_path = Path("clean_database/json/ECLIPSE_Project/ECLIPSE_Project.json")
+              if eclipse_path.exists():
+                  with eclipse_path.open() as f:
+                      eclipse = json.load(f)
+                  # Build lookup: part name → transform
+                  transforms = {}
+                  for part in eclipse.get("parts", []):
+                      name = part.get("name")
+                      transform = part.get("transform", {})
+                      if name and transform:
+                          transforms[name] = transform
+                  # Inject into manifest
+                  injected = 0
+                  for part in model_manifest.get("parts", []):
+                      name = part.get("name")
+                      if name in transforms:
+                          part["position_m"] = transforms[name].get("position_m", [0, 0, 0])
+                          part["rotation_deg"] = transforms[name].get("rotation_deg", [0, 0, 0])
+                          injected += 1
+                  print(f"[USD] Injected positions for {injected} part(s) from ECLIPSE_Project.json")
+          except Exception as e:
+              print(f"[USD] Position injection failed: {e}")
+
           # ── Step 5: Build USD scene ────────────────────────────────────────
           try:
               from S24.usd import build_usd_scene_from_manifest
