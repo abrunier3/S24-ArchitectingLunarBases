@@ -73,6 +73,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip install simpy
+          pip install usd-core
           pip install -e .
 
       - name: Run DES simulation
@@ -327,8 +328,8 @@ jobs:
               }
 
               LOX_PATHS = {
-                  "ISRUPlantToLaunchLandingZone": lox_path,
-                  "ISRUPlantToPropellantDepot":   lox_leg1,
+                  "ISRUPlantToLaunchLandingZone": lox_leg1,
+                  "ISRUPlantToPropellantDepot":   lox_path,
               }
 
               updated_conns = 0
@@ -436,6 +437,68 @@ jobs:
           print(f"[DES] Done — outputs/des_results.json written")
           EOF
 
+      - name: Run USD Scene Generation (Steps 3, 5, 6)
+        run: |
+          python - <<'EOF'
+          import sys, os, json
+          from pathlib import Path
+
+          # ── Step 3: Build submission manifest ─────────────────────────────
+          try:
+              from S24.usd.model_submission import build_submission_manifest
+
+              asset_paths = list(Path("clean_database/json/ECLIPSE_Project/assets").glob("*.json"))
+              if not asset_paths:
+                  print("[USD] No asset JSON files found — skipping USD generation.")
+                  sys.exit(0)
+
+              print(f"[USD] Building manifest from {len(asset_paths)} asset(s)...")
+              model_manifest = build_submission_manifest(asset_paths=asset_paths, verbose=1)
+              print(f"[USD] Manifest built — {len(model_manifest)} part(s)")
+          except Exception as e:
+              print(f"[USD] Step 3 failed: {e}")
+              sys.exit(0)
+
+          # ── Step 5: Build USD scene ────────────────────────────────────────
+          try:
+              from S24.usd import build_usd_scene_from_manifest
+
+              scene_dir = Path("clean_database/usd/scenes")
+              scene_dir.mkdir(parents=True, exist_ok=True)
+              scene_path = str(scene_dir / "scene.usda")
+
+              usd_scene_path = build_usd_scene_from_manifest(
+                  manifest=model_manifest,
+                  output_path=scene_path,
+                  verbose=1
+              )
+              print(f"[USD] Scene written → {usd_scene_path}")
+          except Exception as e:
+              print(f"[USD] Step 5 failed: {e}")
+
+          # ── Step 6: Build waypoints USD ────────────────────────────────────
+          try:
+              from S24.usd.waypoints import write_connections_usda
+
+              waypoints_dir = Path("clean_database/scenes")
+              waypoints_dir.mkdir(parents=True, exist_ok=True)
+
+              json_path = "clean_database/json/ECLIPSE_Project/ECLIPSE_Project.json"
+              waypoints_path = str(waypoints_dir / "waypoints.usda")
+
+              connections_usda = write_connections_usda(
+                  json_path=json_path,
+                  output_usda_path=waypoints_path,
+                  curve_width=4.0,
+                  write_waypoints=True,
+                  marker_radius=10.0,
+                  verbose=1,
+              )
+              print(f"[USD] Waypoints written → {waypoints_path}")
+          except Exception as e:
+              print(f"[USD] Step 6 failed: {e}")
+          EOF
+
       - name: Commit results
         run: |
           git config user.name "github-actions[bot]"
@@ -445,7 +508,9 @@ jobs:
           git stash pop
           git add outputs/des_results.json
           git add clean_database/json/ECLIPSE_Project/ECLIPSE_Project.json
+          git add clean_database/usd/scenes/scene.usda || true
+          git add clean_database/scenes/waypoints.usda || true
           echo "=== staged files ==="
           git diff --staged --name-only
-          git diff --staged --quiet || git commit -m "chore: DES results + SysML urban planning update [skip ci]"
+          git diff --staged --quiet || git commit -m "chore: DES results + SysML + USD scene update [skip ci]"
           git push
