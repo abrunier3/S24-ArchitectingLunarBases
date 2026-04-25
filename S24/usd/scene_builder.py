@@ -30,9 +30,11 @@ def build_usd_scene_from_manifest(
 
         pos = part.get("position_m", [0, 0, 0])
         rot = part.get("rotation_deg", [0, 0, 0])
-
-        xform.AddTranslateOp().Set(Gf.Vec3d(*pos))
-        xform.AddRotateXYZOp().Set(Gf.Vec3f(*rot))
+        
+        # Use XformCommonAPI to avoid duplicate xformOp conflicts with referenced CAD
+        xform_api = UsdGeom.XformCommonAPI(xform)
+        xform_api.SetTranslate(Gf.Vec3d(*pos))
+        xform_api.SetRotate(Gf.Vec3f(*rot), UsdGeom.XformCommonAPI.RotationOrderXYZ)
 
         prim.CreateAttribute("part:name", Sdf.ValueTypeNames.String).Set(name)
 
