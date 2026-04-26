@@ -3500,12 +3500,67 @@ function resizeUp42Canvas() {
 // ── Synthetic terrain ──────────────────────────────────────────────
 // Generates a GRID_SIZE×GRID_SIZE slope array using the selected site's
 // known slope values + random perturbation. Jenny's real DEM will replace this.
+// ── Classify slope PNG pixel color → slope class ────────────────
+// Jenny's slope legend: green=0-5°, yellow=5-10°, orange=10-15°, red>15°
+function classifySlopePx(r, g, b) {
+  // Red channel dominant, low green → red zone (>15°)
+  if (r > 160 && g < 80) return { min: 15, max: 20 };
+  // Red+green high → orange (10-15°)
+  if (r > 180 && g > 80 && g < 180 && b < 80) return { min: 10, max: 15 };
+  // High green, low red → green (0-5°)
+  if (g > 160 && r < 120) return { min: 0, max: 5 };
+  // Yellow/light green (5-10°)
+  if (g > 160 && r > 160) return { min: 5, max: 10 };
+  // Default moderate
+  return { min: 5, max: 12 };
+}
+
+// ── Build terrain grid from real slope PNG ────────────────────────
+// Reads Jenny's slope heatmap, maps colors → slope values with intra-class noise
+function buildTerrainFromSlopePng(img, GRID) {
+  const offscreen = document.createElement('canvas');
+  offscreen.width  = GRID;
+  offscreen.height = GRID;
+  const ctx = offscreen.getContext('2d');
+  ctx.drawImage(img, 0, 0, GRID, GRID);
+  const pixels = ctx.getImageData(0, 0, GRID, GRID).data;
+
+  const site = upSelectedSite;
+  let rng = mulberry32(site ? site.id.charCodeAt(0) * 7919 : 42);
+
+  const terrain = [];
+  for (let y = 0; y < GRID; y++) {
+    const row = [];
+    for (let x = 0; x < GRID; x++) {
+      const i = (y * GRID + x) * 4;
+      const r = pixels[i], g = pixels[i+1], b = pixels[i+2];
+      const cls = classifySlopePx(r, g, b);
+      // Add variability within class bounds — never crosses class boundary
+      const span = cls.max - cls.min;
+      const noise = rng() * span * 0.85; // up to 85% of span for realistic variation
+      row.push(+(cls.min + noise).toFixed(2));
+    }
+    terrain.push(row);
+  }
+  return terrain;
+}
+
 function generateSyntheticTerrain() {
   const GRID = 80;
   const site = upSelectedSite;
-  // Cap base slope to reasonable values — terrain is mostly traversable
-  const baseSlopeDeg = Math.min(10, site ? site.avg_slope_2km_deg || site.slope2km || 6 : 6);
 
+  // Try to use real slope PNG if already cached
+  const cacheKey = site ? site.id + '_slope' : null;
+  const slopeImg = cacheKey ? up42SiteImgCache[cacheKey] : null;
+
+  if (slopeImg) {
+    up42SyntheticTerrain = buildTerrainFromSlopePng(slopeImg, GRID);
+    console.log('[UP] Terrain built from real slope PNG:', site.id);
+    return;
+  }
+
+  // Fallback: fully synthetic based on site's known slope stats
+  const baseSlopeDeg = Math.min(10, site ? site.slope2km || 6 : 6);
   up42SyntheticTerrain = [];
   let rng = mulberry32(site ? site.id.charCodeAt(0) * 1234 : 42);
 
@@ -3514,19 +3569,23 @@ function generateSyntheticTerrain() {
     for (let x = 0; x < GRID; x++) {
       const base  = baseSlopeDeg * 0.5;
       const noise = (rng() - 0.5) * baseSlopeDeg * 1.2;
-      // Crater hotspots — steep rims but limited extent
       let extra = 0;
       [[0.25,0.3],[0.7,0.6],[0.5,0.8]].forEach(([cx,cy]) => {
         const dx = x/GRID - cx, dy = y/GRID - cy;
         const d = Math.sqrt(dx*dx+dy*dy);
-        // Only the rim is steep (ring between 0.06 and 0.12), not the whole crater
         if (d > 0.06 && d < 0.12) extra += (0.12 - d) / 0.06 * 18;
       });
-      // Hard cap at 20° — realistic max for navigable lunar terrain patches
       row.push(Math.max(0, Math.min(20, base + noise + extra)));
     }
     up42SyntheticTerrain.push(row);
   }
+  console.log('[UP] Terrain: synthetic fallback for', site?.id);
+}
+
+// Rebuild terrain whenever slope PNG finishes loading
+function onSlopeImgReady() {
+  generateSyntheticTerrain();
+  drawUp42();
 }
 
 function mulberry32(seed) {
@@ -3656,7 +3715,12 @@ function loadSiteHeatmap(mode, cb) {
   if (up42SiteImgCache[cacheKey]) return cb(up42SiteImgCache[cacheKey]);
   const img = new Image();
   img.crossOrigin = 'anonymous';
-  img.onload = () => { up42SiteImgCache[cacheKey] = img; cb(img); };
+  img.onload = () => {
+    up42SiteImgCache[cacheKey] = img;
+    // When slope PNG loads → rebuild terrain grid from real data
+    if (mode === 'slope') onSlopeImgReady();
+    cb(img);
+  };
   img.onerror = () => cb(null);
   img.src = url;
 }
