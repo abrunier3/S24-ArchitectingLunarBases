@@ -2888,15 +2888,15 @@ const ILLUM_THRESHOLDS = { poor:[0,64], moderate:[65,128], high:[129,192], very_
 // ── Heatmap image URLs (Jenny Zheng exports, 1:5000, 60m buffer) ──
 const GH_RAW = 'https://raw.githubusercontent.com/abrunier3/S24-ArchitectingLunarBases/main/clean_database/images/heatmaps/';
 const SITE_HEATMAPS = {
-  MMA:  { slope: GH_RAW+'MalapertMassif_slope.png',   illum: GH_RAW+'MalapertMassif_illumination.png' },
-  SP:   { slope: GH_RAW+'SlaterPlain_slope.png',       illum: GH_RAW+'SlaterPlain_illumination.png' },
-  MMP:  { slope: null, illum: null },
-  NR1:  { slope: null, illum: GH_RAW+'RimsnPlateau_illumination.png' },
-  NR2:  { slope: null, illum: GH_RAW+'RimsnPlateau_illumination.png' },
-  PCB:  { slope: null, illum: null },
-  dGR2: { slope: GH_RAW+'derGerlacheRim2_slope.png',  illum: GH_RAW+'derGerlacheRim2_illumination.png' },
-  HW:   { slope: GH_RAW+'Haworth_slope.png',           illum: GH_RAW+'Haworth_illumination.png' },
-  MMO:  { slope: null, illum: GH_RAW+'MonsMouton_illumination.png' },
+  MMA:  { slope: GH_RAW+'MalapertMassif_slope.png',      illum: GH_RAW+'MalapertMassif_illumination.png' },
+  SP:   { slope: GH_RAW+'SlaterPlain_slope.png',          illum: GH_RAW+'SlaterPlain_illumination.png' },
+  MMP:  { slope: GH_RAW+'MonsMoutonPlateau_slope.png',   illum: GH_RAW+'RimsnPlateau_illumination.png' },
+  NR1:  { slope: GH_RAW+'NobileRim1_slope.png',          illum: GH_RAW+'RimsnPlateau_illumination.png' },
+  NR2:  { slope: GH_RAW+'NobileRim2_slope.png',          illum: GH_RAW+'RimsnPlateau_illumination.png' },
+  PCB:  { slope: GH_RAW+'PeakNearCabeusB_slope.png',     illum: null },
+  dGR2: { slope: GH_RAW+'derGerlacheRim2_slope.png',     illum: GH_RAW+'derGerlacheRim2_illumination.png' },
+  HW:   { slope: GH_RAW+'Haworth_slope.png',              illum: GH_RAW+'Haworth_illumination.png' },
+  MMO:  { slope: GH_RAW+'MonsMouton_slope.png',           illum: GH_RAW+'MonsMouton_illumination.png' },
 };
 
 const UP_SITES = [
@@ -3717,8 +3717,8 @@ function loadSiteHeatmap(mode, cb) {
   img.crossOrigin = 'anonymous';
   img.onload = () => {
     up42SiteImgCache[cacheKey] = img;
-    // When slope PNG loads → rebuild terrain grid from real data
     if (mode === 'slope') onSlopeImgReady();
+    if (mode === 'illum') { up42IllumTerrain = null; drawUp42(); } // rebuild illum grid
     cb(img);
   };
   img.onerror = () => cb(null);
@@ -3741,14 +3741,18 @@ function drawUp42() {
   up42Ctx.fillStyle = '#0c1119';
   up42Ctx.fillRect(0, 0, up42W, up42H);
 
-  // Draw terrain base
-  drawTerrain();
+  // Draw terrain base (slope grid — always from real or synthetic data)
+  if (up42OverlayMode === 'illum') {
+    drawIllumGrid();
+  } else {
+    drawTerrain();
+  }
 
   // Phase-specific overlay
   if (up42Phase === 'routes') {
-    drawElevationHeatmap();   // elevation view for route planning
+    // no extra overlay in routes phase — terrain already visible
   } else if (up42ActiveModule) {
-    drawHeatmapOverlay();     // suitability heatmap for placement
+    drawHeatmapOverlay();     // module suitability overlay
   }
 
   // Draw placed module rectangles
@@ -3817,57 +3821,106 @@ function drawElevationHeatmap() {
 }
 
 function drawTerrain() {
-  // Try real Jenny heatmap first
-  const site = upSelectedSite;
-  const cacheKey = site ? site.id + '_' + up42OverlayMode : null;
-  const siteImg = cacheKey ? up42SiteImgCache[cacheKey] : null;
-
-  if (siteImg) {
-    // Real Jenny heatmap fills the canvas
-    up42Ctx.fillStyle = '#0c1119';
-    up42Ctx.fillRect(0, 0, up42W, up42H);
-    up42Ctx.globalAlpha = 0.92;
-    up42Ctx.drawImage(siteImg, 0, 0, up42W, up42H);
-    up42Ctx.globalAlpha = 1.0;
-
-    // Legend overlay (illumination thresholds)
-    if (up42OverlayMode === 'illum') {
-      drawIllumLegend();
-    } else {
-      drawSlopeLegendSmall();
-    }
-
-    // Credit
-    up42Ctx.font = '9px monospace';
-    up42Ctx.fillStyle = 'rgba(255,255,255,0.45)';
-    up42Ctx.fillText(`Heatmap: Jenny Zheng (GT) · ${up42OverlayMode === 'illum' ? 'Illumination · LROC WAC' : 'Slope · NASA LOLA'} · 1:5,000`, 8, up42H - 8);
-    return;
-  }
-
-  // Fallback: moon image + synthetic slope tint
-  if (up42MoonImg) {
-    up42Ctx.drawImage(up42MoonImg, 0, 0, up42W, up42H);
-  } else {
-    up42Ctx.fillStyle = '#1a1f2e';
-    up42Ctx.fillRect(0, 0, up42W, up42H);
-  }
+  // Dark background
+  up42Ctx.fillStyle = '#0c1119';
+  up42Ctx.fillRect(0, 0, up42W, up42H);
 
   if (!up42SyntheticTerrain) return;
   const GRID = up42SyntheticTerrain.length;
   const cellW = up42W / GRID;
   const cellH = up42H / GRID;
+
+  const site = upSelectedSite;
+  const hasRealData = site && up42SiteImgCache[site.id + '_slope'];
+
   for (let y = 0; y < GRID; y++) {
     for (let x = 0; x < GRID; x++) {
       const slope = up42SyntheticTerrain[y][x];
-      const t = Math.min(1, slope / 20);
-      up42Ctx.fillStyle = `rgba(${Math.round(t*80)},${Math.round((1-t)*40)},${Math.round((1-t)*60)},0.18)`;
+      let r, g, b;
+      if (slope < 5)       { r=0;   g=100; b=0;   }  // dark green — ideal
+      else if (slope < 10) { r=173; g=255; b=47;  }  // yellow-green — good
+      else if (slope < 15) { r=255; g=140; b=0;   }  // orange — caution
+      else                 { r=180; g=0;   b=0;   }  // dark red — avoid
+      up42Ctx.fillStyle = `rgb(${r},${g},${b})`;
       up42Ctx.fillRect(Math.round(x*cellW), Math.round(y*cellH), Math.ceil(cellW)+1, Math.ceil(cellH)+1);
     }
   }
 
+  // Legend + credit
+  drawSlopeLegendSmall();
   up42Ctx.font = '9px monospace';
-  up42Ctx.fillStyle = 'rgba(255,255,255,0.3)';
-  up42Ctx.fillText('★ Synthetic terrain — awaiting real heatmap from Jenny', 8, up42H - 8);
+  up42Ctx.fillStyle = 'rgba(255,255,255,0.4)';
+  const src = hasRealData ? 'Jenny Zheng (GT) · NASA LOLA · 1:5,000' : '★ Synthetic — awaiting PNG from Jenny';
+  up42Ctx.fillText(src, 8, up42H - 8);
+}
+
+// ── Classify illumination PNG pixel → value class ────────────────
+// Jenny: dark red=0-64 poor, orange=65-128 moderate, light green=129-192 high, dark green=193-255 very high
+function classifyIllumPx(r, g, b) {
+  if (r > 120 && g < 60 && b < 60) return { cls:'poor',     color:'#8b0000' };
+  if (r > 180 && g > 80 && b < 60) return { cls:'moderate', color:'#ff8c00' };
+  if (g > 180 && r > 140 && b < 80) return { cls:'high',    color:'#adff2f' };
+  if (g > 100 && r < 80 && b < 80)  return { cls:'very_high',color:'#006400' };
+  return { cls:'moderate', color:'#ff8c00' }; // default
+}
+
+// ── Draw illumination grid from real PNG (or synthetic fallback) ──
+let up42IllumTerrain = null; // { cls, color }[][]
+
+function buildIllumFromPng(img, GRID) {
+  const offscreen = document.createElement('canvas');
+  offscreen.width = GRID; offscreen.height = GRID;
+  const ctx = offscreen.getContext('2d');
+  ctx.drawImage(img, 0, 0, GRID, GRID);
+  const pixels = ctx.getImageData(0, 0, GRID, GRID).data;
+  const grid = [];
+  for (let y = 0; y < GRID; y++) {
+    const row = [];
+    for (let x = 0; x < GRID; x++) {
+      const i = (y * GRID + x) * 4;
+      row.push(classifyIllumPx(pixels[i], pixels[i+1], pixels[i+2]));
+    }
+    grid.push(row);
+  }
+  return grid;
+}
+
+function drawIllumGrid() {
+  up42Ctx.fillStyle = '#0c1119';
+  up42Ctx.fillRect(0, 0, up42W, up42H);
+
+  const site = upSelectedSite;
+  const illumImg = site ? up42SiteImgCache[site.id + '_illum'] : null;
+
+  // Build illum terrain from PNG if available and not yet built
+  if (illumImg && !up42IllumTerrain) {
+    up42IllumTerrain = buildIllumFromPng(illumImg, 80);
+  }
+
+  const GRID = 80;
+  const cellW = up42W / GRID;
+  const cellH = up42H / GRID;
+
+  if (up42IllumTerrain) {
+    for (let y = 0; y < GRID; y++) {
+      for (let x = 0; x < GRID; x++) {
+        up42Ctx.fillStyle = up42IllumTerrain[y][x].color;
+        up42Ctx.fillRect(Math.round(x*cellW), Math.round(y*cellH), Math.ceil(cellW)+1, Math.ceil(cellH)+1);
+      }
+    }
+    up42Ctx.font = '9px monospace';
+    up42Ctx.fillStyle = 'rgba(255,255,255,0.4)';
+    up42Ctx.fillText('Jenny Zheng (GT) · LROC WAC Illumination · 1:5,000', 8, up42H - 8);
+  } else {
+    // Synthetic fallback — uniform moderate
+    up42Ctx.fillStyle = '#ff8c00';
+    up42Ctx.fillRect(0, 0, up42W, up42H);
+    up42Ctx.font = '9px monospace';
+    up42Ctx.fillStyle = 'rgba(255,255,255,0.4)';
+    up42Ctx.fillText('★ No illumination data for this site', 8, up42H - 8);
+  }
+
+  drawIllumLegend();
 }
 
 function drawIllumLegend() {
