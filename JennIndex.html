@@ -3502,32 +3502,35 @@ function resizeUp42Canvas() {
 // known slope values + random perturbation. Jenny's real DEM will replace this.
 // ── Classify slope PNG pixel color → slope class ────────────────
 // Jenny's slope legend: green=0-5°, yellow=5-10°, orange=10-15°, red>15°
+// Jenny slope exact colors: green=(38,115,0), yellow=(255,255,0), orange=(230,152,0), red=(230,0,0)
 function classifySlopePx(r, g, b) {
-  // Red channel dominant, low green → red zone (>15°)
-  if (r > 160 && g < 80) return { min: 15, max: 20 };
-  // Red+green high → orange (10-15°)
-  if (r > 180 && g > 80 && g < 180 && b < 80) return { min: 10, max: 15 };
-  // High green, low red → green (0-5°)
-  if (g > 160 && r < 120) return { min: 0, max: 5 };
-  // Yellow/light green (5-10°)
-  if (g > 160 && r > 160) return { min: 5, max: 10 };
-  // Default moderate
-  return { min: 5, max: 12 };
+  // White (legend) → red
+  if (r > 240 && g > 240 && b > 240) return { min: 15, max: 20 };
+  // Green 0-5°: low r (<80), mid-high g (>80), very low b (<20)
+  if (r < 80 && g > 80 && b < 20) return { min: 0, max: 5 };
+  // Yellow 5-10°: high r (>220), high g (>220), very low b (<20)
+  if (r > 220 && g > 220 && b < 20) return { min: 5, max: 10 };
+  // Orange 10-15°: high r (>200), mid g (100-180), very low b (<20)
+  if (r > 200 && g > 100 && g < 180 && b < 20) return { min: 10, max: 15 };
+  // Red >15°: high r (>200), very low g (<30), very low b (<20)
+  if (r > 200 && g < 30 && b < 20) return { min: 15, max: 20 };
+  return { min: 15, max: 20 };
 }
 
 // ── Build terrain grid from real slope PNG ────────────────────────
 // Reads Jenny's slope heatmap, maps colors → slope values with intra-class noise
-// Jenny's PNGs have a legend panel on the right (~25% of width) — crop it out
-const JENNY_CROP = 0.76; // use leftmost 76% of image width
+// Jenny's PNGs: slope legend at 95.5% width, illum legend at 74.3% width
+// Heatmap area is rectangular — we crop and sample only the data zone
+// Crop: use 76% of width (removes legend panel) for all Jenny PNGs
+const JENNY_CROP = 0.76;
 
 function buildTerrainFromSlopePng(img, GRID) {
   const srcW = Math.round(img.naturalWidth * JENNY_CROP);
-  const srcH = img.naturalHeight;
   const offscreen = document.createElement('canvas');
   offscreen.width  = GRID;
   offscreen.height = GRID;
   const ctx = offscreen.getContext('2d');
-  ctx.drawImage(img, 0, 0, srcW, srcH, 0, 0, GRID, GRID);
+  ctx.drawImage(img, 0, 0, srcW, img.naturalHeight, 0, 0, GRID, GRID);
   const pixels = ctx.getImageData(0, 0, GRID, GRID).data;
 
   const site = upSelectedSite;
@@ -3540,10 +3543,10 @@ function buildTerrainFromSlopePng(img, GRID) {
       const i = (y * GRID + x) * 4;
       const r = pixels[i], g = pixels[i+1], b = pixels[i+2];
       const cls = classifySlopePx(r, g, b);
-      // Add variability within class bounds — never crosses class boundary
+      // Small noise within class (±15% of span) for A* path diversity — stays within class
       const span = cls.max - cls.min;
-      const noise = rng() * span * 0.85; // up to 85% of span for realistic variation
-      row.push(+(cls.min + noise).toFixed(2));
+      const noise = rng() * span * 0.3;
+      row.push(+(cls.min + span * 0.5 + (rng() > 0.5 ? noise : -noise)).toFixed(2));
     }
     terrain.push(row);
   }
@@ -3861,12 +3864,19 @@ function drawTerrain() {
 
 // ── Classify illumination PNG pixel → value class ────────────────
 // Jenny: dark red=0-64 poor, orange=65-128 moderate, light green=129-192 high, dark green=193-255 very high
+// Real Jenny illum colors: poor=(168,0,0), moderate=(255,170,1), high=(208,255,115), white=legend
 function classifyIllumPx(r, g, b) {
-  if (r > 120 && g < 60 && b < 60) return { cls:'poor',     color:'#8b0000' };
-  if (r > 180 && g > 80 && b < 60) return { cls:'moderate', color:'#ff8c00' };
-  if (g > 180 && r > 140 && b < 80) return { cls:'high',    color:'#adff2f' };
-  if (g > 100 && r < 80 && b < 80)  return { cls:'very_high',color:'#006400' };
-  return { cls:'moderate', color:'#ff8c00' }; // default
+  // White (legend/background) → skip, treat as poor
+  if (r > 240 && g > 240 && b > 240) return { cls:'poor', color:'#8b0000' };
+  // Poor: dark red (168,0,0)
+  if (r > 120 && r < 220 && g < 30 && b < 30) return { cls:'poor', color:'#8b0000' };
+  // High: yellow-green (208,255,115)
+  if (g > 200 && r > 150 && b > 60 && b < 160) return { cls:'high', color:'#adff2f' };
+  // Very High: dark green
+  if (g > 100 && r < 80 && b < 80) return { cls:'very_high', color:'#006400' };
+  // Moderate: orange (255,170,1)
+  if (r > 200 && g > 100 && g < 210 && b < 30) return { cls:'moderate', color:'#ff8c00' };
+  return { cls:'poor', color:'#8b0000' };
 }
 
 // ── Draw illumination grid from real PNG (or synthetic fallback) ──
@@ -3874,11 +3884,10 @@ let up42IllumTerrain = null; // { cls, color }[][]
 
 function buildIllumFromPng(img, GRID) {
   const srcW = Math.round(img.naturalWidth * JENNY_CROP);
-  const srcH = img.naturalHeight;
   const offscreen = document.createElement('canvas');
   offscreen.width = GRID; offscreen.height = GRID;
   const ctx = offscreen.getContext('2d');
-  ctx.drawImage(img, 0, 0, srcW, srcH, 0, 0, GRID, GRID);
+  ctx.drawImage(img, 0, 0, srcW, img.naturalHeight, 0, 0, GRID, GRID);
   const pixels = ctx.getImageData(0, 0, GRID, GRID).data;
   const grid = [];
   for (let y = 0; y < GRID; y++) {
