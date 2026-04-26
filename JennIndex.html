@@ -2796,10 +2796,10 @@ iframe{
       </button>
     </div>
 
-    <div style="display:grid;grid-template-columns:200px 1fr 220px;gap:12px;height:580px;min-height:580px;max-height:580px;overflow:hidden;">
+    <div style="display:grid;grid-template-columns:200px 1fr 220px;gap:12px;align-items:start;">
 
       <!-- LEFT: Module list -->
-      <div style="background:var(--panel);border:1px solid var(--border);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;">
+      <div style="background:var(--panel);border:1px solid var(--border);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;align-self:stretch;">
         <div style="padding:12px 14px;border-bottom:1px solid var(--border);">
           <div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:2px;">Active Modules</div>
           <div style="font-size:10px;color:var(--text3);">Click to load heatmap</div>
@@ -2816,7 +2816,7 @@ iframe{
       </div>
 
       <!-- CENTER: Map canvas -->
-      <div style="position:relative;background:#0c1119;border:1px solid var(--border);border-radius:12px;overflow:hidden;">
+      <div style="position:relative;background:#0c1119;border:1px solid var(--border);border-radius:12px;overflow:hidden;aspect-ratio:1/1;">
         <canvas id="up42Canvas" style="width:100%;height:100%;display:block;cursor:crosshair;"></canvas>
 
         <!-- Overlay instructions -->
@@ -2848,7 +2848,7 @@ iframe{
       </div>
 
       <!-- RIGHT: Module info + route info -->
-      <div style="display:flex;flex-direction:column;gap:10px;overflow:hidden;min-height:0;">
+      <div style="display:flex;flex-direction:column;gap:10px;overflow:hidden;align-self:stretch;">
 
         <!-- Module detail card -->
         <div id="up42InfoCard" style="background:var(--panel);border:1px solid var(--border);border-radius:12px;
