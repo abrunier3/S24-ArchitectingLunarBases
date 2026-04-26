@@ -2796,7 +2796,7 @@ iframe{
       </button>
     </div>
 
-    <div style="display:grid;grid-template-columns:200px 1fr 220px;gap:12px;align-items:start;">
+    <div style="display:grid;grid-template-columns:200px 1fr 220px;gap:12px;align-items:start;max-height:560px;">
 
       <!-- LEFT: Module list -->
       <div style="background:var(--panel);border:1px solid var(--border);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;align-self:stretch;">
@@ -2816,7 +2816,7 @@ iframe{
       </div>
 
       <!-- CENTER: Map canvas -->
-      <div style="position:relative;background:#0c1119;border:1px solid var(--border);border-radius:12px;overflow:hidden;aspect-ratio:1/1;">
+      <div style="position:relative;background:#0c1119;border:1px solid var(--border);border-radius:12px;overflow:hidden;width:100%;max-width:560px;aspect-ratio:1/1;margin:0 auto;">
         <canvas id="up42Canvas" style="width:100%;height:100%;display:block;cursor:crosshair;"></canvas>
 
         <!-- Overlay instructions -->
@@ -3517,12 +3517,17 @@ function classifySlopePx(r, g, b) {
 
 // ── Build terrain grid from real slope PNG ────────────────────────
 // Reads Jenny's slope heatmap, maps colors → slope values with intra-class noise
+// Jenny's PNGs have a legend panel on the right (~25% of width) — crop it out
+const JENNY_CROP = 0.76; // use leftmost 76% of image width
+
 function buildTerrainFromSlopePng(img, GRID) {
+  const srcW = Math.round(img.naturalWidth * JENNY_CROP);
+  const srcH = img.naturalHeight;
   const offscreen = document.createElement('canvas');
   offscreen.width  = GRID;
   offscreen.height = GRID;
   const ctx = offscreen.getContext('2d');
-  ctx.drawImage(img, 0, 0, GRID, GRID);
+  ctx.drawImage(img, 0, 0, srcW, srcH, 0, 0, GRID, GRID);
   const pixels = ctx.getImageData(0, 0, GRID, GRID).data;
 
   const site = upSelectedSite;
@@ -3868,10 +3873,12 @@ function classifyIllumPx(r, g, b) {
 let up42IllumTerrain = null; // { cls, color }[][]
 
 function buildIllumFromPng(img, GRID) {
+  const srcW = Math.round(img.naturalWidth * JENNY_CROP);
+  const srcH = img.naturalHeight;
   const offscreen = document.createElement('canvas');
   offscreen.width = GRID; offscreen.height = GRID;
   const ctx = offscreen.getContext('2d');
-  ctx.drawImage(img, 0, 0, GRID, GRID);
+  ctx.drawImage(img, 0, 0, srcW, srcH, 0, 0, GRID, GRID);
   const pixels = ctx.getImageData(0, 0, GRID, GRID).data;
   const grid = [];
   for (let y = 0; y < GRID; y++) {
