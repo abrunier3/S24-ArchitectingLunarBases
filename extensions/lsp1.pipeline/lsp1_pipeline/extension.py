@@ -25,38 +25,45 @@ DES_PATH = os.path.join(
 REPRESENTED_MISSION_HOURS = 40.0
 
 
-class LSP1PipelineExtension(omni.ext.IExt):
+def _apply_des_positions(self, snap):
+    stage = omni.usd.get_context().get_stage()
+    if not stage:
+        self.status.text = "Status: no USD stage open"
+        return
 
-    def on_startup(self, ext_id):
-        print("[LSP1 Pipeline] STARTUP")
+    actor_map = {
+        "Regolith Cargo Rover 1": "/World/RegolithRover",
+        "LOX Cargo Rover": "/World/LOXRover",
+    }
 
-        self.timeline_sub = None
-        self.elapsed_seconds = 0.0
-        self.des_data = None
-        self.is_loaded = False
+    for actor_name, prim_path in actor_map.items():
+        actor_data = snap.get(actor_name)
+        if not actor_data:
+            continue
 
-        self.window = ui.Window("LSP1 Pipeline", width=520, height=400)
+        pos = actor_data.get("position_m")
+        if not pos:
+            continue
 
-        with self.window.frame:
-            with ui.VStack(spacing=8):
-                ui.Label("LSP1 Pipeline")
+        prim = stage.GetPrimAtPath(prim_path)
+        if not prim or not prim.IsValid():
+            print(f"[LSP1 Pipeline] Missing prim: {prim_path}")
+            continue
 
-                ui.Button("Load DES Playback", clicked_fn=self._load_all)
-                ui.Button("Play", clicked_fn=self._play)
-                ui.Button("Pause", clicked_fn=self._pause)
-                ui.Button("Reset", clicked_fn=self._reset)
+        xformable = UsdGeom.Xformable(prim)
 
-                self.status = ui.Label("Status: waiting")
-                self.time_label = ui.Label("Mission Time: --")
-                self.des_time_label = ui.Label("DES Playback Time: --")
+        translate_op = None
+        for op in xformable.GetOrderedXformOps():
+            if op.GetOpType() == UsdGeom.XformOp.TypeTranslate:
+                translate_op = op
+                break
 
-                ui.Separator()
+        if translate_op is None:
+            translate_op = xformable.AddTranslateOp()
 
-                self.regolith_label = ui.Label("Regolith Rover: --")
-                self.regolith_load_label = ui.Label("Regolith Load: --")
+        translate_op.Set(Gf.Vec3d(pos[0], pos[1], pos[2]))
 
-                self.lox_label = ui.Label("LOX Rover: --")
-                self.lox_load_label = ui.Label("LOX Load: --")
+        print(f"[LSP1 Pipeline] {actor_name} -> {prim_path} position_m={pos}")
 
     def _load_all(self):
         try:
