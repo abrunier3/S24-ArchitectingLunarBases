@@ -19,6 +19,9 @@ DES_PATH = os.path.join(
 
 REPRESENTED_MISSION_HOURS = 40.0
 
+FOLLOW_CAMERA_PATH = "/World/DES_FollowCamera"
+CAMERA_HEIGHT = 180.0
+
 ROUTE_MAP = {
     "Regolith Cargo Rover 1": {
         "prim_path": "/World/RegolithRover",
@@ -46,7 +49,7 @@ class LSP1PipelineExtension(omni.ext.IExt):
         self.is_loaded = False
         self.route_cache = {}
 
-        self.window = ui.Window("LSP1 Pipeline", width=520, height=400)
+        self.window = ui.Window("LSP1 Pipeline", width=520, height=430)
 
         with self.window.frame:
             with ui.VStack(spacing=8):
@@ -60,6 +63,7 @@ class LSP1PipelineExtension(omni.ext.IExt):
                 self.status = ui.Label("Status: waiting")
                 self.time_label = ui.Label("Mission Time: --")
                 self.des_time_label = ui.Label("DES Playback Time: --")
+                self.camera_label = ui.Label("Camera: --")
 
                 ui.Separator()
 
@@ -146,6 +150,7 @@ class LSP1PipelineExtension(omni.ext.IExt):
             return
 
         self._apply_waypoint_motion(des_time)
+        self._update_follow_camera(des_time)
         self._update_dashboard(snap)
 
     def _get_des_duration_seconds(self):
@@ -235,6 +240,63 @@ class LSP1PipelineExtension(omni.ext.IExt):
         except Exception as e:
             print("[LSP1 Pipeline] Waypoint motion failed:", repr(e))
 
+    def _update_follow_camera(self, des_time):
+        try:
+            import omni.usd
+            from pxr import UsdGeom, Gf
+
+            stage = omni.usd.get_context().get_stage()
+            if not stage:
+                print("[LSP1 Pipeline] No stage for camera")
+                return
+
+            if des_time < 20.0:
+                target_path = "/World/RegolithRover"
+                target_name = "Regolith Rover"
+            else:
+                target_path = "/World/LOXRover"
+                target_name = "LOX Rover"
+
+            target_prim = stage.GetPrimAtPath(target_path)
+            if not target_prim or not target_prim.IsValid():
+                print("[LSP1 Pipeline] Missing camera target:", target_path)
+                self.camera_label.text = f"Camera: missing {target_path}"
+                return
+
+            cache = UsdGeom.XformCache()
+            target_pos = cache.GetLocalToWorldTransform(target_prim).ExtractTranslation()
+
+            camera = UsdGeom.Camera.Define(stage, FOLLOW_CAMERA_PATH)
+            cam_prim = camera.GetPrim()
+
+            xformable = UsdGeom.Xformable(cam_prim)
+            xformable.ClearXformOpOrder()
+
+            # Close aerial camera directly above the active rover.
+            cam_pos = Gf.Vec3d(
+                target_pos[0],
+                target_pos[1],
+                target_pos[2] + CAMERA_HEIGHT
+            )
+
+            xformable.AddTranslateOp().Set(cam_pos)
+
+            # USD camera looks along local -Z by default.
+            # No rotation = straight-down aerial view.
+            camera.GetFocalLengthAttr().Set(18.0)
+            camera.GetClippingRangeAttr().Set(Gf.Vec2f(0.1, 1000000.0))
+
+            self.camera_label.text = f"Camera: following {target_name}"
+
+            print(f"[LSP1 Pipeline] Camera updated at {cam_pos}")
+
+        except Exception as e:
+            print("[LSP1 Pipeline] Follow camera failed:", repr(e))
+            try:
+                self.camera_label.text = f"Camera failed: {e}"
+            except Exception:
+                pass
+
     def _get_route_points(self, stage, route_path):
         if route_path in self.route_cache:
             return self.route_cache[route_path]
@@ -297,73 +359,6 @@ class LSP1PipelineExtension(omni.ext.IExt):
             p0[2] + (p1[2] - p0[2]) * local_t,
         ]
 
-    def _update_follow_camera(self, des_time):
-        try:
-            import omni.usd
-            from pxr import UsdGeom, Gf, Sdf
-            from omni.kit.viewport.utility import get_active_viewport_window
-
-            stage = omni.usd.get_context().get_stage()
-            if not stage:
-                return
-
-            if des_time < 20.0:
-                target_path = "/World/RegolithRover"
-            else:
-                target_path = "/World/LOXRover"
-
-            target_prim = stage.GetPrimAtPath(target_path)
-            if not target_prim or not target_prim.IsValid():
-                print(f"[LSP1 Pipeline] Missing camera target: {target_path}")
-                return
-
-            cache = UsdGeom.XformCache()
-            target_pos = cache.GetLocalToWorldTransform(target_prim).ExtractTranslation()
-
-            cam_path = Sdf.Path(FOLLOW_CAMERA_PATH)
-            cam_prim = stage.GetPrimAtPath(cam_path)
-
-            if not cam_prim or not cam_prim.IsValid():
-                camera = UsdGeom.Camera.Define(stage, cam_path)
-                cam_prim = camera.GetPrim()
-
-                camera.GetFocalLengthAttr().Set(18.0)
-                camera.GetHorizontalApertureAttr().Set(45.0)
-                camera.GetVerticalApertureAttr().Set(30.0)
-
-                print("[LSP1 Pipeline] Created DES follow camera")
-
-            camera = UsdGeom.Camera(cam_prim)
-
-            xformable = UsdGeom.Xformable(cam_prim)
-            xformable.ClearXformOpOrder()
-
-            # Direct aerial/top-down view.
-            camera_pos = Gf.Vec3d(
-                target_pos[0],
-                target_pos[1],
-                target_pos[2] + CAMERA_HEIGHT
-            )
-
-            xformable.AddTranslateOp().Set(camera_pos)
-
-            # USD cameras look down local -Z by default.
-            # With no rotation, this is a straight-down aerial camera.
-            # Leave rotation out for now.
-
-            try:
-                viewport = get_active_viewport_window()
-                if viewport:
-                    viewport.viewport_api.camera_path = FOLLOW_CAMERA_PATH
-                    print(f"[LSP1 Pipeline] Viewport switched to {FOLLOW_CAMERA_PATH}")
-            except Exception as e:
-                print("[LSP1 Pipeline] Could not switch viewport camera:", repr(e))
-
-            print(f"[LSP1 Pipeline] Camera following {target_path} at {camera_pos}")
-
-        except Exception as e:
-            print("[LSP1 Pipeline] Follow camera failed:", repr(e))
-    
     def _update_dashboard(self, snap):
         regolith = snap.get("Regolith Cargo Rover 1", {})
         lox = snap.get("LOX Cargo Rover", {})
