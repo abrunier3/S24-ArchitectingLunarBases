@@ -388,7 +388,7 @@ class LSP1PipelineExtension(omni.ext.IExt):
             )
 
             # Main transparency value
-            shader.CreateInput("opacity", Sdf.ValueTypeNames.Float).Set(0.08)
+            shader.CreateInput("opacity", Sdf.ValueTypeNames.Float).Set(0.01)
 
             material.CreateSurfaceOutput().ConnectToSource(
                 shader.ConnectableAPI(), "surface"
@@ -407,7 +407,7 @@ class LSP1PipelineExtension(omni.ext.IExt):
                     gprim = UsdGeom.Gprim(prim)
 
                     # This directly authors USD display opacity
-                    gprim.CreateDisplayOpacityAttr().Set([0.08])
+                    gprim.CreateDisplayOpacityAttr().Set([0.01])
 
                     # Bind material strongly
                     UsdShade.MaterialBindingAPI(prim).Bind(
