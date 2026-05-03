@@ -300,13 +300,13 @@ class LSP1PipelineExtension(omni.ext.IExt):
     def _update_follow_camera(self, des_time):
         try:
             import omni.usd
-            from pxr import UsdGeom, Gf
+            from pxr import UsdGeom, Gf, Sdf
+            from omni.kit.viewport.utility import get_active_viewport_window
 
             stage = omni.usd.get_context().get_stage()
             if not stage:
                 return
 
-            # Follow Regolith first, then LOX after t=20
             if des_time < 20.0:
                 target_path = "/World/RegolithRover"
             else:
@@ -314,60 +314,52 @@ class LSP1PipelineExtension(omni.ext.IExt):
 
             target_prim = stage.GetPrimAtPath(target_path)
             if not target_prim or not target_prim.IsValid():
-                print(f"[LSP1 Pipeline] Follow target missing: {target_path}")
+                print(f"[LSP1 Pipeline] Missing camera target: {target_path}")
                 return
 
             cache = UsdGeom.XformCache()
             target_pos = cache.GetLocalToWorldTransform(target_prim).ExtractTranslation()
 
-            cam_prim = stage.GetPrimAtPath(FOLLOW_CAMERA_PATH)
+            cam_path = Sdf.Path(FOLLOW_CAMERA_PATH)
+            cam_prim = stage.GetPrimAtPath(cam_path)
 
             if not cam_prim or not cam_prim.IsValid():
-                camera = UsdGeom.Camera.Define(stage, FOLLOW_CAMERA_PATH)
+                camera = UsdGeom.Camera.Define(stage, cam_path)
                 cam_prim = camera.GetPrim()
 
-                camera.GetFocalLengthAttr().Set(24.0)
-                camera.GetHorizontalApertureAttr().Set(35.0)
-                camera.GetVerticalApertureAttr().Set(20.0)
+                camera.GetFocalLengthAttr().Set(18.0)
+                camera.GetHorizontalApertureAttr().Set(45.0)
+                camera.GetVerticalApertureAttr().Set(30.0)
 
-                print("[LSP1 Pipeline] Created follow camera")
+                print("[LSP1 Pipeline] Created DES follow camera")
+
+            camera = UsdGeom.Camera(cam_prim)
 
             xformable = UsdGeom.Xformable(cam_prim)
+            xformable.ClearXformOpOrder()
 
-            translate_op = None
-            rotate_op = None
-
-            for op in xformable.GetOrderedXformOps():
-                if op.GetOpType() == UsdGeom.XformOp.TypeTranslate:
-                    translate_op = op
-                elif op.GetOpType() == UsdGeom.XformOp.TypeRotateXYZ:
-                    rotate_op = op
-
-            if translate_op is None:
-                translate_op = xformable.AddTranslateOp()
-
-            if rotate_op is None:
-                rotate_op = xformable.AddRotateXYZOp()
-
+            # Direct aerial/top-down view.
             camera_pos = Gf.Vec3d(
                 target_pos[0],
-                target_pos[1] - CAMERA_BACK_OFFSET,
+                target_pos[1],
                 target_pos[2] + CAMERA_HEIGHT
             )
 
-            translate_op.Set(camera_pos)
+            xformable.AddTranslateOp().Set(camera_pos)
 
-            # Close aerial view: mostly looking down, slightly angled forward.
-            rotate_op.Set(Gf.Vec3f(60.0, 0.0, 0.0))
+            # USD cameras look down local -Z by default.
+            # With no rotation, this is a straight-down aerial camera.
+            # Leave rotation out for now.
 
-            # Try to switch active viewport to this camera.
             try:
-                from omni.kit.viewport.utility import get_active_viewport_window
                 viewport = get_active_viewport_window()
                 if viewport:
                     viewport.viewport_api.camera_path = FOLLOW_CAMERA_PATH
-            except Exception:
-                pass
+                    print(f"[LSP1 Pipeline] Viewport switched to {FOLLOW_CAMERA_PATH}")
+            except Exception as e:
+                print("[LSP1 Pipeline] Could not switch viewport camera:", repr(e))
+
+            print(f"[LSP1 Pipeline] Camera following {target_path} at {camera_pos}")
 
         except Exception as e:
             print("[LSP1 Pipeline] Follow camera failed:", repr(e))
