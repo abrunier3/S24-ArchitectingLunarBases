@@ -19,9 +19,19 @@ DES_PATH = os.path.join(
 
 REPRESENTED_MISSION_HOURS = 40.0
 
-OFFSET_MAP = {
-    "Regolith Cargo Rover 1": [-1387.5, -932.5, 140],
-    "LOX Cargo Rover": [-4242.5, -117.5, 130],
+ROUTE_MAP = {
+    "Regolith Cargo Rover 1": {
+        "prim_path": "/World/RegolithRover",
+        "route_path": "/World/ConnectionWaypoints/ISRUExcavationToISRUPlant",
+        "start_time": 0.0,
+        "end_time": 20.0,
+    },
+    "LOX Cargo Rover": {
+        "prim_path": "/World/LOXRover",
+        "route_path": "/World/ConnectionWaypoints/ISRUPlantToPropellantDepot",
+        "start_time": 20.0,
+        "end_time": 40.0,
+    },
 }
 
 
@@ -34,6 +44,7 @@ class LSP1PipelineExtension(omni.ext.IExt):
         self.elapsed_seconds = 0.0
         self.des_data = None
         self.is_loaded = False
+        self.route_cache = {}
 
         self.window = ui.Window("LSP1 Pipeline", width=520, height=400)
 
@@ -68,11 +79,12 @@ class LSP1PipelineExtension(omni.ext.IExt):
 
             self.elapsed_seconds = 0.0
             self.is_loaded = True
+            self.route_cache = {}
 
             self._ensure_timeline()
             self._update_all(0.0)
 
-            self.status.text = "Status: loaded modified_des.json"
+            self.status.text = "Status: loaded DES + scene waypoints"
 
         except Exception as e:
             self.status.text = f"Status: load failed: {e}"
@@ -133,7 +145,7 @@ class LSP1PipelineExtension(omni.ext.IExt):
         if not snap:
             return
 
-        self._apply_des_positions(snap)
+        self._apply_waypoint_motion(des_time)
         self._update_dashboard(snap)
 
     def _get_des_duration_seconds(self):
@@ -174,7 +186,7 @@ class LSP1PipelineExtension(omni.ext.IExt):
         key = str(int(selected))
         return log.get(key)
 
-    def _apply_des_positions(self, snap):
+    def _apply_waypoint_motion(self, des_time):
         try:
             import omni.usd
             from pxr import UsdGeom, Gf
@@ -183,31 +195,28 @@ class LSP1PipelineExtension(omni.ext.IExt):
             if not stage:
                 return
 
-            actor_map = {
-                "Regolith Cargo Rover 1": "/World/RegolithRover",
-                "LOX Cargo Rover": "/World/LOXRover",
-            }
+            for actor_name, route_info in ROUTE_MAP.items():
+                prim_path = route_info["prim_path"]
+                route_path = route_info["route_path"]
+                start_time = route_info["start_time"]
+                end_time = route_info["end_time"]
 
-            for actor_name, prim_path in actor_map.items():
-                actor_data = snap.get(actor_name)
-                if not actor_data:
+                points = self._get_route_points(stage, route_path)
+                if not points:
+                    print(f"[LSP1 Pipeline] No waypoint points found for {route_path}")
                     continue
 
-                pos = actor_data.get("position_m")
-                if not pos:
-                    continue
-
-                offset = OFFSET_MAP.get(actor_name, [0, 0, 0])
-
-                corrected_pos = [
-                    pos[0] + offset[0],
-                    pos[1] + offset[1],
-                    pos[2] + offset[2],
-                ]
+                if des_time <= start_time:
+                    pos = points[0]
+                elif des_time >= end_time:
+                    pos = points[-1]
+                else:
+                    progress = (des_time - start_time) / (end_time - start_time)
+                    pos = self._interp_polyline(points, progress)
 
                 prim = stage.GetPrimAtPath(prim_path)
                 if not prim or not prim.IsValid():
-                    print(f"[LSP1 Pipeline] Missing prim: {prim_path}")
+                    print(f"[LSP1 Pipeline] Missing rover prim: {prim_path}")
                     continue
 
                 xformable = UsdGeom.Xformable(prim)
@@ -221,16 +230,72 @@ class LSP1PipelineExtension(omni.ext.IExt):
                 if translate_op is None:
                     translate_op = xformable.AddTranslateOp()
 
-                translate_op.Set(
-                    Gf.Vec3d(
-                        corrected_pos[0],
-                        corrected_pos[1],
-                        corrected_pos[2]
-                    )
-                )
+                translate_op.Set(Gf.Vec3d(pos[0], pos[1], pos[2]))
 
         except Exception as e:
-            print("[LSP1 Pipeline] Position update failed:", repr(e))
+            print("[LSP1 Pipeline] Waypoint motion failed:", repr(e))
+
+    def _get_route_points(self, stage, route_path):
+        if route_path in self.route_cache:
+            return self.route_cache[route_path]
+
+        try:
+            from pxr import UsdGeom
+
+            route_prim = stage.GetPrimAtPath(route_path)
+            if not route_prim or not route_prim.IsValid():
+                print(f"[LSP1 Pipeline] Missing route prim: {route_path}")
+                self.route_cache[route_path] = []
+                return []
+
+            cache = UsdGeom.XformCache()
+            children = list(route_prim.GetChildren())
+
+            waypoint_children = [
+                child for child in children
+                if child.GetName().startswith("Waypoint_")
+            ]
+
+            waypoint_children.sort(key=lambda p: p.GetName())
+
+            points = []
+            for child in waypoint_children:
+                mat = cache.GetLocalToWorldTransform(child)
+                pos = mat.ExtractTranslation()
+                points.append([pos[0], pos[1], pos[2]])
+
+            self.route_cache[route_path] = points
+            print(f"[LSP1 Pipeline] Cached {len(points)} waypoints for {route_path}")
+
+            return points
+
+        except Exception as e:
+            print("[LSP1 Pipeline] Route point load failed:", repr(e))
+            self.route_cache[route_path] = []
+            return []
+
+    def _interp_polyline(self, points, progress):
+        if not points:
+            return [0, 0, 0]
+
+        if len(points) == 1:
+            return points[0]
+
+        progress = max(0.0, min(1.0, progress))
+
+        segment_count = len(points) - 1
+        scaled = progress * segment_count
+        idx = min(int(scaled), segment_count - 1)
+        local_t = scaled - idx
+
+        p0 = points[idx]
+        p1 = points[idx + 1]
+
+        return [
+            p0[0] + (p1[0] - p0[0]) * local_t,
+            p0[1] + (p1[1] - p0[1]) * local_t,
+            p0[2] + (p1[2] - p0[2]) * local_t,
+        ]
 
     def _update_dashboard(self, snap):
         regolith = snap.get("Regolith Cargo Rover 1", {})
