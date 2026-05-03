@@ -275,8 +275,8 @@ class LSP1PipelineExtension(omni.ext.IExt):
 
             # Offset camera behind + above rover
             cam_pos = Gf.Vec3d(
-                target_pos[0] + 20.0,   # left/right offset
-                target_pos[1] - 120.0,   # forward/back offset
+                target_pos[0] + 30.0,   # left/right offset
+                target_pos[1] - 30.0,   # forward/back offset
                 target_pos[2] + 30.0    # height
             )
             
