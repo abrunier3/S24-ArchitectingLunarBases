@@ -20,7 +20,9 @@ DES_PATH = os.path.join(
     "modified_des.json"
 )
 
-SECONDS_PER_SIM_SECOND = 1.0
+# This means your 0–40 DES playback represents 40 mission hours.
+# Change this if the DES file represents a different total duration.
+REPRESENTED_MISSION_HOURS = 40.0
 
 
 class LSP1PipelineExtension(omni.ext.IExt):
@@ -33,7 +35,7 @@ class LSP1PipelineExtension(omni.ext.IExt):
         self.des_data = None
         self.is_loaded = False
 
-        self.window = ui.Window("LSP1 Pipeline", width=500, height=380)
+        self.window = ui.Window("LSP1 Pipeline", width=520, height=400)
 
         with self.window.frame:
             with ui.VStack(spacing=8):
@@ -45,7 +47,8 @@ class LSP1PipelineExtension(omni.ext.IExt):
                 ui.Button("Reset", clicked_fn=self._reset)
 
                 self.status = ui.Label("Status: waiting")
-                self.time_label = ui.Label("Sim Time: 0.00 sec")
+                self.time_label = ui.Label("Mission Time: --")
+                self.des_time_label = ui.Label("DES Playback Time: --")
 
                 ui.Separator()
 
@@ -112,20 +115,50 @@ class LSP1PipelineExtension(omni.ext.IExt):
         dt = event.payload.get("dt", 0.0)
         self.elapsed_seconds += dt
 
-        sim_time = self.elapsed_seconds / SECONDS_PER_SIM_SECOND
-        self._update_all(sim_time)
+        des_duration = self._get_des_duration_seconds()
 
-    def _update_all(self, sim_time):
-        self.time_label.text = f"Sim Time: {sim_time:.2f} sec"
+        # This is the time inside the DES/log file.
+        # It stops at the final DES timestamp instead of running forever.
+        des_time = min(self.elapsed_seconds, des_duration)
 
-        snap = self._get_snapshot(sim_time)
+        self._update_all(des_time)
+
+    def _update_all(self, des_time):
+        represented_hours = self._des_time_to_mission_hours(des_time)
+
+        self.time_label.text = (
+            f"Mission Time: {represented_hours:.2f} hr / "
+            f"{REPRESENTED_MISSION_HOURS:.2f} hr"
+        )
+
+        self.des_time_label.text = f"DES Playback Time: {des_time:.2f}"
+
+        snap = self._get_snapshot(des_time)
         if not snap:
             return
 
         self._apply_des_positions(snap)
         self._update_dashboard(snap)
 
-    def _get_snapshot(self, sim_time):
+    def _get_des_duration_seconds(self):
+        if not self.des_data:
+            return 0.0
+
+        log = self.des_data.get("log", {})
+        if not log:
+            return 0.0
+
+        return max(float(k) for k in log.keys())
+
+    def _des_time_to_mission_hours(self, des_time):
+        des_duration = self._get_des_duration_seconds()
+
+        if des_duration <= 0:
+            return 0.0
+
+        return (des_time / des_duration) * REPRESENTED_MISSION_HOURS
+
+    def _get_snapshot(self, des_time):
         if not self.des_data:
             return None
 
@@ -137,7 +170,7 @@ class LSP1PipelineExtension(omni.ext.IExt):
 
         selected = times[0]
         for t in times:
-            if t <= sim_time:
+            if t <= des_time:
                 selected = t
             else:
                 break
