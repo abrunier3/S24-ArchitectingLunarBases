@@ -297,6 +297,81 @@ class LSP1PipelineExtension(omni.ext.IExt):
             p0[2] + (p1[2] - p0[2]) * local_t,
         ]
 
+    def _update_follow_camera(self, des_time):
+        try:
+            import omni.usd
+            from pxr import UsdGeom, Gf
+
+            stage = omni.usd.get_context().get_stage()
+            if not stage:
+                return
+
+            # Follow Regolith first, then LOX after t=20
+            if des_time < 20.0:
+                target_path = "/World/RegolithRover"
+            else:
+                target_path = "/World/LOXRover"
+
+            target_prim = stage.GetPrimAtPath(target_path)
+            if not target_prim or not target_prim.IsValid():
+                print(f"[LSP1 Pipeline] Follow target missing: {target_path}")
+                return
+
+            cache = UsdGeom.XformCache()
+            target_pos = cache.GetLocalToWorldTransform(target_prim).ExtractTranslation()
+
+            cam_prim = stage.GetPrimAtPath(FOLLOW_CAMERA_PATH)
+
+            if not cam_prim or not cam_prim.IsValid():
+                camera = UsdGeom.Camera.Define(stage, FOLLOW_CAMERA_PATH)
+                cam_prim = camera.GetPrim()
+
+                camera.GetFocalLengthAttr().Set(24.0)
+                camera.GetHorizontalApertureAttr().Set(35.0)
+                camera.GetVerticalApertureAttr().Set(20.0)
+
+                print("[LSP1 Pipeline] Created follow camera")
+
+            xformable = UsdGeom.Xformable(cam_prim)
+
+            translate_op = None
+            rotate_op = None
+
+            for op in xformable.GetOrderedXformOps():
+                if op.GetOpType() == UsdGeom.XformOp.TypeTranslate:
+                    translate_op = op
+                elif op.GetOpType() == UsdGeom.XformOp.TypeRotateXYZ:
+                    rotate_op = op
+
+            if translate_op is None:
+                translate_op = xformable.AddTranslateOp()
+
+            if rotate_op is None:
+                rotate_op = xformable.AddRotateXYZOp()
+
+            camera_pos = Gf.Vec3d(
+                target_pos[0],
+                target_pos[1] - CAMERA_BACK_OFFSET,
+                target_pos[2] + CAMERA_HEIGHT
+            )
+
+            translate_op.Set(camera_pos)
+
+            # Close aerial view: mostly looking down, slightly angled forward.
+            rotate_op.Set(Gf.Vec3f(60.0, 0.0, 0.0))
+
+            # Try to switch active viewport to this camera.
+            try:
+                from omni.kit.viewport.utility import get_active_viewport_window
+                viewport = get_active_viewport_window()
+                if viewport:
+                    viewport.viewport_api.camera_path = FOLLOW_CAMERA_PATH
+            except Exception:
+                pass
+
+        except Exception as e:
+            print("[LSP1 Pipeline] Follow camera failed:", repr(e))
+    
     def _update_dashboard(self, snap):
         regolith = snap.get("Regolith Cargo Rover 1", {})
         lox = snap.get("LOX Cargo Rover", {})
