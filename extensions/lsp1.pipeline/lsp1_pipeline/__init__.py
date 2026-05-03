@@ -1,1 +1,1 @@
-from .extension import Lsp1PipelineExtension
+from .extension import *
