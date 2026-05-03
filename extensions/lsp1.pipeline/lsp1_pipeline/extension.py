@@ -1,240 +1,295 @@
 import os
+import json
+
 import omni.ext
 import omni.ui as ui
-import omni.kit.app
+import omni.timeline
+import omni.usd
 
 from .scenario_player import ScenarioPlayer
 
 
-class Lsp1PipelineExtension(omni.ext.IExt):
-    def on_startup(self, ext_id: str):
-        self._ext_id = ext_id
-        self._player = ScenarioPlayer()
-        self._playing = False
-        self._current_time = 0.0
-        self._scenario_duration = 40.0
-        self._update_sub = None
+THIS_DIR = os.path.dirname(os.path.abspath(__file__))
+REPO_ROOT = os.path.normpath(os.path.join(THIS_DIR, "..", "..", ".."))
 
-        self._window = ui.Window("LSP1 Pipeline", width=620, height=440)
+DEFAULT_SCENARIO_PATH = os.path.join(
+    REPO_ROOT,
+    "database",
+    "json",
+    "scenarios",
+    "DESwaypoints.json"
+)
 
-        default_manifest = self._default_manifest_path()
-        default_scenario = self._default_scenario_path()
+DEFAULT_DES_PATH = os.path.join(
+    REPO_ROOT,
+    "database",
+    "json",
+    "scenarios",
+    "ISRU_nominal_temp.json"
+)
 
-        self._manifest_model = ui.SimpleStringModel(default_manifest)
-        self._scenario_model = ui.SimpleStringModel(default_scenario)
-        self._time_model = ui.SimpleFloatModel(0.0)
+SECONDS_PER_SIM_HOUR = 2.0
 
-        with self._window.frame:
+
+class LSP1PipelineExtension(omni.ext.IExt):
+
+    def on_startup(self, ext_id):
+        print("[LSP1 Pipeline] Startup")
+
+        self.ext_id = ext_id
+        self.window = None
+
+        self.player = ScenarioPlayer()
+        self.scenario_path = DEFAULT_SCENARIO_PATH
+        self.des_path = DEFAULT_DES_PATH
+
+        self.elapsed_seconds = 0.0
+        self.is_loaded = False
+        self.is_playing = False
+
+        self.des_data = None
+        self.des_mode = None
+        self.des_times = []
+
+        self.timeline_sub = None
+
+        self._build_ui()
+
+    def on_shutdown(self):
+        print("[LSP1 Pipeline] Shutdown")
+
+        self.timeline_sub = None
+
+        if self.window:
+            self.window.destroy()
+            self.window = None
+
+    def _build_ui(self):
+        self.window = ui.Window("LSP1 Pipeline", width=460, height=520)
+
+        with self.window.frame:
             with ui.VStack(spacing=8, height=0):
-                ui.Label("Manifest / World Build JSON", height=20)
-                ui.StringField(model=self._manifest_model)
 
-                with ui.HStack(spacing=8, height=28):
-                    ui.Button("Build / Open World", clicked_fn=self._on_build)
-                    ui.Button("Validate Metadata", clicked_fn=self._on_validate)
+                ui.Label("LSP1 Pipeline", height=24)
 
-                ui.Spacer(height=8)
-                ui.Line()
+                ui.Separator()
 
-                ui.Label("Scenario / Rover Playback JSON", height=20)
-                ui.StringField(model=self._scenario_model)
+                ui.Label("Scenario Path")
+                self.scenario_field = ui.StringField()
+                self.scenario_field.model.set_value(self.scenario_path)
 
-                with ui.HStack(spacing=8, height=28):
-                    ui.Button("Load Scenario", clicked_fn=self._on_load_scenario)
+                ui.Label("DES Telemetry Path")
+                self.des_field = ui.StringField()
+                self.des_field.model.set_value(self.des_path)
+
+                with ui.HStack(height=32, spacing=6):
+                    ui.Button("Load", clicked_fn=self._on_load)
                     ui.Button("Play", clicked_fn=self._on_play)
                     ui.Button("Pause", clicked_fn=self._on_pause)
                     ui.Button("Reset", clicked_fn=self._on_reset)
 
-                ui.Label("Scenario Time", height=20)
+                ui.Separator()
 
-                with ui.HStack(spacing=8, height=28):
-                    self._time_drag = ui.FloatDrag(
-                        model=self._time_model,
-                        min=0.0,
-                        max=1000.0
-                    )
-                    ui.Button("Apply Time", clicked_fn=self._on_apply_time)
+                self.status_label = ui.Label("Status: Not loaded")
+                self.time_label = ui.Label("Sim Time: 0.00 hr")
 
-                self._status = ui.Label("Ready.", height=150, word_wrap=True)
+                ui.Separator()
 
-        update_stream = omni.kit.app.get_app().get_update_event_stream()
-        self._update_sub = update_stream.create_subscription_to_pop(
-            self._on_update,
-            name="lsp1.pipeline.update"
-        )
+                ui.Label("DES Dashboard", height=24)
 
-    def on_shutdown(self):
-        self._playing = False
-        self._player = None
-        self._update_sub = None
-        self._window = None
+                self.lox_label = ui.Label("LOX Stored: --")
+                self.power_label = ui.Label("Power Output: --")
+                self.rover_label = ui.Label("Rover Battery: --")
+                self.route_label = ui.Label("Rover Route Progress: --")
 
-    def _repo_root(self) -> str:
-        ext_manager = omni.kit.app.get_app().get_extension_manager()
-        ext_path = ext_manager.get_extension_path(self._ext_id)
+    def _on_load(self):
+        self.scenario_path = self.scenario_field.model.get_value_as_string()
+        self.des_path = self.des_field.model.get_value_as_string()
 
-        # ext_path should be:
-        # S24-ArchitectingLunarBases/extensions/lsp1.pipeline
-        repo_root = os.path.normpath(os.path.join(ext_path, "..", ".."))
-        return repo_root
-
-    def _default_manifest_path(self) -> str:
-        repo_root = self._repo_root()
-        return os.path.join(
-            repo_root,
-            "clean_database",
-            "scenes",
-            "world_build.json"
-        )
-
-    def _default_scenario_path(self) -> str:
-        repo_root = self._repo_root()
-        return os.path.join(
-            repo_root,
-            "clean_database",
-            "scenes",
-            "DESwaypoints.json"
-        )
-
-    def _set_status(self, msg: str):
-        if hasattr(self, "_status") and self._status:
-            self._status.text = msg
-        print(f"[LSP1 Pipeline] {msg}")
-
-    def _on_build(self):
         try:
-            from .builder import build_world_from_manifest
+            self.player.load(self.scenario_path)
+            self._load_des(self.des_path)
 
-            path = self._manifest_model.get_value_as_string()
+            self.elapsed_seconds = 0.0
+            self.is_loaded = True
+            self.is_playing = False
 
-            if not os.path.isfile(path):
-                raise FileNotFoundError(f"Manifest not found: {path}")
+            self.player.update(0.0)
+            self._update_dashboard(0.0)
 
-            world = build_world_from_manifest(path)
-            self._set_status(f"Built and opened world:\n{world}")
+            self._ensure_timeline_subscription()
+
+            self.status_label.text = "Status: Loaded scenario + DES telemetry"
+            print("[LSP1 Pipeline] Loaded")
 
         except Exception as e:
-            self._set_status(f"ERROR building world:\n{e}")
-
-    def _on_validate(self):
-        try:
-            from .builder import validate_metadata
-
-            path = self._manifest_model.get_value_as_string()
-
-            if not os.path.isfile(path):
-                raise FileNotFoundError(f"Manifest not found: {path}")
-
-            report = validate_metadata(path)
-            self._set_status(report)
-
-        except Exception as e:
-            self._set_status(f"ERROR validating metadata:\n{e}")
-
-    def _on_load_scenario(self):
-        try:
-            path = self._scenario_model.get_value_as_string()
-
-            if not os.path.isfile(path):
-                raise FileNotFoundError(f"Scenario not found: {path}")
-
-            self._player.load(path)
-            self._playing = False
-            self._current_time = 0.0
-
-            self._scenario_duration = float(self._player.scenario.get("duration", 40.0))
-            self._time_model.set_value(0.0)
-
-            try:
-                self._time_drag.model.set_max(self._scenario_duration)
-            except Exception:
-                pass
-
-            self._player.update(0.0)
-
-            self._set_status(
-                f"Scenario loaded:\n{path}\n\n"
-                f"Duration: {self._scenario_duration:.2f}\n"
-                f"Waypoint root: {self._player.scenario.get('waypoint_root', '--')}\n\n"
-                f"Click Play, or drag time and click Apply Time."
-            )
-
-        except Exception as e:
-            self._set_status(f"ERROR loading scenario:\n{e}")
+            self.status_label.text = f"Status: Load failed: {e}"
+            print("[LSP1 Pipeline] Load failed:", e)
 
     def _on_play(self):
-        if not self._player or not self._player.scenario:
-            self._set_status("Load a scenario first.")
-            return
+        if not self.is_loaded:
+            self._on_load()
 
-        self._playing = True
-        self._set_status(f"Playing scenario at t={self._current_time:.2f}")
+        self.is_playing = True
+
+        timeline = omni.timeline.get_timeline_interface()
+        timeline.play()
+
+        self.status_label.text = "Status: Playing"
 
     def _on_pause(self):
-        self._playing = False
-        self._set_status(f"Paused at t={self._current_time:.2f}")
+        self.is_playing = False
+
+        timeline = omni.timeline.get_timeline_interface()
+        timeline.pause()
+
+        self.status_label.text = "Status: Paused"
 
     def _on_reset(self):
-        if not self._player or not self._player.scenario:
-            self._set_status("Load a scenario first.")
+        self.elapsed_seconds = 0.0
+
+        if self.is_loaded:
+            self.player.load(self.scenario_path)
+            self.player.update(0.0)
+            self._update_dashboard(0.0)
+
+        self.status_label.text = "Status: Reset"
+
+    def _ensure_timeline_subscription(self):
+        if self.timeline_sub:
             return
 
-        try:
-            self._playing = False
-            self._current_time = 0.0
-            self._time_model.set_value(0.0)
-            self._player.load(self._scenario_model.get_value_as_string())
-            self._player.update(0.0)
-            self._set_status("Scenario reset to t=0.00")
+        timeline = omni.timeline.get_timeline_interface()
+        stream = timeline.get_timeline_event_stream()
 
-        except Exception as e:
-            self._set_status(f"ERROR resetting scenario:\n{e}")
+        self.timeline_sub = stream.create_subscription_to_pop_by_type(
+            omni.timeline.TimelineEventType.CURRENT_TIME_TICKED,
+            self._on_timeline_tick
+        )
 
-    def _on_apply_time(self):
-        try:
-            if not self._player or not self._player.scenario:
-                self._set_status("Load a scenario first.")
-                return
-
-            self._playing = False
-            self._current_time = float(self._time_model.get_value_as_float())
-            self._current_time = max(0.0, min(self._current_time, self._scenario_duration))
-
-            self._player.load(self._scenario_model.get_value_as_string())
-            self._player.update(self._current_time)
-
-            self._set_status(f"Applied scenario time: {self._current_time:.2f}")
-
-        except Exception as e:
-            self._set_status(f"ERROR applying time:\n{e}")
-
-    def _on_update(self, e):
-        if not self._playing:
+    def _on_timeline_tick(self, event):
+        if not self.is_loaded or not self.is_playing:
             return
 
-        if not self._player or not self._player.scenario:
+        dt = event.payload.get("dt", 0.0)
+        self.elapsed_seconds += dt
+
+        sim_hours = self.elapsed_seconds / SECONDS_PER_SIM_HOUR
+
+        self.player.update(sim_hours)
+        self._update_dashboard(sim_hours)
+
+    def _load_des(self, path):
+        with open(path, "r", encoding="utf-8") as f:
+            self.des_data = json.load(f)
+
+        # Supports two formats:
+        # 1. {"timeseries": {"ISRU_PLANT.lox_stored_kg": [...]}}
+        # 2. {"0.0": {...}, "1.0": {...}}
+        if "timeseries" in self.des_data:
+            self.des_mode = "timeseries"
+        else:
+            self.des_mode = "snapshots"
+            self.des_times = []
+            for k in self.des_data.keys():
+                try:
+                    self.des_times.append(float(k))
+                except Exception:
+                    pass
+            self.des_times = sorted(self.des_times)
+
+    def _update_dashboard(self, sim_hours):
+        self.time_label.text = f"Sim Time: {sim_hours:.2f} hr"
+
+        self._update_rover_progress()
+        self._update_des_values(sim_hours)
+
+    def _update_rover_progress(self):
+        try:
+            state = self.player.state
+
+            rover_state = None
+            for actor_id, actor_state in state.items():
+                if "rover" in actor_id.lower() or "route_progress" in actor_state:
+                    rover_state = actor_state
+                    break
+
+            if rover_state and "route_progress" in rover_state:
+                pct = float(rover_state["route_progress"]) * 100.0
+                self.route_label.text = f"Rover Route Progress: {pct:.1f}%"
+            else:
+                self.route_label.text = "Rover Route Progress: --"
+
+        except Exception:
+            self.route_label.text = "Rover Route Progress: --"
+
+    def _update_des_values(self, sim_hours):
+        if not self.des_data:
             return
 
+        if self.des_mode == "timeseries":
+            self._update_from_timeseries(sim_hours)
+        else:
+            self._update_from_snapshots(sim_hours)
+
+    def _update_from_timeseries(self, sim_hours):
+        timeseries = self.des_data.get("timeseries", {})
+        playback_dt = float(self.des_data.get("playback_dt", 1.0))
+        idx = int(sim_hours / playback_dt)
+
+        def get_series_value(key):
+            series = timeseries.get(key)
+            if not series:
+                return None
+            safe_idx = max(0, min(idx, len(series) - 1))
+            return series[safe_idx]
+
+        plant_lox = get_series_value("ISRU_PLANT.lox_stored_kg")
+        depot_lox = get_series_value("LZ_ALPHA.lox_stored_kg")
+        rover_battery = get_series_value("Regolith Cargo Rover.battery_charge")
+        power = get_series_value("Solar_Power_System.current_power_output")
+
+        if plant_lox is not None:
+            self.lox_label.text = f"ISRU LOX Stored: {float(plant_lox):.1f} kg"
+        elif depot_lox is not None:
+            self.lox_label.text = f"Depot LOX Stored: {float(depot_lox):.1f} kg"
+        else:
+            self.lox_label.text = "LOX Stored: --"
+
+        if power is not None:
+            self.power_label.text = f"Power Output: {float(power):.1f}"
+        else:
+            self.power_label.text = "Power Output: --"
+
+        if rover_battery is not None:
+            self.rover_label.text = f"Rover Battery: {float(rover_battery):.1f}"
+        else:
+            self.rover_label.text = "Rover Battery: --"
+
+    def _update_from_snapshots(self, sim_hours):
+        if not self.des_times:
+            return
+
+        selected_time = self.des_times[0]
+        for t in self.des_times:
+            if t <= sim_hours:
+                selected_time = t
+            else:
+                break
+
+        snap = self.des_data.get(str(selected_time), {})
+
         try:
-            dt_seconds = 0.0
+            self.lox_label.text = f"LOX Stored: {snap['ISRU_Plant']['LOX_Stored']}"
+        except Exception:
+            self.lox_label.text = "LOX Stored: --"
 
-            if hasattr(e, "payload") and e.payload:
-                dt_seconds = float(e.payload.get("dt", 0.0))
+        try:
+            self.power_label.text = f"Power Output: {snap['Solar_Power_System']['current_power_output']}"
+        except Exception:
+            self.power_label.text = "Power Output: --"
 
-            playback_speed = float(self._player.scenario.get("playback_speed", 1.0))
-            self._current_time += dt_seconds * playback_speed
-
-            if self._current_time >= self._scenario_duration:
-                self._current_time = self._scenario_duration
-                self._playing = False
-
-            self._time_model.set_value(self._current_time)
-            self._player.update(self._current_time)
-
-            self._set_status(
-                f"Scenario time: {self._current_time:.2f} / {self._scenario_duration:.2f}"
-            )
-
-        except Exception as e:
-            self._playing = False
-            self._set_status(f"ERROR during playback:\n{e}")
+        try:
+            self.rover_label.text = f"Rover Battery: {snap['Regolith Cargo Rover']['battery_charge']}"
+        except Exception:
+            self.rover_label.text = "Rover Battery: --"
