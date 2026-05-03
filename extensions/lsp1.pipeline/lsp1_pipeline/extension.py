@@ -368,10 +368,10 @@ class LSP1PipelineExtension(omni.ext.IExt):
 
 
 
-    def _make_waypoints_transparent(self):
+         def _make_waypoints_transparent(self):
         try:
             import omni.usd
-            from pxr import UsdShade, Sdf, Gf
+            from pxr import UsdShade, UsdGeom, Sdf, Gf
 
             stage = omni.usd.get_context().get_stage()
             if not stage:
@@ -387,8 +387,8 @@ class LSP1PipelineExtension(omni.ext.IExt):
                 Gf.Vec3f(0.2, 0.8, 1.0)
             )
 
-            # 🔥 transparency level (adjust here)
-            shader.CreateInput("opacity", Sdf.ValueTypeNames.Float).Set(0.1)
+            # Main transparency value
+            shader.CreateInput("opacity", Sdf.ValueTypeNames.Float).Set(0.08)
 
             material.CreateSurfaceOutput().ConnectToSource(
                 shader.ConnectableAPI(), "surface"
@@ -399,11 +399,25 @@ class LSP1PipelineExtension(omni.ext.IExt):
             for prim in stage.Traverse():
                 path = str(prim.GetPath())
 
-                if "/World/ConnectionWaypoints" in path and prim.GetTypeName() == "Mesh":
-                    UsdShade.MaterialBindingAPI(prim).Bind(material)
+                if "/World/ConnectionWaypoints" not in path:
+                    continue
+
+                # Apply to any drawable geometry, not just Mesh
+                if prim.IsA(UsdGeom.Gprim):
+                    gprim = UsdGeom.Gprim(prim)
+
+                    # This directly authors USD display opacity
+                    gprim.CreateDisplayOpacityAttr().Set([0.08])
+
+                    # Bind material strongly
+                    UsdShade.MaterialBindingAPI(prim).Bind(
+                        material,
+                        UsdShade.Tokens.strongerThanDescendants
+                    )
+
                     count += 1
 
-            print(f"[LSP1 Pipeline] Applied transparent material to {count} waypoints")
+            print(f"[LSP1 Pipeline] Made {count} waypoint geometry prims transparent")
 
         except Exception as e:
             print("[LSP1 Pipeline] Waypoint transparency failed:", repr(e))
