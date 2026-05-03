@@ -6,7 +6,7 @@ class LSP1PipelineExtension(omni.ext.IExt):
 
     def on_startup(self, ext_id):
         print("[LSP1 Pipeline] MINIMAL EXTENSION STARTED")
-        self.window = ui.Window("LSP1 Pipeline - Minimal Test", width=300, height=120)
+        self.window = ui.Window("LSP1 Pipeline - Minimal Test", width=360, height=120)
 
         with self.window.frame:
             with ui.VStack():
