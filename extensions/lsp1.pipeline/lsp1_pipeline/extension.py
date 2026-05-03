@@ -4,6 +4,8 @@ import json
 import omni.ext
 import omni.ui as ui
 import omni.timeline
+import omni.usd
+from pxr import UsdGeom, Gf
 
 
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -128,7 +130,8 @@ class LSP1PipelineExtension(omni.ext.IExt):
         if not snap:
             return
 
-        self._update_dashboard(snap)
+    self._apply_des_positions(snap)
+    self._update_dashboard(snap)
 
     def _get_des_duration_seconds(self):
         if not self.des_data:
@@ -168,6 +171,48 @@ class LSP1PipelineExtension(omni.ext.IExt):
         key = str(int(selected))
         return log.get(key)
 
+
+
+
+
+        
+        def _apply_des_positions(self, snap):
+        stage = omni.usd.get_context().get_stage()
+        if not stage:
+            return
+
+        actor_map = {
+            "Regolith Cargo Rover 1": "/World/RegolithRover",
+            "LOX Cargo Rover": "/World/LOXRover",
+        }
+
+        for actor_name, prim_path in actor_map.items():
+            actor_data = snap.get(actor_name)
+            if not actor_data:
+                continue
+
+            pos = actor_data.get("position_m")
+            if not pos:
+                continue
+
+            prim = stage.GetPrimAtPath(prim_path)
+            if not prim or not prim.IsValid():
+                print(f"Missing prim: {prim_path}")
+                continue
+
+            xformable = UsdGeom.Xformable(prim)
+
+            translate_op = None
+            for op in xformable.GetOrderedXformOps():
+                if op.GetOpType() == UsdGeom.XformOp.TypeTranslate:
+                    translate_op = op
+                    break
+
+            if translate_op is None:
+                translate_op = xformable.AddTranslateOp()
+
+            translate_op.Set(Gf.Vec3d(pos[0], pos[1], pos[2]))
+    
     def _update_dashboard(self, snap):
         regolith = snap.get("Regolith Cargo Rover 1", {})
         lox = snap.get("LOX Cargo Rover", {})
