@@ -86,7 +86,6 @@ class LSP1PipelineExtension(omni.ext.IExt):
             self.route_cache = {}
 
             self._ensure_timeline()
-            self._create_lro_surface_plane()
             self._update_all(0.0)
             
 
