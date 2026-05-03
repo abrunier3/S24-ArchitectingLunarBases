@@ -1,17 +1,14 @@
 {
-  "written_at": 1777827484741,
+  "written_at": 1777827552592,
   "active_nodes": [
-    "LSP1",
-    "HabitationModule",
     "ISRUPlant",
     "LaunchLandingZone",
     "PropellantDepot",
     "LOXRover",
-    "SolarPowerSystem",
     "RegolithRover",
     "ISRUExcavation"
   ],
-  "active_nodes_count": 9,
+  "active_nodes_count": 6,
   "connections": [
     {
       "name": "ISRUPlantToRover",
@@ -40,58 +37,6 @@
       }
     },
     {
-      "name": "PowerGenToPropellant",
-      "type": "PowerMovement",
-      "flow": "Power",
-      "from": {
-        "part": "SolarPowerSystem",
-        "port": "Power_PowerPortOutToPropellantDepot"
-      },
-      "to": {
-        "part": "PropellantDepot",
-        "port": "Propellant_PowerPortIn"
-      }
-    },
-    {
-      "name": "PowerGenToISRUPlant",
-      "type": "PowerMovement",
-      "flow": "Power",
-      "from": {
-        "part": "SolarPowerSystem",
-        "port": "Power_PowerPortOutToISRUPlant"
-      },
-      "to": {
-        "part": "ISRUPlant",
-        "port": "ISRU_PowerPortIn"
-      }
-    },
-    {
-      "name": "PowerGenToHabMod",
-      "type": "PowerMovement",
-      "flow": "Power",
-      "from": {
-        "part": "SolarPowerSystem",
-        "port": "Power_PowerPortOutToHabitationModule"
-      },
-      "to": {
-        "part": "HabitationModule",
-        "port": "Habitation_PowerPortIn"
-      }
-    },
-    {
-      "name": "PowerGenToLaunch",
-      "type": "PowerMovement",
-      "flow": "Power",
-      "from": {
-        "part": "SolarPowerSystem",
-        "port": "Power_PowerPortOutToLaunchLandingZone"
-      },
-      "to": {
-        "part": "LaunchLandingZone",
-        "port": "LaunchZone_PowerPortIn"
-      }
-    },
-    {
       "name": "ISRUExcavationToRegolithRover",
       "type": "RegolithMovement",
       "flow": "Regolith",
@@ -116,98 +61,9 @@
         "part": "ISRUPlant",
         "port": "ISRU_RegolithPortIn"
       }
-    },
-    {
-      "name": "PowerGenToISRUExcavation",
-      "type": "PowerMovement",
-      "flow": "Power",
-      "from": {
-        "part": "SolarPowerSystem",
-        "port": "Power_PowerPortOutToISRUExcavation"
-      },
-      "to": {
-        "part": "ISRUExcavation",
-        "port": "Excavation_PowerPortIn"
-      }
     }
   ],
   "parts": {
-    "LSP1": {
-      "id": "urn:S24_PIPELINE:part:LSP1:001",
-      "type": "Part",
-      "dimensions": {
-        "size_m": {
-          "length": 1000.0,
-          "width": 1000.0,
-          "height": 500.0
-        },
-        "metersPerUnit": 1,
-        "upAxis": "Z"
-      },
-      "transform": {
-        "position_m": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "rotation_deg": [
-          0.0,
-          0.0,
-          0.0
-        ]
-      },
-      "attributes": {
-        "missionDuration": 9.0
-      },
-      "materialRef": null,
-      "ports": [],
-      "metadata": {}
-    },
-    "HabitationModule": {
-      "id": "urn:S24_PIPELINE:part:HabitationModule:001",
-      "type": "Part",
-      "dimensions": {
-        "size_m": {
-          "length": 20.0,
-          "width": 10.0,
-          "height": 8.0
-        },
-        "metersPerUnit": 1,
-        "upAxis": "Z"
-      },
-      "transform": {
-        "position_m": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "rotation_deg": [
-          0.0,
-          0.0,
-          0.0
-        ]
-      },
-      "attributes": {
-        "constantPowerRate": 5.0,
-        "totalEnergyConsumed": 0.0,
-        "HabitationModule_volume_m3": 1600.0
-      },
-      "materialRef": null,
-      "ports": [
-        {
-          "name": "Habitation_PowerPortIn",
-          "direction": [
-            "in"
-          ],
-          "items": [
-            "PowerIn"
-          ]
-        }
-      ],
-      "metadata": {
-        "geometryRef": "assets/geom/HabitationModule_geom.usda"
-      }
-    },
     "ISRUPlant": {
       "id": "urn:S24_PIPELINE:part:ISRUPlant:001",
       "type": "Part",
@@ -434,92 +290,6 @@
       ],
       "metadata": {
         "geometryRef": "assets/geom/Rover_geom.usda"
-      }
-    },
-    "SolarPowerSystem": {
-      "id": "urn:S24_PIPELINE:part:SolarPowerSystem:001",
-      "type": "Part",
-      "dimensions": {
-        "size_m": {
-          "length": 25.0,
-          "width": 25.0,
-          "height": 4.0
-        },
-        "metersPerUnit": 1,
-        "upAxis": "Z"
-      },
-      "transform": {
-        "position_m": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "rotation_deg": [
-          0.0,
-          0.0,
-          0.0
-        ]
-      },
-      "attributes": {
-        "powerOutput": 100.0,
-        "powerDegradationFactor": 1.0,
-        "batteryCapacity": 500.0,
-        "batteryDegradationFactor": 1.0,
-        "batteryCharge": 500.0,
-        "totalEnergyGenerated": 0.0,
-        "totalEnergyFromBattery": 0.0,
-        "SolarPowerSystem_volume_m3": 2500.0
-      },
-      "materialRef": null,
-      "ports": [
-        {
-          "name": "Power_PowerPortOutToPropellantDepot",
-          "direction": [
-            "out"
-          ],
-          "items": [
-            "PowerOut"
-          ]
-        },
-        {
-          "name": "Power_PowerPortOutToISRUPlant",
-          "direction": [
-            "out"
-          ],
-          "items": [
-            "PowerOut"
-          ]
-        },
-        {
-          "name": "Power_PowerPortOutToHabitationModule",
-          "direction": [
-            "out"
-          ],
-          "items": [
-            "PowerOut"
-          ]
-        },
-        {
-          "name": "Power_PowerPortOutToLaunchLandingZone",
-          "direction": [
-            "out"
-          ],
-          "items": [
-            "PowerOut"
-          ]
-        },
-        {
-          "name": "Power_PowerPortOutToISRUExcavation",
-          "direction": [
-            "out"
-          ],
-          "items": [
-            "PowerOut"
-          ]
-        }
-      ],
-      "metadata": {
-        "geometryRef": "assets/geom/SolarPowerSystem_geom.usda"
       }
     },
     "RegolithRover": {
