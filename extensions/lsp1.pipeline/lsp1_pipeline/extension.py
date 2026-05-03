@@ -368,7 +368,7 @@ class LSP1PipelineExtension(omni.ext.IExt):
 
 
 
-         def _make_waypoints_transparent(self):
+    def _make_waypoints_transparent(self):
         try:
             import omni.usd
             from pxr import UsdShade, UsdGeom, Sdf, Gf
@@ -386,9 +386,7 @@ class LSP1PipelineExtension(omni.ext.IExt):
             shader.CreateInput("diffuseColor", Sdf.ValueTypeNames.Color3f).Set(
                 Gf.Vec3f(0.2, 0.8, 1.0)
             )
-
-            # Main transparency value
-            shader.CreateInput("opacity", Sdf.ValueTypeNames.Float).Set(0.05)
+            shader.CreateInput("opacity", Sdf.ValueTypeNames.Float).Set(0.08)
 
             material.CreateSurfaceOutput().ConnectToSource(
                 shader.ConnectableAPI(), "surface"
@@ -402,26 +400,21 @@ class LSP1PipelineExtension(omni.ext.IExt):
                 if "/World/ConnectionWaypoints" not in path:
                     continue
 
-                # Apply to any drawable geometry, not just Mesh
                 if prim.IsA(UsdGeom.Gprim):
                     gprim = UsdGeom.Gprim(prim)
 
-                    # This directly authors USD display opacity
-                    gprim.CreateDisplayOpacityAttr().Set([0.05])
+                    # Direct display opacity.
+                    gprim.CreateDisplayOpacityAttr().Set([0.08])
 
-                    # Bind material strongly
-                    UsdShade.MaterialBindingAPI(prim).Bind(
-                        material,
-                        UsdShade.Tokens.strongerThanDescendants
-                    )
+                    # Simple material bind, no binding-strength token.
+                    UsdShade.MaterialBindingAPI(prim).Bind(material)
 
                     count += 1
 
-            print(f"[LSP1 Pipeline] Made {count} waypoint geometry prims transparent")
+            print(f"[LSP1 Pipeline] Applied waypoint transparency to {count} prims")
 
         except Exception as e:
             print("[LSP1 Pipeline] Waypoint transparency failed:", repr(e))
-
 
     
     def _update_dashboard(self, snap):
