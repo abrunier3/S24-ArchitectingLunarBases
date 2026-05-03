@@ -1,37 +1,41 @@
 {
-  "manifest_type": "omni_rover_playback_manifest",
-  "version": "1.1",
+  "duration": 40,
   "time_units": "seconds_for_visualization",
-  "simulation_time_scale": {
-    "mode": "visualization_only",
-    "timeline_seconds_equal_des_seconds": true,
-    "physics_validated": false
-  },
-  "scene_units": "meters",
-  "interpolation": "linear_between_waypoints",
   "waypoint_root": "/World/ConnectionWaypoints",
-
-  "rovers": [
+  "actors": [
     {
-      "des_name": "Regolith Cargo Rover 1",
-      "usd_prim": "/World/RegolithRover",
-      "route": "ISRUExcavationToISRUPlant",
-      "start_time": 0,
-      "end_time": 20,
-      "cargo_type": "Regolith",
-      "load_kg_start": 4000,
-      "load_kg_end": 4000
+      "id": "RegolithRover",
+      "prim_path": "/World/RegolithRover"
     },
     {
-      "des_name": "LOX Cargo Rover",
-      "usd_prim": "/World/LOXRover",
-      "route": "ISRUPlantToPropellantDepot",
-      "start_time": 20,
-      "end_time": 40,
-      "cargo_type": "LOX",
-      "load_kg_start": 0,
-      "load_kg_end": 0,
-      "assumption": "LaunchLandingZone is treated as PropellantDepot"
+      "id": "LOXRover",
+      "prim_path": "/World/LOXRover"
+    }
+  ],
+  "events": [
+    {
+      "time": 0,
+      "type": "move_start",
+      "actor": "RegolithRover",
+      "route_id": "ISRUExcavationToISRUPlant"
+    },
+    {
+      "time": 20,
+      "type": "move_end",
+      "actor": "RegolithRover",
+      "route_id": "ISRUExcavationToISRUPlant"
+    },
+    {
+      "time": 20,
+      "type": "move_start",
+      "actor": "LOXRover",
+      "route_id": "ISRUPlantToPropellantDepot"
+    },
+    {
+      "time": 40,
+      "type": "move_end",
+      "actor": "LOXRover",
+      "route_id": "ISRUPlantToPropellantDepot"
     }
   ]
 }
