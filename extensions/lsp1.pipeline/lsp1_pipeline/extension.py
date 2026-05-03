@@ -86,7 +86,9 @@ class LSP1PipelineExtension(omni.ext.IExt):
             self.route_cache = {}
 
             self._ensure_timeline()
+            self._make_waypoints_transparent()
             self._update_all(0.0)
+            
 
             self.status.text = "Status: loaded DES + scene waypoints"
 
@@ -363,6 +365,51 @@ class LSP1PipelineExtension(omni.ext.IExt):
             p0[2] + (p1[2] - p0[2]) * local_t,
         ]
 
+
+
+
+    def _make_waypoints_transparent(self):
+        try:
+            import omni.usd
+            from pxr import UsdShade, Sdf, Gf
+
+            stage = omni.usd.get_context().get_stage()
+            if not stage:
+                return
+
+            mat_path = Sdf.Path("/World/WaypointTransparentMat")
+            material = UsdShade.Material.Define(stage, mat_path)
+
+            shader = UsdShade.Shader.Define(stage, mat_path.AppendPath("Shader"))
+            shader.CreateIdAttr("UsdPreviewSurface")
+
+            shader.CreateInput("diffuseColor", Sdf.ValueTypeNames.Color3f).Set(
+                Gf.Vec3f(0.2, 0.8, 1.0)
+            )
+
+            # 🔥 transparency level (adjust here)
+            shader.CreateInput("opacity", Sdf.ValueTypeNames.Float).Set(0.1)
+
+            material.CreateSurfaceOutput().ConnectToSource(
+                shader.ConnectableAPI(), "surface"
+            )
+
+            count = 0
+
+            for prim in stage.Traverse():
+                path = str(prim.GetPath())
+
+                if "/World/ConnectionWaypoints" in path and prim.GetTypeName() == "Mesh":
+                    UsdShade.MaterialBindingAPI(prim).Bind(material)
+                    count += 1
+
+            print(f"[LSP1 Pipeline] Applied transparent material to {count} waypoints")
+
+        except Exception as e:
+            print("[LSP1 Pipeline] Waypoint transparency failed:", repr(e))
+
+
+    
     def _update_dashboard(self, snap):
         regolith = snap.get("Regolith Cargo Rover 1", {})
         lox = snap.get("LOX Cargo Rover", {})
