@@ -19,6 +19,11 @@ DES_PATH = os.path.join(
 
 REPRESENTED_MISSION_HOURS = 40.0
 
+OFFSET_MAP = {
+    "Regolith Cargo Rover 1": [-1387.5, -932.5, 140],
+    "LOX Cargo Rover": [-4242.5, -117.5, 130],
+}
+
 
 class LSP1PipelineExtension(omni.ext.IExt):
 
@@ -192,6 +197,14 @@ class LSP1PipelineExtension(omni.ext.IExt):
                 if not pos:
                     continue
 
+                offset = OFFSET_MAP.get(actor_name, [0, 0, 0])
+
+                corrected_pos = [
+                    pos[0] + offset[0],
+                    pos[1] + offset[1],
+                    pos[2] + offset[2],
+                ]
+
                 prim = stage.GetPrimAtPath(prim_path)
                 if not prim or not prim.IsValid():
                     print(f"[LSP1 Pipeline] Missing prim: {prim_path}")
@@ -208,7 +221,13 @@ class LSP1PipelineExtension(omni.ext.IExt):
                 if translate_op is None:
                     translate_op = xformable.AddTranslateOp()
 
-                translate_op.Set(Gf.Vec3d(pos[0], pos[1], pos[2]))
+                translate_op.Set(
+                    Gf.Vec3d(
+                        corrected_pos[0],
+                        corrected_pos[1],
+                        corrected_pos[2]
+                    )
+                )
 
         except Exception as e:
             print("[LSP1 Pipeline] Position update failed:", repr(e))
