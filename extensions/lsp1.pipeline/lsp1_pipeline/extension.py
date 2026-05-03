@@ -4,9 +4,6 @@ import json
 import omni.ext
 import omni.ui as ui
 import omni.timeline
-import omni.usd
-
-from pxr import UsdGeom, Gf
 
 
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -20,50 +17,41 @@ DES_PATH = os.path.join(
     "modified_des.json"
 )
 
-# This means your 0–40 DES playback represents 40 mission hours.
-# Change this if the DES file represents a different total duration.
 REPRESENTED_MISSION_HOURS = 40.0
 
 
-def _apply_des_positions(self, snap):
-    stage = omni.usd.get_context().get_stage()
-    if not stage:
-        self.status.text = "Status: no USD stage open"
-        return
+class LSP1PipelineExtension(omni.ext.IExt):
 
-    actor_map = {
-        "Regolith Cargo Rover 1": "/World/RegolithRover",
-        "LOX Cargo Rover": "/World/LOXRover",
-    }
+    def on_startup(self, ext_id):
+        print("[LSP1 Pipeline] STARTUP")
 
-    for actor_name, prim_path in actor_map.items():
-        actor_data = snap.get(actor_name)
-        if not actor_data:
-            continue
+        self.timeline_sub = None
+        self.elapsed_seconds = 0.0
+        self.des_data = None
+        self.is_loaded = False
 
-        pos = actor_data.get("position_m")
-        if not pos:
-            continue
+        self.window = ui.Window("LSP1 Pipeline", width=520, height=400)
 
-        prim = stage.GetPrimAtPath(prim_path)
-        if not prim or not prim.IsValid():
-            print(f"[LSP1 Pipeline] Missing prim: {prim_path}")
-            continue
+        with self.window.frame:
+            with ui.VStack(spacing=8):
+                ui.Label("LSP1 Pipeline")
 
-        xformable = UsdGeom.Xformable(prim)
+                ui.Button("Load DES Playback", clicked_fn=self._load_all)
+                ui.Button("Play", clicked_fn=self._play)
+                ui.Button("Pause", clicked_fn=self._pause)
+                ui.Button("Reset", clicked_fn=self._reset)
 
-        translate_op = None
-        for op in xformable.GetOrderedXformOps():
-            if op.GetOpType() == UsdGeom.XformOp.TypeTranslate:
-                translate_op = op
-                break
+                self.status = ui.Label("Status: waiting")
+                self.time_label = ui.Label("Mission Time: --")
+                self.des_time_label = ui.Label("DES Playback Time: --")
 
-        if translate_op is None:
-            translate_op = xformable.AddTranslateOp()
+                ui.Separator()
 
-        translate_op.Set(Gf.Vec3d(pos[0], pos[1], pos[2]))
+                self.regolith_label = ui.Label("Regolith Rover: --")
+                self.regolith_load_label = ui.Label("Regolith Load: --")
 
-        print(f"[LSP1 Pipeline] {actor_name} -> {prim_path} position_m={pos}")
+                self.lox_label = ui.Label("LOX Rover: --")
+                self.lox_load_label = ui.Label("LOX Load: --")
 
     def _load_all(self):
         try:
@@ -80,7 +68,6 @@ def _apply_des_positions(self, snap):
             self._update_all(0.0)
 
             self.status.text = "Status: loaded modified_des.json"
-            print("[LSP1 Pipeline] Loaded modified_des.json")
 
         except Exception as e:
             self.status.text = f"Status: load failed: {e}"
@@ -123,9 +110,6 @@ def _apply_des_positions(self, snap):
         self.elapsed_seconds += dt
 
         des_duration = self._get_des_duration_seconds()
-
-        # This is the time inside the DES/log file.
-        # It stops at the final DES timestamp instead of running forever.
         des_time = min(self.elapsed_seconds, des_duration)
 
         self._update_all(des_time)
@@ -144,7 +128,6 @@ def _apply_des_positions(self, snap):
         if not snap:
             return
 
-        self._apply_des_positions(snap)
         self._update_dashboard(snap)
 
     def _get_des_duration_seconds(self):
@@ -185,45 +168,6 @@ def _apply_des_positions(self, snap):
         key = str(int(selected))
         return log.get(key)
 
-def _apply_des_positions(self, snap):
-    stage = omni.usd.get_context().get_stage()
-    if not stage:
-        self.status.text = "Status: no USD stage open"
-        return
-
-    actor_map = {
-        "Regolith Cargo Rover 1": "/World/RegolithRover",
-        "LOX Cargo Rover": "/World/LOXRover",
-    }
-
-    for actor_name, prim_path in actor_map.items():
-        actor_data = snap.get(actor_name)
-        if not actor_data:
-            continue
-
-        pos = actor_data.get("position_m")
-        if not pos:
-            continue
-
-        prim = stage.GetPrimAtPath(prim_path)
-        if not prim or not prim.IsValid():
-            print(f"[LSP1 Pipeline] Missing prim: {prim_path}")
-            continue
-
-        xformable = UsdGeom.Xformable(prim)
-
-        translate_op = None
-        for op in xformable.GetOrderedXformOps():
-            if op.GetOpType() == UsdGeom.XformOp.TypeTranslate:
-                translate_op = op
-                break
-
-        if translate_op is None:
-            translate_op = xformable.AddTranslateOp()
-
-        translate_op.Set(Gf.Vec3d(pos[0], pos[1], pos[2]))
-
-        print(f"[LSP1 Pipeline] Moved {actor_name} to {pos}")
     def _update_dashboard(self, snap):
         regolith = snap.get("Regolith Cargo Rover 1", {})
         lox = snap.get("LOX Cargo Rover", {})
