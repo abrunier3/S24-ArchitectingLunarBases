@@ -339,69 +339,74 @@ class LSP1PipelineExtension(omni.ext.IExt):
         try:
             import random
             import omni.usd
-            from pxr import UsdGeom, Gf
-    
+            from pxr import UsdGeom, Gf, Sdf
+
             stage = omni.usd.get_context().get_stage()
             if not stage:
                 return
-    
-            rock_root = "/World/Lunar_Rocks"
-    
-            # Clear old
-            old = stage.GetPrimAtPath(rock_root)
-            if old and old.IsValid():
-                stage.RemovePrim(rock_root)
-    
-            stage.DefinePrim(rock_root, "Xform")
-    
+
+            # Clear old rocks/prototypes
+            for path in [
+                "/World/Lunar_Rocks",
+                "/World/Lunar_Rock_Prototypes"
+            ]:
+                prim = stage.GetPrimAtPath(path)
+                if prim and prim.IsValid():
+                    stage.RemovePrim(path)
+
+            stage.DefinePrim("/World/Lunar_Rock_Prototypes", "Xform")
+
+            # One tiny cube prototype
+            proto_path = "/World/Lunar_Rock_Prototypes/RockProto"
+            proto = UsdGeom.Cube.Define(stage, proto_path)
+            proto.GetSizeAttr().Set(1.0)
+
+            gprim = UsdGeom.Gprim(proto.GetPrim())
+            gprim.CreateDisplayColorAttr().Set([Gf.Vec3f(0.22, 0.22, 0.22)])
+
+            # Hide prototype itself
+            UsdGeom.Imageable(proto.GetPrim()).MakeInvisible()
+
+            # Point instancer = many rocks, but only one prototype object
+            instancer_path = "/World/Lunar_Rocks"
+            instancer = UsdGeom.PointInstancer.Define(stage, instancer_path)
+
+            instancer.GetPrototypesRel().SetTargets([
+                Sdf.Path(proto_path)
+            ])
+
             random.seed(42)
-    
-            # 🔥 MUCH DENSER
-            NUM_ROCKS = 1800   # you can push to 3000 later
-    
+
+            NUM_ROCKS = 2500
+
+            positions = []
+            scales = []
+            proto_indices = []
+
             for i in range(NUM_ROCKS):
                 x = random.uniform(-2400, 2400)
                 y = random.uniform(-2400, 2400)
-    
-                # Keep your main traverse somewhat clear
+
+                # Keep rover route mostly clear
                 if -1300 < x < 300 and 50 < y < 1000:
                     continue
-    
-                # Small height so they sit on surface
-                z = 0.3
-    
-                # 🔥 1/100th SCALE (pebbles / regolith chunks)
-                sx = random.uniform(0.3, 1.2)
-                sy = random.uniform(0.3, 1.2)
-                sz = random.uniform(0.1, 0.5)
-    
-                rock_path = f"{rock_root}/Rock_{i:04d}"
-    
-                rock = UsdGeom.Cube.Define(stage, rock_path)
-                rock.GetSizeAttr().Set(1.0)
-    
-                xform = UsdGeom.Xformable(rock.GetPrim())
-    
-                xform.AddTranslateOp().Set(Gf.Vec3d(x, y, z))
-    
-                # slight randomness so they don’t look uniform
-                xform.AddRotateXYZOp().Set(Gf.Vec3f(
-                    random.uniform(-15, 15),
-                    random.uniform(-15, 15),
-                    random.uniform(0, 360)
+
+                positions.append(Gf.Vec3f(x, y, 0.15))
+
+                scales.append(Gf.Vec3f(
+                    random.uniform(0.25, 0.9),
+                    random.uniform(0.25, 0.9),
+                    random.uniform(0.05, 0.25)
                 ))
-    
-                xform.AddScaleOp().Set(Gf.Vec3f(sx, sy, sz))
-    
-                # Dark lunar regolith tones
-                shade = random.uniform(0.15, 0.32)
-                gprim = UsdGeom.Gprim(rock.GetPrim())
-                gprim.CreateDisplayColorAttr().Set([
-                    Gf.Vec3f(shade, shade, shade)
-                ])
-    
-            print(f"[LSP1 Pipeline] SUCCESS: scattered {NUM_ROCKS} small regolith rocks.")
-    
+
+                proto_indices.append(0)
+
+            instancer.GetPositionsAttr().Set(positions)
+            instancer.GetScalesAttr().Set(scales)
+            instancer.GetProtoIndicesAttr().Set(proto_indices)
+
+            print(f"[LSP1 Pipeline] SUCCESS: instanced {len(positions)} small lunar rocks.")
+
         except Exception as e:
             print("[LSP1 Pipeline] Rock scatter failed:", repr(e))
       
