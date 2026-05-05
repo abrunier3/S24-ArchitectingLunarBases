@@ -297,7 +297,7 @@ class LSP1PipelineExtension(omni.ext.IExt):
                 direction
             )
             
-            xformable.AddOrientOp().Set(rotation.GetQuat())
+            xformable.AddOrientOp().Set(Gf.Quatf(rotation.GetQuat()))
 
             # USD camera looks along local -Z by default.
             # No rotation = straight-down aerial view.
