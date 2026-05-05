@@ -363,7 +363,7 @@ class LSP1PipelineExtension(omni.ext.IExt):
             proto.GetSizeAttr().Set(1.0)
 
             proto_xform = UsdGeom.Xformable(proto.GetPrim())
-            proto_xform.AddTranslateOp().Set(Gf.Vec3d(0, 0, -10000))
+            proto_xform.AddTranslateOp().Set(Gf.Vec3d(0, 0, 0))
 
             gprim = UsdGeom.Gprim(proto.GetPrim())
             gprim.CreateDisplayColorAttr().Set([Gf.Vec3f(0.08, 0.08, 0.08)])
