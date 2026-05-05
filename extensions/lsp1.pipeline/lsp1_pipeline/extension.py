@@ -277,14 +277,27 @@ class LSP1PipelineExtension(omni.ext.IExt):
             # Put camera slightly behind and above rover
             cam_pos = Gf.Vec3d(
                 target_pos[0],
-                target_pos[1] - 200.0,   # behind
-                target_pos[2] + 80.0     # above
+                target_pos[1] - 250.0,   # behind
+                target_pos[2] + 60.0     # above
             )
             
             xformable.AddTranslateOp().Set(cam_pos)
             
-            # Slight downward tilt only
-            xformable.AddRotateXYZOp().Set(Gf.Vec3f(15.0, 0.0, 0.0))
+            # Aim camera at a point slightly ahead/above the rover
+            look_target = Gf.Vec3d(
+                target_pos[0],
+                target_pos[1] + 200.0,
+                target_pos[2] + 20.0
+            )
+            
+            direction = look_target - cam_pos
+            
+            rotation = Gf.Rotation(
+                Gf.Vec3d(0, 0, -1),
+                direction
+            )
+            
+            xformable.AddOrientOp().Set(rotation.GetQuat())
 
             # USD camera looks along local -Z by default.
             # No rotation = straight-down aerial view.
