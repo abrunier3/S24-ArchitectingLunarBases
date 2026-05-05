@@ -281,9 +281,6 @@ class LSP1PipelineExtension(omni.ext.IExt):
             plane.GetFaceVertexCountsAttr().Set([4])
             plane.GetFaceVertexIndicesAttr().Set([0, 1, 2, 3])
 
-            # Higher repeat = smaller/finer dust texture
-            TILE_REPEAT = 18.0
-
             st = UsdGeom.PrimvarsAPI(plane).CreatePrimvar(
                 "st",
                 Sdf.ValueTypeNames.TexCoord2fArray,
@@ -292,9 +289,9 @@ class LSP1PipelineExtension(omni.ext.IExt):
 
             st.Set([
                 Gf.Vec2f(0.0, 0.0),
-                Gf.Vec2f(TILE_REPEAT, 0.0),
-                Gf.Vec2f(TILE_REPEAT, TILE_REPEAT),
-                Gf.Vec2f(0.0, TILE_REPEAT),
+                Gf.Vec2f(1.0, 0.0),
+                Gf.Vec2f(1.0, 1.0),
+                Gf.Vec2f(0.0, 1.0),
             ])
 
             mat_path = "/World/Looks/LRO_Surface_Material"
@@ -324,8 +321,7 @@ class LSP1PipelineExtension(omni.ext.IExt):
                 "rgb"
             )
 
-            shader.CreateInput("roughness", Sdf.ValueTypeNames.Float).Set(0.95)
-            shader.CreateInput("metallic", Sdf.ValueTypeNames.Float).Set(0.0)
+            shader.CreateInput("roughness", Sdf.ValueTypeNames.Float).Set(0.85)
 
             material.CreateSurfaceOutput().ConnectToSource(
                 shader.ConnectableAPI(),
@@ -334,7 +330,7 @@ class LSP1PipelineExtension(omni.ext.IExt):
 
             UsdShade.MaterialBindingAPI(plane.GetPrim()).Bind(material)
 
-            print("[LSP1 Pipeline] SUCCESS: dusty tiled PNG surface created.")
+            print("[LSP1 Pipeline] SUCCESS: PNG plane restored.")
 
         except Exception as e:
             print("[LSP1 Pipeline] LRO surface plane failed:", repr(e))
