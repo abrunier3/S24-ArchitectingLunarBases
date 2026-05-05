@@ -23,7 +23,8 @@ DES_PATH = os.path.join(
 WAYPOINTS_PATH = os.path.join(
     REPO_ROOT,
     "clean_database",
-    "scenes",
+    "usd",
+    "waypoints",
     "waypoints.usda"
 )
 
