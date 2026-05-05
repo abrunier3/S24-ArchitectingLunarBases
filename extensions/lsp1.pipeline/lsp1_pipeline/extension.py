@@ -373,7 +373,7 @@ class LSP1PipelineExtension(omni.ext.IExt):
 
             random.seed(123)
 
-            NUM_SPECKS = 12000
+            NUM_SPECKS = 30000
 
             positions = []
             scales = []
@@ -389,7 +389,7 @@ class LSP1PipelineExtension(omni.ext.IExt):
                 positions.append(Gf.Vec3f(x, y, z))
 
                 # Very small, flat dust specks
-                s = random.uniform(0.015, .06)
+                s = random.uniform(0.015, 0.06)
                 scales.append(Gf.Vec3f(
                     s,
                     random.uniform(0.01, 0.05),
