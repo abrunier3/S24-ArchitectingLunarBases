@@ -18,8 +18,6 @@ DES_PATH = os.path.join(
     "modified_des.json"
 )
 
-# Waypoints file location
-# If your file name is not exactly "waypoints.usda", change only the last line.
 WAYPOINTS_PATH = os.path.join(
     REPO_ROOT,
     "clean_database",
@@ -27,10 +25,15 @@ WAYPOINTS_PATH = os.path.join(
     "waypoints.usda"
 )
 
-REPRESENTED_MISSION_HOURS = 40.0
+PNG_PATH = os.path.join(
+    REPO_ROOT,
+    "clean_database",
+    "scenes",
+    "Lunar_surface_v1.png"
+)
 
+REPRESENTED_MISSION_HOURS = 40.0
 FOLLOW_CAMERA_PATH = "/World/DES_FollowCamera"
-CAMERA_HEIGHT = 180.0
 
 ROUTE_MAP = {
     "Regolith Cargo Rover 1": {
@@ -64,10 +67,8 @@ class LSP1PipelineExtension(omni.ext.IExt):
         with self.window.frame:
             with ui.VStack(spacing=8):
                 ui.Label("LSP1 Pipeline")
-
                 self.status = ui.Label("Status: waiting")
 
-                ui.Button("Pull GitHub", clicked_fn=self._pull_github)
                 ui.Button("Load DES Playback", clicked_fn=self._load_all)
                 ui.Button("Play", clicked_fn=self._play)
                 ui.Button("Pause", clicked_fn=self._pause)
@@ -81,117 +82,35 @@ class LSP1PipelineExtension(omni.ext.IExt):
 
                 self.regolith_label = ui.Label("Regolith Rover: --")
                 self.regolith_load_label = ui.Label("Regolith Load: --")
-
                 self.lox_label = ui.Label("LOX Rover: --")
                 self.lox_load_label = ui.Label("LOX Load: --")
 
-    def _pull_github(self):
-        log_path = os.path.join(REPO_ROOT, "lsp1_git_pull_log.txt")
-
-        def log(message):
-            try:
-                with open(log_path, "a", encoding="utf-8") as f:
-                    f.write(str(message) + "\n")
-            except Exception:
-                pass
-            print(message)
-
+    def _load_all(self):
         try:
-            self.status.text = "Status: pulling GitHub..."
+            print("[LSP1 Pipeline] REPO_ROOT:", REPO_ROOT)
+            print("[LSP1 Pipeline] DES PATH:", DES_PATH)
+            print("[LSP1 Pipeline] DES exists:", os.path.exists(DES_PATH))
+            print("[LSP1 Pipeline] PNG PATH:", PNG_PATH)
+            print("[LSP1 Pipeline] PNG exists:", os.path.exists(PNG_PATH))
 
-            log("\n========== LSP1 Git Pull ==========")
-            log(f"REPO_ROOT = {REPO_ROOT}")
-            log(f"Log path = {log_path}")
+            with open(DES_PATH, "r", encoding="utf-8") as f:
+                self.des_data = json.load(f)
 
-            git_folder = os.path.join(REPO_ROOT, ".git")
-            log(f".git exists = {os.path.exists(git_folder)}")
+            self._load_waypoints_under_world()
+            self._create_lro_surface_plane()
 
-            if not os.path.exists(git_folder):
-                self.status.text = "Status: Git pull failed. Not a git repo."
-                log(f"ERROR: .git folder not found at {git_folder}")
-                return
+            self.elapsed_seconds = 0.0
+            self.is_loaded = True
+            self.route_cache = {}
 
-            git_candidates = [
-                "git",
-                r"C:\Program Files\Git\cmd\git.exe",
-                r"C:\Program Files\Git\bin\git.exe",
-                r"C:\Program Files (x86)\Git\cmd\git.exe",
-            ]
+            self._ensure_timeline()
+            self._update_all(0.0)
 
-            git_exe = None
-
-            for candidate in git_candidates:
-                try:
-                    test = subprocess.run(
-                        [candidate, "--version"],
-                        capture_output=True,
-                        text=True,
-                        shell=False
-                    )
-
-                    log(f"Testing git candidate: {candidate}")
-                    log(f"Return code: {test.returncode}")
-                    log(f"STDOUT: {test.stdout}")
-                    log(f"STDERR: {test.stderr}")
-
-                    if test.returncode == 0:
-                        git_exe = candidate
-                        break
-
-                except Exception as e:
-                    log(f"Candidate failed: {candidate}")
-                    log(repr(e))
-
-            if git_exe is None:
-                self.status.text = "Status: Git not found by Omniverse."
-                log("ERROR: Git executable not found.")
-                return
-
-            log(f"Using git executable: {git_exe}")
-
-            status_result = subprocess.run(
-                [git_exe, "-C", REPO_ROOT, "status", "--short", "--branch"],
-                capture_output=True,
-                text=True,
-                shell=False
-            )
-
-            log("----- git status -----")
-            log(f"Return code: {status_result.returncode}")
-            log(f"STDOUT:\n{status_result.stdout}")
-            log(f"STDERR:\n{status_result.stderr}")
-
-            pull_result = subprocess.run(
-                [git_exe, "-C", REPO_ROOT, "pull", "origin", "main"],
-                capture_output=True,
-                text=True,
-                shell=False
-            )
-
-            log("----- git pull -----")
-            log(f"Return code: {pull_result.returncode}")
-            log(f"STDOUT:\n{pull_result.stdout}")
-            log(f"STDERR:\n{pull_result.stderr}")
-
-            if pull_result.returncode == 0:
-                self.status.text = "Status: Git pull successful."
-            else:
-                self.status.text = "Status: Git pull failed. See lsp1_git_pull_log.txt."
+            self.status.text = "Status: loaded DES + waypoints + PNG plane"
 
         except Exception as e:
-            try:
-                self.status.text = f"Status: Git pull error: {e}"
-            except Exception:
-                pass
-
-            try:
-                with open(log_path, "a", encoding="utf-8") as f:
-                    f.write("EXCEPTION:\n")
-                    f.write(repr(e) + "\n")
-            except Exception:
-                pass
-
-            print("[LSP1 Pipeline] Git pull error:", repr(e))
+            self.status.text = f"Status: load failed: {e}"
+            print("[LSP1 Pipeline] Load failed:", repr(e))
 
     def _load_waypoints_under_world(self):
         try:
@@ -200,100 +119,154 @@ class LSP1PipelineExtension(omni.ext.IExt):
 
             stage = omni.usd.get_context().get_stage()
             if not stage:
-                print("[LSP1 Pipeline] No stage open. Cannot load waypoints.")
+                print("[LSP1 Pipeline] No stage open.")
                 return
 
             print("[LSP1 Pipeline] WAYPOINTS PATH:", WAYPOINTS_PATH)
             print("[LSP1 Pipeline] WAYPOINTS exists:", os.path.exists(WAYPOINTS_PATH))
 
             if not os.path.exists(WAYPOINTS_PATH):
-                print("[LSP1 Pipeline] Waypoints file not found:", WAYPOINTS_PATH)
+                print("[LSP1 Pipeline] Waypoints file not found.")
                 return
 
-            # Ensure /World exists in the currently opened scene.
-            world_prim = stage.GetPrimAtPath("/World")
-            if not world_prim or not world_prim.IsValid():
+            if not stage.GetPrimAtPath("/World").IsValid():
                 stage.DefinePrim("/World", "Xform")
-                print("[LSP1 Pipeline] Created /World prim.")
 
-            # Open the waypoint USD separately to find the internal ConnectionWaypoints prim.
             waypoint_stage = Usd.Stage.Open(WAYPOINTS_PATH)
             if not waypoint_stage:
-                print("[LSP1 Pipeline] Could not open waypoints USD file.")
+                print("[LSP1 Pipeline] Could not open waypoints file.")
                 return
 
             source_prim_path = None
-
             for prim in waypoint_stage.Traverse():
                 if prim.GetName() == "ConnectionWaypoints":
                     source_prim_path = str(prim.GetPath())
                     break
 
-            if source_prim_path is None:
-                print("[LSP1 Pipeline] Could not find ConnectionWaypoints inside waypoints file.")
+            if not source_prim_path:
+                print("[LSP1 Pipeline] No ConnectionWaypoints found in file.")
                 return
 
-            print("[LSP1 Pipeline] Found ConnectionWaypoints in file at:", source_prim_path)
-
             target_path = "/World/ConnectionWaypoints"
-            asset_path = WAYPOINTS_PATH.replace("\\", "/")
-
-            # Define target prim directly under /World.
             target_prim = stage.GetPrimAtPath(target_path)
-            if not target_prim or not target_prim.IsValid():
+
+            if not target_prim.IsValid():
                 target_prim = stage.DefinePrim(target_path, "Xform")
-                print("[LSP1 Pipeline] Created target prim:", target_path)
 
-            # Clear existing references to avoid duplicates when Load is clicked multiple times.
             target_prim.GetReferences().ClearReferences()
-
-            # Add reference to only the ConnectionWaypoints prim inside the waypoints file.
             target_prim.GetReferences().AddReference(
-                asset_path,
+                WAYPOINTS_PATH.replace("\\", "/"),
                 source_prim_path
             )
 
-            print(
-                "[LSP1 Pipeline] Loaded waypoints reference:",
-                asset_path,
-                "prim:",
-                source_prim_path,
-                "->",
-                target_path
+            print("[LSP1 Pipeline] Loaded waypoints into", target_path)
+
+        except Exception as e:
+            print("[LSP1 Pipeline] Waypoint load failed:", repr(e))
+
+    def _create_lro_surface_plane(self):
+        try:
+            import omni.usd
+            from pxr import UsdGeom, UsdShade, Sdf, Gf
+
+            stage = omni.usd.get_context().get_stage()
+            if not stage:
+                print("[LSP1 Pipeline] No stage found.")
+                return
+
+            local_png = PNG_PATH.replace("\\", "/")
+
+            print("[LSP1 Pipeline] PNG local path:", local_png)
+            print("[LSP1 Pipeline] PNG exists:", os.path.exists(local_png))
+
+            if not os.path.exists(local_png):
+                print("[LSP1 Pipeline] STOP: PNG does not exist.")
+                return
+
+            # Clean old terrain/material
+            for path in [
+                "/World/LRO_Surface_Plane",
+                "/World/Looks/LRO_Surface_Material"
+            ]:
+                prim = stage.GetPrimAtPath(path)
+                if prim and prim.IsValid():
+                    stage.RemovePrim(path)
+                    print("[LSP1 Pipeline] Removed old:", path)
+
+            if not stage.GetPrimAtPath("/World").IsValid():
+                stage.DefinePrim("/World", "Xform")
+
+            stage.DefinePrim("/World/Looks", "Scope")
+
+            # Plane geometry
+            plane_path = "/World/LRO_Surface_Plane"
+            plane = UsdGeom.Mesh.Define(stage, plane_path)
+
+            plane.GetPointsAttr().Set([
+                Gf.Vec3f(-2500, -2500, -30),
+                Gf.Vec3f(2500, -2500, -30),
+                Gf.Vec3f(2500, 2500, -30),
+                Gf.Vec3f(-2500, 2500, -30),
+            ])
+
+            plane.GetFaceVertexCountsAttr().Set([4])
+            plane.GetFaceVertexIndicesAttr().Set([0, 1, 2, 3])
+
+            # UV coordinates
+            st = UsdGeom.PrimvarsAPI(plane).CreatePrimvar(
+                "st",
+                Sdf.ValueTypeNames.TexCoord2fArray,
+                UsdGeom.Tokens.faceVarying
             )
 
+            st.Set([
+                Gf.Vec2f(0.0, 0.0),
+                Gf.Vec2f(1.0, 0.0),
+                Gf.Vec2f(1.0, 1.0),
+                Gf.Vec2f(0.0, 1.0),
+            ])
+
+            # Material
+            mat_path = "/World/Looks/LRO_Surface_Material"
+            material = UsdShade.Material.Define(stage, mat_path)
+
+            shader = UsdShade.Shader.Define(stage, mat_path + "/PreviewSurface")
+            shader.CreateIdAttr("UsdPreviewSurface")
+
+            texture = UsdShade.Shader.Define(stage, mat_path + "/Texture")
+            texture.CreateIdAttr("UsdUVTexture")
+            texture.CreateInput("file", Sdf.ValueTypeNames.Asset).Set(local_png)
+            texture.CreateInput("sourceColorSpace", Sdf.ValueTypeNames.Token).Set("sRGB")
+            texture.CreateOutput("rgb", Sdf.ValueTypeNames.Float3)
+
+            st_reader = UsdShade.Shader.Define(stage, mat_path + "/PrimvarReader_st")
+            st_reader.CreateIdAttr("UsdPrimvarReader_float2")
+            st_reader.CreateInput("varname", Sdf.ValueTypeNames.Token).Set("st")
+            st_reader.CreateOutput("result", Sdf.ValueTypeNames.Float2)
+
+            texture.CreateInput("st", Sdf.ValueTypeNames.Float2).ConnectToSource(
+                st_reader.ConnectableAPI(),
+                "result"
+            )
+
+            shader.CreateInput("diffuseColor", Sdf.ValueTypeNames.Color3f).ConnectToSource(
+                texture.ConnectableAPI(),
+                "rgb"
+            )
+
+            shader.CreateInput("roughness", Sdf.ValueTypeNames.Float).Set(0.85)
+
+            material.CreateSurfaceOutput().ConnectToSource(
+                shader.ConnectableAPI(),
+                "surface"
+            )
+
+            UsdShade.MaterialBindingAPI(plane.GetPrim()).Bind(material)
+
+            print("[LSP1 Pipeline] SUCCESS: PNG plane created at /World/LRO_Surface_Plane")
+
         except Exception as e:
-            print("[LSP1 Pipeline] Failed to load waypoints under /World:", repr(e))
-    
-    def _load_all(self):
-        try:
-            print("[LSP1 Pipeline] DES PATH:", DES_PATH)
-            print("[LSP1 Pipeline] DES exists:", os.path.exists(DES_PATH))
-    
-            with open(DES_PATH, "r", encoding="utf-8") as f:
-                self.des_data = json.load(f)
-    
-            self._load_waypoints_under_world()
-    
-            # ✅ ADD THIS LINE
-            #self._create_lro_surface_plane()
-    
-            self.elapsed_seconds = 0.0
-            self.is_loaded = True
-            self.route_cache = {}
-    
-            self._ensure_timeline()
-            self._update_all(0.0)
-    
-            self.status.text = "Status: loaded DES + scene waypoints"
-    
-        except Exception as e:
-            self.status.text = f"Status: load failed: {e}"
-            print("[LSP1 Pipeline] Load failed:", repr(e))
-
-
-
-    
+            print("[LSP1 Pipeline] LRO surface plane failed:", repr(e))
 
     def _play(self):
         if not self.is_loaded:
@@ -366,7 +339,6 @@ class LSP1PipelineExtension(omni.ext.IExt):
 
     def _des_time_to_mission_hours(self, des_time):
         des_duration = self._get_des_duration_seconds()
-
         if des_duration <= 0:
             return 0.0
 
@@ -389,8 +361,7 @@ class LSP1PipelineExtension(omni.ext.IExt):
             else:
                 break
 
-        key = str(int(selected))
-        return log.get(key)
+        return log.get(str(int(selected)))
 
     def _apply_waypoint_motion(self, des_time):
         try:
@@ -409,7 +380,7 @@ class LSP1PipelineExtension(omni.ext.IExt):
 
                 points = self._get_route_points(stage, route_path)
                 if not points:
-                    print(f"[LSP1 Pipeline] No waypoint points found for {route_path}")
+                    print("[LSP1 Pipeline] No waypoint points found for", route_path)
                     continue
 
                 if des_time <= start_time:
@@ -422,7 +393,7 @@ class LSP1PipelineExtension(omni.ext.IExt):
 
                 prim = stage.GetPrimAtPath(prim_path)
                 if not prim or not prim.IsValid():
-                    print(f"[LSP1 Pipeline] Missing rover prim: {prim_path}")
+                    print("[LSP1 Pipeline] Missing rover prim:", prim_path)
                     continue
 
                 xformable = UsdGeom.Xformable(prim)
@@ -448,7 +419,6 @@ class LSP1PipelineExtension(omni.ext.IExt):
 
             stage = omni.usd.get_context().get_stage()
             if not stage:
-                print("[LSP1 Pipeline] No stage for camera")
                 return
 
             if des_time < 20.0:
@@ -460,7 +430,6 @@ class LSP1PipelineExtension(omni.ext.IExt):
 
             target_prim = stage.GetPrimAtPath(target_path)
             if not target_prim or not target_prim.IsValid():
-                print("[LSP1 Pipeline] Missing camera target:", target_path)
                 self.camera_label.text = f"Camera: missing {target_path}"
                 return
 
@@ -487,14 +456,8 @@ class LSP1PipelineExtension(omni.ext.IExt):
 
             self.camera_label.text = f"Camera: following {target_name}"
 
-            print(f"[LSP1 Pipeline] Camera updated at {cam_pos}")
-
         except Exception as e:
             print("[LSP1 Pipeline] Follow camera failed:", repr(e))
-            try:
-                self.camera_label.text = f"Camera failed: {e}"
-            except Exception:
-                pass
 
     def _get_route_points(self, stage, route_path):
         if route_path in self.route_cache:
@@ -505,7 +468,7 @@ class LSP1PipelineExtension(omni.ext.IExt):
 
             route_prim = stage.GetPrimAtPath(route_path)
             if not route_prim or not route_prim.IsValid():
-                print(f"[LSP1 Pipeline] Missing route prim: {route_path}")
+                print("[LSP1 Pipeline] Missing route prim:", route_path)
                 self.route_cache[route_path] = []
                 return []
 
@@ -526,7 +489,7 @@ class LSP1PipelineExtension(omni.ext.IExt):
                 points.append([pos[0], pos[1], pos[2]])
 
             self.route_cache[route_path] = points
-            print(f"[LSP1 Pipeline] Cached {len(points)} waypoints for {route_path}")
+            print("[LSP1 Pipeline] Cached", len(points), "waypoints for", route_path)
 
             return points
 
@@ -558,174 +521,15 @@ class LSP1PipelineExtension(omni.ext.IExt):
             p0[2] + (p1[2] - p0[2]) * local_t,
         ]
 
-    def _make_waypoints_transparent(self):
-        try:
-            import omni.usd
-            from pxr import UsdShade, UsdGeom, Sdf, Gf
-
-            stage = omni.usd.get_context().get_stage()
-            if not stage:
-                return
-
-            mat_path = Sdf.Path("/World/WaypointTransparentMat")
-            material = UsdShade.Material.Define(stage, mat_path)
-
-            shader = UsdShade.Shader.Define(stage, mat_path.AppendPath("Shader"))
-            shader.CreateIdAttr("UsdPreviewSurface")
-
-            shader.CreateInput("diffuseColor", Sdf.ValueTypeNames.Color3f).Set(
-                Gf.Vec3f(0.2, 0.8, 1.0)
-            )
-            shader.CreateInput("opacity", Sdf.ValueTypeNames.Float).Set(0.08)
-
-            material.CreateSurfaceOutput().ConnectToSource(
-                shader.ConnectableAPI(), "surface"
-            )
-
-            count = 0
-
-            for prim in stage.Traverse():
-                path = str(prim.GetPath())
-
-                if "/World/ConnectionWaypoints" not in path:
-                    continue
-
-                if prim.IsA(UsdGeom.Gprim):
-                    gprim = UsdGeom.Gprim(prim)
-                    gprim.CreateDisplayOpacityAttr().Set([0.08])
-                    UsdShade.MaterialBindingAPI(prim).Bind(material)
-                    count += 1
-
-            print(f"[LSP1 Pipeline] Applied waypoint transparency to {count} prims")
-
-        except Exception as e:
-            print("[LSP1 Pipeline] Waypoint transparency failed:", repr(e))
-
-
-    def _create_lro_surface_plane(self):
-        try:
-            import os
-            import omni.usd
-            from pxr import UsdGeom, UsdShade, Sdf, Gf
-
-            stage = omni.usd.get_context().get_stage()
-            if not stage:
-                print("[LSP1 Pipeline] No stage found.")
-                return
-
-            local_texture_path = os.path.join(
-                REPO_ROOT,
-                "clean_database",
-                "scenes",
-                "Lunar_surface_v1.png"
-            ).replace("\\", "/")
-
-            print("[LSP1 Pipeline] PNG path:", local_texture_path)
-            print("[LSP1 Pipeline] PNG exists:", os.path.exists(local_texture_path))
-
-            if not os.path.exists(local_texture_path):
-                print("[LSP1 Pipeline] STOP: PNG does not exist.")
-                return
-
-            # Clean old broken versions
-            for p in [
-                "/World/LRO_Surface_Plane",
-                "/World/Looks/LRO_Surface_Material"
-            ]:
-                prim = stage.GetPrimAtPath(p)
-                if prim and prim.IsValid():
-                    stage.RemovePrim(p)
-                    print("[LSP1 Pipeline] Removed old:", p)
-
-            stage.DefinePrim("/World/Looks", "Scope")
-
-            # Create plane
-            plane_path = "/World/LRO_Surface_Plane"
-            plane = UsdGeom.Mesh.Define(stage, plane_path)
-
-            plane.GetPointsAttr().Set([
-                Gf.Vec3f(-2500, -2500, -30),
-                Gf.Vec3f(2500, -2500, -30),
-                Gf.Vec3f(2500, 2500, -30),
-                Gf.Vec3f(-2500, 2500, -30),
-            ])
-
-            plane.GetFaceVertexCountsAttr().Set([4])
-            plane.GetFaceVertexIndicesAttr().Set([0, 1, 2, 3])
-
-            # Required UVs
-            st = UsdGeom.PrimvarsAPI(plane).CreatePrimvar(
-                "st",
-                Sdf.ValueTypeNames.TexCoord2fArray,
-                UsdGeom.Tokens.faceVarying
-            )
-            st.Set([
-                Gf.Vec2f(0, 0),
-                Gf.Vec2f(1, 0),
-                Gf.Vec2f(1, 1),
-                Gf.Vec2f(0, 1),
-            ])
-
-            # Material
-            mat_path = "/World/Looks/LRO_Surface_Material"
-            material = UsdShade.Material.Define(stage, mat_path)
-
-            shader = UsdShade.Shader.Define(stage, mat_path + "/PreviewSurface")
-            shader.CreateIdAttr("UsdPreviewSurface")
-
-            texture = UsdShade.Shader.Define(stage, mat_path + "/Texture")
-            texture.CreateIdAttr("UsdUVTexture")
-            texture.CreateInput("file", Sdf.ValueTypeNames.Asset).Set(local_texture_path)
-            texture.CreateInput("sourceColorSpace", Sdf.ValueTypeNames.Token).Set("sRGB")
-            texture.CreateOutput("rgb", Sdf.ValueTypeNames.Float3)
-
-            st_reader = UsdShade.Shader.Define(stage, mat_path + "/PrimvarReader_st")
-            st_reader.CreateIdAttr("UsdPrimvarReader_float2")
-            st_reader.CreateInput("varname", Sdf.ValueTypeNames.Token).Set("st")
-            st_reader.CreateOutput("result", Sdf.ValueTypeNames.Float2)
-
-            texture.CreateInput("st", Sdf.ValueTypeNames.Float2).ConnectToSource(
-                st_reader.ConnectableAPI(),
-                "result"
-            )
-
-            shader.CreateInput("diffuseColor", Sdf.ValueTypeNames.Color3f).ConnectToSource(
-                texture.ConnectableAPI(),
-                "rgb"
-            )
-
-            shader.CreateInput("roughness", Sdf.ValueTypeNames.Float).Set(0.85)
-
-            material.CreateSurfaceOutput().ConnectToSource(
-                shader.ConnectableAPI(),
-                "surface"
-            )
-
-            UsdShade.MaterialBindingAPI(plane.GetPrim()).Bind(material)
-
-            print("[LSP1 Pipeline] SUCCESS: PNG plane created and material bound.")
-
-        except Exception as e:
-            print("[LSP1 Pipeline] LRO surface plane failed:", repr(e))
-
-
-
-    
     def _update_dashboard(self, snap):
         regolith = snap.get("Regolith Cargo Rover 1", {})
         lox = snap.get("LOX Cargo Rover", {})
 
-        regolith_state = regolith.get("state", "--")
-        regolith_load = regolith.get("current_load", "--")
+        self.regolith_label.text = f"Regolith Rover: {regolith.get('state', '--')}"
+        self.regolith_load_label.text = f"Regolith Load: {regolith.get('current_load', '--')} kg"
 
-        lox_state = lox.get("state", "--")
-        lox_load = lox.get("current_load", "--")
-
-        self.regolith_label.text = f"Regolith Rover: {regolith_state}"
-        self.regolith_load_label.text = f"Regolith Load: {regolith_load} kg"
-
-        self.lox_label.text = f"LOX Rover: {lox_state}"
-        self.lox_load_label.text = f"LOX Load: {lox_load} kg"
+        self.lox_label.text = f"LOX Rover: {lox.get('state', '--')}"
+        self.lox_load_label.text = f"LOX Load: {lox.get('current_load', '--')} kg"
 
     def on_shutdown(self):
         print("[LSP1 Pipeline] SHUTDOWN")
