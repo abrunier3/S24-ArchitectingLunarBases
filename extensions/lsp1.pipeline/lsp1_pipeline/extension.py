@@ -276,7 +276,7 @@ class LSP1PipelineExtension(omni.ext.IExt):
             self._load_waypoints_under_world()
     
             # ✅ ADD THIS LINE
-            self._create_lro_surface_plane()
+            #self._create_lro_surface_plane()
     
             self.elapsed_seconds = 0.0
             self.is_loaded = True
