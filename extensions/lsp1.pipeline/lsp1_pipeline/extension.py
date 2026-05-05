@@ -620,21 +620,27 @@ class LSP1PipelineExtension(omni.ext.IExt):
                 "Lunar_surface_v1.png"
             ).replace("\\", "/")
 
-            print("[LSP1 Pipeline] Texture local path:", local_texture_path)
-            print("[LSP1 Pipeline] Texture exists:", os.path.exists(local_texture_path))
+            print("[LSP1 Pipeline] PNG path:", local_texture_path)
+            print("[LSP1 Pipeline] PNG exists:", os.path.exists(local_texture_path))
 
             if not os.path.exists(local_texture_path):
-                print("[LSP1 Pipeline] STOP: texture file not found.")
+                print("[LSP1 Pipeline] STOP: PNG does not exist.")
                 return
 
-            # For now, make the plane only. No material. This prevents pink/red shader failure.
+            # Clean old broken versions
+            for p in [
+                "/World/LRO_Surface_Plane",
+                "/World/Looks/LRO_Surface_Material"
+            ]:
+                prim = stage.GetPrimAtPath(p)
+                if prim and prim.IsValid():
+                    stage.RemovePrim(p)
+                    print("[LSP1 Pipeline] Removed old:", p)
+
+            stage.DefinePrim("/World/Looks", "Scope")
+
+            # Create plane
             plane_path = "/World/LRO_Surface_Plane"
-
-            old_plane = stage.GetPrimAtPath(plane_path)
-            if old_plane and old_plane.IsValid():
-                stage.RemovePrim(plane_path)
-                print("[LSP1 Pipeline] Removed old LRO plane.")
-
             plane = UsdGeom.Mesh.Define(stage, plane_path)
 
             plane.GetPointsAttr().Set([
@@ -647,16 +653,60 @@ class LSP1PipelineExtension(omni.ext.IExt):
             plane.GetFaceVertexCountsAttr().Set([4])
             plane.GetFaceVertexIndicesAttr().Set([0, 1, 2, 3])
 
-            # Give it a simple neutral display color so the extension does not break.
-            gprim = UsdGeom.Gprim(plane.GetPrim())
-            gprim.CreateDisplayColorAttr().Set([Gf.Vec3f(0.35, 0.35, 0.35)])
+            # Required UVs
+            st = UsdGeom.PrimvarsAPI(plane).CreatePrimvar(
+                "st",
+                Sdf.ValueTypeNames.TexCoord2fArray,
+                UsdGeom.Tokens.faceVarying
+            )
+            st.Set([
+                Gf.Vec2f(0, 0),
+                Gf.Vec2f(1, 0),
+                Gf.Vec2f(1, 1),
+                Gf.Vec2f(0, 1),
+            ])
 
-            print("[LSP1 Pipeline] SUCCESS: created safe gray LRO surface plane.")
+            # Material
+            mat_path = "/World/Looks/LRO_Surface_Material"
+            material = UsdShade.Material.Define(stage, mat_path)
+
+            shader = UsdShade.Shader.Define(stage, mat_path + "/PreviewSurface")
+            shader.CreateIdAttr("UsdPreviewSurface")
+
+            texture = UsdShade.Shader.Define(stage, mat_path + "/Texture")
+            texture.CreateIdAttr("UsdUVTexture")
+            texture.CreateInput("file", Sdf.ValueTypeNames.Asset).Set(local_texture_path)
+            texture.CreateInput("sourceColorSpace", Sdf.ValueTypeNames.Token).Set("sRGB")
+            texture.CreateOutput("rgb", Sdf.ValueTypeNames.Float3)
+
+            st_reader = UsdShade.Shader.Define(stage, mat_path + "/PrimvarReader_st")
+            st_reader.CreateIdAttr("UsdPrimvarReader_float2")
+            st_reader.CreateInput("varname", Sdf.ValueTypeNames.Token).Set("st")
+            st_reader.CreateOutput("result", Sdf.ValueTypeNames.Float2)
+
+            texture.CreateInput("st", Sdf.ValueTypeNames.Float2).ConnectToSource(
+                st_reader.ConnectableAPI(),
+                "result"
+            )
+
+            shader.CreateInput("diffuseColor", Sdf.ValueTypeNames.Color3f).ConnectToSource(
+                texture.ConnectableAPI(),
+                "rgb"
+            )
+
+            shader.CreateInput("roughness", Sdf.ValueTypeNames.Float).Set(0.85)
+
+            material.CreateSurfaceOutput().ConnectToSource(
+                shader.ConnectableAPI(),
+                "surface"
+            )
+
+            UsdShade.MaterialBindingAPI(plane.GetPrim()).Bind(material)
+
+            print("[LSP1 Pipeline] SUCCESS: PNG plane created and material bound.")
 
         except Exception as e:
             print("[LSP1 Pipeline] LRO surface plane failed:", repr(e))
-
-
 
 
 
