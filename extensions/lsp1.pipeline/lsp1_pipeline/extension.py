@@ -264,29 +264,36 @@ class LSP1PipelineExtension(omni.ext.IExt):
 
         except Exception as e:
             print("[LSP1 Pipeline] Failed to load waypoints under /World:", repr(e))
-
+    
     def _load_all(self):
         try:
             print("[LSP1 Pipeline] DES PATH:", DES_PATH)
             print("[LSP1 Pipeline] DES exists:", os.path.exists(DES_PATH))
-
+    
             with open(DES_PATH, "r", encoding="utf-8") as f:
                 self.des_data = json.load(f)
-
+    
             self._load_waypoints_under_world()
-
+    
+            # ✅ ADD THIS LINE
+            self._create_lro_surface_plane()
+    
             self.elapsed_seconds = 0.0
             self.is_loaded = True
             self.route_cache = {}
-
+    
             self._ensure_timeline()
             self._update_all(0.0)
-
+    
             self.status.text = "Status: loaded DES + scene waypoints"
-
+    
         except Exception as e:
             self.status.text = f"Status: load failed: {e}"
             print("[LSP1 Pipeline] Load failed:", repr(e))
+
+
+
+    
 
     def _play(self):
         if not self.is_loaded:
