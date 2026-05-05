@@ -29,7 +29,7 @@ PNG_PATH = os.path.join(
     REPO_ROOT,
     "clean_database",
     "scenes",
-    "Lunar_surface_v1.png"
+    "Lunar_surface_v2.png"
 )
 
 REPRESENTED_MISSION_HOURS = 40.0
