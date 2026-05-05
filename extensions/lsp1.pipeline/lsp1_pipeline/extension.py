@@ -276,9 +276,9 @@ class LSP1PipelineExtension(omni.ext.IExt):
             # Offset camera behind + above rover
             # Put camera slightly behind and above rover
             cam_pos = Gf.Vec3d(
-                target_pos[0],
-                target_pos[1] - 250.0,   # behind
-                target_pos[2] + 60.0     # above
+                target_pos[0] - 90.0,
+                target_pos[1] - 90.0,   # behind
+                target_pos[2] + 30.0     # above
             )
             
             xformable.AddTranslateOp().Set(cam_pos)
@@ -286,8 +286,8 @@ class LSP1PipelineExtension(omni.ext.IExt):
             # Aim camera at a point slightly ahead/above the rover
             look_target = Gf.Vec3d(
                 target_pos[0],
-                target_pos[1] + 150.0,
-                target_pos[2] + 30.0
+                target_pos[1] ,
+                target_pos[2] + 15.0
             )
             
             direction = look_target - cam_pos
