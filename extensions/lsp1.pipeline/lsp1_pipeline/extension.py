@@ -443,8 +443,8 @@ class LSP1PipelineExtension(omni.ext.IExt):
             xformable.ClearXformOpOrder()
 
             cam_pos = Gf.Vec3d(
-                target_pos[0] + 120.0,
-                target_pos[1] - 120.0,
+                target_pos[0] + 90.0,
+                target_pos[1] + 10.0,
                 target_pos[2] + 120.0
             )
 
