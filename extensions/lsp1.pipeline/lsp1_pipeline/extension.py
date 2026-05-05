@@ -347,6 +347,63 @@ class LSP1PipelineExtension(omni.ext.IExt):
         except Exception as e:
             print("[LSP1 Pipeline] LRO surface plane failed:", repr(e))
 
+
+    def _add_lunar_mountains(self):
+        try:
+            import random
+            import omni.usd
+            from pxr import UsdGeom, Gf
+
+            stage = omni.usd.get_context().get_stage()
+            if not stage:
+                return
+
+            root = "/World/Lunar_Distant_Mountains"
+            old = stage.GetPrimAtPath(root)
+            if old and old.IsValid():
+                stage.RemovePrim(root)
+
+            stage.DefinePrim(root, "Xform")
+            random.seed(99)
+
+            start_x = -3500
+            y = 3200
+            z = 0
+
+            for i in range(18):
+                x0 = start_x + i * 420
+                width = random.uniform(350, 650)
+                height = random.uniform(250, 900)
+                depth = random.uniform(80, 180)
+
+                mesh_path = f"{root}/Mountain_{i:02d}"
+                mesh = UsdGeom.Mesh.Define(stage, mesh_path)
+
+                mesh.GetPointsAttr().Set([
+                    Gf.Vec3f(x0, y, z),
+                    Gf.Vec3f(x0 + width / 2, y, z + height),
+                    Gf.Vec3f(x0 + width, y, z),
+                    Gf.Vec3f(x0 + width / 2, y + depth, z),
+                ])
+
+                mesh.GetFaceVertexCountsAttr().Set([3, 3, 3, 3])
+                mesh.GetFaceVertexIndicesAttr().Set([
+                    0, 1, 3,
+                    1, 2, 3,
+                    2, 0, 3,
+                    0, 2, 1,
+                ])
+
+                shade = random.uniform(0.08, 0.18)
+                UsdGeom.Gprim(mesh.GetPrim()).CreateDisplayColorAttr().Set([
+                    Gf.Vec3f(shade, shade, shade)
+                ])
+
+            print("[LSP1 Pipeline] SUCCESS: added distant lunar mountains.")
+
+        except Exception as e:
+            print("[LSP1 Pipeline] Lunar mountains failed:", repr(e))
+
     def _play(self):
         if not self.is_loaded:
             self._load_all()
