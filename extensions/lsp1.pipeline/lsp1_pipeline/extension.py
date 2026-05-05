@@ -603,35 +603,45 @@ class LSP1PipelineExtension(omni.ext.IExt):
 
     def _create_lro_surface_plane(self):
         try:
+            import os
             import omni.usd
             from pxr import UsdGeom, UsdShade, Sdf, Gf
-
+    
             stage = omni.usd.get_context().get_stage()
             if not stage:
+                print("[LSP1 Pipeline] No stage found.")
                 return
-
+    
+            # ====== FIXED TEXTURE PATH ======
             texture_path = os.path.join(
                 REPO_ROOT,
                 "clean_database",
+                "usd",
                 "scenes",
                 "Lunar_surface_v1.png"
-            ).replace("\\", "/")
-
+            )
+    
+            texture_path = texture_path.replace("\\", "/")
+            texture_path = "file:///" + texture_path  # 🚀 CRITICAL FIX
+    
+            print("[LSP1 Pipeline] Texture path:", texture_path)
+            print("[LSP1 Pipeline] Exists:", os.path.exists(texture_path.replace("file:///", "")))
+    
+            # ====== CREATE PLANE ======
             plane_path = "/World/LRO_Surface_Plane"
-            mat_path = "/World/Looks/LRO_Surface_Material"
-
             plane = UsdGeom.Mesh.Define(stage, plane_path)
-
+    
             plane.GetPointsAttr().Set([
                 Gf.Vec3f(-2500, -2500, -25),
                 Gf.Vec3f(2500, -2500, -25),
                 Gf.Vec3f(2500, 2500, -25),
                 Gf.Vec3f(-2500, 2500, -25),
             ])
-
+    
             plane.GetFaceVertexCountsAttr().Set([4])
             plane.GetFaceVertexIndicesAttr().Set([0, 1, 2, 3])
-
+    
+            # UVs
             st = UsdGeom.PrimvarsAPI(plane).CreatePrimvar(
                 "st",
                 Sdf.ValueTypeNames.TexCoord2fArray,
@@ -643,36 +653,40 @@ class LSP1PipelineExtension(omni.ext.IExt):
                 Gf.Vec2f(1, 1),
                 Gf.Vec2f(0, 1),
             ])
-
+    
+            # ====== MATERIAL ======
+            mat_path = "/World/Looks/LRO_Surface_Material"
             material = UsdShade.Material.Define(stage, mat_path)
-
+    
             shader = UsdShade.Shader.Define(stage, mat_path + "/Shader")
             shader.CreateIdAttr("UsdPreviewSurface")
-
+    
             tex = UsdShade.Shader.Define(stage, mat_path + "/Texture")
             tex.CreateIdAttr("UsdUVTexture")
+    
             tex.CreateInput("file", Sdf.ValueTypeNames.Asset).Set(texture_path)
             tex.CreateInput("sourceColorSpace", Sdf.ValueTypeNames.Token).Set("sRGB")
             tex.CreateOutput("rgb", Sdf.ValueTypeNames.Float3)
-
+    
             shader.CreateInput("diffuseColor", Sdf.ValueTypeNames.Color3f).ConnectToSource(
                 tex.ConnectableAPI(),
                 "rgb"
             )
-
+    
             shader.CreateInput("roughness", Sdf.ValueTypeNames.Float).Set(0.9)
-
+    
             material.CreateSurfaceOutput().ConnectToSource(
                 shader.ConnectableAPI(),
                 "surface"
             )
-
+    
+            # Bind material
             UsdShade.MaterialBindingAPI(plane.GetPrim()).Bind(material)
-
-            print("[LSP1 Pipeline] LRO surface plane created:", texture_path)
-
+    
+            print("[LSP1 Pipeline] ✅ LRO surface plane created successfully")
+    
         except Exception as e:
-            print("[LSP1 Pipeline] LRO surface plane failed:", repr(e))
+            print("[LSP1 Pipeline] ❌ LRO surface plane failed:", repr(e))
 
     def _update_dashboard(self, snap):
         regolith = snap.get("Regolith Cargo Rover 1", {})
