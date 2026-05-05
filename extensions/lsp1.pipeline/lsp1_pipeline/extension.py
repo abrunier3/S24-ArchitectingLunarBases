@@ -1,7 +1,6 @@
 import os
 import json
 import subprocess
-import random
 
 import omni.ext
 import omni.ui as ui
@@ -168,7 +167,10 @@ class LSP1PipelineExtension(omni.ext.IExt):
 
             self._load_waypoints_under_world()
             self._create_lro_surface_plane()
-            self._scatter_lunar_rocks()
+
+            # Keep geometry dust/rocks OFF.
+            # The regolith detail now comes from Lunar_surface_v1.png.
+            # self._scatter_lunar_rocks()
 
             self.elapsed_seconds = 0.0
             self.is_loaded = True
@@ -177,7 +179,7 @@ class LSP1PipelineExtension(omni.ext.IExt):
             self._ensure_timeline()
             self._update_all(0.0)
 
-            self.status.text = "Status: loaded DES + waypoints + terrain + rocks"
+            self.status.text = "Status: loaded DES + waypoints + regolith texture"
 
         except Exception as e:
             self.status.text = f"Status: load failed: {e}"
@@ -281,6 +283,11 @@ class LSP1PipelineExtension(omni.ext.IExt):
             plane.GetFaceVertexCountsAttr().Set([4])
             plane.GetFaceVertexIndicesAttr().Set([0, 1, 2, 3])
 
+            # Higher number = smaller repeated dust detail.
+            # If the texture looks too repetitive, lower this to 12–18.
+            # If it looks too smooth, raise it to 30–40.
+            TILE_REPEAT = 25.0
+
             st = UsdGeom.PrimvarsAPI(plane).CreatePrimvar(
                 "st",
                 Sdf.ValueTypeNames.TexCoord2fArray,
@@ -289,9 +296,9 @@ class LSP1PipelineExtension(omni.ext.IExt):
 
             st.Set([
                 Gf.Vec2f(0.0, 0.0),
-                Gf.Vec2f(1.0, 0.0),
-                Gf.Vec2f(1.0, 1.0),
-                Gf.Vec2f(0.0, 1.0),
+                Gf.Vec2f(TILE_REPEAT, 0.0),
+                Gf.Vec2f(TILE_REPEAT, TILE_REPEAT),
+                Gf.Vec2f(0.0, TILE_REPEAT),
             ])
 
             mat_path = "/World/Looks/LRO_Surface_Material"
@@ -321,7 +328,7 @@ class LSP1PipelineExtension(omni.ext.IExt):
                 "rgb"
             )
 
-            shader.CreateInput("roughness", Sdf.ValueTypeNames.Float).Set(0.85)
+            shader.CreateInput("roughness", Sdf.ValueTypeNames.Float).Set(0.95)
 
             material.CreateSurfaceOutput().ConnectToSource(
                 shader.ConnectableAPI(),
@@ -330,83 +337,11 @@ class LSP1PipelineExtension(omni.ext.IExt):
 
             UsdShade.MaterialBindingAPI(plane.GetPrim()).Bind(material)
 
-            print("[LSP1 Pipeline] SUCCESS: PNG plane restored.")
+            print("[LSP1 Pipeline] SUCCESS: tiled regolith PNG plane created.")
 
         except Exception as e:
             print("[LSP1 Pipeline] LRO surface plane failed:", repr(e))
-            
 
-    def _scatter_lunar_rocks(self):
-        try:
-            import random
-            import omni.usd
-            from pxr import UsdGeom, Gf, Sdf
-
-            stage = omni.usd.get_context().get_stage()
-            if not stage:
-                return
-
-            # Clear old specks
-            for path in [
-                "/World/Lunar_Rocks",
-                "/World/Lunar_Rock_Prototypes"
-            ]:
-                prim = stage.GetPrimAtPath(path)
-                if prim and prim.IsValid():
-                    stage.RemovePrim(path)
-
-            stage.DefinePrim("/World/Lunar_Rock_Prototypes", "Xform")
-
-            # Tiny flat dark square prototype
-            proto_path = "/World/Lunar_Rock_Prototypes/DustSpeckProto"
-            proto = UsdGeom.Cube.Define(stage, proto_path)
-            proto.GetSizeAttr().Set(1.0)
-
-            proto_xform = UsdGeom.Xformable(proto.GetPrim())
-            proto_xform.AddTranslateOp().Set(Gf.Vec3d(0, 0, 0))
-
-            gprim = UsdGeom.Gprim(proto.GetPrim())
-            gprim.CreateDisplayColorAttr().Set([Gf.Vec3f(0.08, 0.08, 0.08)])
-
-            instancer = UsdGeom.PointInstancer.Define(stage, "/World/Lunar_Rocks")
-            instancer.GetPrototypesRel().SetTargets([Sdf.Path(proto_path)])
-
-            random.seed(123)
-
-            NUM_SPECKS = 30000
-
-            positions = []
-            scales = []
-            proto_indices = []
-
-            for i in range(NUM_SPECKS):
-                x = random.uniform(-2500, 2500)
-                y = random.uniform(-2500, 2500)
-
-                # Keep specks just above surface so they do not z-fight with PNG plane
-                z = 0.01
-
-                positions.append(Gf.Vec3f(x, y, z))
-
-                # Very small, flat dust specks
-                s = random.uniform(0.015, 0.06)
-                scales.append(Gf.Vec3f(
-                    s,
-                    random.uniform(0.01, 0.05),
-                    0.003
-                ))
-
-                proto_indices.append(0)
-
-            instancer.GetPositionsAttr().Set(positions)
-            instancer.GetScalesAttr().Set(scales)
-            instancer.GetProtoIndicesAttr().Set(proto_indices)
-
-            print(f"[LSP1 Pipeline] SUCCESS: added {len(positions)} tiny lunar dust specks.")
-
-        except Exception as e:
-            print("[LSP1 Pipeline] Dust speck scatter failed:", repr(e))
-      
     def _play(self):
         if not self.is_loaded:
             self._load_all()
