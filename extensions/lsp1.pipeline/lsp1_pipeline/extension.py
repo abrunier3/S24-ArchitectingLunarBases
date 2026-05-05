@@ -167,6 +167,7 @@ class LSP1PipelineExtension(omni.ext.IExt):
 
             self._load_waypoints_under_world()
             self._create_lro_surface_plane()
+            self._add_lunar_mountains()
 
             # Keep geometry dust/rocks OFF.
             # The regolith detail now comes from Lunar_surface_v1.png.
