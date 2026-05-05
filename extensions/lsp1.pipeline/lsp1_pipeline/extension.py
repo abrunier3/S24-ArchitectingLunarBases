@@ -335,58 +335,77 @@ class LSP1PipelineExtension(omni.ext.IExt):
         except Exception as e:
             print("[LSP1 Pipeline] LRO surface plane failed:", repr(e))
 
-    def _scatter_lunar_rocks(self):
+      def _scatter_lunar_rocks(self):
         try:
             import random
             import omni.usd
             from pxr import UsdGeom, Gf
-
+    
             stage = omni.usd.get_context().get_stage()
             if not stage:
                 return
-
+    
             rock_root = "/World/Lunar_Rocks"
+    
+            # Clear old
             old = stage.GetPrimAtPath(rock_root)
             if old and old.IsValid():
                 stage.RemovePrim(rock_root)
-
+    
             stage.DefinePrim(rock_root, "Xform")
-            random.seed(12)
-
-            for i in range(55):
-                x = random.uniform(-2200, 2200)
-                y = random.uniform(-2200, 2200)
-
+    
+            random.seed(42)
+    
+            # 🔥 MUCH DENSER
+            NUM_ROCKS = 1800   # you can push to 3000 later
+    
+            for i in range(NUM_ROCKS):
+                x = random.uniform(-2400, 2400)
+                y = random.uniform(-2400, 2400)
+    
+                # Keep your main traverse somewhat clear
                 if -1300 < x < 300 and 50 < y < 1000:
                     continue
-
-                z = 2.5
-                sx = random.uniform(10, 45)
-                sy = random.uniform(8, 35)
-                sz = random.uniform(4, 18)
-
-                rock_path = f"{rock_root}/Rock_{i:03d}"
-                cube = UsdGeom.Cube.Define(stage, rock_path)
-                cube.GetSizeAttr().Set(1.0)
-
-                xform = UsdGeom.Xformable(cube.GetPrim())
+    
+                # Small height so they sit on surface
+                z = 0.3
+    
+                # 🔥 1/100th SCALE (pebbles / regolith chunks)
+                sx = random.uniform(0.3, 1.2)
+                sy = random.uniform(0.3, 1.2)
+                sz = random.uniform(0.1, 0.5)
+    
+                rock_path = f"{rock_root}/Rock_{i:04d}"
+    
+                rock = UsdGeom.Cube.Define(stage, rock_path)
+                rock.GetSizeAttr().Set(1.0)
+    
+                xform = UsdGeom.Xformable(rock.GetPrim())
+    
                 xform.AddTranslateOp().Set(Gf.Vec3d(x, y, z))
+    
+                # slight randomness so they don’t look uniform
                 xform.AddRotateXYZOp().Set(Gf.Vec3f(
-                    random.uniform(-8, 8),
-                    random.uniform(-8, 8),
+                    random.uniform(-15, 15),
+                    random.uniform(-15, 15),
                     random.uniform(0, 360)
                 ))
+    
                 xform.AddScaleOp().Set(Gf.Vec3f(sx, sy, sz))
-
-                gprim = UsdGeom.Gprim(cube.GetPrim())
-                shade = random.uniform(0.18, 0.34)
-                gprim.CreateDisplayColorAttr().Set([Gf.Vec3f(shade, shade, shade)])
-
-            print("[LSP1 Pipeline] SUCCESS: scattered angular lunar rocks.")
-
+    
+                # Dark lunar regolith tones
+                shade = random.uniform(0.15, 0.32)
+                gprim = UsdGeom.Gprim(rock.GetPrim())
+                gprim.CreateDisplayColorAttr().Set([
+                    Gf.Vec3f(shade, shade, shade)
+                ])
+    
+            print(f"[LSP1 Pipeline] SUCCESS: scattered {NUM_ROCKS} small regolith rocks.")
+    
         except Exception as e:
             print("[LSP1 Pipeline] Rock scatter failed:", repr(e))
 
+      
     def _play(self):
         if not self.is_loaded:
             self._load_all()
