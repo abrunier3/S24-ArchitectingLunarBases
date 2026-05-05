@@ -241,64 +241,64 @@ class LSP1PipelineExtension(omni.ext.IExt):
         except Exception as e:
             print("[LSP1 Pipeline] Waypoint motion failed:", repr(e))
 
-def _update_follow_camera(self, des_time):
-    try:
-        import omni.usd
-        from pxr import UsdGeom, Gf
-
-        stage = omni.usd.get_context().get_stage()
-        if not stage:
-            print("[LSP1 Pipeline] No stage for camera")
-            return
-
-        # Choose which rover to follow
-        if des_time < 20.0:
-            target_path = "/World/RegolithRover"
-            target_name = "Regolith Rover"
-        else:
-            target_path = "/World/LOXRover"
-            target_name = "LOX Rover"
-
-        target_prim = stage.GetPrimAtPath(target_path)
-        if not target_prim or not target_prim.IsValid():
-            print("[LSP1 Pipeline] Missing camera target:", target_path)
-            self.camera_label.text = f"Camera: missing {target_path}"
-            return
-
-        cache = UsdGeom.XformCache()
-        target_pos = cache.GetLocalToWorldTransform(target_prim).ExtractTranslation()
-
-        # Create camera
-        camera = UsdGeom.Camera.Define(stage, "/World/DES_FollowCamera")
-        cam_prim = camera.GetPrim()
-
-        xformable = UsdGeom.Xformable(cam_prim)
-        xformable.ClearXformOpOrder()
-
-        # --- CAMERA POSITION (closer, 135-degree angle) ---
-        cam_pos = Gf.Vec3d(
-            target_pos[0] - 60.0,
-            target_pos[1] - 60.0,
-            target_pos[2] + 25.0
-        )
-
-        xformable.AddTranslateOp().Set(cam_pos)
-
-        # --- SIMPLE, STABLE ROTATION (no pxr math issues) ---
-        xformable.AddRotateXYZOp().Set(Gf.Vec3f(70.0, 0.0, -45.0))
-
-        # Camera settings
-        camera.GetFocalLengthAttr().Set(18.0)
-        camera.GetClippingRangeAttr().Set(Gf.Vec2f(0.1, 1000000.0))
-
-        self.camera_label.text = f"Camera: following {target_name}"
-
-    except Exception as e:
-        print("[LSP1 Pipeline] Follow camera failed:", repr(e))
+    def _update_follow_camera(self, des_time):
         try:
-            self.camera_label.text = f"Camera failed: {e}"
-        except Exception:
-            pass
+            import omni.usd
+            from pxr import UsdGeom, Gf
+    
+            stage = omni.usd.get_context().get_stage()
+            if not stage:
+                print("[LSP1 Pipeline] No stage for camera")
+                return
+    
+            # Choose which rover to follow
+            if des_time < 20.0:
+                target_path = "/World/RegolithRover"
+                target_name = "Regolith Rover"
+            else:
+                target_path = "/World/LOXRover"
+                target_name = "LOX Rover"
+    
+            target_prim = stage.GetPrimAtPath(target_path)
+            if not target_prim or not target_prim.IsValid():
+                print("[LSP1 Pipeline] Missing camera target:", target_path)
+                self.camera_label.text = f"Camera: missing {target_path}"
+                return
+    
+            cache = UsdGeom.XformCache()
+            target_pos = cache.GetLocalToWorldTransform(target_prim).ExtractTranslation()
+    
+            # Create camera
+            camera = UsdGeom.Camera.Define(stage, "/World/DES_FollowCamera")
+            cam_prim = camera.GetPrim()
+    
+            xformable = UsdGeom.Xformable(cam_prim)
+            xformable.ClearXformOpOrder()
+    
+            # --- CAMERA POSITION (closer, 135-degree angle) ---
+            cam_pos = Gf.Vec3d(
+                target_pos[0] - 60.0,
+                target_pos[1] - 60.0,
+                target_pos[2] + 25.0
+            )
+    
+            xformable.AddTranslateOp().Set(cam_pos)
+    
+            # --- SIMPLE, STABLE ROTATION (no pxr math issues) ---
+            xformable.AddRotateXYZOp().Set(Gf.Vec3f(70.0, 0.0, -45.0))
+    
+            # Camera settings
+            camera.GetFocalLengthAttr().Set(18.0)
+            camera.GetClippingRangeAttr().Set(Gf.Vec2f(0.1, 1000000.0))
+    
+            self.camera_label.text = f"Camera: following {target_name}"
+    
+        except Exception as e:
+            print("[LSP1 Pipeline] Follow camera failed:", repr(e))
+            try:
+                self.camera_label.text = f"Camera failed: {e}"
+            except Exception:
+                pass
 
 
 
