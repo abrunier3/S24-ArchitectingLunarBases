@@ -384,16 +384,16 @@ class LSP1PipelineExtension(omni.ext.IExt):
                 y = random.uniform(-2500, 2500)
 
                 # Keep specks just above surface so they do not z-fight with PNG plane
-                z = 0.04
+                z = 0.01
 
                 positions.append(Gf.Vec3f(x, y, z))
 
                 # Very small, flat dust specks
-                s = random.uniform(0.4, 1.8)
+                s = random.uniform(0.015, .06)
                 scales.append(Gf.Vec3f(
                     s,
-                    random.uniform(0.3, 1.4),
-                    0.015
+                    random.uniform(0.01, 0.05),
+                    0.003
                 ))
 
                 proto_indices.append(0)
