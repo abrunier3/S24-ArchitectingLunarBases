@@ -445,7 +445,7 @@ class LSP1PipelineExtension(omni.ext.IExt):
             cam_pos = Gf.Vec3d(
                 target_pos[0] + 40.0,
                 target_pos[1] + 10.0,
-                target_pos[2] + 40.0
+                target_pos[2] + 20.0
             )
 
             xformable.AddTranslateOp().Set(cam_pos)
