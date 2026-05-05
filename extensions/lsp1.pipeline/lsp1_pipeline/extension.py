@@ -449,9 +449,9 @@ class LSP1PipelineExtension(omni.ext.IExt):
             )
 
             xformable.AddTranslateOp().Set(cam_pos)
-            xformable.AddRotateXYZOp().Set(Gf.Vec3f(70.0, 0.0, 90.0))
+            xformable.AddRotateXYZOp().Set(Gf.Vec3f(70.0, 0.0, 120.0))
 
-            camera.GetFocalLengthAttr().Set(18.0)
+            camera.GetFocalLengthAttr().Set(10.0)
             camera.GetClippingRangeAttr().Set(Gf.Vec2f(0.1, 1000000.0))
 
             self.camera_label.text = f"Camera: following {target_name}"
