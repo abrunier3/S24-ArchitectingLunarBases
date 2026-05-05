@@ -612,22 +612,29 @@ class LSP1PipelineExtension(omni.ext.IExt):
                 print("[LSP1 Pipeline] No stage found.")
                 return
     
-            # ====== FIXED TEXTURE PATH ======
-            texture_path = os.path.join(
+            # CHANGE THIS ONLY IF YOUR PNG IS SOMEWHERE ELSE
+            local_texture_path = os.path.join(
                 REPO_ROOT,
                 "clean_database",
-                "usd",
                 "scenes",
                 "Lunar_surface_v1.png"
             )
     
-            texture_path = texture_path.replace("\\", "/")
-            texture_path = "file:///" + texture_path  # 🚀 CRITICAL FIX
+            local_texture_path = local_texture_path.replace("\\", "/")
+            texture_asset_path = "file:///" + local_texture_path
     
-            print("[LSP1 Pipeline] Texture path:", texture_path)
-            print("[LSP1 Pipeline] Exists:", os.path.exists(texture_path.replace("file:///", "")))
+            print("[LSP1 Pipeline] Local texture path:", local_texture_path)
+            print("[LSP1 Pipeline] Texture exists:", os.path.exists(local_texture_path))
+            print("[LSP1 Pipeline] Texture asset path:", texture_asset_path)
     
-            # ====== CREATE PLANE ======
+            if not os.path.exists(local_texture_path):
+                print("[LSP1 Pipeline] STOP: texture file does not exist.")
+                return
+    
+            # Make sure /World/Looks exists
+            stage.DefinePrim("/World/Looks", "Scope")
+    
+            # Create plane
             plane_path = "/World/LRO_Surface_Plane"
             plane = UsdGeom.Mesh.Define(stage, plane_path)
     
@@ -647,6 +654,7 @@ class LSP1PipelineExtension(omni.ext.IExt):
                 Sdf.ValueTypeNames.TexCoord2fArray,
                 UsdGeom.Tokens.varying
             )
+    
             st.Set([
                 Gf.Vec2f(0, 0),
                 Gf.Vec2f(1, 0),
@@ -654,40 +662,35 @@ class LSP1PipelineExtension(omni.ext.IExt):
                 Gf.Vec2f(0, 1),
             ])
     
-            # ====== MATERIAL ======
+            st.SetInterpolation(UsdGeom.Tokens.varying)
+    
+            # OmniPBR material
             mat_path = "/World/Looks/LRO_Surface_Material"
             material = UsdShade.Material.Define(stage, mat_path)
     
             shader = UsdShade.Shader.Define(stage, mat_path + "/Shader")
-            shader.CreateIdAttr("UsdPreviewSurface")
+            shader.CreateIdAttr("OmniPBR")
     
-            tex = UsdShade.Shader.Define(stage, mat_path + "/Texture")
-            tex.CreateIdAttr("UsdUVTexture")
+            shader.CreateInput("diffuse_texture", Sdf.ValueTypeNames.Asset).Set(texture_asset_path)
+            shader.CreateInput("roughness_constant", Sdf.ValueTypeNames.Float).Set(0.85)
+            shader.CreateInput("metallic_constant", Sdf.ValueTypeNames.Float).Set(0.0)
     
-            tex.CreateInput("file", Sdf.ValueTypeNames.Asset).Set(texture_path)
-            tex.CreateInput("sourceColorSpace", Sdf.ValueTypeNames.Token).Set("sRGB")
-            tex.CreateOutput("rgb", Sdf.ValueTypeNames.Float3)
-    
-            shader.CreateInput("diffuseColor", Sdf.ValueTypeNames.Color3f).ConnectToSource(
-                tex.ConnectableAPI(),
-                "rgb"
+            material.CreateSurfaceOutput("mdl").ConnectToSource(
+                shader.ConnectableAPI(),
+                "out"
             )
-    
-            shader.CreateInput("roughness", Sdf.ValueTypeNames.Float).Set(0.9)
     
             material.CreateSurfaceOutput().ConnectToSource(
                 shader.ConnectableAPI(),
-                "surface"
+                "out"
             )
     
-            # Bind material
             UsdShade.MaterialBindingAPI(plane.GetPrim()).Bind(material)
     
-            print("[LSP1 Pipeline] ✅ LRO surface plane created successfully")
+            print("[LSP1 Pipeline] Created textured LRO plane using OmniPBR.")
     
         except Exception as e:
-            print("[LSP1 Pipeline] ❌ LRO surface plane failed:", repr(e))
-
+            print("[LSP1 Pipeline] LRO surface plane failed:", repr(e))
     def _update_dashboard(self, snap):
         regolith = snap.get("Regolith Cargo Rover 1", {})
         lox = snap.get("LOX Cargo Rover", {})
