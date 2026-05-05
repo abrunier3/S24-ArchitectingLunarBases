@@ -382,8 +382,8 @@ class LSP1PipelineExtension(omni.ext.IExt):
     
             # --- CAMERA POSITION (closer, 135-degree angle) ---
             cam_pos = Gf.Vec3d(
-                target_pos[0] - 60.0,
-                target_pos[1] - 60.0,
+                target_pos[0] + 60.0,
+                target_pos[1] + 60.0,
                 target_pos[2] + 25.0
             )
     
