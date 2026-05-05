@@ -335,7 +335,7 @@ class LSP1PipelineExtension(omni.ext.IExt):
         except Exception as e:
             print("[LSP1 Pipeline] LRO surface plane failed:", repr(e))
 
-      def _scatter_lunar_rocks(self):
+    def _scatter_lunar_rocks(self):
         try:
             import random
             import omni.usd
@@ -404,7 +404,6 @@ class LSP1PipelineExtension(omni.ext.IExt):
     
         except Exception as e:
             print("[LSP1 Pipeline] Rock scatter failed:", repr(e))
-
       
     def _play(self):
         if not self.is_loaded:
