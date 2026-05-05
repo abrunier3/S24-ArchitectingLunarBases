@@ -1,6 +1,7 @@
 import os
 import json
 import subprocess
+import random
 
 import omni.ext
 import omni.ui as ui
@@ -69,6 +70,7 @@ class LSP1PipelineExtension(omni.ext.IExt):
                 ui.Label("LSP1 Pipeline")
                 self.status = ui.Label("Status: waiting")
 
+                ui.Button("Pull GitHub", clicked_fn=self._pull_github)
                 ui.Button("Load DES Playback", clicked_fn=self._load_all)
                 ui.Button("Play", clicked_fn=self._play)
                 ui.Button("Pause", clicked_fn=self._pause)
@@ -85,6 +87,74 @@ class LSP1PipelineExtension(omni.ext.IExt):
                 self.lox_label = ui.Label("LOX Rover: --")
                 self.lox_load_label = ui.Label("LOX Load: --")
 
+    def _pull_github(self):
+        log_path = os.path.join(REPO_ROOT, "lsp1_git_pull_log.txt")
+
+        def log(message):
+            try:
+                with open(log_path, "a", encoding="utf-8") as f:
+                    f.write(str(message) + "\n")
+            except Exception:
+                pass
+            print(message)
+
+        try:
+            self.status.text = "Status: pulling GitHub..."
+
+            git_folder = os.path.join(REPO_ROOT, ".git")
+            if not os.path.exists(git_folder):
+                self.status.text = "Status: Git pull failed. Not a git repo."
+                log(f"ERROR: .git folder not found at {git_folder}")
+                return
+
+            git_candidates = [
+                "git",
+                r"C:\Program Files\Git\cmd\git.exe",
+                r"C:\Program Files\Git\bin\git.exe",
+                r"C:\Program Files (x86)\Git\cmd\git.exe",
+            ]
+
+            git_exe = None
+            for candidate in git_candidates:
+                try:
+                    result = subprocess.run(
+                        [candidate, "--version"],
+                        capture_output=True,
+                        text=True,
+                        shell=False
+                    )
+                    if result.returncode == 0:
+                        git_exe = candidate
+                        break
+                except Exception:
+                    pass
+
+            if git_exe is None:
+                self.status.text = "Status: Git not found by Omniverse."
+                log("ERROR: Git executable not found.")
+                return
+
+            pull_result = subprocess.run(
+                [git_exe, "-C", REPO_ROOT, "pull", "origin", "main"],
+                capture_output=True,
+                text=True,
+                shell=False
+            )
+
+            log("----- git pull -----")
+            log(f"Return code: {pull_result.returncode}")
+            log(f"STDOUT:\n{pull_result.stdout}")
+            log(f"STDERR:\n{pull_result.stderr}")
+
+            if pull_result.returncode == 0:
+                self.status.text = "Status: Git pull successful."
+            else:
+                self.status.text = "Status: Git pull failed. See log."
+
+        except Exception as e:
+            self.status.text = f"Status: Git pull error: {e}"
+            print("[LSP1 Pipeline] Git pull error:", repr(e))
+
     def _load_all(self):
         try:
             print("[LSP1 Pipeline] REPO_ROOT:", REPO_ROOT)
@@ -98,6 +168,7 @@ class LSP1PipelineExtension(omni.ext.IExt):
 
             self._load_waypoints_under_world()
             self._create_lro_surface_plane()
+            self._scatter_lunar_rocks()
 
             self.elapsed_seconds = 0.0
             self.is_loaded = True
@@ -106,7 +177,7 @@ class LSP1PipelineExtension(omni.ext.IExt):
             self._ensure_timeline()
             self._update_all(0.0)
 
-            self.status.text = "Status: loaded DES + waypoints + PNG plane"
+            self.status.text = "Status: loaded DES + waypoints + terrain + rocks"
 
         except Exception as e:
             self.status.text = f"Status: load failed: {e}"
@@ -183,7 +254,6 @@ class LSP1PipelineExtension(omni.ext.IExt):
                 print("[LSP1 Pipeline] STOP: PNG does not exist.")
                 return
 
-            # Clean old terrain/material
             for path in [
                 "/World/LRO_Surface_Plane",
                 "/World/Looks/LRO_Surface_Material"
@@ -198,7 +268,6 @@ class LSP1PipelineExtension(omni.ext.IExt):
 
             stage.DefinePrim("/World/Looks", "Scope")
 
-            # Plane geometry
             plane_path = "/World/LRO_Surface_Plane"
             plane = UsdGeom.Mesh.Define(stage, plane_path)
 
@@ -212,7 +281,6 @@ class LSP1PipelineExtension(omni.ext.IExt):
             plane.GetFaceVertexCountsAttr().Set([4])
             plane.GetFaceVertexIndicesAttr().Set([0, 1, 2, 3])
 
-            # UV coordinates
             st = UsdGeom.PrimvarsAPI(plane).CreatePrimvar(
                 "st",
                 Sdf.ValueTypeNames.TexCoord2fArray,
@@ -226,7 +294,6 @@ class LSP1PipelineExtension(omni.ext.IExt):
                 Gf.Vec2f(0.0, 1.0),
             ])
 
-            # Material
             mat_path = "/World/Looks/LRO_Surface_Material"
             material = UsdShade.Material.Define(stage, mat_path)
 
@@ -267,6 +334,61 @@ class LSP1PipelineExtension(omni.ext.IExt):
 
         except Exception as e:
             print("[LSP1 Pipeline] LRO surface plane failed:", repr(e))
+
+    def _scatter_lunar_rocks(self):
+        try:
+            import omni.usd
+            from pxr import UsdGeom, Gf
+
+            stage = omni.usd.get_context().get_stage()
+            if not stage:
+                print("[LSP1 Pipeline] No stage for rocks.")
+                return
+
+            rock_root = "/World/Lunar_Rocks"
+
+            old = stage.GetPrimAtPath(rock_root)
+            if old and old.IsValid():
+                stage.RemovePrim(rock_root)
+                print("[LSP1 Pipeline] Removed old lunar rocks.")
+
+            stage.DefinePrim(rock_root, "Xform")
+
+            random.seed(7)
+
+            for i in range(90):
+                x = random.uniform(-2200, 2200)
+                y = random.uniform(-2200, 2200)
+
+                # Avoid placing rocks too close to the main driving corridor.
+                if -1300 < x < 300 and 50 < y < 1000:
+                    continue
+
+                z = 4.0
+                radius = random.uniform(8, 32)
+
+                rock_path = f"{rock_root}/Rock_{i:03d}"
+                rock = UsdGeom.Sphere.Define(stage, rock_path)
+                rock.GetRadiusAttr().Set(radius)
+
+                xform = UsdGeom.Xformable(rock.GetPrim())
+                xform.AddTranslateOp().Set(Gf.Vec3d(x, y, z))
+                xform.AddScaleOp().Set(Gf.Vec3f(
+                    random.uniform(1.0, 1.8),
+                    random.uniform(0.7, 1.4),
+                    random.uniform(0.18, 0.55)
+                ))
+
+                gprim = UsdGeom.Gprim(rock.GetPrim())
+                shade = random.uniform(0.22, 0.45)
+                gprim.CreateDisplayColorAttr().Set([
+                    Gf.Vec3f(shade, shade, shade)
+                ])
+
+            print("[LSP1 Pipeline] SUCCESS: scattered lunar rocks.")
+
+        except Exception as e:
+            print("[LSP1 Pipeline] Rock scatter failed:", repr(e))
 
     def _play(self):
         if not self.is_loaded:
@@ -339,6 +461,7 @@ class LSP1PipelineExtension(omni.ext.IExt):
 
     def _des_time_to_mission_hours(self, des_time):
         des_duration = self._get_des_duration_seconds()
+
         if des_duration <= 0:
             return 0.0
 
@@ -443,15 +566,15 @@ class LSP1PipelineExtension(omni.ext.IExt):
             xformable.ClearXformOpOrder()
 
             cam_pos = Gf.Vec3d(
-                target_pos[0] + 40.0,
-                target_pos[1] + 10.0,
-                target_pos[2] + 20.0
+                target_pos[0] + 120.0,
+                target_pos[1] - 120.0,
+                target_pos[2] + 120.0
             )
 
             xformable.AddTranslateOp().Set(cam_pos)
-            xformable.AddRotateXYZOp().Set(Gf.Vec3f(70.0, 0.0, 120.0))
+            xformable.AddRotateXYZOp().Set(Gf.Vec3f(60.0, 0.0, 45.0))
 
-            camera.GetFocalLengthAttr().Set(10.0)
+            camera.GetFocalLengthAttr().Set(12.0)
             camera.GetClippingRangeAttr().Set(Gf.Vec2f(0.1, 1000000.0))
 
             self.camera_label.text = f"Camera: following {target_name}"
