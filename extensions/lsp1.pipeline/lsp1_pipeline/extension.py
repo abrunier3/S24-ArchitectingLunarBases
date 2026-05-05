@@ -203,10 +203,10 @@ class LSP1PipelineExtension(omni.ext.IExt):
             plane = UsdGeom.Mesh.Define(stage, plane_path)
 
             plane.GetPointsAttr().Set([
-                Gf.Vec3f(-2500, -2500, -30),
-                Gf.Vec3f(2500, -2500, -30),
-                Gf.Vec3f(2500, 2500, -30),
-                Gf.Vec3f(-2500, 2500, -30),
+                Gf.Vec3f(-2500, -2500, -1),
+                Gf.Vec3f(2500, -2500, -1),
+                Gf.Vec3f(2500, 2500, -1),
+                Gf.Vec3f(-2500, 2500, -1),
             ])
 
             plane.GetFaceVertexCountsAttr().Set([4])
