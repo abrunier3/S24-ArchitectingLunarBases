@@ -1,5 +1,7 @@
 import os
 import json
+import subprocess
+
 
 import omni.ext
 import omni.ui as ui
@@ -51,16 +53,20 @@ class LSP1PipelineExtension(omni.ext.IExt):
 
         self.window = ui.Window("LSP1 Pipeline", width=520, height=430)
 
+
+        
         with self.window.frame:
             with ui.VStack(spacing=8):
                 ui.Label("LSP1 Pipeline")
 
+                self.status = ui.Label("Status: waiting")
+
+                ui.Button("Pull GitHub", clicked_fn=self._pull_github)
                 ui.Button("Load DES Playback", clicked_fn=self._load_all)
                 ui.Button("Play", clicked_fn=self._play)
                 ui.Button("Pause", clicked_fn=self._pause)
                 ui.Button("Reset", clicked_fn=self._reset)
 
-                self.status = ui.Label("Status: waiting")
                 self.time_label = ui.Label("Mission Time: --")
                 self.des_time_label = ui.Label("DES Playback Time: --")
                 self.camera_label = ui.Label("Camera: --")
@@ -72,6 +78,105 @@ class LSP1PipelineExtension(omni.ext.IExt):
 
                 self.lox_label = ui.Label("LOX Rover: --")
                 self.lox_load_label = ui.Label("LOX Load: --")
+   
+    def _pull_github(self):
+        log_path = os.path.join(REPO_ROOT, "lsp1_git_pull_log.txt")
+
+        def log(message):
+            with open(log_path, "a", encoding="utf-8") as f:
+                f.write(str(message) + "\n")
+            print(message)
+
+        try:
+            self.status.text = "Status: pulling GitHub..."
+            log("\n========== LSP1 Git Pull ==========")
+            log(f"REPO_ROOT = {REPO_ROOT}")
+            log(f"Log path = {log_path}")
+
+            git_folder = os.path.join(REPO_ROOT, ".git")
+            log(f".git exists = {os.path.exists(git_folder)}")
+
+            if not os.path.exists(git_folder):
+                self.status.text = "Status: Git pull failed. Not a git repo."
+                log(f"ERROR: .git folder not found at {git_folder}")
+                return
+
+            git_candidates = [
+                "git",
+                r"C:\Program Files\Git\cmd\git.exe",
+                r"C:\Program Files\Git\bin\git.exe",
+                r"C:\Program Files (x86)\Git\cmd\git.exe",
+            ]
+
+            git_exe = None
+
+            for candidate in git_candidates:
+                try:
+                    test = subprocess.run(
+                        [candidate, "--version"],
+                        capture_output=True,
+                        text=True,
+                        shell=False
+                    )
+
+                    log(f"Testing git candidate: {candidate}")
+                    log(f"Return code: {test.returncode}")
+                    log(f"STDOUT: {test.stdout}")
+                    log(f"STDERR: {test.stderr}")
+
+                    if test.returncode == 0:
+                        git_exe = candidate
+                        break
+
+                except Exception as e:
+                    log(f"Candidate failed: {candidate}")
+                    log(repr(e))
+
+            if git_exe is None:
+                self.status.text = "Status: Git not found by Omniverse."
+                log("ERROR: Git executable not found.")
+                return
+
+            log(f"Using git executable: {git_exe}")
+
+            status_result = subprocess.run(
+                [git_exe, "-C", REPO_ROOT, "status", "--short", "--branch"],
+                capture_output=True,
+                text=True,
+                shell=False
+            )
+
+            log("----- git status -----")
+            log(f"Return code: {status_result.returncode}")
+            log(f"STDOUT:\n{status_result.stdout}")
+            log(f"STDERR:\n{status_result.stderr}")
+
+            pull_result = subprocess.run(
+                [git_exe, "-C", REPO_ROOT, "pull", "origin", "main"],
+                capture_output=True,
+                text=True,
+                shell=False
+            )
+
+            log("----- git pull -----")
+            log(f"Return code: {pull_result.returncode}")
+            log(f"STDOUT:\n{pull_result.stdout}")
+            log(f"STDERR:\n{pull_result.stderr}")
+
+            if pull_result.returncode == 0:
+                self.status.text = "Status: Git pull successful."
+            else:
+                self.status.text = "Status: Git pull failed. See lsp1_git_pull_log.txt."
+
+        except Exception as e:
+            try:
+                self.status.text = f"Status: Git pull error: {e}"
+            except Exception:
+                pass
+
+            with open(log_path, "a", encoding="utf-8") as f:
+                f.write("EXCEPTION:\n")
+                f.write(repr(e) + "\n")
 
     def _load_all(self):
         try:
