@@ -337,55 +337,52 @@ class LSP1PipelineExtension(omni.ext.IExt):
 
     def _scatter_lunar_rocks(self):
         try:
+            import random
             import omni.usd
             from pxr import UsdGeom, Gf
 
             stage = omni.usd.get_context().get_stage()
             if not stage:
-                print("[LSP1 Pipeline] No stage for rocks.")
                 return
 
             rock_root = "/World/Lunar_Rocks"
-
             old = stage.GetPrimAtPath(rock_root)
             if old and old.IsValid():
                 stage.RemovePrim(rock_root)
-                print("[LSP1 Pipeline] Removed old lunar rocks.")
 
             stage.DefinePrim(rock_root, "Xform")
+            random.seed(12)
 
-            random.seed(7)
-
-            for i in range(90):
+            for i in range(55):
                 x = random.uniform(-2200, 2200)
                 y = random.uniform(-2200, 2200)
 
-                # Avoid placing rocks too close to the main driving corridor.
                 if -1300 < x < 300 and 50 < y < 1000:
                     continue
 
-                z = 4.0
-                radius = random.uniform(8, 32)
+                z = 2.5
+                sx = random.uniform(10, 45)
+                sy = random.uniform(8, 35)
+                sz = random.uniform(4, 18)
 
                 rock_path = f"{rock_root}/Rock_{i:03d}"
-                rock = UsdGeom.Sphere.Define(stage, rock_path)
-                rock.GetRadiusAttr().Set(radius)
+                cube = UsdGeom.Cube.Define(stage, rock_path)
+                cube.GetSizeAttr().Set(1.0)
 
-                xform = UsdGeom.Xformable(rock.GetPrim())
+                xform = UsdGeom.Xformable(cube.GetPrim())
                 xform.AddTranslateOp().Set(Gf.Vec3d(x, y, z))
-                xform.AddScaleOp().Set(Gf.Vec3f(
-                    random.uniform(1.0, 1.8),
-                    random.uniform(0.7, 1.4),
-                    random.uniform(0.18, 0.55)
+                xform.AddRotateXYZOp().Set(Gf.Vec3f(
+                    random.uniform(-8, 8),
+                    random.uniform(-8, 8),
+                    random.uniform(0, 360)
                 ))
+                xform.AddScaleOp().Set(Gf.Vec3f(sx, sy, sz))
 
-                gprim = UsdGeom.Gprim(rock.GetPrim())
-                shade = random.uniform(0.22, 0.45)
-                gprim.CreateDisplayColorAttr().Set([
-                    Gf.Vec3f(shade, shade, shade)
-                ])
+                gprim = UsdGeom.Gprim(cube.GetPrim())
+                shade = random.uniform(0.18, 0.34)
+                gprim.CreateDisplayColorAttr().Set([Gf.Vec3f(shade, shade, shade)])
 
-            print("[LSP1 Pipeline] SUCCESS: scattered lunar rocks.")
+            print("[LSP1 Pipeline] SUCCESS: scattered angular lunar rocks.")
 
         except Exception as e:
             print("[LSP1 Pipeline] Rock scatter failed:", repr(e))
