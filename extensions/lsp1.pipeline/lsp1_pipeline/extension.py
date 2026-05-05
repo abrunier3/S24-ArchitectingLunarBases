@@ -286,14 +286,14 @@ class LSP1PipelineExtension(omni.ext.IExt):
             # Aim camera at a point slightly ahead/above the rover
             look_target = Gf.Vec3d(
                 target_pos[0],
-                target_pos[1] + 200.0,
-                target_pos[2] + 20.0
+                target_pos[1] + 150.0,
+                target_pos[2] + 30.0
             )
             
             direction = look_target - cam_pos
             
             rotation = Gf.Rotation(
-                Gf.Vec3d(0, 0, -1),
+                Gf.Vec3d(0, 0, -2),
                 direction
             )
             
