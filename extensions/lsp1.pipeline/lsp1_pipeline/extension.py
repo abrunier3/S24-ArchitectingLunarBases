@@ -168,7 +168,7 @@ class LSP1PipelineExtension(omni.ext.IExt):
 
             self._load_waypoints_under_world()
             self._create_lro_surface_plane()
-            #self._scatter_lunar_rocks()
+            self._scatter_lunar_rocks()
 
             self.elapsed_seconds = 0.0
             self.is_loaded = True
@@ -346,7 +346,7 @@ class LSP1PipelineExtension(omni.ext.IExt):
             if not stage:
                 return
 
-            # Clear old rocks/prototypes
+            # Clear old specks
             for path in [
                 "/World/Lunar_Rocks",
                 "/World/Lunar_Rock_Prototypes"
@@ -357,47 +357,43 @@ class LSP1PipelineExtension(omni.ext.IExt):
 
             stage.DefinePrim("/World/Lunar_Rock_Prototypes", "Xform")
 
-            # One tiny cube prototype
-            proto_path = "/World/Lunar_Rock_Prototypes/RockProto"
+            # Tiny flat dark square prototype
+            proto_path = "/World/Lunar_Rock_Prototypes/DustSpeckProto"
             proto = UsdGeom.Cube.Define(stage, proto_path)
             proto.GetSizeAttr().Set(1.0)
 
+            proto_xform = UsdGeom.Xformable(proto.GetPrim())
+            proto_xform.AddTranslateOp().Set(Gf.Vec3d(0, 0, -10000))
+
             gprim = UsdGeom.Gprim(proto.GetPrim())
-            gprim.CreateDisplayColorAttr().Set([Gf.Vec3f(0.22, 0.22, 0.22)])
+            gprim.CreateDisplayColorAttr().Set([Gf.Vec3f(0.08, 0.08, 0.08)])
 
-            # Hide prototype itself
-            UsdGeom.Imageable(proto.GetPrim()).MakeInvisible()
+            instancer = UsdGeom.PointInstancer.Define(stage, "/World/Lunar_Rocks")
+            instancer.GetPrototypesRel().SetTargets([Sdf.Path(proto_path)])
 
-            # Point instancer = many rocks, but only one prototype object
-            instancer_path = "/World/Lunar_Rocks"
-            instancer = UsdGeom.PointInstancer.Define(stage, instancer_path)
+            random.seed(123)
 
-            instancer.GetPrototypesRel().SetTargets([
-                Sdf.Path(proto_path)
-            ])
-
-            random.seed(42)
-
-            NUM_ROCKS = 2500
+            NUM_SPECKS = 12000
 
             positions = []
             scales = []
             proto_indices = []
 
-            for i in range(NUM_ROCKS):
-                x = random.uniform(-2400, 2400)
-                y = random.uniform(-2400, 2400)
+            for i in range(NUM_SPECKS):
+                x = random.uniform(-2500, 2500)
+                y = random.uniform(-2500, 2500)
 
-                # Keep rover route mostly clear
-                if -1300 < x < 300 and 50 < y < 1000:
-                    continue
+                # Keep specks just above surface so they do not z-fight with PNG plane
+                z = 0.04
 
-                positions.append(Gf.Vec3f(x, y, 0.15))
+                positions.append(Gf.Vec3f(x, y, z))
 
+                # Very small, flat dust specks
+                s = random.uniform(0.4, 1.8)
                 scales.append(Gf.Vec3f(
-                    random.uniform(0.25, 0.9),
-                    random.uniform(0.25, 0.9),
-                    random.uniform(0.05, 0.25)
+                    s,
+                    random.uniform(0.3, 1.4),
+                    0.015
                 ))
 
                 proto_indices.append(0)
@@ -406,10 +402,10 @@ class LSP1PipelineExtension(omni.ext.IExt):
             instancer.GetScalesAttr().Set(scales)
             instancer.GetProtoIndicesAttr().Set(proto_indices)
 
-            print(f"[LSP1 Pipeline] SUCCESS: instanced {len(positions)} small lunar rocks.")
+            print(f"[LSP1 Pipeline] SUCCESS: added {len(positions)} tiny lunar dust specks.")
 
         except Exception as e:
-            print("[LSP1 Pipeline] Rock scatter failed:", repr(e))
+            print("[LSP1 Pipeline] Dust speck scatter failed:", repr(e))
       
     def _play(self):
         if not self.is_loaded:
