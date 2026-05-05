@@ -1,59 +1,24 @@
 #usda 1.0
 (
-    customLayerData = {
-        dictionary cameraSettings = {
-            dictionary Front = {
-                double3 position = (500, 0, 0)
-                double radius = 500
-            }
-            dictionary Perspective = {
-                double3 position = (1840.6886962040408, 3126.664802567337, 1671.311093351186)
-                double3 target = (-312.60249288917294, 354.249430268826, -444.48924480556866)
-            }
-            dictionary Right = {
-                double3 position = (0, -500, 0)
-                double radius = 500
-            }
-            dictionary Top = {
-                double3 position = (0, 0, 500)
-                double radius = 500
-            }
-            string boundCamera = "/World/DES_FollowCamera"
-        }
-        dictionary omni_layer = {
-            string authoring_layer = "./scene.usda"
-        }
-        dictionary renderSettings = {
-        }
-    }
-    defaultPrim = "World"
-    endTimeCode = 0
     metersPerUnit = 1
-    startTimeCode = -1
-    timeCodesPerSecond = 60
     upAxis = "Z"
 )
 
-def Xform "World" (
-    references = @../../scenes/waypoints.usda@
-)
+def Xform "World"
 {
-    reorder nameChildren = ["RegolithRover", "ISRUExcavation", "LSP1", "Propellant_Depot", "LaunchLandingZone", "Rover", "CommunicationModule", "LOXRover", "PropellantDepot", "ISRUPlant", "HabitationModule", "SolarPowerSystem"]
     def Xform "RegolithRover" (
-        delete references = @/home/runner/work/S24-ArchitectingLunarBases/S24-ArchitectingLunarBases/clean_database/cad_models/RegolithRover/rover2.usdc@
-        prepend references = @../../cad_models/RegolithRover/RegolithRover.usdc@
+        prepend references = @/home/runner/work/S24-ArchitectingLunarBases/S24-ArchitectingLunarBases/clean_database/cad_models/RegolithRover/RegolithRover.usdc@
     )
     {
         custom string attributes = "{'batteryCapacity': 100.0, 'maxCapacity': 5000.0, 'energyPerKmPerKg': 0.00034, 'batteryCharge': 100.0, 'totalDistanceTraveled': 0.0, 'totalEnergyConsumed': 0.0, 'hoursPerKm': 5.0, 'RegolithRover_volume_m3': 45.0}"
         custom string dimensions = "{'size_m': {'length': 5.0, 'width': 3.0, 'height': 3.0}, 'metersPerUnit': 1, 'upAxis': 'Z'}"
         custom string part:name = "RegolithRover"
         float3 xformOp:rotateXYZ = (0, 0, 0)
-        double3 xformOp:translate = (578.7530000000012, 824.2470000000006, 0)
+        double3 xformOp:translate = (0, 0, 0)
     }
 
     def Xform "ISRUExcavation" (
-        delete references = @/home/runner/work/S24-ArchitectingLunarBases/S24-ArchitectingLunarBases/clean_database/cad_models/ISRUExcavation/Construction_dig_site_and_heaps.usdc@
-        prepend references = @../../cad_models/ISRUExcavation/ISRUExcavation.usdc@
+        prepend references = @/home/runner/work/S24-ArchitectingLunarBases/S24-ArchitectingLunarBases/clean_database/cad_models/ISRUExcavation/ISRUExcavation.usdc@
     )
     {
         custom string attributes = "{'ISRUExcavation_volume_m3': 40.0, 'excavationEnergyCoeff': 6.5e-06}"
@@ -61,7 +26,7 @@ def Xform "World" (
         custom string material = "Aluminum_2219_T87"
         custom string part:name = "ISRUExcavation"
         float3 xformOp:rotateXYZ = (0, 0, 0)
-        double3 xformOp:translate = (1131.5, 1071.42, 0)
+        double3 xformOp:translate = (730.67, 875.87, 0)
     }
 
     def Xform "LSP1"
@@ -86,15 +51,14 @@ def Xform "World" (
     }
 
     def Xform "LaunchLandingZone" (
-        delete references = @/home/runner/work/S24-ArchitectingLunarBases/S24-ArchitectingLunarBases/clean_database/cad_models/LaunchLandingZone/launchlandingzone.usdc@
-        prepend references = @../../cad_models/LaunchLandingZone/launchlandingzone.usdc@
+        prepend references = @/home/runner/work/S24-ArchitectingLunarBases/S24-ArchitectingLunarBases/clean_database/cad_models/LaunchLandingZone/launchlandingzone.usdc@
     )
     {
         custom string attributes = "{'loxCapacity': 50000.0, 'loxStored': 0.0, 'utilitiesPowerRate': 3.0, 'totalEnergyConsumed': 0.0, 'chillingPowerPerKgLox': 0.31, 'LaunchLandingZone_volume_m3': 25000.0}"
         custom string dimensions = "{'size_m': {'length': 50.0, 'width': 50.0, 'height': 10.0}, 'metersPerUnit': 1, 'upAxis': 'Z'}"
         custom string part:name = "LaunchLandingZone"
         float3 xformOp:rotateXYZ = (0, 0, 0)
-        double3 xformOp:translate = (-1635.52, 1131.9, 0)
+        double3 xformOp:translate = (-1133.49, 601.07, 0)
         uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ"]
     }
 
@@ -119,20 +83,18 @@ def Xform "World" (
     }
 
     def Xform "LOXRover" (
-        delete references = @/home/runner/work/S24-ArchitectingLunarBases/S24-ArchitectingLunarBases/clean_database/cad_models/LOXRover/rover2.usdc@
-        prepend references = @../../cad_models/LOXRover/LOXRover.usdc@
+        prepend references = @/home/runner/work/S24-ArchitectingLunarBases/S24-ArchitectingLunarBases/clean_database/cad_models/LOXRover/LOXRover.usdc@
     )
     {
         custom string attributes = "{'batteryCapacity': 100.0, 'maxCapacity': 5000.0, 'energyPerKmPerKg': 0.00034, 'batteryCharge': 100.0, 'totalDistanceTraveled': 0.0, 'totalEnergyConsumed': 0.0, 'hoursPerKm': 5.0, 'LOXRover_volume_m3': 45.0}"
         custom string dimensions = "{'size_m': {'length': 5.0, 'width': 3.0, 'height': 3.0}, 'metersPerUnit': 1, 'upAxis': 'Z'}"
         custom string part:name = "LOXRover"
         float3 xformOp:rotateXYZ = (0, 0, 0)
-        double3 xformOp:translate = (-1242.5, 282.5, 0)
+        double3 xformOp:translate = (0, 0, 0)
     }
 
     def Xform "PropellantDepot" (
-        delete references = @/home/runner/work/S24-ArchitectingLunarBases/S24-ArchitectingLunarBases/clean_database/cad_models/PropellantDepot/propellant_depot.usdc@
-        prepend references = @../../cad_models/PropellantDepot/PropellantDepot.usdc@
+        prepend references = @/home/runner/work/S24-ArchitectingLunarBases/S24-ArchitectingLunarBases/clean_database/cad_models/PropellantDepot/PropellantDepot.usdc@
     )
     {
         custom string attributes = "{'PropellantDepot_volume_m3': 40.0}"
@@ -140,380 +102,40 @@ def Xform "World" (
         custom string material = "Aluminum_2219_T87"
         custom string part:name = "PropellantDepot"
         float3 xformOp:rotateXYZ = (0, 0, 0)
-        double3 xformOp:translate = (-1312.95, -803.5, 0)
+        double3 xformOp:translate = (-1093.5, -523.12, 0)
     }
 
     def Xform "ISRUPlant" (
-        delete references = @/home/runner/work/S24-ArchitectingLunarBases/S24-ArchitectingLunarBases/clean_database/cad_models/ISRUPlant/isruplant.usdc@
-        prepend references = @../../cad_models/ISRUPlant/isruplant.usdc@
+        prepend references = @/home/runner/work/S24-ArchitectingLunarBases/S24-ArchitectingLunarBases/clean_database/cad_models/ISRUPlant/isruplant.usdc@
     )
     {
         custom string attributes = "{'processingRate': 1600.0, 'regHeadGrade': 0.1, 'lunarGravity': 1.62, 'LOXStored': 0.0, 'totalEnergyConsumed': 0.0, 'ISRUPlant_volume_m3': 2400.0, 'transportEnergyCoeff': 0.00036, 'liftHeight': 1.0, 'gangueTransportDist': 1.0, 'reactorEnergyCoeff': 0.385, 'electrolysisEnergyCoeff': 8.26, 'liquefactionEnergyCoeff': 1.17, 'excavationEnergyCoeff': 6.5e-06}"
         custom string dimensions = "{'size_m': {'length': 20.0, 'width': 15.0, 'height': 8.0}, 'metersPerUnit': 1, 'upAxis': 'Z'}"
         custom string part:name = "ISRUPlant"
         float3 xformOp:rotateXYZ = (0, 0, 0)
-        double3 xformOp:translate = (-1247.43, 290.2, 0)
+        double3 xformOp:translate = (-893.59, 56.46, 0)
     }
 
     def Xform "HabitationModule" (
-        delete references = @/home/runner/work/S24-ArchitectingLunarBases/S24-ArchitectingLunarBases/clean_database/cad_models/HabitationModule/habitationmodule.usdc@
-        prepend references = @../../cad_models/HabitationModule/habitationmodule.usdc@
+        prepend references = @/home/runner/work/S24-ArchitectingLunarBases/S24-ArchitectingLunarBases/clean_database/cad_models/HabitationModule/habitationmodule.usdc@
     )
     {
         custom string attributes = "{'constantPowerRate': 5.0, 'totalEnergyConsumed': 0.0, 'HabitationModule_volume_m3': 1600.0}"
         custom string dimensions = "{'size_m': {'length': 20.0, 'width': 10.0, 'height': 8.0}, 'metersPerUnit': 1, 'upAxis': 'Z'}"
         custom string part:name = "HabitationModule"
         float3 xformOp:rotateXYZ = (0, 0, 0)
-        double3 xformOp:translate = (-410.77, 385.96, 0)
+        double3 xformOp:translate = (-263.88, 481.16, 0)
     }
 
     def Xform "SolarPowerSystem" (
-        delete references = @/home/runner/work/S24-ArchitectingLunarBases/S24-ArchitectingLunarBases/clean_database/cad_models/SolarPowerSystem/solar_panels.usdc@
-        prepend references = @../../cad_models/SolarPowerSystem/solar_panels.usdc@
+        prepend references = @/home/runner/work/S24-ArchitectingLunarBases/S24-ArchitectingLunarBases/clean_database/cad_models/SolarPowerSystem/solar_panels____.usdc@
     )
     {
         custom string attributes = "{'powerOutput': 100.0, 'powerDegradationFactor': 1.0, 'batteryCapacity': 500.0, 'batteryDegradationFactor': 1.0, 'batteryCharge': 500.0, 'totalEnergyGenerated': 0.0, 'totalEnergyFromBattery': 0.0, 'SolarPowerSystem_volume_m3': 2500.0}"
         custom string dimensions = "{'size_m': {'length': 25.0, 'width': 25.0, 'height': 4.0}, 'metersPerUnit': 1, 'upAxis': 'Z'}"
         custom string part:name = "SolarPowerSystem"
         float3 xformOp:rotateXYZ = (0, 0, 0)
-        double3 xformOp:translate = (1428.87, -465.82, 0)
+        double3 xformOp:translate = (1090.51, -508.14, 0)
     }
-
-    over "ConnectionWaypoints"
-    {
-        token visibility = "inherited"
-
-        over "PowerGenToLaunch"
-        {
-            over "Waypoint_001"
-            {
-                token visibility = "invisible"
-            }
-        }
-
-        over "PowerGenToISRUPlant"
-        {
-            over "Waypoint_001"
-            {
-                token visibility = "invisible"
-            }
-        }
-
-        over "PowerGenToPropellant"
-        {
-            over "Waypoint_001"
-            {
-                token visibility = "invisible"
-            }
-        }
-
-        over "PowerGenToHabMod"
-        {
-            over "Waypoint_001"
-            {
-                token visibility = "invisible"
-            }
-        }
-
-        over "PowerGenToISRUExcavation"
-        {
-            over "Waypoint_001"
-            {
-                token visibility = "invisible"
-            }
-        }
-
-        over "ISRUPlantToPropellantDepot"
-        {
-            over "Waypoint_008"
-            {
-                token visibility = "inherited"
-            }
-        }
-
-        over "ISRUExcavationToISRUPlant"
-        {
-            over "Waypoint_001"
-            {
-                token visibility = "inherited"
-            }
-
-            over "Waypoint_002"
-            {
-                token visibility = "inherited"
-            }
-
-            over "Waypoint_003"
-            {
-                token visibility = "inherited"
-            }
-
-            over "Waypoint_004"
-            {
-                token visibility = "inherited"
-            }
-
-            over "Waypoint_005"
-            {
-                token visibility = "inherited"
-            }
-
-            over "Waypoint_006"
-            {
-                token visibility = "inherited"
-            }
-
-            over "Waypoint_007"
-            {
-                token visibility = "inherited"
-            }
-
-            over "Waypoint_008"
-            {
-                token visibility = "inherited"
-            }
-
-            over "Waypoint_009"
-            {
-                token visibility = "inherited"
-            }
-
-            over "Waypoint_000"
-            {
-                token visibility = "invisible"
-            }
-        }
-    }
-
-    def Camera "DES_FollowCamera" (
-        prepend apiSchemas = ["OmniRtxCameraAutoExposureAPI_1", "OmniRtxCameraExposureAPI_1"]
-    )
-    {
-        float2 clippingRange = (0.1, 1000000)
-        float exposure:responsivity = 1.1026709
-        float exposure:time = 0.02
-        float focalLength = 18
-        custom uniform vector3d omni:kit:centerOfInterest = (0, 0, -0.2613726499045592)
-        quatf xformOp:orient = (0.74734235, 0.46982944, -0.46982944, -3.6082248e-16)
-        float3 xformOp:rotateXYZ = (70, 0, -45)
-        float3 xformOp:scale = (1, 1, 1)
-        double3 xformOp:translate = (518.7199486832401, 764.2139486832396, 25.017012558533473)
-        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
-    }
-
-    def Mesh "Lunar_Surface_Plane" (
-        prepend apiSchemas = ["MaterialBindingAPI"]
-    )
-    {
-        int[] faceVertexCounts = [4]
-        int[] faceVertexIndices = [0, 1, 2, 3]
-        rel material:binding = </World/Looks/Lunar_Surface_Material> (
-            bindMaterialAs = "weakerThanDescendants"
-        )
-        point3f[] points = [(-2500, -2500, 0), (2500, -2500, 0), (2500, 2500, 0), (-2500, 2500, 0)]
-        texCoord2f[] primvars:st = [(0, 0), (1, 0), (1, 1), (0, 1)] (
-            interpolation = "varying"
-        )
-    }
-
-    def "Looks"
-    {
-        def Material "Lunar_Surface_Material"
-        {
-            token outputs:surface.connect = </World/Looks/Lunar_Surface_Material/Shader.outputs:surface>
-
-            def Shader "Shader"
-            {
-                uniform token info:id = "UsdPreviewSurface"
-                color3f inputs:diffuseColor.connect = </World/Looks/Lunar_Surface_Material/Texture.outputs:rgb>
-                float inputs:roughness = 0.9
-                token outputs:surface
-            }
-
-            def Shader "Texture"
-            {
-                uniform token info:id = "UsdUVTexture"
-                asset inputs:file = @C:\Users\imalave3\Malaka Hub\s24-ArchitectingLunarBases\clean_database\scenes\Lunar_surface_v1.png@
-                token inputs:sourceColorSpace = "sRGB"
-                float2 inputs:st.connect = </World/Looks/Lunar_Surface_Material/UVReader.outputs:result>
-                float3 outputs:rgb
-            }
-
-            def Shader "UVReader"
-            {
-                uniform token info:id = "UsdPrimvarReader_float2"
-                token inputs:varname = "st"
-                float2 outputs:result
-            }
-        }
-    }
-}
-
-def "Render" (
-    hide_in_stage_window = true
-    no_delete = true
-)
-{
-    def "OmniverseKit"
-    {
-        def "HydraTextures" (
-            hide_in_stage_window = true
-            no_delete = true
-        )
-        {
-            def RenderProduct "omni_kit_widget_viewport_ViewportTexture_0" (
-                prepend apiSchemas = ["OmniRtxSettingsCommonAdvancedAPI_1", "OmniRtxSettingsRtAdvancedAPI_1", "OmniRtxSettingsPtAdvancedAPI_1", "OmniRtxPostColorGradingAPI_1", "OmniRtxPostChromaticAberrationAPI_1", "OmniRtxPostBloomPhysicalAPI_1", "OmniRtxPostMatteObjectAPI_1", "OmniRtxPostCompositingAPI_1", "OmniRtxPostDofAPI_1", "OmniRtxPostMotionBlurAPI_1", "OmniRtxPostTvNoiseAPI_1", "OmniRtxPostTonemapIrayReinhardAPI_1", "OmniRtxPostDebugSettingsAPI_1", "OmniRtxDebugSettingsAPI_1"]
-                hide_in_stage_window = true
-                no_delete = true
-            )
-            {
-                rel camera = </World/DES_FollowCamera>
-                token omni:rtx:ambientOcclusion:denoiserMode = "none"
-                token omni:rtx:background:source:texture:textureMode = "repeatMirrored"
-                token omni:rtx:background:source:type = "domeLight"
-                bool omni:rtx:debug:view:pixelDebug:enableFixedTextPos = 1
-                token omni:rtx:directLighting:sampledLighting:denoisingTechnique = "None"
-                bool omni:rtx:dlss:frameGeneration = 1
-                bool omni:rtx:indirectDiffuse:denoiser:enabled = 0
-                bool omni:rtx:post:registeredCompositing:invertColorCorrection = 1
-                bool omni:rtx:post:registeredCompositing:invertToneMap = 1
-                int omni:rtx:pt:maxSamplesPerLaunch = 2073600
-                int omni:rtx:pt:mgpu:maxPixelsPerRegionExponent = 12
-                bool omni:rtx:reflections:denoiser:enabled = 0
-                token omni:rtx:rendermode = "RealTimePathTracing"
-                color3f omni:rtx:rt:ambientLight:color = (0.1, 0.1, 0.1)
-                bool omni:rtx:rt:demoire = 0
-                bool omni:rtx:rt:lightcache:spatialCache:dontResolveConflicts = 1
-                int omni:rtx:rt:sss:samples = 1
-                int omni:rtx:rtpt:maxVolumeBounces = 15
-                float omni:rtx:rtpt:modulatingRoughnessThreshold = 0.08
-                uint omni:rtx:viewTile:limit = 4294967295
-                rel orderedVars = </Render/Vars/LdrColor>
-                custom bool overrideClipRange = 0
-                uniform int2 resolution = (836, 454)
-            }
-        }
-    }
-
-    def RenderSettings "OmniverseGlobalRenderSettings" (
-        prepend apiSchemas = ["OmniRtxSettingsGlobalRtAdvancedAPI_1", "OmniRtxSettingsGlobalPtAdvancedAPI_1"]
-        no_delete = true
-    )
-    {
-        rel products = </Render/OmniverseKit/HydraTextures/omni_kit_widget_viewport_ViewportTexture_0>
-    }
-
-    def "Vars"
-    {
-        def RenderVar "LdrColor" (
-            hide_in_stage_window = true
-            no_delete = true
-        )
-        {
-            uniform string sourceName = "LdrColor"
-        }
-    }
-}
-
-over "OmniverseKit_Persp" (
-    prepend apiSchemas = ["OmniRtxCameraAutoExposureAPI_1", "OmniRtxCameraExposureAPI_1"]
-    customData = {
-        dictionary omni = {
-            dictionary kit = {
-                bool hide_in_stage_window = 1
-                bool no_delete = 1
-            }
-        }
-    }
-    hide_in_stage_window = true
-    kind = "component"
-    no_delete = true
-)
-{
-    float2 clippingRange = (1, 10000000)
-    float exposure:responsivity = 1.1026709
-    float exposure:time = 0.02
-    float focalLength = 18.147562
-    float focusDistance = 400
-    custom uniform vector3d omni:kit:centerOfInterest = (0, 0, -4098.726755045739)
-    float3 xformOp:rotateXYZ = (58.921688, -2.842171e-14, 142.16408)
-    float3 xformOp:scale = (1, 1, 1)
-    double3 xformOp:translate = (1840.6886962040408, 3126.664802567337, 1671.311093351186)
-    uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
-}
-
-over "OmniverseKit_Front" (
-    customData = {
-        dictionary omni = {
-            dictionary kit = {
-                bool hide_in_stage_window = 1
-                bool no_delete = 1
-            }
-        }
-    }
-    hide_in_stage_window = true
-    kind = "component"
-    no_delete = true
-)
-{
-    float2 clippingRange = (1, 10000000)
-    float horizontalAperture = 5000
-    custom uniform vector3d omni:kit:centerOfInterest = (0, 0, -500)
-    token projection = "orthographic"
-    float verticalAperture = 5000
-    float3 xformOp:rotateXYZ = (90, -1.2722219e-14, 90)
-    float3 xformOp:scale = (1, 1, 1)
-    double3 xformOp:translate = (500, 0, 0)
-    uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
-}
-
-over "OmniverseKit_Right" (
-    customData = {
-        dictionary omni = {
-            dictionary kit = {
-                bool hide_in_stage_window = 1
-                bool no_delete = 1
-            }
-        }
-    }
-    hide_in_stage_window = true
-    kind = "component"
-    no_delete = true
-)
-{
-    float2 clippingRange = (1, 10000000)
-    float horizontalAperture = 5000
-    custom uniform vector3d omni:kit:centerOfInterest = (0, 0, -500)
-    token projection = "orthographic"
-    float verticalAperture = 5000
-    float3 xformOp:rotateXYZ = (90, 7.06225e-31, -1.2722219e-14)
-    float3 xformOp:scale = (1, 1, 1)
-    double3 xformOp:translate = (0, -500, 0)
-    uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
-}
-
-over "OmniverseKit_Top" (
-    customData = {
-        dictionary omni = {
-            dictionary kit = {
-                bool hide_in_stage_window = 1
-                bool no_delete = 1
-            }
-        }
-    }
-    hide_in_stage_window = true
-    kind = "component"
-    no_delete = true
-)
-{
-    float2 clippingRange = (1, 10000000)
-    float horizontalAperture = 5000
-    custom uniform vector3d omni:kit:centerOfInterest = (0, 0, -500)
-    token projection = "orthographic"
-    float verticalAperture = 5000
-    float3 xformOp:rotateXYZ = (1.2722219e-14, -7.016709e-15, -90)
-    float3 xformOp:scale = (1, 1, 1)
-    double3 xformOp:translate = (0, 0, 500)
-    uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
 }
 
