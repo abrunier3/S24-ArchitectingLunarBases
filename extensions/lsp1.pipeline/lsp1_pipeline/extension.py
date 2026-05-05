@@ -563,13 +563,13 @@ class LSP1PipelineExtension(omni.ext.IExt):
             xformable.ClearXformOpOrder()
 
             cam_pos = Gf.Vec3d(
-                target_pos[0] + 120.0,
-                target_pos[1] - 120.0,
-                target_pos[2] + 120.0
+                target_pos[0] + 40.0,
+                target_pos[1] + 10.0,
+                target_pos[2] + 20.0
             )
 
             xformable.AddTranslateOp().Set(cam_pos)
-            xformable.AddRotateXYZOp().Set(Gf.Vec3f(60.0, 0.0, 45.0))
+            xformable.AddRotateXYZOp().Set(Gf.Vec3f(70.0, 0.0, 120.0))
 
             camera.GetFocalLengthAttr().Set(12.0)
             camera.GetClippingRangeAttr().Set(Gf.Vec2f(0.1, 1000000.0))
