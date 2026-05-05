@@ -311,6 +311,11 @@ class LSP1PipelineExtension(omni.ext.IExt):
             texture.CreateIdAttr("UsdUVTexture")
             texture.CreateInput("file", Sdf.ValueTypeNames.Asset).Set(local_png)
             texture.CreateInput("sourceColorSpace", Sdf.ValueTypeNames.Token).Set("sRGB")
+            
+            # IMPORTANT: allows TILE_REPEAT > 1 to actually tile across the whole plane
+            texture.CreateInput("wrapS", Sdf.ValueTypeNames.Token).Set("repeat")
+            texture.CreateInput("wrapT", Sdf.ValueTypeNames.Token).Set("repeat")
+            
             texture.CreateOutput("rgb", Sdf.ValueTypeNames.Float3)
 
             st_reader = UsdShade.Shader.Define(stage, mat_path + "/PrimvarReader_st")
