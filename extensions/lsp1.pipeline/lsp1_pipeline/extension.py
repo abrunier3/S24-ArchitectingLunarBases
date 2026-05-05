@@ -384,13 +384,13 @@ class LSP1PipelineExtension(omni.ext.IExt):
             cam_pos = Gf.Vec3d(
                 target_pos[0] - 60.0,
                 target_pos[1] - 60.0,
-                target_pos[2] + 25.0
+                target_pos[2] + 75.0
             )
     
             xformable.AddTranslateOp().Set(cam_pos)
     
             # --- SIMPLE, STABLE ROTATION (no pxr math issues) ---
-            xformable.AddRotateXYZOp().Set(Gf.Vec3f(70.0, 0.0, -45.0))
+            xformable.AddRotateXYZOp().Set(Gf.Vec3f(50.0, 0.0, -30.0))
     
             # Camera settings
             camera.GetFocalLengthAttr().Set(18.0)
