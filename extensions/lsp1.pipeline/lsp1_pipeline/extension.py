@@ -287,7 +287,7 @@ class LSP1PipelineExtension(omni.ext.IExt):
             # Higher number = smaller repeated dust detail.
             # If the texture looks too repetitive, lower this to 12–18.
             # If it looks too smooth, raise it to 30–40.
-            TILE_REPEAT = 25.0
+            TILE_REPEAT = 60.0
 
             st = UsdGeom.PrimvarsAPI(plane).CreatePrimvar(
                 "st",
