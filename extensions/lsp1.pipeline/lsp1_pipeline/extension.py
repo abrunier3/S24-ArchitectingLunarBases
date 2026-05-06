@@ -189,40 +189,55 @@ class LSP1PipelineExtension(omni.ext.IExt):
 
 
 
-    def _load_terrain_model(self):
 
-    import omni.usd
-    from pxr import UsdGeom
+        def _load_terrain_model(self):
+        try:
+            import omni.usd
+            from pxr import UsdGeom
 
-    stage = omni.usd.get_context().get_stage()
+            stage = omni.usd.get_context().get_stage()
+            if not stage:
+                print("[LSP1 Pipeline] No stage found.")
+                return
 
-    terrain_path = "/World/Terrain"
+            terrain_file = os.path.join(
+                REPO_ROOT,
+                "clean_database",
+                "scenes",
+                "lunar_surface_v3.usdc"
+            ).replace("\\", "/")
 
-    terrain_file = (
-        self._extension_path
-        + "/clean_database/scenes/Lunar_surface_v3.usdc"
-    )
+            print("[LSP1 Pipeline] TERRAIN PATH:", terrain_file)
+            print("[LSP1 Pipeline] TERRAIN exists:", os.path.exists(terrain_file))
 
-    # Create terrain prim
-    terrain_xform = UsdGeom.Xform.Define(stage, terrain_path)
+            if not os.path.exists(terrain_file):
+                print("[LSP1 Pipeline] STOP: terrain file does not exist.")
+                return
 
-    terrain_prim = stage.GetPrimAtPath(terrain_path)
+            if not stage.GetPrimAtPath("/World").IsValid():
+                stage.DefinePrim("/World", "Xform")
 
-    # Reference terrain file
-    terrain_prim.GetReferences().AddReference(terrain_file)
+            terrain_path = "/World/Lunar_Surface_v3"
 
-    # Allow transforms
-    xform = UsdGeom.Xformable(terrain_prim)
+            old_prim = stage.GetPrimAtPath(terrain_path)
+            if old_prim and old_prim.IsValid():
+                stage.RemovePrim(terrain_path)
 
-    # SCALE
-    scale_op = xform.AddScaleOp()
-    scale_op.Set((1.0, 1.0, 1.0))
+            terrain_xform = UsdGeom.Xform.Define(stage, terrain_path)
+            terrain_prim = terrain_xform.GetPrim()
 
-    # POSITION
-    translate_op = xform.AddTranslateOp()
-    translate_op.Set((0.0, 0.0, 0.0))
+            terrain_prim.GetReferences().AddReference(terrain_file)
 
-    print(f"[DEE] Loaded terrain model: {terrain_file}")
+            xform = UsdGeom.Xformable(terrain_prim)
+            xform.AddScaleOp().Set((1.0, 1.0, 1.0))
+            xform.AddTranslateOp().Set((0.0, 0.0, 0.0))
+
+            print("[LSP1 Pipeline] SUCCESS: loaded lunar_surface_v3.usdc model.")
+
+        except Exception as e:
+            print("[LSP1 Pipeline] Terrain model load failed:", repr(e))
+
+    
     def _load_waypoints_under_world(self):
         try:
             import omni.usd
