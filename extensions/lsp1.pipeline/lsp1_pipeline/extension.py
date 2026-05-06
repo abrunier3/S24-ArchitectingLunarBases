@@ -191,48 +191,48 @@ class LSP1PipelineExtension(omni.ext.IExt):
 
 
         def _load_terrain_model(self):
-        try:
-            import omni.usd
-            from pxr import UsdGeom
-
-            stage = omni.usd.get_context().get_stage()
-            if not stage:
-                print("[LSP1 Pipeline] No stage found.")
-                return
-
-            terrain_file = os.path.join(
-                REPO_ROOT,
-                "clean_database",
-                "scenes",
-                "Lunar_surface_v3.usdc"
-            ).replace("\\", "/")
-
-            print("[LSP1 Pipeline] TERRAIN PATH:", terrain_file)
-            print("[LSP1 Pipeline] TERRAIN exists:", os.path.exists(terrain_file))
-
-            if not os.path.exists(terrain_file):
-                print("[LSP1 Pipeline] STOP: terrain file does not exist.")
-                return
-
-            if not stage.GetPrimAtPath("/World").IsValid():
-                stage.DefinePrim("/World", "Xform")
-
-            terrain_path = "/World/Lunar_Surface_v3"
-
-            old_prim = stage.GetPrimAtPath(terrain_path)
-            if old_prim and old_prim.IsValid():
-                stage.RemovePrim(terrain_path)
-
-            terrain_xform = UsdGeom.Xform.Define(stage, terrain_path)
-            terrain_prim = terrain_xform.GetPrim()
-
-            terrain_prim.GetReferences().AddReference(terrain_file)
-
-            xform = UsdGeom.Xformable(terrain_prim)
-            xform.AddScaleOp().Set((1.0, 1.0, 1.0))
-            xform.AddTranslateOp().Set((0.0, 0.0, 0.0))
-
-            print("[LSP1 Pipeline] SUCCESS: loaded lunar_surface_v3.usdc model.")
+            try:
+                import omni.usd
+                from pxr import UsdGeom
+    
+                stage = omni.usd.get_context().get_stage()
+                if not stage:
+                    print("[LSP1 Pipeline] No stage found.")
+                    return
+    
+                terrain_file = os.path.join(
+                    REPO_ROOT,
+                    "clean_database",
+                    "scenes",
+                    "Lunar_surface_v3.usdc"
+                ).replace("\\", "/")
+    
+                print("[LSP1 Pipeline] TERRAIN PATH:", terrain_file)
+                print("[LSP1 Pipeline] TERRAIN exists:", os.path.exists(terrain_file))
+    
+                if not os.path.exists(terrain_file):
+                    print("[LSP1 Pipeline] STOP: terrain file does not exist.")
+                    return
+    
+                if not stage.GetPrimAtPath("/World").IsValid():
+                    stage.DefinePrim("/World", "Xform")
+    
+                terrain_path = "/World/Lunar_Surface_v3"
+    
+                old_prim = stage.GetPrimAtPath(terrain_path)
+                if old_prim and old_prim.IsValid():
+                    stage.RemovePrim(terrain_path)
+    
+                terrain_xform = UsdGeom.Xform.Define(stage, terrain_path)
+                terrain_prim = terrain_xform.GetPrim()
+    
+                terrain_prim.GetReferences().AddReference(terrain_file)
+    
+                xform = UsdGeom.Xformable(terrain_prim)
+                xform.AddScaleOp().Set((1.0, 1.0, 1.0))
+                xform.AddTranslateOp().Set((0.0, 0.0, 0.0))
+    
+                print("[LSP1 Pipeline] SUCCESS: loaded lunar_surface_v3.usdc model.")
 
         except Exception as e:
             print("[LSP1 Pipeline] Terrain model load failed:", repr(e))
