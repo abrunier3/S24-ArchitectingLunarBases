@@ -222,7 +222,7 @@ class LSP1PipelineExtension(omni.ext.IExt):
             xform.ClearXformOpOrder()
 
             # Placement only. No terrain-following / Z-height sampling.
-            xform.AddTranslateOp().Set((1.5, 0.0, 0.0))
+            xform.AddTranslateOp().Set((2.3, 0.0, 0.0))
             xform.AddScaleOp().Set((1000.0, 1000.0, 1000.0))
 
             print("[LSP1 Pipeline] SUCCESS: loaded 3D lunar terrain model.")
