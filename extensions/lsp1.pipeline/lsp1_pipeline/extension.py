@@ -238,7 +238,7 @@ class LSP1PipelineExtension(omni.ext.IExt):
             xform = UsdGeom.Xformable(terrain_prim)
             xform.ClearXformOpOrder()
             xform.AddTranslateOp().Set((0.0, 0.0, 0.0))
-            xform.AddScaleOp().Set((1000.0, 1000.0, 1000.0))
+            xform.AddScaleOp().Set((100.0, 100.0, 100.0))
 
             print("[LSP1 Pipeline] SUCCESS: terrain reference added.")
 
