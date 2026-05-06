@@ -244,6 +244,42 @@ class LSP1PipelineExtension(omni.ext.IExt):
 
         except Exception as e:
             print("[LSP1 Pipeline] TERRAIN LOAD FAILED:", repr(e))
+
+
+
+        def _get_terrain_z_fast(self, x, y, fallback_z=0.0):
+        """
+        Quick terrain-following approximation:
+        Casts downward from above the terrain and returns the hit Z.
+        """
+
+        try:
+            import omni.physx
+            from pxr import Gf
+
+            # Start high above the terrain
+            origin = Gf.Vec3f(float(x), float(y), 100000.0)
+
+            # Cast straight down
+            direction = Gf.Vec3f(0.0, 0.0, -1.0)
+
+            # Very long ray
+            max_distance = 200000.0
+
+            hit = omni.physx.get_physx_scene_query_interface().raycast_closest(
+                origin,
+                direction,
+                max_distance
+            )
+
+            if hit["hit"]:
+                return float(hit["position"][2])
+
+            return fallback_z
+
+        except Exception as e:
+            print("[LSP1 Pipeline] Terrain raycast failed:", repr(e))
+            return fallback_z
     
     def _load_waypoints_under_world(self):
         try:
@@ -549,7 +585,17 @@ class LSP1PipelineExtension(omni.ext.IExt):
                 if translate_op is None:
                     translate_op = xformable.AddTranslateOp()
 
-                translate_op.Set(Gf.Vec3d(pos[0], pos[1], pos[2]))
+                terrain_z = self._get_terrain_z_fast(pos[0], pos[1], pos[2])
+
+                ROVER_Z_OFFSET = 2.0
+                
+                translate_op.Set(
+                    Gf.Vec3d(
+                        pos[0],
+                        pos[1],
+                        terrain_z + ROVER_Z_OFFSET
+                    )
+                )
 
         except Exception as e:
             print("[LSP1 Pipeline] Waypoint motion failed:", repr(e))
