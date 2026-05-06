@@ -166,7 +166,8 @@ class LSP1PipelineExtension(omni.ext.IExt):
                 self.des_data = json.load(f)
 
             self._load_waypoints_under_world()
-            self._create_lro_surface_plane()
+            self._load_terrain_model()
+            #self._create_lro_surface_plane()
             #self._add_lunar_mountains()
 
             # Keep geometry dust/rocks OFF.
@@ -186,6 +187,42 @@ class LSP1PipelineExtension(omni.ext.IExt):
             self.status.text = f"Status: load failed: {e}"
             print("[LSP1 Pipeline] Load failed:", repr(e))
 
+
+
+    def _load_terrain_model(self):
+
+    import omni.usd
+    from pxr import UsdGeom
+
+    stage = omni.usd.get_context().get_stage()
+
+    terrain_path = "/World/Terrain"
+
+    terrain_file = (
+        self._extension_path
+        + "/clean_database/scenes/Lunar_surface_v3.usdc"
+    )
+
+    # Create terrain prim
+    terrain_xform = UsdGeom.Xform.Define(stage, terrain_path)
+
+    terrain_prim = stage.GetPrimAtPath(terrain_path)
+
+    # Reference terrain file
+    terrain_prim.GetReferences().AddReference(terrain_file)
+
+    # Allow transforms
+    xform = UsdGeom.Xformable(terrain_prim)
+
+    # SCALE
+    scale_op = xform.AddScaleOp()
+    scale_op.Set((1.0, 1.0, 1.0))
+
+    # POSITION
+    translate_op = xform.AddTranslateOp()
+    translate_op.Set((0.0, 0.0, 0.0))
+
+    print(f"[DEE] Loaded terrain model: {terrain_file}")
     def _load_waypoints_under_world(self):
         try:
             import omni.usd
