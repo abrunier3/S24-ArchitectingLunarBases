@@ -25,11 +25,11 @@ WAYPOINTS_PATH = os.path.join(
     "waypoints.usda"
 )
 
-PNG_PATH = os.path.join(
+TERRAIN_PATH = os.path.join(
     REPO_ROOT,
     "clean_database",
     "scenes",
-    "Lunar_surface_v2.png"
+    "lunar_surface_v3.usdc"
 )
 
 REPRESENTED_MISSION_HOURS = 40.0
@@ -71,11 +71,9 @@ class LSP1PipelineExtension(omni.ext.IExt):
 
                 ui.Button("Pull GitHub", clicked_fn=self._pull_github)
                 ui.Button("Load DES Playback", clicked_fn=self._load_all)
-                ui.Button("Load Lunar Surface Model", clicked_fn=self._load_terrain_model)
                 ui.Button("Play", clicked_fn=self._play)
                 ui.Button("Pause", clicked_fn=self._pause)
                 ui.Button("Reset", clicked_fn=self._reset)
-                
 
                 self.time_label = ui.Label("Mission Time: --")
                 self.des_time_label = ui.Label("DES Playback Time: --")
@@ -161,15 +159,16 @@ class LSP1PipelineExtension(omni.ext.IExt):
             print("[LSP1 Pipeline] REPO_ROOT:", REPO_ROOT)
             print("[LSP1 Pipeline] DES PATH:", DES_PATH)
             print("[LSP1 Pipeline] DES exists:", os.path.exists(DES_PATH))
-            print("[LSP1 Pipeline] PNG PATH:", PNG_PATH)
-            print("[LSP1 Pipeline] PNG exists:", os.path.exists(PNG_PATH))
+            print("[LSP1 Pipeline] WAYPOINTS PATH:", WAYPOINTS_PATH)
+            print("[LSP1 Pipeline] WAYPOINTS exists:", os.path.exists(WAYPOINTS_PATH))
+            print("[LSP1 Pipeline] TERRAIN PATH:", TERRAIN_PATH)
+            print("[LSP1 Pipeline] TERRAIN exists:", os.path.exists(TERRAIN_PATH))
 
             with open(DES_PATH, "r", encoding="utf-8") as f:
                 self.des_data = json.load(f)
 
             self._load_waypoints_under_world()
-
-            self._create_lro_surface_plane()
+            self._load_terrain_model()
 
             self.elapsed_seconds = 0.0
             self.is_loaded = True
@@ -178,41 +177,29 @@ class LSP1PipelineExtension(omni.ext.IExt):
             self._ensure_timeline()
             self._update_all(0.0)
 
-            self.status.text = "Status: loaded DES + waypoints + regolith texture"
+            self.status.text = "Status: loaded DES + waypoints + 3D terrain"
 
         except Exception as e:
             self.status.text = f"Status: load failed: {e}"
             print("[LSP1 Pipeline] Load failed:", repr(e))
 
-
-
-
     def _load_terrain_model(self):
         try:
-            import os
             import omni.usd
-            from pxr import UsdGeom, Sdf
+            from pxr import UsdGeom
 
             stage = omni.usd.get_context().get_stage()
             if not stage:
-                print("[LSP1 Pipeline] ERROR: No stage open.")
+                print("[LSP1 Pipeline] No stage found.")
                 return
 
-            terrain_file = os.path.join(
-                REPO_ROOT,
-                "clean_database",
-                "scenes",
-                "lunar_surface_v3.usdc"
-            )
+            terrain_file = TERRAIN_PATH.replace("\\", "/")
 
-            terrain_file = os.path.abspath(terrain_file)
-            terrain_file_usd = terrain_file.replace("\\", "/")
+            print("[LSP1 Pipeline] TERRAIN local path:", terrain_file)
+            print("[LSP1 Pipeline] TERRAIN exists:", os.path.exists(TERRAIN_PATH))
 
-            print("[LSP1 Pipeline] TERRAIN FILE:", terrain_file_usd)
-            print("[LSP1 Pipeline] TERRAIN EXISTS:", os.path.exists(terrain_file))
-
-            if not os.path.exists(terrain_file):
-                print("[LSP1 Pipeline] ERROR: lunar_surface_v3.usdc not found.")
+            if not os.path.exists(TERRAIN_PATH):
+                print("[LSP1 Pipeline] STOP: terrain file does not exist.")
                 return
 
             if not stage.GetPrimAtPath("/World").IsValid():
@@ -220,29 +207,29 @@ class LSP1PipelineExtension(omni.ext.IExt):
 
             terrain_path = "/World/Lunar_Surface_v3"
 
-            old = stage.GetPrimAtPath(terrain_path)
-            if old and old.IsValid():
+            old_prim = stage.GetPrimAtPath(terrain_path)
+            if old_prim and old_prim.IsValid():
                 stage.RemovePrim(terrain_path)
+                print("[LSP1 Pipeline] Removed old:", terrain_path)
 
-            terrain = UsdGeom.Xform.Define(stage, terrain_path)
-            terrain_prim = terrain.GetPrim()
+            terrain_xform = UsdGeom.Xform.Define(stage, terrain_path)
+            terrain_prim = terrain_xform.GetPrim()
 
-            asset_path = Sdf.AssetPath(terrain_file_usd)
-            terrain_prim.GetReferences().AddReference(asset_path.path)
+            terrain_prim.GetReferences().ClearReferences()
+            terrain_prim.GetReferences().AddReference(terrain_file)
 
             xform = UsdGeom.Xformable(terrain_prim)
             xform.ClearXformOpOrder()
-            xform.AddTranslateOp().Set((0.0, 0.0, 0.0))
-            xform.AddScaleOp().Set((100.0, 100.0, 100.0))
 
-            print("[LSP1 Pipeline] SUCCESS: terrain reference added.")
+            # Placement only. No terrain-following / Z-height sampling.
+            xform.AddTranslateOp().Set((0.0, 0.0, 0.0))
+            xform.AddScaleOp().Set((1000.0, 1000.0, 1000.0))
+
+            print("[LSP1 Pipeline] SUCCESS: loaded 3D lunar terrain model.")
 
         except Exception as e:
-            print("[LSP1 Pipeline] TERRAIN LOAD FAILED:", repr(e))
+            print("[LSP1 Pipeline] Terrain model load failed:", repr(e))
 
-
-
-    
     def _load_waypoints_under_world(self):
         try:
             import omni.usd
@@ -294,118 +281,6 @@ class LSP1PipelineExtension(omni.ext.IExt):
 
         except Exception as e:
             print("[LSP1 Pipeline] Waypoint load failed:", repr(e))
-
-    def _create_lro_surface_plane(self):
-        try:
-            import omni.usd
-            from pxr import UsdGeom, UsdShade, Sdf, Gf
-
-            stage = omni.usd.get_context().get_stage()
-            if not stage:
-                print("[LSP1 Pipeline] No stage found.")
-                return
-
-            local_png = PNG_PATH.replace("\\", "/")
-
-            print("[LSP1 Pipeline] PNG local path:", local_png)
-            print("[LSP1 Pipeline] PNG exists:", os.path.exists(local_png))
-
-            if not os.path.exists(local_png):
-                print("[LSP1 Pipeline] STOP: PNG does not exist.")
-                return
-
-            for path in [
-                "/World/LRO_Surface_Plane",
-                "/World/Looks/LRO_Surface_Material"
-            ]:
-                prim = stage.GetPrimAtPath(path)
-                if prim and prim.IsValid():
-                    stage.RemovePrim(path)
-                    print("[LSP1 Pipeline] Removed old:", path)
-
-            if not stage.GetPrimAtPath("/World").IsValid():
-                stage.DefinePrim("/World", "Xform")
-
-            stage.DefinePrim("/World/Looks", "Scope")
-
-            plane_path = "/World/LRO_Surface_Plane"
-            plane = UsdGeom.Mesh.Define(stage, plane_path)
-
-            plane.GetPointsAttr().Set([
-                Gf.Vec3f(-2500, -2500, 0),
-                Gf.Vec3f(2500, -2500, 0),
-                Gf.Vec3f(2500, 2500, 0),
-                Gf.Vec3f(-2500, 2500, 0),
-            ])
-
-            plane.GetFaceVertexCountsAttr().Set([4])
-            plane.GetFaceVertexIndicesAttr().Set([0, 1, 2, 3])
-
-            # Higher number = smaller repeated dust detail.
-            # If the texture looks too repetitive, lower this to 12–18.
-            # If it looks too smooth, raise it to 30–40.
-            TILE_REPEAT = 60.0
-
-            st = UsdGeom.PrimvarsAPI(plane).CreatePrimvar(
-                "st",
-                Sdf.ValueTypeNames.TexCoord2fArray,
-                UsdGeom.Tokens.faceVarying
-            )
-
-            st.Set([
-                Gf.Vec2f(0.0, 0.0),
-                Gf.Vec2f(TILE_REPEAT, 0.0),
-                Gf.Vec2f(TILE_REPEAT, TILE_REPEAT),
-                Gf.Vec2f(0.0, TILE_REPEAT),
-            ])
-
-            mat_path = "/World/Looks/LRO_Surface_Material"
-            material = UsdShade.Material.Define(stage, mat_path)
-
-            shader = UsdShade.Shader.Define(stage, mat_path + "/PreviewSurface")
-            shader.CreateIdAttr("UsdPreviewSurface")
-
-            texture = UsdShade.Shader.Define(stage, mat_path + "/Texture")
-            texture.CreateIdAttr("UsdUVTexture")
-            texture.CreateInput("file", Sdf.ValueTypeNames.Asset).Set(local_png)
-            texture.CreateInput("sourceColorSpace", Sdf.ValueTypeNames.Token).Set("sRGB")
-            
-            # IMPORTANT: allows TILE_REPEAT > 1 to actually tile across the whole plane
-            texture.CreateInput("wrapS", Sdf.ValueTypeNames.Token).Set("repeat")
-            texture.CreateInput("wrapT", Sdf.ValueTypeNames.Token).Set("repeat")
-            
-            texture.CreateOutput("rgb", Sdf.ValueTypeNames.Float3)
-
-            st_reader = UsdShade.Shader.Define(stage, mat_path + "/PrimvarReader_st")
-            st_reader.CreateIdAttr("UsdPrimvarReader_float2")
-            st_reader.CreateInput("varname", Sdf.ValueTypeNames.Token).Set("st")
-            st_reader.CreateOutput("result", Sdf.ValueTypeNames.Float2)
-
-            texture.CreateInput("st", Sdf.ValueTypeNames.Float2).ConnectToSource(
-                st_reader.ConnectableAPI(),
-                "result"
-            )
-
-            shader.CreateInput("diffuseColor", Sdf.ValueTypeNames.Color3f).ConnectToSource(
-                texture.ConnectableAPI(),
-                "rgb"
-            )
-
-            shader.CreateInput("roughness", Sdf.ValueTypeNames.Float).Set(0.95)
-
-            material.CreateSurfaceOutput().ConnectToSource(
-                shader.ConnectableAPI(),
-                "surface"
-            )
-
-            UsdShade.MaterialBindingAPI(plane.GetPrim()).Bind(material)
-
-            print("[LSP1 Pipeline] SUCCESS: tiled regolith PNG plane created.")
-
-        except Exception as e:
-            print("[LSP1 Pipeline] LRO surface plane failed:", repr(e))
-
-
 
     def _play(self):
         if not self.is_loaded:
@@ -547,17 +422,9 @@ class LSP1PipelineExtension(omni.ext.IExt):
                 if translate_op is None:
                     translate_op = xformable.AddTranslateOp()
 
-                terrain_z = self._get_terrain_z_fast(pos[0], pos[1], pos[2])
-
-                ROVER_Z_OFFSET = 2.0
-                
-                translate_op.Set(
-                    Gf.Vec3d(
-                        pos[0],
-                        pos[1],
-                        terrain_z + ROVER_Z_OFFSET
-                    )
-                )
+                # Fixed waypoint XYZ only.
+                # No terrain Z projection.
+                translate_op.Set(Gf.Vec3d(pos[0], pos[1], pos[2]))
 
         except Exception as e:
             print("[LSP1 Pipeline] Waypoint motion failed:", repr(e))
