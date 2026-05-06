@@ -29,7 +29,7 @@ TERRAIN_PATH = os.path.join(
     REPO_ROOT,
     "clean_database",
     "scenes",
-    "lunar_surface_v2.usdc"
+    "lunar_surface_v7.usdc"
 )
 
 REPRESENTED_MISSION_HOURS = 40.0
