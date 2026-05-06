@@ -205,7 +205,7 @@ class LSP1PipelineExtension(omni.ext.IExt):
             if not stage.GetPrimAtPath("/World").IsValid():
                 stage.DefinePrim("/World", "Xform")
 
-            terrain_path = "/World/Lunar_Surface_v3"
+            terrain_path = "/World/Lunar_Surface_v4"
 
             old_prim = stage.GetPrimAtPath(terrain_path)
             if old_prim and old_prim.IsValid():
