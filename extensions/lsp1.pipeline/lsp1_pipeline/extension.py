@@ -166,7 +166,7 @@ class LSP1PipelineExtension(omni.ext.IExt):
                 self.des_data = json.load(f)
 
             self._load_waypoints_under_world()
-            #self._load_terrain_model()
+            self._load_terrain_model()
             #self._create_lro_surface_plane()
             #self._add_lunar_mountains()
 
@@ -204,7 +204,7 @@ class LSP1PipelineExtension(omni.ext.IExt):
                 REPO_ROOT,
                 "clean_database",
                 "scenes",
-                "lunar_surface_v3.usdc"
+                "Lunar_surface_v3.usdc"
             ).replace("\\", "/")
 
             print("[LSP1 Pipeline] TERRAIN PATH:", terrain_file)
