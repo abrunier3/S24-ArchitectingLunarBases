@@ -29,7 +29,7 @@ TERRAIN_PATH = os.path.join(
     REPO_ROOT,
     "clean_database",
     "scenes",
-    "lunar_surface_v7.usdc"
+    "lunar_surface_v4.usdc"
 )
 
 REPRESENTED_MISSION_HOURS = 40.0
@@ -205,7 +205,7 @@ class LSP1PipelineExtension(omni.ext.IExt):
             if not stage.GetPrimAtPath("/World").IsValid():
                 stage.DefinePrim("/World", "Xform")
 
-            terrain_path = "/World/Lunar_Surface_v6"
+            terrain_path = "/World/Lunar_Surface_v4"
 
             old_prim = stage.GetPrimAtPath(terrain_path)
             if old_prim and old_prim.IsValid():
