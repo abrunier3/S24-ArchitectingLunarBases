@@ -24,8 +24,9 @@ def Xform "World"
         custom string attributes = "{'processingRate': 1600.0, 'regHeadGrade': 0.1, 'lunarGravity': 1.62, 'LOXStored': 0.0, 'totalEnergyConsumed': 0.0, 'ISRUPlant_volume_m3': 2400.0, 'transportEnergyCoeff': 0.00036, 'liftHeight': 1.0, 'gangueTransportDist': 1.0, 'reactorEnergyCoeff': 0.385, 'electrolysisEnergyCoeff': 8.26, 'liquefactionEnergyCoeff': 1.17, 'excavationEnergyCoeff': 6.5e-06}"
         custom string dimensions = "{'size_m': {'length': 20.0, 'width': 15.0, 'height': 8.0}, 'metersPerUnit': 1, 'upAxis': 'Z'}"
         custom string part:name = "ISRUPlant"
-        float3 xformOp:rotateXYZ = (0, 0, 0)
-        double3 xformOp:translate = (-1495, -34.22, 0)
+        float3 xformOp:rotateXYZ = (90, 0, 0)
+        double3 xformOp:translate = (-1495, -34.22, 8.72)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ"]
     }
 
     def Xform "SolarPowerSystem" (
@@ -113,8 +114,10 @@ def Xform "World"
         custom string dimensions = "{'size_m': {'length': 4.0, 'width': 4.0, 'height': 2.5}, 'metersPerUnit': 1, 'upAxis': 'Z', 'angleUnit': 'deg', 'pressureUnit': 'kPa', 'massUnit': 'kg', 'lengthUnit': 'm'}"
         custom string material = "Aluminum_2219_T87"
         custom string part:name = "PropellantDepot"
-        float3 xformOp:rotateXYZ = (0, 0, 0)
-        double3 xformOp:translate = (15, 325.78, 0)
+        float3 xformOp:rotateXYZ = (90, 0, 0)
+        float3 xformOp:scale = (0.01, 0.01, 0.01)
+        double3 xformOp:translate = (15, 325.78, 1.382)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
     }
 
     def Xform "ISRUExcavation" (
