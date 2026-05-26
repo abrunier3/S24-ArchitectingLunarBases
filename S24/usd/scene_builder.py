@@ -100,6 +100,7 @@ def build_usd_scene_from_manifest(
 
         pos = part.get("position_m", [0, 0, 0])
         rot = part.get("rotation_deg", [0, 0, 0])
+        scale = part.get("scale", [1.0, 1.0, 1.0])
 
         # Use XformCommonAPI to avoid duplicate xformOp conflicts with referenced CAD.
         xform_api = UsdGeom.XformCommonAPI(xform)
@@ -108,6 +109,7 @@ def build_usd_scene_from_manifest(
             Gf.Vec3f(*rot),
             UsdGeom.XformCommonAPI.RotationOrderXYZ,
         )
+        xform_api.SetScale(Gf.Vec3f(*scale))
 
         prim.CreateAttribute("part:name", Sdf.ValueTypeNames.String).Set(name)
 
