@@ -479,6 +479,8 @@ jobs:
                       if name in transforms:
                           part["position_m"] = transforms[name].get("position_m", [0, 0, 0])
                           part["rotation_deg"] = transforms[name].get("rotation_deg", [0, 0, 0])
+                          if "scale" in transforms[name]:
+                              part["scale"] = transforms[name]["scale"]
                           injected += 1
                   print(f"[USD] Injected positions for {injected} part(s) from ECLIPSE_Project.json")
           except Exception as e:
