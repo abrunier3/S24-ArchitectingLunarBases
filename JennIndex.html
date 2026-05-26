@@ -5709,7 +5709,7 @@ let up42MoonImg = null;
 
   const GH_OWNER = "abrunier3";
   const GH_REPO  = "S24-ArchitectingLunarBases";
-  const GH_REF   = "main";
+  const GH_REF   = "OMNIVERSE-Integration";
   // This workflow runs:
   // step 1 SysML parsing -> JSON
   // step 2 connectivity graph generation
@@ -5822,7 +5822,7 @@ let up42MoonImg = null;
 
   async function fetchGraphResult(runTimestamp) {
     const token = sessionStorage.getItem('gh_pat');
-    const url = `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/outputs/graph.json?ts=${Date.now()}`;
+    const url = `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/outputs/graph.json?ref=${encodeURIComponent(GH_REF)}&ts=${Date.now()}`;
 
     try {
       const res = await fetch(url, {
@@ -6414,7 +6414,7 @@ let up42MoonImg = null;
     if (!token) return null;
 
     const res = await fetch(
-      `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${path}?ts=${encodeURIComponent(bust)}`,
+      `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${path}?ref=${encodeURIComponent(GH_REF)}&ts=${encodeURIComponent(bust)}`,
       {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -6452,7 +6452,7 @@ let up42MoonImg = null;
     try {
       const headers = { 'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github+json' };
       const res = await fetch(
-        `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/database/json/materials.json`,
+        `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/database/json/materials.json?ref=${encodeURIComponent(GH_REF)}`,
         { headers, cache: 'no-store' }
       );
       if (!res.ok) return;
@@ -7048,7 +7048,7 @@ let up42MoonImg = null;
 
     try {
       const runsRes = await fetch(
-        `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/actions/workflows/convert_cad.yml/runs?per_page=10&ts=${Date.now()}`,
+        `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/actions/workflows/convert_cad.yml/runs?branch=${encodeURIComponent(GH_REF)}&per_page=10&ts=${Date.now()}`,
         {
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -7221,7 +7221,7 @@ let up42MoonImg = null;
     let sha = null;
     try {
       const chk = await fetch(
-        `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${path}`,
+        `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${path}?ref=${encodeURIComponent(GH_REF)}`,
         {
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -7235,7 +7235,8 @@ let up42MoonImg = null;
 
     const body = {
       message: `feat: update asset JSON for ${moduleName} [skip ci]`,
-      content
+      content,
+      branch: GH_REF
     };
     if (sha) body.sha = sha;
 
@@ -7280,7 +7281,7 @@ let up42MoonImg = null;
 
     try {
       const res = await fetch(
-        `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${folderPath}`,
+        `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${folderPath}?ref=${encodeURIComponent(GH_REF)}`,
         {
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -7308,7 +7309,8 @@ let up42MoonImg = null;
               },
               body: JSON.stringify({
                 message: `chore: replace old CAD for ${moduleName} [skip ci]`,
-                sha: file.sha
+                sha: file.sha,
+                branch: GH_REF
               })
             }
           );
@@ -7345,7 +7347,7 @@ let up42MoonImg = null;
 
         try {
           const chk = await fetch(
-            `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${path}`,
+            `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${path}?ref=${encodeURIComponent(GH_REF)}`,
             {
               headers: {
                 'Authorization': `Bearer ${token}`,
@@ -7359,7 +7361,8 @@ let up42MoonImg = null;
 
         const body = {
           message: `feat: upload CAD for ${moduleName} [skip ci]`,
-          content: b64
+          content: b64,
+          branch: GH_REF
         };
         if (sha) body.sha = sha;
 
@@ -7793,7 +7796,7 @@ let up42MoonImg = null;
         let runId = null;
         try {
           const runsRes = await fetch(
-            `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/actions/workflows/run_des.yml/runs?per_page=1&ts=${Date.now()}`,
+            `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/actions/workflows/run_des.yml/runs?branch=${encodeURIComponent(GH_REF)}&per_page=1&ts=${Date.now()}`,
             {
               headers: {
                 'Authorization': `Bearer ${token}`,
@@ -7876,7 +7879,7 @@ let up42MoonImg = null;
   async function loadDesResults(token) {
     try {
       const res = await fetch(
-        `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/outputs/des_results.json?ts=${Date.now()}`,
+        `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/outputs/des_results.json?ref=${encodeURIComponent(GH_REF)}&ts=${Date.now()}`,
         {
           headers: {
             'Authorization': `Bearer ${token}`,
