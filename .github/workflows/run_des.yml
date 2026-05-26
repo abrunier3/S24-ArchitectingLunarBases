@@ -529,7 +529,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git stash --include-untracked
-          git pull --rebase origin main
+          git pull --rebase origin "${GITHUB_REF_NAME}"
           git stash pop
           git add outputs/des_results.json
           git add clean_database/json/ECLIPSE_Project/ECLIPSE_Project.json
@@ -538,4 +538,4 @@ jobs:
           echo "=== staged files ==="
           git diff --staged --name-only
           git diff --staged --quiet || git commit -m "chore: DES results + SysML + USD scene update [skip ci]"
-          git push
+          git push origin HEAD:"${GITHUB_REF_NAME}"
