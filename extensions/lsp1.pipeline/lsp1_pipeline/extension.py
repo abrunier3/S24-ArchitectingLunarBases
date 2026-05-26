@@ -457,12 +457,22 @@ class LSP1PipelineExtension(omni.ext.IExt):
 
             for actor in self.actors:
                 prim_path = actor["prim_path"]
-                route_path = actor.get("route_path")
-                if not route_path:
-                    route_path = f"{waypoint_root}/{actor['route_name']}"
+                movement = self._get_actor_movement(actor, des_time, include_future=True)
+                if movement:
+                    route_path = movement.get("route_path")
+                    if not route_path:
+                        route_path = f"{waypoint_root}/{movement['route_name']}"
+                    start_time = float(movement.get("start_time", 0.0))
+                    end_time = float(movement.get("end_time", start_time))
+                else:
+                    route_path = actor.get("route_path")
+                    if not route_path:
+                        route_path = f"{waypoint_root}/{actor['route_name']}"
+                    start_time = float(actor.get("start_time", 0.0))
+                    end_time = float(actor.get("end_time", start_time))
 
-                start_time = float(actor.get("start_time", 0.0))
-                end_time = float(actor.get("end_time", start_time))
+                if end_time <= start_time:
+                    continue
 
                 points = self._get_route_points(stage, route_path)
                 if not points:
@@ -559,16 +569,46 @@ class LSP1PipelineExtension(omni.ext.IExt):
 
         active = None
         for actor in self.actors:
-            start_time = float(actor.get("start_time", 0.0))
-            end_time = float(actor.get("end_time", start_time))
-
-            if start_time <= des_time <= end_time:
+            movement = self._get_actor_movement(actor, des_time, include_future=False)
+            if movement:
                 return actor
+
+            start_time = float(actor.get("start_time", 0.0))
+
+            movements = actor.get("movements", [])
+            if movements:
+                end_time = float(movements[-1].get("end_time", start_time))
+            else:
+                end_time = float(actor.get("end_time", start_time))
 
             if start_time <= des_time:
                 active = actor
 
         return active or self.actors[0]
+
+    def _get_actor_movement(self, actor, des_time, *, include_future=True):
+        movements = actor.get("movements", [])
+        if not movements:
+            return None
+
+        selected = None
+        for movement in movements:
+            start_time = float(movement.get("start_time", 0.0))
+            end_time = float(movement.get("end_time", start_time))
+
+            if start_time <= des_time <= end_time:
+                return movement
+
+            if start_time <= des_time:
+                selected = movement
+
+        if selected is not None:
+            return selected
+
+        if include_future:
+            return movements[0]
+
+        return None
 
     def _get_route_points(self, stage, route_path):
         if route_path in self.route_cache:
