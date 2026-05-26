@@ -17,8 +17,8 @@
     --line: rgba(132, 176, 231, 0.16);
     --line-strong: rgba(160, 204, 255, 0.32);
     --text: #e9f2ff;
-    --muted: #9cb0ca;
-    --muted-2: #6d829f;
+    --muted: rgba(255, 255, 255, 0.9);
+    --muted-2: rgba(255, 255, 255, 0.76);
     --ice: #9ad7ff;
     --team-blue: #57c7ff;
     --team-blue-strong: #20b7ff;
@@ -1163,8 +1163,8 @@
     --warn: #ffb347;
     --danger: #ff4d6d;
     --text: #d4dae8;
-    --text2: #8892a4;
-    --text3: #4a5568;
+    --text2: rgba(255, 255, 255, 0.9);
+    --text3: rgba(255, 255, 255, 0.76);
     --mono: 'JetBrains Mono', monospace;
     --sans: 'Syne', sans-serif;
     --r: 6px;
@@ -1947,24 +1947,11 @@
             <div id="cadUploadStatus" class="mini-note" style="margin-top:8px;">No CAD file loaded yet.</div>
           </div>
 
-          <!-- SysML Metadata -->
-          <div class="form-section-title">SysML Metadata</div>
-          <div class="field span-6">
-            <label>Pipeline Unique ID</label>
-            <input id="pipelineUid" type="text" readonly>
-          </div>
-          <div class="field span-6">
-            <label>CAD Title</label>
-            <input id="cadTitle" type="text" readonly>
-          </div>
-          <div class="field span-6">
-            <label>Original File Name</label>
-            <input id="sourceFileName" type="text" readonly>
-          </div>
-          <div class="field span-6">
-            <label>Computed Mass (kg)</label>
-            <input id="cadMass" type="number" step="any" readonly placeholder="—">
-          </div>
+          <!-- Hidden metadata fields kept for Step 3 logic/state -->
+          <input id="pipelineUid" type="hidden">
+          <input id="cadTitle" type="hidden">
+          <input id="sourceFileName" type="hidden">
+          <input id="cadMass" type="hidden">
 
           <!-- Material -->
           <div class="form-section-title">Material</div>
@@ -1979,14 +1966,14 @@
             </select>
           </div>
           <div id="materialPropsWrap" style="display:none; grid-column:span 12;">
-            <div class="form-section-title">Material Properties</div>
+            <div id="materialPropsTitle" class="form-section-title">Material Look</div>
             <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:8px;">
-              <div class="field"><label>Density (kg/m³)</label><input id="matDensity" type="text" readonly></div>
-              <div class="field"><label>Young Modulus (GPa)</label><input id="matYoung" type="text" readonly></div>
-              <div class="field"><label>Poisson Ratio</label><input id="matPoisson" type="text" readonly></div>
-              <div class="field"><label>Yield Strength (MPa)</label><input id="matYield" type="text" readonly></div>
-              <div class="field"><label>Ultimate Strength (MPa)</label><input id="matUltimate" type="text" readonly></div>
-              <div class="field"><label>Thermal Cond. (W/mK)</label><input id="matThermal" type="text" readonly></div>
+              <div class="field"><label>Main Color</label><input id="matDiffuse" type="text" readonly></div>
+              <div class="field"><label>Glow Color</label><input id="matEmissive" type="text" readonly></div>
+              <div class="field"><label>Metal Level</label><input id="matMetallic" type="text" readonly></div>
+              <div class="field"><label>Surface Detail</label><input id="matNormal" type="text" readonly></div>
+              <div class="field"><label>Shadow Depth</label><input id="matOcclusion" type="text" readonly></div>
+              <div class="field"><label>Matte Level</label><input id="matRoughness" type="text" readonly></div>
             </div>
           </div>
 
@@ -2473,9 +2460,9 @@ function updateSelectedPath() {
     const row = document.createElement('div');
     row.className = 'attr-row';
     row.innerHTML = `
-      <input class="attr-name" placeholder="Attribute name" value="${attr.name || ''}">
-      <input class="attr-value" placeholder="Value" value="${attr.value || ''}">
-      <input class="attr-unit" placeholder="Unit" value="${attr.unit || ''}">
+      <input class="attr-name" value="${attr.name || ''}">
+      <input class="attr-value" value="${attr.value || ''}">
+      <input class="attr-unit" value="${attr.unit || ''}">
     `;
     wrap.appendChild(row);
   }
@@ -2741,7 +2728,7 @@ iframe{
           Lunar South Pole · Scroll to zoom · Drag to pan · Click a pin to select
         </div>
         <div style="position:absolute;bottom:8px;left:12px;font-size:9px;color:rgba(255,255,255,0.3);">
-          Image: NASA LRO LOLA · Data: Jenny Zheng (GT) / NASA SDT / Artemis III studies
+          Image: NASA LRO LOLA · Data: NASA SDT / Artemis III studies
         </div>
         <!-- Legend -->
         <div style="position:absolute;bottom:8px;right:12px;display:flex;gap:8px;align-items:center;">
@@ -2796,7 +2783,7 @@ iframe{
       </button>
     </div>
 
-    <div style="display:grid;grid-template-columns:200px 1fr 220px;gap:12px;align-items:start;">
+    <div style="display:grid;grid-template-columns:200px minmax(0,1fr) 220px;gap:12px;align-items:stretch;min-height:560px;">
 
       <!-- LEFT: Module list -->
       <div style="background:var(--panel);border:1px solid var(--border);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;align-self:stretch;">
@@ -2816,7 +2803,7 @@ iframe{
       </div>
 
       <!-- CENTER: Map canvas -->
-      <div style="position:relative;background:#0c1119;border:1px solid var(--border);border-radius:12px;overflow:hidden;aspect-ratio:1/1;">
+      <div style="position:relative;background:#0c1119;border:1px solid var(--border);border-radius:12px;overflow:hidden;width:100%;min-height:560px;height:100%;align-self:stretch;">
         <canvas id="up42Canvas" style="width:100%;height:100%;display:block;cursor:crosshair;"></canvas>
 
         <!-- Overlay instructions -->
@@ -2826,13 +2813,15 @@ iframe{
           Select a module on the left to begin placement
         </div>
 
-        <!-- Source credit -->
-        <div style="position:absolute;bottom:8px;left:12px;font-size:9px;color:rgba(255,255,255,0.3);pointer-events:none;">
-          Heatmap: Jenny Zheng (GT) · Terrain: NASA LRO LOLA
-        </div>
 
         <!-- Phase 2 button + overlay toggle -->
         <div style="position:absolute;bottom:8px;right:12px;display:flex;gap:6px;">
+          <button id="up42ResetBtn" onclick="resetUp42View()"
+            style="padding:7px 12px;font-size:10px;font-weight:600;background:rgba(0,0,0,0.7);
+            color:rgba(255,255,255,0.8);border:1px solid rgba(255,255,255,0.2);
+            border-radius:8px;cursor:pointer;">
+            Reset View
+          </button>
           <button id="up42OverlayToggle" onclick="toggleUp42Overlay()"
             style="padding:7px 12px;font-size:10px;font-weight:600;background:rgba(0,0,0,0.7);
             color:rgba(255,255,255,0.8);border:1px solid rgba(255,255,255,0.2);
@@ -2882,21 +2871,21 @@ iframe{
 
 <script>
 // ── Site data ──────────────────────────────────────────────────────
-// ── Illumination thresholds (Jenny Zheng, GT — LROC WAC raster) ───
+// ── Illumination thresholds ───────────────────────────────────────
 const ILLUM_THRESHOLDS = { poor:[0,64], moderate:[65,128], high:[129,192], very_high:[193,255] };
 
-// ── Heatmap image URLs (Jenny Zheng exports, 1:5000, 60m buffer) ──
+// ── Heatmap image URLs ────────────────────────────────────────────
 const GH_RAW = 'https://raw.githubusercontent.com/abrunier3/S24-ArchitectingLunarBases/main/clean_database/images/heatmaps/';
 const SITE_HEATMAPS = {
-  MMA:  { slope: GH_RAW+'MalapertMassif_slope.png',   illum: GH_RAW+'MalapertMassif_illumination.png' },
-  SP:   { slope: GH_RAW+'SlaterPlain_slope.png',       illum: GH_RAW+'SlaterPlain_illumination.png' },
-  MMP:  { slope: null, illum: null },
-  NR1:  { slope: null, illum: GH_RAW+'RimsnPlateau_illumination.png' },
-  NR2:  { slope: null, illum: GH_RAW+'RimsnPlateau_illumination.png' },
-  PCB:  { slope: null, illum: null },
-  dGR2: { slope: GH_RAW+'derGerlacheRim2_slope.png',  illum: GH_RAW+'derGerlacheRim2_illumination.png' },
-  HW:   { slope: GH_RAW+'Haworth_slope.png',           illum: GH_RAW+'Haworth_illumination.png' },
-  MMO:  { slope: null, illum: GH_RAW+'MonsMouton_illumination.png' },
+  MMA:  { slope: GH_RAW+'MalapertMassif_slope.png',      illum: GH_RAW+'MalapertMassif_illumination.png' },
+  SP:   { slope: GH_RAW+'SlaterPlain_slope.png',          illum: GH_RAW+'SlaterPlain_illumination.png' },
+  MMP:  { slope: GH_RAW+'MonsMoutonPlateau_slope.png',   illum: GH_RAW+'RimsnPlateau_illumination.png' },
+  NR1:  { slope: GH_RAW+'NobileRim1_slope.png',          illum: GH_RAW+'RimsnPlateau_illumination.png' },
+  NR2:  { slope: GH_RAW+'NobileRim2_slope.png',          illum: GH_RAW+'RimsnPlateau_illumination.png' },
+  PCB:  { slope: GH_RAW+'PeakNearCabeusB_slope.png',     illum: null },
+  dGR2: { slope: GH_RAW+'derGerlacheRim2_slope.png',     illum: GH_RAW+'derGerlacheRim2_illumination.png' },
+  HW:   { slope: GH_RAW+'Haworth_slope.png',              illum: GH_RAW+'Haworth_illumination.png' },
+  MMO:  { slope: GH_RAW+'MonsMouton_slope.png',           illum: GH_RAW+'MonsMouton_illumination.png' },
 };
 
 const UP_SITES = [
@@ -2906,7 +2895,7 @@ const UP_SITES = [
     dist_psr:30, psr_access:'low',
     desc:'High-elevation ridge with excellent illumination and Earth visibility',
     pros:'Good solar access (High class), strong comms visibility, best slope suitability',
-    cons:'Far from PSRs', sources:'NASA Artemis III; Jenny Zheng GT (LROC WAC, LOLA DEM)', score:0.83 },
+    cons:'Far from PSRs', sources:'NASA Artemis III; LROC WAC; LOLA DEM', score:0.83 },
   { id:'SP',   name:'Slater Plain',        lat:-88.0, lon:22.0,
     bbox:{ latMin:-88.0005, latMax:-87.9995, lonMin:21.9845, lonMax:22.0155 },
     elevation_m:-59.153, slope2km:18.22, slope50m:21.81, illumination:'high',
@@ -2914,7 +2903,7 @@ const UP_SITES = [
     desc:'Flat basin near PSRs offering safe landing and resource proximity',
     pros:'Very close to PSRs, High illumination class, near-zero elevation',
     cons:'Higher 50m slope, moderate constructability risk',
-    sources:'NASA Artemis study; Jenny Zheng GT', score:0.81 },
+    sources:'NASA Artemis study', score:0.81 },
   { id:'MMP',  name:'Mons Mouton Plateau', lat:-85.0, lon:32.5,
     bbox:{ latMin:-85.0005, latMax:-84.9995, lonMin:32.4938, lonMax:32.5062 },
     elevation_m:-2045.936, slope2km:11.91, slope50m:8.6, illumination:'high',
@@ -2922,14 +2911,14 @@ const UP_SITES = [
     desc:'Flat plateau with stable terrain ideal for infrastructure deployment',
     pros:'Very low slope, safe landing conditions, High illumination class',
     cons:'Limited PSR proximity, illumination data outside raster coverage',
-    sources:'NASA Artemis candidate studies; Jenny Zheng GT', score:0.80 },
+    sources:'NASA Artemis candidate studies', score:0.80 },
   { id:'NR1',  name:'Nobile Rim 1',        lat:-85.3, lon:55.0,
     bbox:{ latMin:-85.3005, latMax:-85.2995, lonMin:54.9934, lonMax:55.0066 },
     elevation_m:-7032.286, slope2km:19.13, slope50m:16.69, illumination:'low',
     dist_psr:10, psr_access:'medium',
     desc:'Balanced site with moderate PSR access but poor illumination',
     pros:'Moderate PSR proximity', cons:'Poor illumination (Low class), very low elevation',
-    sources:'NASA SDT; Jenny Zheng GT', score:0.79 },
+    sources:'NASA SDT', score:0.79 },
   { id:'PCB',  name:'Peak near Cabeus B',  lat:-84.9, lon:-35.5,
     bbox:{ latMin:-84.9005, latMax:-84.8995, lonMin:-35.5056, lonMax:-35.4944 },
     elevation_m:756.782, slope2km:24.23, slope50m:10.95, illumination:'medium',
@@ -2937,14 +2926,14 @@ const UP_SITES = [
     desc:'Near Cabeus PSRs with moderate terrain and strong scientific value',
     pros:'Close to confirmed water ice, positive elevation',
     cons:'Illumination outside raster coverage, high 2km slope',
-    sources:'NASA Artemis III SDT; LCROSS; Jenny Zheng GT', score:0.78 },
+    sources:'NASA Artemis III SDT; LCROSS', score:0.78 },
   { id:'NR2',  name:'Nobile Rim 2',        lat:-84.7, lon:35.0,
     bbox:{ latMin:-84.7005, latMax:-84.6995, lonMin:34.9949, lonMax:35.0051 },
     elevation_m:-6494.818, slope2km:26.65, slope50m:18.41, illumination:'low',
     dist_psr:15, psr_access:'medium',
     desc:'Rim site with moderate PSR access but challenging terrain',
     pros:'Some PSR proximity', cons:'Poor illumination (Low class), very low elevation',
-    sources:'NASA SDT; Jenny Zheng GT', score:0.77 },
+    sources:'NASA SDT', score:0.77 },
   { id:'dGR2', name:'de Gerlache Rim 2',   lat:-88.7, lon:60.0,
     bbox:{ latMin:-88.7005, latMax:-88.6995, lonMin:59.9759, lonMax:60.0241 },
     elevation_m:1852.265, slope2km:24.78, slope50m:36.25, illumination:'very_high',
@@ -2952,7 +2941,7 @@ const UP_SITES = [
     desc:'Extremely close to PSRs with best illumination but very rough terrain',
     pros:'Best illumination (Very High class), excellent PSR access, positive elevation',
     cons:'Very high 50m slope (36°), most challenging mobility',
-    sources:'NASA SDT; Jenny Zheng GT', score:0.76 },
+    sources:'NASA SDT', score:0.76 },
   { id:'HW',   name:'Haworth',             lat:-87.3, lon:-4.5,
     bbox:{ latMin:-87.3005, latMax:-87.2995, lonMin:-4.5111, lonMax:-4.4889 },
     elevation_m:-2581.838, slope2km:30.28, slope50m:31.07, illumination:'low',
@@ -2960,7 +2949,7 @@ const UP_SITES = [
     desc:'PSR-rich crater with strong volatile sampling potential',
     pros:'Extremely close to PSRs, high ice potential',
     cons:'Very steep terrain, Low illumination class',
-    sources:'NASA SDT; Jenny Zheng GT', score:0.72 },
+    sources:'NASA SDT', score:0.72 },
   { id:'MMO',  name:'Mons Mouton',         lat:-84.6, lon:32.8,
     bbox:{ latMin:-84.6005, latMax:-84.5995, lonMin:32.7948, lonMax:32.8052 },
     elevation_m:-435.392, slope2km:29.08, slope50m:38.05, illumination:'moderate',
@@ -2968,7 +2957,7 @@ const UP_SITES = [
     desc:'Elevated terrain with mixed slopes and moderate PSR access',
     pros:'Moderate illumination, near-neutral elevation',
     cons:'Steepest local slopes of all candidates (38° at 50m)',
-    sources:'NASA Artemis III analysis; Jenny Zheng GT', score:0.68 },
+    sources:'NASA Artemis III analysis', score:0.68 },
 ];
 
 // ── Color helpers ──────────────────────────────────────────────────
@@ -3174,17 +3163,19 @@ function drawMap() {
     const col = scoreColor(site.score);
     const isSelected = upSelectedSite && upSelectedSite.id === site.id;
     const isHovered  = upHoveredSite  && upHoveredSite.id  === site.id;
+    const isCompare1 = upCompareSite1 && upCompareSite1.id === site.id;
+    const isCompare2 = upCompareSite2 && upCompareSite2.id === site.id;
     const pinR = 7;
 
     // Halo
-    if (isSelected || isHovered) {
+    if (isSelected || isHovered || isCompare1 || isCompare2) {
       pmCtx.beginPath();
       pmCtx.arc(pos.x, pos.y, pinR * 2.2, 0, Math.PI*2);
-      pmCtx.fillStyle = col + '33';
+      pmCtx.fillStyle = isCompare1 ? 'rgba(76,201,240,0.24)' : isCompare2 ? 'rgba(255,209,102,0.24)' : col + '33';
       pmCtx.fill();
       pmCtx.beginPath();
       pmCtx.arc(pos.x, pos.y, pinR * 1.6, 0, Math.PI*2);
-      pmCtx.strokeStyle = col;
+      pmCtx.strokeStyle = isCompare1 ? '#4cc9f0' : isCompare2 ? '#ffd166' : col;
       pmCtx.lineWidth = 1.5;
       pmCtx.stroke();
     }
@@ -3192,13 +3183,27 @@ function drawMap() {
     // Pin
     pmCtx.beginPath();
     pmCtx.arc(pos.x, pos.y, pinR, 0, Math.PI*2);
-    pmCtx.fillStyle = isSelected ? '#ffffff' : col;
+    pmCtx.fillStyle = (isSelected || isCompare1 || isCompare2) ? '#ffffff' : col;
     pmCtx.fill();
 
     // Label
     pmCtx.font = `${isSelected?'bold ':''} 10px monospace`;
     pmCtx.fillStyle = 'rgba(255,255,255,0.85)';
     pmCtx.fillText(site.id, pos.x + pinR + 3, pos.y + 4);
+
+    if (isCompare1 || isCompare2) {
+      pmCtx.save();
+      pmCtx.fillStyle = isCompare1 ? '#4cc9f0' : '#ffd166';
+      pmCtx.beginPath();
+      pmCtx.arc(pos.x, pos.y - 14, 8, 0, Math.PI * 2);
+      pmCtx.fill();
+      pmCtx.font = 'bold 9px monospace';
+      pmCtx.fillStyle = '#07101d';
+      pmCtx.textAlign = 'center';
+      pmCtx.textBaseline = 'middle';
+      pmCtx.fillText(isCompare1 ? '1' : '2', pos.x, pos.y - 13.5);
+      pmCtx.restore();
+    }
   });
 }
 
@@ -3282,8 +3287,33 @@ function showDetailCard(siteId) {
   if (!site) return;
 
   if (upCompareMode) {
-    if (!upCompareSite1) { upCompareSite1=site; drawMap(); return; }
-    if (!upCompareSite2 && site.id!==upCompareSite1.id) { upCompareSite2=site; renderComparison(); drawMap(); return; }
+    if (!upCompareSite1) {
+      upCompareSite1 = site;
+      drawMap();
+      document.getElementById('upDetailCard').innerHTML = `
+        <div style="text-align:center;margin-top:24px;">
+          <div style="font-size:12px;font-weight:700;color:#4cc9f0;margin-bottom:8px;">First site selected</div>
+          <div style="font-size:14px;font-weight:700;color:var(--text1);margin-bottom:4px;">${site.name}</div>
+          <div style="font-size:10px;color:var(--text3);margin-bottom:12px;">${site.id}</div>
+          <div style="font-size:11px;color:var(--text2);line-height:1.6;">Click a second site to compare it against ${site.name}.</div>
+        </div>`;
+      return;
+    }
+    if (site.id === upCompareSite1.id) {
+      document.getElementById('upDetailCard').innerHTML = `
+        <div style="text-align:center;margin-top:24px;">
+          <div style="font-size:12px;font-weight:700;color:#ffd166;margin-bottom:8px;">Choose a different second site</div>
+          <div style="font-size:11px;color:var(--text2);line-height:1.6;">${site.name} is already selected as site 1.</div>
+        </div>`;
+      drawMap();
+      return;
+    }
+    if (!upCompareSite2) {
+      upCompareSite2 = site;
+      renderComparison();
+      drawMap();
+      return;
+    }
   }
 
   upSelectedSite = site;
@@ -3329,6 +3359,9 @@ function showDetailCard(siteId) {
 
 function renderComparison() {
   const s1=upCompareSite1, s2=upCompareSite2;
+  if (!s1 || !s2) return;
+  const elev1 = s1.elevation_m ?? s1.elevation ?? 0;
+  const elev2 = s2.elevation_m ?? s2.elevation ?? 0;
   function cr(label,v1,v2,c1,c2) {
     return `<tr>
       <td style="font-size:10px;color:var(--text3);padding:5px 0;">${label}</td>
@@ -3359,7 +3392,7 @@ function renderComparison() {
       ${cr('Illumination',s1.illumination.replace('_',' '),s2.illumination.replace('_',' '),illumColor(s1.illumination),illumColor(s2.illumination))}
       ${cr('Dist. PSR',s1.dist_psr+' km',s2.dist_psr+' km',psrColor(s1.psr_access),psrColor(s2.psr_access))}
       ${cr('PSR Access',s1.psr_access.replace('_',' '),s2.psr_access.replace('_',' '),psrColor(s1.psr_access),psrColor(s2.psr_access))}
-      ${cr('Elevation',s1.elevation.toLocaleString()+'m',s2.elevation.toLocaleString()+'m','#7ee0b1','#7ee0b1')}
+      ${cr('Elevation',elev1.toLocaleString()+' m',elev2.toLocaleString()+' m','#7ee0b1','#7ee0b1')}
     </table>
     <div style="margin-top:10px;display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:9px;color:var(--text3);">
       <div><b>Sources:</b> ${s1.sources}</div>
@@ -3371,7 +3404,13 @@ function renderComparison() {
 function toggleCompareMode() {
   upCompareMode=!upCompareMode; upCompareSite1=null; upCompareSite2=null;
   const btn=document.getElementById('upCompareBtn');
-  if(upCompareMode){btn.textContent='✕ Cancel';btn.style.color='var(--accent)';document.getElementById('upDetailCard').innerHTML='<div style="color:var(--text3);font-size:11px;text-align:center;margin-top:30px;">Click two site pins to compare.</div>';}
+  if(upCompareMode){
+    btn.textContent='✕ Cancel';
+    btn.style.color='var(--accent)';
+    document.getElementById('upSelectBtn').style.display = 'none';
+    document.getElementById('upDetailCard').innerHTML='<div style="color:var(--text3);font-size:11px;text-align:center;margin-top:30px;">Click the first site, then click a different second site to compare them.</div>';
+    drawMap();
+  }
   else resetCompare();
 }
 function resetCompare(){
@@ -3382,6 +3421,9 @@ function resetCompare(){
 }
 function confirmSiteSelection(){
   if(!upSelectedSite)return;
+  const siteChanged = up42ConfirmedSiteId !== upSelectedSite.id;
+  up42ConfirmedSiteId = upSelectedSite.id;
+  if (siteChanged) resetUp42PlacementsForSiteChange();
   document.getElementById('upSelectedName').textContent=upSelectedSite.name;
   document.getElementById('upSelectedIndicator').style.display='block';
   setTimeout(()=>showUpTab(2),500);
@@ -3410,7 +3452,7 @@ window.addEventListener('load',()=>setTimeout(initPolarMap,200));
 const isRoverNode = id => id.toLowerCase().includes('rover');
 const UP42_EXCLUDED = { has: id => isRoverNode(id) };
 
-// ── Heatmap image URLs per module (swap in real PNGs from Jenny) ──
+// ── Heatmap image URLs per module ────────────────────────────────
 const MODULE_HEATMAPS = {
   SolarPowerSystem:   null,
   HabitationModule:   null,
@@ -3449,6 +3491,7 @@ const MODULE_COLORS = {
 // ── State ──────────────────────────────────────────────────────────
 let up42Canvas, up42Ctx, up42W, up42H;
 const KM_PER_PX       = 0.005; // 5m/px — ~3.5km canvas width
+const UP42_MAX_ROUTE_SLOPE = 15;
 let up42ActiveModule  = null;
 let up42Phase         = 'place';
 let up42Placements    = {};
@@ -3458,8 +3501,11 @@ let up42DragWaypoint  = null;
 let up42DragState     = null;
 let up42HeatmapImgs   = {};
 let up42OverlayMode   = 'slope'; // 'slope' | 'illum'
+let up42Zoom = 1, up42Pan = {x:0, y:0};
+let up42Panning = false, up42PanMoved = false, up42PointerDown = false, up42PanStart = {x:0,y:0}, up42PanOrigin = {x:0,y:0};
 let up42SiteImgCache  = {};
 let up42SyntheticTerrain = null;
+let up42ConfirmedSiteId = null;
 
 // Bounding box of the polar map for this site (degrees)
 // Will be set from upSelectedSite when panel opens
@@ -3482,7 +3528,14 @@ function initUp42() {
   up42Canvas.addEventListener('click',     up42OnClick);
   up42Canvas.addEventListener('mousemove', up42OnMouseMove);
   up42Canvas.addEventListener('mousedown', up42OnMouseDown);
-  up42Canvas.addEventListener('mouseup',   up42OnMouseUp);
+  window.addEventListener('mouseup', up42OnMouseUp);
+  up42Canvas.addEventListener('wheel', e => {
+    e.preventDefault();
+    const factor = e.deltaY < 0 ? 1.15 : 0.87;
+    up42Zoom = Math.max(0.5, Math.min(8, up42Zoom * factor));
+    drawUp42();
+  }, {passive:false});
+  up42Canvas.addEventListener('dblclick', resetUp42View);
   window.addEventListener('resize', resizeUp42Canvas);
 
   drawUp42();
@@ -3497,36 +3550,108 @@ function resizeUp42Canvas() {
   drawUp42();
 }
 
-// ── Synthetic terrain ──────────────────────────────────────────────
-// Generates a GRID_SIZE×GRID_SIZE slope array using the selected site's
-// known slope values + random perturbation. Jenny's real DEM will replace this.
-// ── Classify slope PNG pixel color → slope class ────────────────
-// Jenny's slope legend: green=0-5°, yellow=5-10°, orange=10-15°, red>15°
-function classifySlopePx(r, g, b) {
-  // Red channel dominant, low green → red zone (>15°)
-  if (r > 160 && g < 80) return { min: 15, max: 20 };
-  // Red+green high → orange (10-15°)
-  if (r > 180 && g > 80 && g < 180 && b < 80) return { min: 10, max: 15 };
-  // High green, low red → green (0-5°)
-  if (g > 160 && r < 120) return { min: 0, max: 5 };
-  // Yellow/light green (5-10°)
-  if (g > 160 && r > 160) return { min: 5, max: 10 };
-  // Default moderate
-  return { min: 5, max: 12 };
+function getUp42MapFrame() {
+  const size = Math.min(up42W, up42H);
+  const x = (up42W - size) / 2;
+  const y = (up42H - size) / 2;
+  return { x, y, size, right: x + size, bottom: y + size };
 }
 
-// ── Build terrain grid from real slope PNG ────────────────────────
-// Reads Jenny's slope heatmap, maps colors → slope values with intra-class noise
+function isInsideUp42Map(x, y) {
+  const frame = getUp42MapFrame();
+  return x >= frame.x && x <= frame.right && y >= frame.y && y <= frame.bottom;
+}
+
+function resetUp42View() {
+  up42Zoom = 1;
+  up42Pan = { x: 0, y: 0 };
+  up42Panning = false;
+  up42PanMoved = false;
+  up42PointerDown = false;
+  up42DragState = null;
+  drawUp42();
+}
+
+function clearUp42RouteStats() {
+  const wrap = document.getElementById('up42RouteStats');
+  if (!wrap) return;
+  wrap.innerHTML = '<div style="font-size:10px;color:var(--text3);line-height:1.5;">Place at least two modules to generate routes.</div>';
+}
+
+function clearUp42DesDistances() {
+  const reset = (inputId, labelId) => {
+    const input = document.getElementById(inputId);
+    if (input) input.value = '1';
+    const label = document.getElementById(labelId);
+    if (label) {
+      label.textContent = '—';
+      label.style.color = 'var(--accent)';
+    }
+  };
+  reset('desRegDist', 'desRegDistVal');
+  reset('desLoxDist', 'desLoxDistVal');
+}
+
+function resetUp42PlacementsForSiteChange() {
+  up42Placements = {};
+  up42Orientations = {};
+  up42Routes = [];
+  up42SyntheticTerrain = null;
+  up42IllumTerrain = null;
+  window.up42FinalPlacements = {};
+
+  clearUp42DesDistances();
+  clearUp42RouteStats();
+  resetUp42View();
+  setPlacementPhase('place');
+  generateSyntheticTerrain();
+  renderUp42ModuleList();
+  updateUp42InfoCard();
+  if (up42ActiveModule) {
+    loadHeatmap(up42ActiveModule);
+    setHint(`Site changed. Replace ${up42ActiveModule} on the map`);
+  } else {
+    setHint('Select a module on the left to begin placement');
+  }
+  drawUp42();
+}
+
+// ── Terrain processing ────────────────────────────────────────────
+// Builds a GRID_SIZE×GRID_SIZE slope array from the selected site's raster.
+// ── Classify slope PNG pixel color → slope class ────────────────
+// Slope legend: green=0-5°, yellow=5-10°, orange=10-15°, red>15°
+// Exact colors: green=(38,115,0), yellow=(255,255,0), orange=(230,152,0), red=(230,0,0)
+function classifySlopePx(r, g, b) {
+  // White (legend) → red
+  if (r > 240 && g > 240 && b > 240) return { min: 15, max: 20 };
+  // Green 0-5°: low r (<80), mid-high g (>80), very low b (<20)
+  if (r < 80 && g > 80 && b < 20) return { min: 0, max: 5 };
+  // Yellow 5-10°: high r (>220), high g (>220), very low b (<20)
+  if (r > 220 && g > 220 && b < 20) return { min: 5, max: 10 };
+  // Orange 10-15°: high r (>200), mid g (100-180), very low b (<20)
+  if (r > 200 && g > 100 && g < 180 && b < 20) return { min: 10, max: 15 };
+  // Red >15°: high r (>200), very low g (<30), very low b (<20)
+  if (r > 200 && g < 30 && b < 20) return { min: 15, max: 20 };
+  return { min: 15, max: 20 };
+}
+
+// ── Build terrain grid from slope PNG ─────────────────────────────
+// Maps each color class to its midpoint slope
+// Source rasters: slope legend at 95.5% width, illum legend at 74.3% width
+// Heatmap area is rectangular — we crop and sample only the data zone
+// Crop: use 76% of width (removes legend panel) for all source PNGs
+const SITE_CROP_SLOPE = 0.76;  // slope: heatmap ends at ~76%
+const SITE_CROP_ILLUM = 0.74;  // illum: heatmap ends at ~74% (white starts at 75%)
+
 function buildTerrainFromSlopePng(img, GRID) {
+  const srcW = Math.round(img.naturalWidth * SITE_CROP_SLOPE);
   const offscreen = document.createElement('canvas');
   offscreen.width  = GRID;
   offscreen.height = GRID;
   const ctx = offscreen.getContext('2d');
-  ctx.drawImage(img, 0, 0, GRID, GRID);
+  ctx.imageSmoothingEnabled = false;
+  ctx.drawImage(img, 0, 0, srcW, img.naturalHeight, 0, 0, GRID, GRID);
   const pixels = ctx.getImageData(0, 0, GRID, GRID).data;
-
-  const site = upSelectedSite;
-  let rng = mulberry32(site ? site.id.charCodeAt(0) * 7919 : 42);
 
   const terrain = [];
   for (let y = 0; y < GRID; y++) {
@@ -3535,66 +3660,64 @@ function buildTerrainFromSlopePng(img, GRID) {
       const i = (y * GRID + x) * 4;
       const r = pixels[i], g = pixels[i+1], b = pixels[i+2];
       const cls = classifySlopePx(r, g, b);
-      // Add variability within class bounds — never crosses class boundary
-      const span = cls.max - cls.min;
-      const noise = rng() * span * 0.85; // up to 85% of span for realistic variation
-      row.push(+(cls.min + noise).toFixed(2));
+      row.push(+((cls.min + cls.max) * 0.5).toFixed(2));
     }
     terrain.push(row);
   }
   return terrain;
 }
 
+// ── Real slope grid data ──────────────────────────────────────────
+// Add more sites here as slope_grids.json is produced
+const SLOPE_GRID_URL = 'https://raw.githubusercontent.com/abrunier3/S24-ArchitectingLunarBases/main/clean_database/json/slope_grids.json';
+let up42SlopeGrids = {"MMA":{"site":"Malapert_Massif","rows":80,"cols":80,"spacing_m":12.5,"data":[[11.35,11.935,12.851,13.385,13.553,14.346,15.545,16.534,17.311,18.105,19.006,19.579,19.868,20.046,19.844,19.6,19.603,19.67,19.724,19.39,18.942,18.684,18.367,17.639,16.788,16.267,15.957,15.657,15.359,15.196,15.005,14.217,13.391,13.193,13.499,13.6,13.256,12.947,13.04,13.265,13.344,13.263,13.177,13.289,13.368,13.455,13.454,13.182,12.992,12.931,12.904,12.722,12.464,12.344,12.286,12.483,13.085,13.613,13.693,13.429,12.754,12.417,12.649,13.054,13.247,13.16,12.967,13.047,13.199,12.813,12.182,11.91,12.19,12.797,13.256,13.38,13.216,13.15,12.977,12.643],[11.034,11.78,12.728,13.404,13.966,14.891,16.05,17.118,17.976,18.715,19.471,20.016,20.263,20.316,20.242,20.348,20.536,20.557,20.47,20.157,19.838,19.496,18.978,18.298,17.523,16.867,16.215,15.653,15.311,15.165,14.99,14.332,13.639,13.385,13.377,13.343,13.235,13.169,13.247,13.217,13.186,13.269,13.34,13.354,13.218,13.208,13.111,12.729,12.555,12.635,12.684,12.598,12.554,12.427,12.351,12.655,13.238,13.702,13.834,13.647,13.025,12.491,12.43,12.677,12.888,13.047,13.218,13.344,13.28,12.879,12.361,12.142,12.385,12.843,13.141,13.182,13.012,12.932,12.693,12.356],[10.624,11.589,12.624,13.539,14.49,15.363,16.483,17.773,18.666,19.194,19.868,20.583,20.888,20.855,21.024,21.526,21.823,21.65,21.3,20.919,20.596,20.125,19.509,18.951,18.363,17.652,16.699,15.825,15.399,15.331,15.102,14.519,14.104,13.992,13.676,13.312,13.152,13.142,13.256,13.216,13.168,13.266,13.355,13.155,12.78,12.753,12.708,12.442,12.407,12.624,12.754,12.741,12.717,12.51,12.579,13.007,13.327,13.391,13.326,13.304,13.092,12.712,12.507,12.498,12.642,13.009,13.535,13.706,13.405,13.007,12.676,12.674,12.994,13.209,13.104,12.847,12.641,12.657,12.542,12.273],[10.589,11.551,12.581,13.77,14.988,15.678,16.628,18.085,19.056,19.571,20.385,21.275,21.687,21.741,22.049,22.557,22.794,22.623,22.192,21.57,20.987,20.495,19.946,19.406,18.822,18.011,17.107,16.266,15.681,15.463,15.124,14.645,14.424,14.498,14.207,13.586,13.12,12.983,13.115,13.169,13.105,13.137,13.246,12.99,12.639,12.677,12.686,12.584,12.687,12.901,13.045,13.188,13.142,12.818,12.937,13.286,13.167,12.831,12.77,12.994,13.098,12.825,12.489,12.273,12.299,12.668,13.331,13.692,13.462,13.079,12.865,13.035,13.384,13.496,13.287,12.961,12.78,12.8,12.765,12.524],[10.873,11.828,12.893,14.113,15.305,15.947,16.712,17.927,18.835,19.665,20.725,21.586,22.144,22.545,22.931,23.267,23.497,23.513,23.164,22.406,21.522,20.881,20.247,19.546,18.805,17.981,17.392,16.715,15.913,15.492,15.081,14.642,14.312,14.282,14.179,13.656,13.116,12.861,12.911,13.026,13.026,13.128,13.273,13.066,12.827,12.86,12.857,12.84,13.054,13.215,13.27,13.528,13.682,13.464,13.395,13.462,13.057,12.602,12.672,12.889,12.948,12.63,12.092,11.775,11.868,12.333,13.049,13.531,13.33,12.8,12.609,12.861,13.201,13.423,13.395,13.212,13.085,13.0,13.051,13.072],[10.984,12.042,13.094,14.141,15.208,16.03,16.917,17.959,18.798,19.835,20.936,21.763,22.573,23.32,23.773,24.028,24.183,24.108,23.672,23.068,22.301,21.42,20.381,19.317,18.532,18.134,17.914,17.173,16.106,15.42,14.852,14.461,14.068,13.815,13.792,13.497,13.072,12.833,12.921,13.043,12.967,13.093,13.348,13.262,13.012,12.97,13.091,13.129,13.292,13.345,13.184,13.323,13.649,13.597,13.308,13.237,13.009,12.633,12.524,12.554,12.507,12.269,11.882,11.682,11.873,12.337,12.937,13.383,13.255,12.82,12.748,12.934,13.135,13.34,13.298,13.101,12.924,12.752,12.972,13.38],[10.898,12.037,13.029,13.983,15.081,16.1,17.113,18.216,19.297,20.486,21.558,22.42,23.248,23.939,24.369,24.585,24.646,24.426,23.822,23.247,22.66,21.799,20.596,19.366,18.654,18.479,18.169,17.276,16.25,15.438,14.698,14.374,14.056,13.601,13.476,13.388,13.197,13.073,13.119,13.063,12.865,12.984,13.3,13.243,13.059,13.112,13.328,13.256,13.181,13.165,12.885,12.774,12.955,12.943,12.663,12.677,12.784,12.59,12.307,12.277,12.242,12.206,12.184,12.165,12.287,12.484,12.786,13.059,13.0,12.916,13.215,13.394,13.255,13.161,12.996,12.756,12.543,12.416,12.661,13.043],[10.557,11.851,12.921,13.86,15.057,16.269,17.29,18.365,19.669,20.983,22.117,23.098,23.863,24.336,24.728,24.984,25.144,25.014,24.343,23.437,22.588,21.829,20.855,19.853,19.221,18.676,17.867,16.972,16.153,15.39,14.751,14.454,14.049,13.457,13.296,13.399,13.455,13.381,13.174,12.948,12.926,13.118,13.273,13.016,12.833,13.043,13.346,13.182,12.861,12.851,12.751,12.607,12.523,12.36,12.128,12.127,12.306,12.344,12.289,12.443,12.488,12.453,12.491,12.569,12.619,12.525,12.624,12.802,12.664,12.743,13.325,13.531,13.068,12.691,12.551,12.435,12.394,12.505,12.71,12.831],[10.222,11.596,12.683,13.604,14.914,16.38,17.487,18.433,19.661,21.079,22.442,23.535,24.285,24.675,25.087,25.387,25.521,25.374,24.641,23.607,22.806,22.107,21.044,20.04,19.392,18.653,17.758,16.89,15.896,15.042,14.676,14.375,13.884,13.574,13.607,13.66,13.662,13.565,13.292,13.113,13.261,13.426,13.377,12.965,12.641,12.771,13.146,13.064,12.756,12.904,13.066,12.984,12.737,12.377,12.098,11.931,11.9,12.043,12.19,12.437,12.611,12.617,12.687,12.812,12.781,12.527,12.484,12.603,12.518,12.613,12.969,13.075,12.794,12.485,12.277,12.277,12.562,12.919,12.987,12.83],[10.125,11.271,12.215,13.295,14.874,16.525,17.645,18.458,19.492,20.887,22.347,23.495,24.308,24.776,25.231,25.582,25.643,25.324,24.456,23.568,23.189,22.545,21.099,19.804,19.191,18.738,18.024,17.032,15.787,14.77,14.511,14.243,13.776,13.723,13.774,13.58,13.472,13.571,13.487,13.34,13.457,13.521,13.421,13.064,12.724,12.79,13.133,13.002,12.79,13.129,13.369,13.3,13.134,12.85,12.539,12.248,12.074,12.117,12.128,12.217,12.362,12.534,12.831,12.946,12.799,12.556,12.359,12.293,12.281,12.382,12.491,12.606,12.729,12.505,12.11,12.251,12.844,13.28,13.245,13.006],[10.212,11.139,12.032,13.243,14.885,16.49,17.557,18.27,19.2,20.53,21.913,23.079,24.006,24.599,25.074,25.439,25.423,25.057,24.3,23.529,23.218,22.573,21.142,19.794,19.083,18.659,17.838,16.759,15.6,14.579,14.362,14.237,13.734,13.471,13.392,13.257,13.298,13.539,13.448,13.114,13.094,13.136,13.131,12.95,12.883,13.181,13.44,13.129,12.83,13.007,13.114,13.162,13.25,13.123,12.821,12.524,12.336,12.294,12.27,12.319,12.305,12.429,12.774,12.86,12.653,12.429,12.101,11.905,11.943,12.015,12.192,12.511,12.755,12.477,12.088,12.345,12.98,13.376,13.339,13.188],[10.68,11.372,12.041,13.085,14.507,16.017,17.251,18.089,19.0,20.224,21.514,22.713,23.752,24.418,24.795,25.103,25.049,24.64,24.052,23.437,22.953,22.209,21.188,20.18,19.278,18.45,17.287,16.205,15.296,14.461,14.257,14.247,13.832,13.354,13.177,13.224,13.344,13.38,13.098,12.635,12.456,12.461,12.587,12.657,12.851,13.212,13.273,12.985,12.782,12.746,12.749,12.951,13.074,12.881,12.596,12.406,12.308,12.364,12.54,12.693,12.646,12.669,12.833,12.749,12.381,12.094,11.78,11.696,11.895,11.992,12.273,12.646,12.747,12.517,12.417,12.775,13.225,13.468,13.43,13.341],[10.983,11.616,12.202,13.071,14.169,15.457,16.86,18.05,19.118,20.2,21.286,22.462,23.617,24.307,24.469,24.712,24.737,24.27,23.708,23.242,22.611,21.686,20.854,20.081,19.07,17.926,16.699,15.862,15.201,14.482,14.129,13.992,13.629,13.078,12.823,12.995,13.239,13.157,12.773,12.445,12.21,12.106,12.26,12.439,12.593,12.74,12.68,12.587,12.636,12.525,12.443,12.67,12.659,12.32,12.139,12.254,12.404,12.516,12.73,12.922,12.906,12.866,12.842,12.55,12.04,11.764,11.626,11.901,12.455,12.779,12.956,12.89,12.702,12.67,12.828,13.155,13.363,13.381,13.345,13.249],[10.78,11.61,12.37,13.183,14.093,15.274,16.728,18.005,19.019,19.914,20.859,22.009,23.23,23.985,24.085,24.27,24.23,23.76,23.271,22.869,22.145,21.0,20.007,19.258,18.32,17.254,16.237,15.63,15.154,14.418,13.743,13.285,12.825,12.343,12.224,12.519,12.926,12.87,12.338,12.11,12.013,11.962,12.067,12.115,12.157,12.271,12.362,12.396,12.422,12.228,12.066,12.232,12.294,12.061,11.969,12.222,12.528,12.688,12.847,12.915,12.835,12.776,12.69,12.41,11.983,11.763,11.775,12.275,12.982,13.424,13.535,13.148,12.774,12.934,13.267,13.408,13.282,13.162,13.121,12.883],[10.512,11.356,12.236,13.135,14.069,15.247,16.628,17.868,18.871,19.627,20.451,21.406,22.36,22.971,23.099,23.217,23.015,22.589,22.335,22.126,21.407,20.125,19.034,18.288,17.466,16.634,15.794,15.124,14.658,13.988,13.181,12.564,12.104,11.851,11.886,12.046,12.315,12.274,11.794,11.679,11.721,11.765,11.849,11.785,11.879,12.17,12.418,12.358,12.152,11.937,11.863,11.979,12.074,11.992,11.902,12.027,12.352,12.67,12.843,12.697,12.531,12.548,12.502,12.335,12.086,11.938,12.067,12.585,13.138,13.506,13.728,13.44,13.042,13.225,13.577,13.5,13.137,13.092,13.104,12.77],[10.4,11.031,11.951,13.061,14.037,15.019,16.182,17.628,19.017,19.774,20.297,20.835,21.286,21.532,21.702,21.813,21.495,21.109,21.041,21.001,20.357,19.25,18.373,17.555,16.503,15.634,14.956,14.23,13.576,12.976,12.338,11.849,11.54,11.54,11.679,11.717,11.747,11.704,11.567,11.684,11.681,11.622,11.694,11.679,11.928,12.222,12.192,11.934,11.834,11.837,11.937,12.105,12.173,12.167,12.139,12.246,12.529,12.868,12.991,12.609,12.355,12.444,12.446,12.282,12.214,12.293,12.423,12.773,13.154,13.392,13.586,13.405,13.041,13.19,13.485,13.338,13.013,13.041,13.075,12.871],[10.631,10.964,11.751,13.051,14.098,14.908,15.907,17.454,18.938,19.575,19.844,20.214,20.406,20.481,20.875,21.107,20.757,20.329,20.148,19.944,19.125,17.99,17.348,16.609,15.397,14.436,13.882,13.166,12.32,11.774,11.529,11.397,11.141,11.085,11.296,11.53,11.449,11.226,11.202,11.44,11.482,11.382,11.384,11.435,11.829,12.18,12.028,11.748,11.837,11.945,11.976,12.164,12.31,12.462,12.58,12.721,12.949,13.167,13.132,12.562,12.209,12.364,12.517,12.413,12.405,12.626,12.738,12.927,13.191,13.224,13.152,12.939,12.666,12.87,13.264,13.171,12.773,12.607,12.726,12.884],[10.79,11.17,11.868,13.121,14.166,15.052,16.105,17.348,18.309,18.729,19.054,19.589,19.814,19.906,20.406,20.714,20.498,20.044,19.711,19.284,18.181,16.773,16.068,15.504,14.537,13.637,12.907,12.085,11.304,10.864,10.912,11.026,10.644,10.283,10.473,11.022,11.098,10.788,10.778,11.074,11.261,11.218,11.154,11.224,11.564,11.914,11.949,11.853,11.977,12.048,12.045,12.172,12.194,12.346,12.47,12.568,12.852,12.98,12.814,12.328,12.073,12.31,12.674,12.701,12.532,12.505,12.631,13.008,13.325,13.192,12.891,12.661,12.42,12.42,12.797,12.934,12.632,12.382,12.489,12.715],[10.593,11.168,11.995,13.128,14.143,15.241,16.313,16.941,17.268,17.729,18.343,18.967,19.224,19.383,19.8,19.974,19.768,19.199,18.798,18.358,17.326,16.024,15.214,14.723,13.998,12.922,11.8,11.031,10.556,10.198,10.165,10.234,9.842,9.389,9.531,10.132,10.427,10.35,10.498,10.811,10.974,10.954,10.88,10.96,11.172,11.396,11.583,11.725,11.873,11.871,11.929,12.075,12.002,11.921,11.845,11.928,12.296,12.402,12.266,12.154,12.2,12.426,12.769,12.79,12.481,12.138,12.178,12.81,13.239,13.049,12.735,12.648,12.53,12.33,12.55,12.897,12.968,12.928,12.759,12.481],[10.551,11.223,12.104,12.985,13.951,15.145,15.998,16.188,16.329,16.983,17.709,18.182,18.38,18.523,18.798,18.877,18.569,17.752,17.238,16.915,16.205,15.308,14.557,13.989,13.311,12.111,10.882,10.443,10.286,9.807,9.285,9.134,9.045,8.861,8.937,9.273,9.572,9.881,10.142,10.229,10.267,10.294,10.272,10.446,10.663,10.89,11.225,11.592,11.705,11.592,11.766,12.088,12.079,11.788,11.503,11.563,11.939,12.058,12.08,12.411,12.707,12.716,12.833,12.872,12.577,12.093,12.094,12.688,12.969,12.753,12.48,12.485,12.667,12.711,12.857,13.146,13.43,13.506,13.149,12.609],[10.845,11.579,12.348,12.917,13.698,14.729,15.362,15.59,15.895,16.494,16.904,17.042,17.183,17.345,17.525,17.693,17.477,16.598,15.834,15.397,14.839,14.161,13.456,12.819,12.32,11.447,10.397,10.113,10.012,9.364,8.477,8.191,8.421,8.497,8.533,8.665,8.823,9.254,9.525,9.486,9.544,9.64,9.816,10.29,10.562,10.719,11.051,11.468,11.583,11.502,11.72,12.101,12.121,11.824,11.634,11.708,11.917,12.036,12.263,12.741,13.08,13.036,13.051,13.143,12.964,12.563,12.589,12.95,13.026,12.854,12.597,12.521,12.806,13.114,13.275,13.466,13.825,13.814,13.305,12.857],[10.849,11.567,12.289,12.78,13.327,14.057,14.626,15.116,15.682,16.206,16.183,15.962,16.082,16.404,16.519,16.481,16.247,15.615,14.789,14.228,13.608,12.779,11.906,11.313,11.216,10.853,9.96,9.448,9.243,8.638,7.762,7.485,7.778,7.803,7.73,7.925,8.191,8.591,8.832,8.907,9.169,9.366,9.698,10.318,10.547,10.531,10.767,11.171,11.444,11.513,11.526,11.706,11.83,11.788,11.906,12.091,12.207,12.351,12.522,12.707,12.977,13.303,13.41,13.315,13.186,13.065,13.211,13.388,13.312,13.235,13.072,12.892,12.975,13.311,13.605,13.778,14.074,14.012,13.44,12.986],[10.982,11.609,12.16,12.447,12.754,13.286,13.907,14.566,15.302,15.856,15.679,15.383,15.532,15.946,15.911,15.437,14.97,14.522,13.848,13.301,12.652,11.682,10.749,10.26,10.215,9.946,9.16,8.477,8.24,7.906,7.274,6.971,7.003,6.831,6.697,7.066,7.703,8.208,8.351,8.452,8.931,9.3,9.508,9.817,9.942,10.058,10.439,10.868,11.238,11.476,11.344,11.293,11.527,11.756,12.042,12.277,12.494,12.79,12.828,12.656,12.839,13.491,13.775,13.552,13.36,13.418,13.686,13.748,13.522,13.491,13.517,13.387,13.221,13.333,13.561,13.563,13.748,13.858,13.48,12.98],[11.417,11.972,12.323,12.418,12.507,12.839,13.41,14.048,14.797,15.224,15.017,14.901,15.102,15.378,15.186,14.623,14.041,13.509,12.827,12.158,11.523,10.743,9.998,9.438,9.017,8.517,7.916,7.407,7.285,7.296,6.938,6.451,6.124,5.955,5.983,6.438,7.27,7.845,7.913,7.993,8.569,9.045,9.14,9.161,9.28,9.714,10.246,10.618,10.975,11.429,11.496,11.399,11.616,11.916,12.144,12.272,12.455,12.92,13.123,12.959,13.104,13.678,13.943,13.754,13.546,13.583,13.813,13.8,13.573,13.571,13.734,13.769,13.54,13.402,13.411,13.235,13.376,13.588,13.408,13.135],[11.758,12.217,12.531,12.743,12.833,13.015,13.329,13.792,14.48,14.681,14.415,14.479,14.668,14.73,14.495,14.031,13.31,12.53,11.863,11.192,10.481,9.757,9.036,8.304,7.612,7.036,6.608,6.236,6.299,6.603,6.453,5.916,5.503,5.48,5.711,6.101,6.687,7.072,7.206,7.514,8.135,8.611,8.774,8.737,8.895,9.548,10.218,10.562,10.85,11.317,11.602,11.763,12.25,12.658,12.634,12.526,12.502,12.916,13.342,13.364,13.495,13.931,14.131,13.954,13.747,13.802,13.991,13.927,13.727,13.686,13.805,13.81,13.653,13.615,13.583,13.398,13.423,13.407,13.274,13.349],[12.093,12.383,12.693,13.042,13.309,13.545,13.571,13.673,14.152,14.299,14.15,14.302,14.353,14.224,13.991,13.529,12.702,11.782,11.217,10.751,9.92,8.947,8.205,7.51,6.736,6.223,5.863,5.371,5.396,5.747,5.765,5.446,5.219,5.247,5.453,5.696,6.033,6.341,6.608,7.133,7.761,8.202,8.434,8.444,8.647,9.389,10.209,10.588,10.827,11.228,11.684,12.146,12.801,13.222,13.051,12.883,12.841,13.065,13.433,13.577,13.79,14.33,14.632,14.376,14.04,14.083,14.331,14.397,14.258,14.088,13.953,13.689,13.476,13.603,13.704,13.611,13.535,13.297,13.04,13.054],[12.417,12.563,12.872,13.327,13.749,14.016,13.829,13.484,13.607,13.786,13.756,13.807,13.714,13.5,13.314,12.949,12.25,11.354,10.765,10.406,9.564,8.337,7.474,6.892,6.249,5.876,5.55,4.999,4.883,5.039,4.993,4.765,4.703,4.779,4.806,4.839,5.208,5.7,6.062,6.548,7.107,7.537,7.907,8.25,8.657,9.32,10.067,10.487,10.79,11.216,11.853,12.503,12.971,13.146,12.988,13.053,13.294,13.477,13.65,13.797,14.015,14.492,14.847,14.596,14.232,14.293,14.636,14.939,14.94,14.673,14.337,13.91,13.624,13.721,13.794,13.725,13.626,13.397,13.135,12.952],[12.658,12.696,13.024,13.498,13.819,13.953,13.701,13.246,13.231,13.343,13.174,13.051,12.874,12.597,12.492,12.282,11.862,11.226,10.586,9.966,9.043,7.817,6.826,6.239,5.802,5.536,5.165,4.645,4.45,4.408,4.184,3.864,3.887,4.048,3.838,3.626,4.221,5.04,5.382,5.716,6.328,6.901,7.488,8.141,8.701,9.19,9.8,10.34,10.624,10.929,11.672,12.51,12.972,13.063,13.017,13.304,13.684,13.71,13.662,13.785,13.986,14.173,14.339,14.365,14.393,14.646,15.057,15.436,15.523,15.173,14.711,14.29,14.103,14.122,13.944,13.735,13.675,13.641,13.516,13.27],[13.073,12.997,13.117,13.299,13.285,13.208,13.084,13.078,13.263,13.26,12.852,12.595,12.381,12.038,11.949,11.85,11.643,11.177,10.478,9.515,8.381,7.294,6.442,5.951,5.623,5.247,4.704,4.108,3.833,3.747,3.523,3.244,3.293,3.361,2.902,2.584,3.426,4.567,5.006,5.336,5.961,6.476,7.098,7.931,8.696,9.189,9.648,10.094,10.264,10.449,11.118,12.008,12.631,12.89,13.005,13.379,13.8,13.71,13.603,13.768,13.962,13.933,13.88,14.212,14.625,14.892,15.239,15.611,15.687,15.246,14.762,14.515,14.415,14.308,13.976,13.665,13.622,13.794,13.85,13.637],[13.366,13.399,13.3,12.986,12.65,12.592,12.746,13.04,13.185,13.088,12.703,12.411,12.128,11.841,11.854,11.819,11.478,10.825,10.028,8.991,7.925,7.034,6.317,5.851,5.505,5.043,4.428,3.794,3.541,3.396,3.093,2.878,2.802,2.693,2.25,2.081,2.97,4.189,4.865,5.274,5.714,5.988,6.494,7.521,8.635,9.205,9.316,9.473,9.79,10.14,10.597,11.313,12.032,12.445,12.602,12.962,13.456,13.474,13.455,13.682,13.956,14.034,13.997,14.312,14.676,14.761,15.034,15.514,15.547,14.974,14.458,14.351,14.291,14.119,13.756,13.397,13.328,13.627,13.849,13.77],[13.456,13.487,13.348,12.951,12.584,12.59,12.891,13.083,12.978,12.896,12.781,12.528,12.072,11.81,11.993,11.835,10.939,9.968,9.28,8.44,7.616,7.062,6.534,5.94,5.499,5.117,4.523,3.76,3.347,3.004,2.632,2.563,2.438,2.276,2.006,1.995,2.755,3.783,4.367,4.674,5.163,5.59,5.955,6.881,8.138,8.736,8.664,8.847,9.461,9.959,10.349,10.933,11.544,11.927,12.23,12.711,13.115,13.161,13.282,13.606,13.945,14.196,14.349,14.521,14.627,14.658,15.016,15.467,15.285,14.685,14.199,14.105,14.058,13.885,13.622,13.246,13.081,13.528,13.93,13.911],[13.589,13.445,13.419,13.334,13.091,12.978,13.184,13.269,13.12,13.143,13.143,12.848,12.37,11.994,11.995,11.611,10.387,9.347,9.009,8.519,7.73,7.167,6.635,5.974,5.485,5.082,4.483,3.72,3.1,2.555,2.311,2.493,2.393,2.129,1.868,2.01,2.748,3.415,3.63,3.912,4.66,5.386,5.654,6.254,7.299,7.783,7.844,8.346,9.073,9.469,9.963,10.649,11.149,11.467,11.904,12.507,12.876,13.08,13.494,13.961,14.203,14.433,14.747,14.855,14.739,14.776,15.174,15.347,14.89,14.415,14.067,13.927,13.825,13.722,13.743,13.464,13.18,13.593,14.014,13.947],[13.562,13.396,13.438,13.599,13.526,13.315,13.346,13.3,13.223,13.357,13.229,12.876,12.576,12.067,11.653,11.1,10.088,9.341,9.215,8.746,7.751,6.973,6.262,5.561,5.123,4.695,4.085,3.446,2.83,2.315,2.239,2.454,2.274,1.934,1.705,2.05,2.809,3.079,3.083,3.615,4.45,5.138,5.445,5.814,6.415,6.715,7.014,7.865,8.592,8.731,9.191,10.037,10.633,11.053,11.626,12.331,12.823,13.173,13.608,14.033,14.193,14.412,14.902,15.047,14.812,14.8,15.008,14.863,14.456,14.253,14.092,13.904,13.708,13.668,13.881,13.767,13.441,13.556,13.679,13.397],[13.476,13.282,13.095,13.238,13.397,13.343,13.326,13.257,13.27,13.154,12.635,12.346,12.367,11.898,11.282,10.674,9.988,9.601,9.512,8.835,7.624,6.699,5.819,5.058,4.78,4.485,3.864,3.167,2.609,2.3,2.248,2.186,1.887,1.76,1.804,2.202,2.854,3.013,3.071,3.659,4.243,4.68,5.123,5.45,5.701,5.941,6.471,7.597,8.403,8.495,8.857,9.622,10.263,10.849,11.667,12.48,12.852,13.026,13.256,13.557,13.832,14.108,14.686,14.974,14.716,14.532,14.442,14.153,14.018,14.096,14.1,13.863,13.493,13.391,13.643,13.666,13.438,13.371,13.25,12.827],[13.451,13.359,13.013,12.898,13.018,13.145,13.175,13.108,13.069,12.623,12.032,11.963,12.116,11.724,11.116,10.492,10.001,9.932,9.895,9.054,7.733,6.811,5.899,5.082,4.885,4.764,4.258,3.413,2.766,2.574,2.376,2.062,1.724,1.753,2.037,2.39,2.925,3.26,3.49,3.816,4.029,4.344,4.911,5.317,5.426,5.626,6.28,7.469,8.374,8.725,9.146,9.771,10.26,10.676,11.418,12.25,12.504,12.538,12.648,12.874,13.313,13.708,14.262,14.625,14.322,14.053,14.056,13.936,13.823,13.807,13.712,13.385,12.921,12.791,13.032,13.059,12.947,12.925,12.88,12.682],[13.402,13.559,13.366,13.042,12.954,13.154,13.219,12.981,12.765,12.331,11.999,12.013,11.956,11.547,11.031,10.496,10.162,10.118,9.944,9.132,7.92,7.137,6.414,5.54,5.12,5.033,4.783,3.958,3.174,2.989,2.783,2.552,2.161,1.981,2.359,2.861,3.362,3.713,3.88,4.0,4.149,4.503,4.937,5.235,5.391,5.709,6.331,7.193,7.954,8.524,9.114,9.83,10.308,10.439,10.668,11.162,11.572,11.913,12.035,12.189,12.76,13.311,13.718,13.941,13.635,13.533,13.862,13.945,13.74,13.441,13.054,12.719,12.254,11.966,12.079,12.16,12.277,12.436,12.632,12.852],[13.227,13.499,13.513,13.249,13.057,13.179,13.326,13.155,12.962,12.664,12.425,12.27,11.945,11.488,11.064,10.678,10.41,10.14,9.816,9.307,8.389,7.678,7.051,6.106,5.372,5.168,5.073,4.472,3.766,3.552,3.459,3.352,2.914,2.613,2.901,3.396,3.888,4.208,4.211,4.28,4.525,4.855,5.028,5.09,5.379,5.878,6.388,6.923,7.454,8.122,8.818,9.449,9.918,10.066,9.967,10.004,10.59,11.378,11.561,11.608,12.249,12.904,13.064,13.017,12.902,13.085,13.422,13.364,13.175,12.959,12.637,12.426,11.984,11.588,11.638,11.843,12.065,12.194,12.406,12.78],[13.098,13.226,13.222,13.094,12.986,13.067,13.333,13.434,13.465,13.296,12.932,12.436,11.951,11.564,11.218,10.861,10.544,10.185,9.921,9.741,9.199,8.594,7.879,6.796,5.844,5.497,5.456,5.207,4.746,4.393,4.217,4.019,3.695,3.629,3.64,3.689,4.034,4.389,4.473,4.666,4.971,5.26,5.36,5.251,5.471,5.856,6.156,6.667,7.301,8.11,8.747,8.981,9.254,9.598,9.704,9.662,10.204,11.019,11.235,11.071,11.419,12.086,12.34,12.275,12.258,12.457,12.573,12.274,12.065,12.127,12.229,12.3,12.08,11.877,11.941,12.0,11.925,11.805,11.79,11.946],[13.33,13.221,13.098,13.071,13.077,13.131,13.337,13.486,13.58,13.526,13.111,12.422,11.928,11.631,11.304,10.982,10.809,10.597,10.377,10.243,9.932,9.464,8.649,7.507,6.577,6.177,6.065,5.985,5.707,5.173,4.804,4.496,4.314,4.481,4.459,4.386,4.589,4.629,4.657,4.999,5.325,5.586,5.789,5.749,5.847,6.011,6.028,6.389,7.087,7.94,8.553,8.68,8.852,9.209,9.456,9.505,9.995,10.649,10.932,10.69,10.541,10.94,11.492,11.748,11.668,11.565,11.508,11.259,11.025,11.103,11.458,11.825,11.883,11.767,11.779,11.718,11.427,11.252,11.187,11.126],[13.465,13.408,13.351,13.381,13.341,13.272,13.314,13.361,13.315,13.224,12.95,12.467,12.091,11.802,11.535,11.317,11.312,11.342,11.205,10.928,10.521,9.913,8.881,7.893,7.303,6.938,6.678,6.558,6.326,5.764,5.421,5.255,5.18,5.325,5.399,5.625,5.936,5.707,5.44,5.598,5.885,6.125,6.376,6.453,6.453,6.413,6.215,6.335,6.876,7.596,8.218,8.396,8.507,8.804,8.991,9.074,9.573,10.106,10.275,10.088,9.831,10.009,10.681,11.157,10.975,10.541,10.341,10.373,10.323,10.311,10.597,10.942,11.025,10.836,10.789,10.855,10.721,10.658,10.765,10.788],[13.537,13.499,13.463,13.519,13.4,13.222,13.201,13.261,13.103,12.842,12.69,12.515,12.289,12.065,11.931,11.754,11.638,11.684,11.607,11.302,10.883,10.195,9.152,8.476,8.235,7.801,7.335,7.062,6.71,6.255,6.197,6.331,6.348,6.506,6.728,7.035,7.245,7.075,6.822,6.682,6.69,6.795,7.029,7.192,7.147,6.966,6.716,6.719,7.056,7.501,7.862,7.851,7.86,8.235,8.513,8.677,9.11,9.475,9.381,9.263,9.342,9.683,10.31,10.593,10.258,9.801,9.614,9.841,9.964,9.927,10.13,10.338,10.276,9.926,9.67,9.769,9.937,9.984,10.222,10.524],[13.592,13.316,13.207,13.295,13.205,13.013,12.986,13.107,12.949,12.62,12.456,12.349,12.24,12.182,12.125,11.981,11.764,11.517,11.275,11.11,10.978,10.633,9.962,9.489,9.336,8.864,8.233,7.702,7.219,6.936,6.999,7.241,7.427,7.757,8.17,8.332,8.179,8.046,8.008,7.843,7.665,7.66,7.804,7.89,7.701,7.509,7.487,7.485,7.452,7.402,7.317,7.208,7.325,7.765,8.13,8.405,8.791,9.027,8.839,8.784,9.085,9.596,10.038,10.021,9.769,9.567,9.515,9.751,9.847,9.644,9.68,9.895,9.827,9.435,9.059,9.06,9.353,9.567,9.942,10.499],[13.457,13.021,12.877,12.988,13.026,12.89,12.865,12.966,12.845,12.583,12.376,12.314,12.373,12.412,12.278,12.025,11.776,11.367,11.046,10.978,10.897,10.66,10.244,9.874,9.858,9.716,9.154,8.483,8.137,8.008,7.906,8.124,8.557,8.964,9.366,9.433,9.128,9.047,9.099,9.012,8.922,8.892,8.826,8.685,8.315,8.131,8.259,8.24,7.922,7.436,6.985,6.956,7.347,7.781,8.061,8.335,8.73,8.942,8.814,8.786,8.995,9.358,9.479,9.363,9.504,9.54,9.414,9.523,9.545,9.188,9.033,9.23,9.305,9.16,8.964,8.99,9.181,9.395,9.857,10.553],[13.49,13.086,12.803,12.803,13.0,13.035,12.935,12.837,12.692,12.62,12.607,12.746,12.942,12.865,12.498,12.071,11.829,11.5,11.273,11.161,10.892,10.465,10.093,9.945,10.167,10.398,10.103,9.544,9.432,9.398,9.181,9.452,10.033,10.33,10.563,10.618,10.468,10.606,10.658,10.39,10.223,10.1,9.829,9.609,9.36,9.143,8.94,8.641,8.351,7.964,7.557,7.544,7.873,8.144,8.214,8.307,8.68,8.887,8.713,8.632,8.866,9.144,8.954,8.717,9.031,9.181,8.883,8.759,8.672,8.452,8.464,8.695,8.89,8.936,8.946,9.069,9.042,9.007,9.377,10.09],[13.497,13.285,12.889,12.753,13.0,13.17,12.988,12.816,12.764,12.876,12.967,12.945,12.938,12.731,12.362,12.124,12.036,11.772,11.534,11.313,11.03,10.632,10.373,10.419,10.63,10.886,10.835,10.55,10.588,10.705,10.685,10.988,11.436,11.656,11.883,12.02,12.178,12.46,12.279,11.676,11.362,11.138,10.628,10.28,10.14,9.921,9.494,9.033,8.913,8.837,8.678,8.626,8.657,8.575,8.34,8.225,8.556,8.774,8.472,8.271,8.566,8.816,8.531,8.3,8.46,8.431,8.038,7.764,7.653,7.775,8.13,8.476,8.565,8.396,8.511,8.83,8.643,8.388,8.618,9.254],[13.501,13.472,13.107,12.919,13.01,13.065,12.962,13.175,13.415,13.382,13.117,12.632,12.291,12.158,12.11,12.131,12.085,11.792,11.471,11.222,11.039,10.735,10.632,10.882,11.111,11.228,11.184,11.178,11.44,11.766,12.103,12.476,12.719,12.907,13.116,13.346,13.788,14.112,13.731,12.931,12.515,12.305,11.702,11.061,10.628,10.311,10.011,9.688,9.581,9.497,9.419,9.455,9.435,9.122,8.712,8.468,8.672,8.853,8.427,8.047,8.113,8.176,8.019,8.084,8.113,7.719,7.312,7.119,7.095,7.407,7.774,7.995,7.906,7.605,7.764,8.161,8.026,7.836,7.952,8.266],[13.185,13.377,13.258,13.073,12.992,13.002,13.087,13.572,13.95,13.689,13.04,12.321,11.947,12.051,12.178,11.984,11.789,11.61,11.264,10.988,10.88,10.644,10.701,11.17,11.408,11.318,11.358,11.707,12.124,12.468,13.02,13.595,13.877,14.07,14.221,14.508,14.971,15.266,15.029,14.348,13.78,13.425,12.877,12.154,11.379,10.741,10.423,10.25,10.082,9.849,9.688,9.768,9.801,9.494,9.119,8.795,8.876,9.079,8.706,8.212,8.027,7.884,7.732,7.956,8.023,7.523,7.129,7.034,6.984,7.118,7.332,7.473,7.332,7.143,7.285,7.51,7.451,7.376,7.428,7.471],[12.757,13.131,13.351,13.321,13.101,13.041,13.304,13.73,13.816,13.382,12.74,12.185,12.056,12.293,12.26,11.748,11.528,11.582,11.339,11.032,10.886,10.709,10.908,11.475,11.535,11.3,11.597,12.26,12.745,13.01,13.542,14.239,14.663,14.925,15.152,15.489,15.795,16.023,15.964,15.501,14.914,14.4,13.827,13.099,12.095,11.108,10.654,10.563,10.413,10.12,9.814,9.664,9.619,9.607,9.477,9.099,9.112,9.41,9.234,8.839,8.634,8.302,7.812,7.686,7.725,7.528,7.181,6.957,6.745,6.7,7.08,7.365,7.001,6.661,6.785,7.005,7.055,7.031,7.11,7.197],[12.614,12.932,13.31,13.513,13.222,12.975,13.224,13.453,13.208,12.794,12.497,12.281,12.29,12.459,12.259,11.764,11.678,11.793,11.673,11.455,11.205,10.984,11.107,11.538,11.501,11.409,11.888,12.515,13.002,13.379,13.944,14.702,15.215,15.551,15.918,16.338,16.683,16.859,16.662,16.318,15.988,15.513,14.738,13.782,12.688,11.691,11.122,10.923,10.739,10.407,10.068,9.873,9.865,10.058,10.019,9.646,9.627,9.88,9.772,9.495,9.249,8.707,7.915,7.447,7.422,7.426,7.057,6.77,6.538,6.45,6.918,7.151,6.608,6.103,6.124,6.404,6.601,6.645,6.737,6.873],[12.954,13.032,13.283,13.616,13.457,13.097,12.977,12.812,12.563,12.518,12.584,12.623,12.696,12.745,12.456,12.152,12.214,12.172,11.952,11.794,11.516,11.156,11.027,11.296,11.419,11.522,11.927,12.399,12.939,13.495,14.208,15.167,15.849,16.261,16.639,17.133,17.686,17.774,17.294,16.931,16.771,16.288,15.294,14.165,13.221,12.488,11.933,11.592,11.373,11.133,10.974,10.961,11.035,11.092,10.915,10.665,10.612,10.587,10.371,10.075,9.751,9.167,8.294,7.677,7.533,7.41,7.088,6.963,6.686,6.334,6.518,6.623,6.327,6.023,5.869,5.901,6.063,6.198,6.259,6.298],[13.371,13.335,13.414,13.673,13.597,13.116,12.654,12.366,12.432,12.841,13.038,12.897,12.756,12.653,12.345,12.173,12.383,12.291,11.891,11.697,11.558,11.198,10.922,11.096,11.275,11.386,11.745,12.427,13.137,13.703,14.381,15.343,16.185,16.751,17.166,17.808,18.487,18.362,17.661,17.21,16.957,16.425,15.524,14.625,13.979,13.494,13.055,12.657,12.404,12.303,12.306,12.259,12.195,12.021,11.794,11.756,11.751,11.453,11.002,10.652,10.487,10.15,9.254,8.466,8.125,7.768,7.53,7.457,6.897,6.248,6.319,6.51,6.411,6.172,5.812,5.586,5.702,6.028,6.192,6.204],[13.208,13.174,13.152,13.235,13.261,12.883,12.336,12.125,12.496,13.161,13.369,12.916,12.355,12.005,11.765,11.72,12.006,11.976,11.533,11.381,11.467,11.24,11.096,11.39,11.462,11.408,11.674,12.501,13.393,14.066,14.691,15.428,16.17,16.817,17.323,17.937,18.493,18.235,17.568,17.178,16.823,16.338,15.904,15.561,15.116,14.605,14.202,13.851,13.554,13.396,13.373,13.251,13.114,12.861,12.647,12.744,12.779,12.358,11.782,11.408,11.421,11.347,10.464,9.386,8.771,8.337,8.268,8.182,7.355,6.621,6.701,6.839,6.603,6.317,6.01,5.817,5.935,6.245,6.437,6.538],[12.591,12.577,12.58,12.633,12.81,12.737,12.394,12.263,12.592,13.114,13.209,12.744,12.106,11.561,11.356,11.416,11.605,11.598,11.237,11.123,11.332,11.251,11.209,11.54,11.527,11.426,11.631,12.319,13.247,14.033,14.589,15.216,15.991,16.731,17.267,17.677,17.975,17.69,17.273,17.145,16.77,16.266,16.248,16.281,15.934,15.427,15.007,14.771,14.592,14.344,14.12,13.961,13.979,13.946,13.791,13.752,13.601,13.232,12.79,12.32,12.192,12.07,11.232,10.024,9.307,8.999,9.025,8.855,7.918,7.21,7.197,7.075,6.696,6.519,6.38,6.218,6.158,6.154,6.338,6.737],[12.389,12.293,12.262,12.406,12.646,12.794,12.792,12.712,12.703,12.849,12.839,12.537,12.167,11.677,11.414,11.367,11.374,11.447,11.278,11.033,11.095,11.161,11.076,11.148,11.123,11.143,11.32,11.883,12.795,13.465,13.833,14.473,15.484,16.351,16.874,17.267,17.575,17.418,17.233,17.309,16.987,16.38,16.262,16.166,15.968,15.868,15.584,15.377,15.363,15.167,14.729,14.486,14.741,15.106,14.939,14.447,14.0,13.758,13.501,13.041,12.795,12.452,11.581,10.562,9.979,9.646,9.502,9.196,8.285,7.604,7.478,7.211,6.729,6.45,6.303,6.221,6.059,5.787,5.913,6.463],[12.524,12.405,12.392,12.616,12.773,12.928,13.048,12.934,12.63,12.525,12.64,12.5,12.328,11.975,11.583,11.337,11.278,11.311,11.25,11.01,10.912,10.955,10.729,10.599,10.733,10.99,11.045,11.329,12.151,12.811,13.177,13.8,14.827,15.703,16.335,16.854,17.212,17.172,17.072,17.207,16.998,16.45,16.161,15.908,15.832,16.076,16.134,16.092,16.178,16.015,15.523,15.281,15.584,16.099,15.973,15.231,14.547,14.247,13.994,13.713,13.547,13.041,12.14,11.315,10.828,10.278,9.784,9.398,8.749,8.162,7.845,7.468,6.953,6.489,6.234,6.216,6.036,5.673,5.597,5.796],[12.766,12.674,12.764,13.002,13.025,13.021,12.986,12.801,12.513,12.437,12.648,12.469,12.161,11.831,11.471,11.174,11.056,10.969,11.019,10.99,10.883,10.774,10.436,10.348,10.679,11.171,11.2,11.129,11.628,12.311,12.872,13.56,14.509,15.34,16.099,16.631,16.834,16.751,16.547,16.549,16.513,16.299,16.21,16.158,16.156,16.291,16.544,16.793,17.003,16.985,16.716,16.565,16.62,16.825,16.872,16.394,15.588,15.089,14.807,14.628,14.36,13.654,12.734,12.059,11.649,10.895,10.107,9.78,9.337,8.642,8.089,7.644,7.32,7.011,6.76,6.591,6.24,5.895,5.715,5.53],[13.058,12.927,13.005,13.125,13.028,12.825,12.635,12.565,12.573,12.617,12.726,12.462,12.012,11.707,11.464,11.035,10.575,10.322,10.527,10.667,10.631,10.642,10.518,10.599,10.943,11.45,11.567,11.359,11.496,12.102,12.846,13.632,14.372,14.965,15.709,16.279,16.431,16.403,16.295,16.269,16.353,16.404,16.499,16.65,16.688,16.613,16.823,17.197,17.469,17.759,17.958,17.986,17.723,17.416,17.447,17.212,16.437,16.043,15.961,15.683,15.071,14.151,13.243,12.789,12.461,11.525,10.556,10.198,9.645,8.784,8.103,7.575,7.335,7.288,7.214,6.817,6.21,5.928,5.775,5.432],[13.217,13.009,13.034,13.053,12.892,12.524,12.215,12.342,12.605,12.633,12.646,12.592,12.239,11.88,11.639,11.113,10.411,10.058,10.231,10.333,10.316,10.528,10.715,10.945,11.274,11.653,11.853,11.752,11.627,11.893,12.59,13.456,14.069,14.518,15.22,15.794,15.986,16.111,16.235,16.435,16.672,16.718,16.725,16.881,16.958,16.879,17.013,17.381,17.683,18.167,18.704,18.861,18.481,18.024,18.017,17.858,17.168,16.969,17.088,16.589,15.658,14.681,13.913,13.657,13.327,12.318,11.274,10.666,9.925,9.038,8.242,7.656,7.404,7.292,7.21,6.764,6.104,5.859,5.779,5.519],[12.866,12.819,12.959,12.988,12.859,12.573,12.265,12.276,12.463,12.414,12.389,12.549,12.33,11.786,11.474,11.119,10.689,10.511,10.444,10.215,10.084,10.348,10.667,10.966,11.374,11.677,11.82,11.78,11.6,11.526,12.003,12.88,13.545,14.039,14.726,15.237,15.479,15.659,15.756,16.132,16.737,16.957,16.892,17.033,17.2,17.191,17.269,17.608,18.012,18.589,19.022,19.043,18.872,18.679,18.695,18.573,17.972,17.66,17.639,17.106,16.246,15.338,14.561,14.232,13.756,12.766,11.824,11.235,10.653,9.791,8.735,8.063,7.883,7.642,7.452,7.183,6.739,6.395,6.129,5.842],[12.289,12.563,12.873,12.963,12.895,12.807,12.638,12.422,12.384,12.326,12.248,12.32,12.137,11.527,11.161,11.038,11.082,11.135,10.856,10.319,10.072,10.312,10.632,10.852,11.164,11.364,11.399,11.349,11.265,11.198,11.611,12.333,12.898,13.374,13.994,14.379,14.661,15.06,15.36,15.804,16.49,16.872,16.884,17.14,17.552,17.787,17.96,18.226,18.556,19.054,19.197,19.109,19.262,19.267,19.239,19.065,18.399,17.887,17.704,17.266,16.665,16.046,15.299,14.666,13.895,12.913,12.157,11.888,11.618,10.616,9.22,8.41,8.229,8.006,7.809,7.651,7.439,7.063,6.52,6.004],[12.42,12.706,12.905,12.938,12.836,12.843,12.933,12.733,12.544,12.493,12.271,11.986,11.739,11.332,11.04,11.074,11.439,11.538,11.075,10.358,10.065,10.359,10.747,10.985,11.224,11.283,11.198,11.163,11.195,11.157,11.419,11.958,12.431,12.864,13.403,13.661,13.874,14.559,15.308,15.784,16.148,16.373,16.421,16.738,17.437,18.165,18.637,18.896,19.131,19.468,19.508,19.546,19.846,19.75,19.555,19.295,18.612,18.059,17.824,17.402,16.906,16.508,15.868,15.049,14.233,13.494,12.855,12.54,12.238,11.264,9.986,9.092,8.565,8.215,8.159,8.105,7.816,7.308,6.706,6.082],[12.67,12.86,12.861,12.756,12.694,12.784,12.94,12.846,12.726,12.708,12.324,11.757,11.412,11.098,10.99,11.204,11.63,11.736,11.26,10.514,10.196,10.418,10.768,11.148,11.442,11.496,11.366,11.273,11.365,11.44,11.597,12.064,12.502,12.913,13.497,13.733,13.83,14.476,15.217,15.584,15.806,16.051,16.212,16.502,17.149,17.95,18.561,19.003,19.423,19.804,19.822,19.785,20.091,20.135,19.828,19.417,18.865,18.379,18.084,17.69,17.246,16.819,16.091,15.197,14.505,14.027,13.53,12.988,12.423,11.675,10.897,10.118,9.373,8.897,8.866,8.691,8.056,7.263,6.703,6.221],[12.691,12.811,12.708,12.424,12.456,12.792,12.856,12.664,12.681,12.763,12.414,11.945,11.596,11.143,11.075,11.315,11.585,11.683,11.396,10.852,10.564,10.553,10.686,11.037,11.242,11.353,11.383,11.424,11.606,11.817,11.948,12.37,12.835,13.238,13.805,14.072,14.184,14.626,14.988,15.092,15.331,15.781,16.251,16.714,17.188,17.564,17.916,18.463,19.169,19.851,19.94,19.654,19.791,20.156,20.059,19.654,19.322,18.878,18.292,17.82,17.514,17.216,16.463,15.454,14.593,14.011,13.659,13.145,12.469,11.84,11.417,10.926,10.349,9.924,9.675,9.173,8.4,7.497,6.907,6.622],[12.68,12.606,12.464,12.173,12.337,12.954,13.045,12.753,12.721,12.756,12.526,12.291,11.988,11.475,11.348,11.469,11.563,11.585,11.434,11.107,10.753,10.542,10.662,10.966,11.065,11.215,11.374,11.538,11.765,12.072,12.316,12.692,13.208,13.62,13.922,14.013,14.185,14.55,14.665,14.616,14.905,15.536,16.309,16.894,17.271,17.428,17.527,18.02,18.954,19.879,20.024,19.649,19.55,19.939,20.138,19.983,19.917,19.394,18.329,17.65,17.496,17.464,16.982,16.058,14.973,14.217,13.82,13.263,12.594,12.012,11.649,11.299,10.925,10.679,10.365,9.704,8.882,8.009,7.513,7.423],[12.666,12.431,12.288,12.17,12.388,12.919,12.997,12.819,12.73,12.63,12.507,12.416,12.143,11.759,11.644,11.647,11.702,11.777,11.701,11.449,10.915,10.544,10.913,11.343,11.409,11.566,11.695,11.726,11.869,12.18,12.495,12.716,13.236,13.769,13.826,13.701,13.904,14.262,14.302,14.382,14.826,15.484,16.35,16.914,17.209,17.487,17.745,18.178,18.969,19.701,19.881,19.773,19.738,19.97,20.091,19.923,19.867,19.229,18.111,17.561,17.484,17.435,17.132,16.394,15.264,14.422,13.856,13.281,12.748,12.238,11.942,11.645,11.238,10.941,10.546,9.867,9.104,8.414,8.177,8.283],[12.571,12.454,12.368,12.355,12.49,12.669,12.567,12.57,12.725,12.754,12.677,12.539,12.375,12.262,12.153,11.958,11.87,12.031,12.096,11.877,11.297,10.952,11.494,12.056,12.203,12.202,12.046,11.972,12.152,12.348,12.405,12.404,12.924,13.559,13.671,13.682,13.94,14.168,14.152,14.481,14.992,15.382,16.043,16.677,17.213,17.849,18.323,18.456,18.711,19.087,19.421,19.742,19.984,20.119,19.844,19.35,19.193,18.699,17.987,17.739,17.61,17.296,16.78,16.006,15.06,14.26,13.639,13.308,13.05,12.583,12.259,11.962,11.444,10.919,10.348,9.701,9.148,8.794,8.795,8.99],[12.441,12.663,12.817,12.875,12.947,12.876,12.612,12.738,13.143,13.311,13.055,12.711,12.658,12.715,12.617,12.356,12.047,12.08,12.25,12.17,11.719,11.426,11.862,12.475,12.803,12.678,12.242,12.132,12.388,12.535,12.381,12.198,12.557,13.141,13.549,13.913,14.243,14.287,14.149,14.577,15.03,15.129,15.474,16.158,17.004,17.8,18.108,17.976,18.073,18.474,18.911,19.257,19.545,19.761,19.394,18.761,18.677,18.5,18.019,17.709,17.378,16.814,16.142,15.455,14.84,14.165,13.671,13.642,13.567,13.03,12.409,12.002,11.527,10.973,10.408,9.848,9.412,9.281,9.307,9.313],[12.577,12.901,13.223,13.293,13.3,13.109,12.852,13.093,13.481,13.544,13.171,12.81,12.726,12.618,12.534,12.396,12.082,12.094,12.346,12.449,12.161,11.743,11.797,12.265,12.709,12.75,12.45,12.359,12.503,12.661,12.565,12.288,12.395,12.841,13.357,13.784,14.15,14.286,14.193,14.539,14.97,15.08,15.287,15.907,16.701,17.295,17.341,17.113,17.238,17.76,18.176,18.298,18.495,18.873,18.777,18.271,18.212,18.181,17.709,17.189,16.695,16.048,15.543,15.187,14.802,14.178,13.727,13.744,13.792,13.345,12.545,11.949,11.484,11.087,10.645,10.222,9.986,9.983,9.859,9.539],[12.978,13.051,13.243,13.311,13.167,12.815,12.701,13.059,13.343,13.249,12.933,12.79,12.766,12.533,12.344,12.132,11.865,12.024,12.378,12.54,12.428,12.06,11.801,11.9,12.345,12.817,12.923,12.829,12.755,12.774,12.723,12.581,12.633,12.868,13.154,13.393,13.787,14.153,14.178,14.399,14.949,15.264,15.425,15.809,16.325,16.779,16.817,16.493,16.525,17.004,17.278,17.196,17.396,17.939,18.13,17.796,17.586,17.498,17.169,16.728,16.222,15.642,15.273,14.993,14.664,14.149,13.711,13.573,13.527,13.228,12.675,12.134,11.662,11.344,11.017,10.696,10.562,10.571,10.31,9.779],[13.612,13.437,13.282,13.176,12.839,12.482,12.639,13.008,13.136,13.031,12.854,12.773,12.826,12.821,12.603,12.167,11.809,11.896,12.234,12.483,12.655,12.515,12.111,11.84,12.252,12.981,13.09,12.781,12.755,12.806,12.745,12.714,12.783,12.954,13.028,13.142,13.631,14.087,14.127,14.279,14.829,15.24,15.437,15.624,15.778,15.948,15.992,15.82,15.973,16.463,16.677,16.565,16.804,17.308,17.436,17.101,16.786,16.66,16.584,16.509,16.237,15.829,15.438,15.004,14.65,14.239,13.813,13.512,13.235,12.96,12.722,12.487,12.174,11.816,11.434,11.032,10.757,10.724,10.554,10.114],[14.028,13.83,13.403,13.007,12.566,12.397,12.854,13.242,13.215,13.148,13.097,12.872,12.92,13.262,13.231,12.783,12.316,12.132,12.219,12.464,12.838,12.853,12.424,11.988,12.272,12.925,12.827,12.369,12.593,12.848,12.684,12.545,12.746,13.103,12.991,12.986,13.565,14.069,14.203,14.276,14.459,14.765,15.319,15.743,15.53,15.081,14.936,15.103,15.459,15.826,16.042,16.234,16.641,16.855,16.601,16.19,16.008,15.999,16.047,16.212,16.163,15.869,15.492,15.111,14.788,14.332,13.77,13.339,13.047,12.887,12.8,12.757,12.582,12.146,11.603,11.112,10.802,10.8,10.635,10.135],[14.027,13.835,13.366,12.959,12.587,12.591,13.203,13.604,13.413,13.305,13.393,13.149,13.128,13.569,13.744,13.423,12.903,12.556,12.393,12.364,12.605,12.684,12.433,12.17,12.381,12.899,12.872,12.514,12.704,13.023,12.863,12.597,12.924,13.335,13.087,13.136,13.653,13.961,14.133,14.218,14.169,14.364,15.107,15.703,15.378,14.717,14.484,14.82,15.167,15.294,15.584,16.102,16.564,16.514,16.017,15.619,15.656,15.713,15.676,15.802,15.734,15.455,15.181,14.892,14.598,14.236,13.742,13.336,13.05,12.909,12.866,12.897,12.78,12.302,11.681,11.249,11.075,11.01,10.585,9.78],[13.862,13.644,13.374,13.248,13.044,13.033,13.474,13.787,13.54,13.407,13.573,13.426,13.241,13.393,13.532,13.355,13.068,12.956,12.91,12.713,12.575,12.412,12.227,12.226,12.458,12.815,12.933,12.852,13.089,13.485,13.43,13.156,13.204,13.299,13.127,13.397,13.772,13.812,13.954,14.133,14.02,14.045,14.638,15.169,15.099,14.78,14.667,14.95,15.132,15.234,15.698,16.221,16.48,16.317,15.828,15.47,15.551,15.609,15.47,15.34,15.063,14.774,14.638,14.443,14.213,14.093,13.932,13.689,13.361,13.107,12.98,12.952,12.78,12.32,11.813,11.531,11.522,11.413,10.902,10.11],[13.441,13.531,13.524,13.341,13.136,13.16,13.477,13.729,13.561,13.411,13.492,13.388,13.076,12.788,12.664,12.694,12.858,13.111,13.307,13.147,12.749,12.401,12.202,12.207,12.321,12.47,12.768,13.088,13.541,13.852,13.684,13.493,13.276,13.102,13.047,13.309,13.488,13.544,13.821,14.141,14.009,13.837,14.191,14.668,14.991,15.01,14.91,15.078,15.196,15.309,15.669,15.992,16.097,15.968,15.614,15.281,15.251,15.257,15.054,14.775,14.535,14.404,14.339,14.209,14.015,13.915,13.794,13.609,13.436,13.232,13.041,12.984,12.803,12.384,11.974,11.803,11.963,11.979,11.516,10.808],[13.194,13.565,13.633,13.024,12.525,12.66,13.03,13.313,13.352,13.221,13.123,13.068,12.903,12.514,12.182,12.265,12.622,12.977,13.229,13.028,12.477,12.187,12.223,12.273,12.329,12.423,12.741,13.141,13.569,13.612,13.364,13.382,13.254,13.084,13.027,13.077,13.124,13.247,13.54,14.006,14.03,13.756,13.848,14.227,14.723,14.832,14.67,14.753,14.96,15.045,15.064,15.11,15.213,15.35,15.257,14.908,14.587,14.427,14.355,14.271,14.227,14.278,14.271,14.135,13.914,13.779,13.592,13.305,13.051,12.774,12.578,12.708,12.773,12.477,12.034,11.876,12.221,12.394,11.953,11.193],[12.878,13.135,13.258,12.673,12.124,12.327,12.693,12.958,13.171,13.064,12.811,12.78,12.821,12.648,12.475,12.585,12.76,12.838,12.991,12.816,12.329,12.112,12.377,12.644,12.669,12.715,12.97,13.302,13.4,13.096,13.043,13.347,13.352,13.179,13.1,13.042,12.961,13.001,13.234,13.859,14.216,13.907,13.604,13.676,14.013,14.184,14.277,14.431,14.6,14.506,14.329,14.339,14.501,14.752,14.791,14.435,13.884,13.654,13.958,14.287,14.285,14.232,14.273,14.222,14.031,13.771,13.48,13.073,12.659,12.426,12.259,12.374,12.638,12.688,12.445,12.2,12.282,12.322,12.076,11.58],[12.567,12.59,12.776,12.651,12.485,12.646,12.808,12.946,13.276,13.292,12.906,12.595,12.603,12.745,12.999,13.131,12.959,12.676,12.605,12.568,12.454,12.353,12.535,12.924,12.972,12.884,13.171,13.63,13.554,13.01,12.915,13.141,13.151,13.095,13.167,13.194,13.048,12.947,13.064,13.659,14.241,14.084,13.646,13.402,13.368,13.526,13.958,14.24,14.299,14.054,13.96,14.2,14.318,14.297,14.26,13.934,13.418,13.313,13.857,14.415,14.49,14.286,14.231,14.168,13.971,13.6,13.247,12.894,12.597,12.598,12.545,12.509,12.702,13.032,13.109,12.75,12.241,11.923,11.897,11.92],[12.812,12.664,12.798,13.088,13.353,13.323,12.966,12.853,13.36,13.633,13.256,12.745,12.594,12.749,13.138,13.179,12.8,12.399,12.149,12.235,12.525,12.595,12.525,12.751,12.867,12.797,13.14,13.637,13.601,13.126,12.884,12.891,13.039,13.231,13.274,13.328,13.422,13.379,13.199,13.407,13.994,14.088,13.69,13.287,13.076,13.21,13.694,13.864,13.841,13.686,13.835,14.287,14.279,13.938,13.68,13.369,13.158,13.363,13.839,14.183,14.262,13.98,13.799,13.787,13.804,13.578,13.189,12.95,12.805,12.824,12.939,12.999,13.099,13.41,13.531,13.126,12.362,11.783,11.781,12.092],[12.924,12.833,12.964,13.405,13.898,13.832,13.162,12.948,13.471,13.73,13.503,13.131,12.776,12.525,12.639,12.705,12.531,12.364,12.268,12.327,12.559,12.694,12.588,12.551,12.661,12.828,13.173,13.461,13.414,13.13,12.879,12.87,13.348,13.708,13.564,13.474,13.742,13.869,13.486,13.273,13.867,14.221,13.742,13.183,12.994,13.201,13.568,13.452,13.401,13.574,13.952,14.334,14.067,13.517,13.101,12.812,12.881,13.406,13.791,13.821,13.746,13.457,13.275,13.37,13.813,13.933,13.371,12.949,12.883,12.889,13.016,13.126,13.253,13.592,13.811,13.476,12.703,11.985,11.954,12.411],[12.509,12.689,12.924,13.306,13.914,14.071,13.409,13.144,13.549,13.744,13.664,13.32,12.698,12.059,11.897,12.113,12.349,12.519,12.735,12.724,12.632,12.683,12.682,12.509,12.622,13.045,13.296,13.339,13.3,13.154,12.96,13.042,13.619,13.895,13.745,13.596,13.815,14.006,13.657,13.336,13.908,14.3,13.733,13.123,12.972,13.271,13.557,13.216,13.212,13.758,14.253,14.399,13.871,13.264,12.881,12.627,12.715,13.326,13.663,13.511,13.28,13.091,13.04,13.155,13.837,14.289,13.65,12.856,12.757,12.882,12.862,12.83,13.075,13.557,13.89,13.612,12.916,12.154,12.113,12.666]]}};  // MMA 80x80 12.5m grid embedded from xlsx — PNG used for display only
+
+function loadSlopeGrids(cb) {
+  if (up42SlopeGrids) return cb(up42SlopeGrids);
+  fetch(SLOPE_GRID_URL)
+    .then(r => r.json())
+    .then(data => { up42SlopeGrids = data; console.log('[UP] Slope grids loaded:', Object.keys(data)); cb(data); })
+    .catch(e => {
+    console.warn('[UP] Slope grids fetch failed:', e);
+    // Sentinel: évite la boucle infinie de retry
+    up42SlopeGrids = {};
+    cb(null);
+  });
+}
+
 function generateSyntheticTerrain() {
   const GRID = 80;
   const site = upSelectedSite;
 
-  // Try to use real slope PNG if already cached
-  const cacheKey = site ? site.id + '_slope' : null;
-  const slopeImg = cacheKey ? up42SiteImgCache[cacheKey] : null;
-
-  if (slopeImg) {
-    up42SyntheticTerrain = buildTerrainFromSlopePng(slopeImg, GRID);
-    console.log('[UP] Terrain built from real slope PNG:', site.id);
+  // Priority 1: real CSV grid (from slope_grids.json)
+  if (up42SlopeGrids && site && up42SlopeGrids[site.id]) {
+    const gridData = up42SlopeGrids[site.id].data;
+    up42SyntheticTerrain = gridData.map(row => [...row]);
+    console.log('[UP] Terrain from real CSV grid:', site.id);
     return;
   }
 
-  // Fallback: fully synthetic based on site's known slope stats
-  const baseSlopeDeg = Math.min(10, site ? site.slope2km || 6 : 6);
-  up42SyntheticTerrain = [];
-  let rng = mulberry32(site ? site.id.charCodeAt(0) * 1234 : 42);
-
-  for (let y = 0; y < GRID; y++) {
-    const row = [];
-    for (let x = 0; x < GRID; x++) {
-      const base  = baseSlopeDeg * 0.5;
-      const noise = (rng() - 0.5) * baseSlopeDeg * 1.2;
-      let extra = 0;
-      [[0.25,0.3],[0.7,0.6],[0.5,0.8]].forEach(([cx,cy]) => {
-        const dx = x/GRID - cx, dy = y/GRID - cy;
-        const d = Math.sqrt(dx*dx+dy*dy);
-        if (d > 0.06 && d < 0.12) extra += (0.12 - d) / 0.06 * 18;
-      });
-      row.push(Math.max(0, Math.min(20, base + noise + extra)));
-    }
-    up42SyntheticTerrain.push(row);
+  // Priority 2: slope PNG heatmap
+  const cacheKey = site ? site.id + '_slope' : null;
+  const slopeImg = cacheKey ? up42SiteImgCache[cacheKey] : null;
+  if (slopeImg) {
+    up42SyntheticTerrain = buildTerrainFromSlopePng(slopeImg, GRID);
+    console.log('[UP] Terrain from slope PNG:', site.id);
+    return;
   }
-  console.log('[UP] Terrain: synthetic fallback for', site?.id);
+
+  // Priority 3: flat fallback based on site average slope
+  const baseSlopeDeg = Math.min(10, site ? site.slope2km || 6 : 6);
+  up42SyntheticTerrain = Array.from({length: GRID}, () =>
+    Array.from({length: GRID}, () => +baseSlopeDeg.toFixed(2))
+  );
+  console.log('[UP] Terrain: flat fallback for', site?.id);
 }
 
 // Rebuild terrain whenever slope PNG finishes loading
 function onSlopeImgReady() {
   generateSyntheticTerrain();
   drawUp42();
-}
-
-function mulberry32(seed) {
-  return function() {
-    seed |= 0; seed = seed + 0x6D2B79F5 | 0;
-    let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
-    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
-    return ((t ^ t >>> 14) >>> 0) / 4294967296;
-  };
 }
 
 // ── Module list ────────────────────────────────────────────────────
@@ -3663,6 +3786,14 @@ function renderUp42ModuleList() {
   // Plot Paths available once at least 2 modules placed
   const placedCount = allItems.filter(s => up42Placements[s.id]).length;
   const plotBtn = document.getElementById('up42PlotBtn');
+  if (plotBtn) {
+    const site = upSelectedSite;
+    const hasReal = up42SlopeGrids && site && up42SlopeGrids[site.id];
+    plotBtn.title = hasReal
+      ? `Using real CSV slope data (${site.id})`
+      : 'Using PNG/synthetic slope data — CSV not loaded yet';
+    plotBtn.style.background = hasReal ? '#00c896' : 'var(--accent)';
+  }
   if (plotBtn) plotBtn.style.display = placedCount >= 2 ? 'block' : 'none';
 
   const allPlaced = allItems.length > 0 && allItems.every(s => up42Placements[s.id]);
@@ -3679,6 +3810,9 @@ function hexToRgb(hex) {
 
 function selectUp42Module(moduleId) {
   up42ActiveModule = moduleId;
+  const preferredOverlay = moduleId === 'SolarPowerSystem' ? 'illum' : 'slope';
+  if (up42OverlayMode !== preferredOverlay) up42OverlayMode = preferredOverlay;
+  syncUp42OverlayToggleButton();
   renderUp42ModuleList();
   updateUp42InfoCard();
   loadHeatmap(moduleId);
@@ -3693,6 +3827,9 @@ function setHint(msg) {
 
 // ── Heatmap loading ────────────────────────────────────────────────
 function loadHeatmap(moduleId) {
+  if (moduleId === 'SolarPowerSystem') {
+    loadSiteHeatmap('illum', () => drawUp42());
+  }
   const url = MODULE_HEATMAPS[moduleId];
   if (!url) { drawUp42(); return; }
   if (up42HeatmapImgs[moduleId]) { drawUp42(); return; }
@@ -3703,7 +3840,7 @@ function loadHeatmap(moduleId) {
   img.src = url;
 }
 
-// ── Load site heatmap (slope or illum) from Jenny's exports ───────
+// ── Load site heatmap (slope or illum) ───────────────────────────
 function loadSiteHeatmap(mode, cb) {
   const site = upSelectedSite;
   if (!site) return cb(null);
@@ -3717,18 +3854,22 @@ function loadSiteHeatmap(mode, cb) {
   img.crossOrigin = 'anonymous';
   img.onload = () => {
     up42SiteImgCache[cacheKey] = img;
-    // When slope PNG loads → rebuild terrain grid from real data
     if (mode === 'slope') onSlopeImgReady();
+    if (mode === 'illum') { up42IllumTerrain = null; drawUp42(); } // rebuild illum grid
     cb(img);
   };
   img.onerror = () => cb(null);
   img.src = url;
 }
 
-function toggleUp42Overlay() {
-  up42OverlayMode = up42OverlayMode === 'slope' ? 'illum' : 'slope';
+function syncUp42OverlayToggleButton() {
   const btn = document.getElementById('up42OverlayToggle');
   if (btn) btn.textContent = up42OverlayMode === 'slope' ? '🌞 Show Illumination' : '⛰ Show Slope';
+}
+
+function toggleUp42Overlay() {
+  up42OverlayMode = up42OverlayMode === 'slope' ? 'illum' : 'slope';
+  syncUp42OverlayToggleButton();
   loadSiteHeatmap(up42OverlayMode, () => drawUp42());
 }
 
@@ -3736,19 +3877,28 @@ function toggleUp42Overlay() {
 function drawUp42() {
   if (!up42Ctx) return;
   up42Ctx.clearRect(0, 0, up42W, up42H);
+  up42Ctx.save();
+  // Apply zoom/pan — center of canvas is pivot
+  up42Ctx.translate(up42W/2 + up42Pan.x, up42H/2 + up42Pan.y);
+  up42Ctx.scale(up42Zoom, up42Zoom);
+  up42Ctx.translate(-up42W/2, -up42H/2);
 
   // Background
   up42Ctx.fillStyle = '#0c1119';
   up42Ctx.fillRect(0, 0, up42W, up42H);
 
-  // Draw terrain base
-  drawTerrain();
+  // Draw terrain base (slope grid — always from real or synthetic data)
+  if (up42OverlayMode === 'illum') {
+    drawIllumGrid();
+  } else {
+    drawTerrain();
+  }
 
   // Phase-specific overlay
   if (up42Phase === 'routes') {
-    drawElevationHeatmap();   // elevation view for route planning
+    // no extra overlay in routes phase — terrain already visible
   } else if (up42ActiveModule) {
-    drawHeatmapOverlay();     // suitability heatmap for placement
+    drawHeatmapOverlay();     // module suitability overlay
   }
 
   // Draw placed module rectangles
@@ -3756,16 +3906,24 @@ function drawUp42() {
 
   // Draw routes (phase 2)
   if (up42Phase === 'routes' && up42Routes.length > 0) drawRoutes();
+  up42Ctx.restore();
+  // Draw zoom indicator (outside transform)
+  if (up42Zoom !== 1) {
+    up42Ctx.font = '10px monospace';
+    up42Ctx.fillStyle = 'rgba(255,255,255,0.6)';
+    up42Ctx.fillText(`${up42Zoom.toFixed(1)}× — use Reset View`, 8, up42H - 22);
+  }
 }
 
 function drawElevationHeatmap() {
   if (!up42SyntheticTerrain) return;
   const GRID = up42SyntheticTerrain.length;
-  const cellW = up42W / GRID;
-  const cellH = up42H / GRID;
+  const frame = getUp42MapFrame();
+  const cellW = frame.size / GRID;
+  const cellH = frame.size / GRID;
 
   // Derive synthetic elevation from slope (integrate slope → elevation proxy)
-  // In production this will use Jenny's real DEM raster
+  // Estimated elevation field derived from the local slope grid
   for (let y = 0; y < GRID; y++) {
     for (let x = 0; x < GRID; x++) {
       const slope = up42SyntheticTerrain[y][x];
@@ -3787,13 +3945,13 @@ function drawElevationHeatmap() {
         r=220; g=Math.round(40-Math.min(30,slope-15)*2); b=30;
       }
       up42Ctx.fillStyle = `rgba(${r},${g},${b},${a})`;
-      up42Ctx.fillRect(Math.round(x*cellW), Math.round(y*cellH),
+      up42Ctx.fillRect(Math.round(frame.x + x*cellW), Math.round(frame.y + y*cellH),
         Math.ceil(cellW)+1, Math.ceil(cellH)+1);
     }
   }
 
   // Slope legend
-  const lx = up42W - 110, ly = 12;
+  const lx = frame.right - 110, ly = frame.y + 12;
   up42Ctx.fillStyle = 'rgba(0,0,0,0.65)';
   up42Ctx.fillRect(lx-6, ly, 104, 80);
   up42Ctx.font = '9px monospace';
@@ -3813,69 +3971,136 @@ function drawElevationHeatmap() {
 
   // Note
   up42Ctx.fillStyle = 'rgba(255,255,255,0.3)';
-  up42Ctx.fillText('★ Synthetic — awaiting DEM from Jenny', 8, up42H-20);
+  up42Ctx.fillText('★ Estimated slope field', 8, up42H-20);
 }
 
 function drawTerrain() {
-  // Try real Jenny heatmap first
-  const site = upSelectedSite;
-  const cacheKey = site ? site.id + '_' + up42OverlayMode : null;
-  const siteImg = cacheKey ? up42SiteImgCache[cacheKey] : null;
-
-  if (siteImg) {
-    // Real Jenny heatmap fills the canvas
-    up42Ctx.fillStyle = '#0c1119';
-    up42Ctx.fillRect(0, 0, up42W, up42H);
-    up42Ctx.globalAlpha = 0.92;
-    up42Ctx.drawImage(siteImg, 0, 0, up42W, up42H);
-    up42Ctx.globalAlpha = 1.0;
-
-    // Legend overlay (illumination thresholds)
-    if (up42OverlayMode === 'illum') {
-      drawIllumLegend();
-    } else {
-      drawSlopeLegendSmall();
-    }
-
-    // Credit
-    up42Ctx.font = '9px monospace';
-    up42Ctx.fillStyle = 'rgba(255,255,255,0.45)';
-    up42Ctx.fillText(`Heatmap: Jenny Zheng (GT) · ${up42OverlayMode === 'illum' ? 'Illumination · LROC WAC' : 'Slope · NASA LOLA'} · 1:5,000`, 8, up42H - 8);
-    return;
-  }
-
-  // Fallback: moon image + synthetic slope tint
-  if (up42MoonImg) {
-    up42Ctx.drawImage(up42MoonImg, 0, 0, up42W, up42H);
-  } else {
-    up42Ctx.fillStyle = '#1a1f2e';
-    up42Ctx.fillRect(0, 0, up42W, up42H);
-  }
+  // Dark background
+  up42Ctx.fillStyle = '#0c1119';
+  up42Ctx.fillRect(0, 0, up42W, up42H);
 
   if (!up42SyntheticTerrain) return;
   const GRID = up42SyntheticTerrain.length;
-  const cellW = up42W / GRID;
-  const cellH = up42H / GRID;
+  const frame = getUp42MapFrame();
+  const cellW = frame.size / GRID;
+  const cellH = frame.size / GRID;
+
+  const site = upSelectedSite;
+
   for (let y = 0; y < GRID; y++) {
     for (let x = 0; x < GRID; x++) {
       const slope = up42SyntheticTerrain[y][x];
-      const t = Math.min(1, slope / 20);
-      up42Ctx.fillStyle = `rgba(${Math.round(t*80)},${Math.round((1-t)*40)},${Math.round((1-t)*60)},0.18)`;
-      up42Ctx.fillRect(Math.round(x*cellW), Math.round(y*cellH), Math.ceil(cellW)+1, Math.ceil(cellH)+1);
+      let r, g, b;
+      if (slope < 5)       { r=0;   g=100; b=0;   }
+      else if (slope < 10) { r=173; g=255; b=47;  }
+      else if (slope < 15) { r=255; g=140; b=0;   }
+      else                 { r=180; g=0;   b=0;   }
+      up42Ctx.fillStyle = `rgb(${r},${g},${b})`;
+      up42Ctx.fillRect(
+        Math.round(frame.x + x*cellW),
+        Math.round(frame.y + y*cellH),
+        Math.ceil(cellW)+1,
+        Math.ceil(cellH)+1
+      );
     }
   }
 
-  up42Ctx.font = '9px monospace';
-  up42Ctx.fillStyle = 'rgba(255,255,255,0.3)';
-  up42Ctx.fillText('★ Synthetic terrain — awaiting real heatmap from Jenny', 8, up42H - 8);
+  drawSlopeLegendSmall();
+  if (site) drawSiteNameBadge(site.name);
+}
+
+// ── Classify illumination PNG pixel → value class ────────────────
+// Illumination legend: dark red=0-64 poor, orange=65-128 moderate,
+// light green=129-192 high, dark green=193-255 very high
+// Exact colors: poor=(168,0,0), moderate=(255,170,1), high=(208,255,115), very_high=(0,100,0)
+function classifyIllumPx(r, g, b) {
+  // White or near-white (legend/background) → ignore, treat as moderate fallback
+  if (r > 220 && g > 220 && b > 220) return { cls:'moderate', color:'#ff8c00' };
+  // Black (border lines) → ignore
+  if (r < 20 && g < 20 && b < 20) return { cls:'moderate', color:'#ff8c00' };
+  // Very High: dark green (0,100,0) — r very low, g moderate, b very low
+  if (r < 30 && g > 60 && b < 30) return { cls:'very_high', color:'#006400' };
+  // High: light yellow-green (208,255,115) — high g, moderate r, moderate b
+  if (g > 200 && r > 150 && b > 60) return { cls:'high', color:'#adff2f' };
+  // Moderate: orange (255,170,1) — high r, mid g ~170, very low b
+  if (r > 200 && g > 100 && g < 210 && b < 20) return { cls:'moderate', color:'#ff8c00' };
+  // Poor: dark red (168,0,0) — mid r ~168, very low g, very low b
+  if (r > 100 && r < 220 && g < 20 && b < 20) return { cls:'poor', color:'#8b0000' };
+  return { cls:'poor', color:'#8b0000' };
+}
+
+// ── Draw illumination grid from real PNG (or synthetic fallback) ──
+let up42IllumTerrain = null; // { cls, color }[][]
+
+function buildIllumFromPng(img, GRID) {
+  const srcW = Math.round(img.naturalWidth * SITE_CROP_ILLUM);
+  const offscreen = document.createElement('canvas');
+  offscreen.width = GRID; offscreen.height = GRID;
+  const ctx = offscreen.getContext('2d');
+  ctx.imageSmoothingEnabled = false;
+  ctx.drawImage(img, 0, 0, srcW, img.naturalHeight, 0, 0, GRID, GRID);
+  const pixels = ctx.getImageData(0, 0, GRID, GRID).data;
+  const grid = [];
+  for (let y = 0; y < GRID; y++) {
+    const row = [];
+    for (let x = 0; x < GRID; x++) {
+      const i = (y * GRID + x) * 4;
+      row.push(classifyIllumPx(pixels[i], pixels[i+1], pixels[i+2]));
+    }
+    grid.push(row);
+  }
+  return grid;
+}
+
+function drawIllumGrid() {
+  up42Ctx.fillStyle = '#0c1119';
+  up42Ctx.fillRect(0, 0, up42W, up42H);
+
+  const site = upSelectedSite;
+  const illumImg = site ? up42SiteImgCache[site.id + '_illum'] : null;
+
+  // Build illum terrain from PNG if available and not yet built
+  if (illumImg && !up42IllumTerrain) {
+    up42IllumTerrain = buildIllumFromPng(illumImg, 80);
+  }
+
+  const GRID = 80;
+  const frame = getUp42MapFrame();
+  const cellW = frame.size / GRID;
+  const cellH = frame.size / GRID;
+
+  if (up42IllumTerrain) {
+    for (let y = 0; y < GRID; y++) {
+      for (let x = 0; x < GRID; x++) {
+        up42Ctx.fillStyle = up42IllumTerrain[y][x].color;
+        up42Ctx.fillRect(
+          Math.round(frame.x + x*cellW),
+          Math.round(frame.y + y*cellH),
+          Math.ceil(cellW)+1,
+          Math.ceil(cellH)+1
+        );
+      }
+    }
+  } else {
+    // Synthetic fallback — uniform moderate
+    up42Ctx.fillStyle = '#ff8c00';
+    up42Ctx.fillRect(frame.x, frame.y, frame.size, frame.size);
+  }
+
+  if (site) drawSiteNameBadge(site.name);
+  drawIllumLegend();
 }
 
 function drawIllumLegend() {
-  const lx = up42W - 154, ly = 10;
-  up42Ctx.fillStyle = 'rgba(0,0,0,0.7)';
-  up42Ctx.fillRect(lx-4, ly, 150, 76);
+  const frame = getUp42MapFrame();
+  const lx = frame.right - 154, ly = frame.y + 10;
+  up42Ctx.fillStyle = 'rgba(5,8,14,0.9)';
+  up42Ctx.fillRect(lx-6, ly-2, 154, 80);
+  up42Ctx.strokeStyle = 'rgba(255,255,255,0.18)';
+  up42Ctx.lineWidth = 1;
+  up42Ctx.strokeRect(lx-6, ly-2, 154, 80);
   up42Ctx.font = '9px monospace';
-  up42Ctx.fillStyle = 'rgba(255,255,255,0.8)';
+  up42Ctx.fillStyle = 'rgba(255,255,255,0.96)';
   up42Ctx.fillText('Illumination Class', lx+2, ly+13);
   [
     ['#8b0000','0–64 — Poor (Low solar)'],
@@ -3885,17 +4110,21 @@ function drawIllumLegend() {
   ].forEach(([col, lbl], i) => {
     up42Ctx.fillStyle = col;
     up42Ctx.fillRect(lx+2, ly+20+i*14, 10, 10);
-    up42Ctx.fillStyle = 'rgba(255,255,255,0.7)';
+    up42Ctx.fillStyle = 'rgba(255,255,255,0.9)';
     up42Ctx.fillText(lbl, lx+16, ly+29+i*14);
   });
 }
 
 function drawSlopeLegendSmall() {
-  const lx = up42W - 130, ly = 10;
-  up42Ctx.fillStyle = 'rgba(0,0,0,0.7)';
-  up42Ctx.fillRect(lx-4, ly, 126, 68);
+  const frame = getUp42MapFrame();
+  const lx = frame.right - 130, ly = frame.y + 10;
+  up42Ctx.fillStyle = 'rgba(5,8,14,0.9)';
+  up42Ctx.fillRect(lx-6, ly-2, 130, 72);
+  up42Ctx.strokeStyle = 'rgba(255,255,255,0.18)';
+  up42Ctx.lineWidth = 1;
+  up42Ctx.strokeRect(lx-6, ly-2, 130, 72);
   up42Ctx.font = '9px monospace';
-  up42Ctx.fillStyle = 'rgba(255,255,255,0.8)';
+  up42Ctx.fillStyle = 'rgba(255,255,255,0.96)';
   up42Ctx.fillText('Slope Suitability', lx+2, ly+13);
   [
     ['#006400','0–5° Ideal'],
@@ -3905,29 +4134,177 @@ function drawSlopeLegendSmall() {
   ].forEach(([col, lbl], i) => {
     up42Ctx.fillStyle = col;
     up42Ctx.fillRect(lx+2, ly+20+i*12, 9, 9);
-    up42Ctx.fillStyle = 'rgba(255,255,255,0.7)';
+    up42Ctx.fillStyle = 'rgba(255,255,255,0.9)';
     up42Ctx.fillText(lbl, lx+15, ly+28+i*12);
   });
 }
 
+function drawSiteNameBadge(siteName) {
+  if (!siteName) return;
+  const frame = getUp42MapFrame();
+  const padX = 12;
+  const badgeH = 30;
+  const x = frame.x + 10;
+  const y = frame.bottom - badgeH - 10;
+
+  up42Ctx.save();
+  up42Ctx.font = 'bold 13px monospace';
+  const textW = up42Ctx.measureText(siteName).width;
+  const badgeW = textW + padX * 2;
+
+  up42Ctx.fillStyle = 'rgba(8,12,18,0.82)';
+  up42Ctx.strokeStyle = 'rgba(255,255,255,0.9)';
+  up42Ctx.lineWidth = 1.5;
+  roundRect(up42Ctx, x, y, badgeW, badgeH, 6);
+  up42Ctx.fill();
+  up42Ctx.stroke();
+
+  up42Ctx.fillStyle = 'rgba(255,255,255,0.95)';
+  up42Ctx.textAlign = 'left';
+  up42Ctx.textBaseline = 'middle';
+  up42Ctx.fillText(siteName, x + padX, y + badgeH / 2 + 0.5);
+  up42Ctx.restore();
+}
+
 function drawHeatmapOverlay() {
+  if (up42ActiveModule === 'SolarPowerSystem') {
+    if (up42OverlayMode === 'illum') return;
+    drawSolarIllumHeatmap();
+    return;
+  }
   const img = up42HeatmapImgs[up42ActiveModule];
+  const frame = getUp42MapFrame();
   if (img) {
     // Real heatmap image
     up42Ctx.globalAlpha = 0.65;
-    up42Ctx.drawImage(img, 0, 0, up42W, up42H);
+    up42Ctx.drawImage(img, frame.x, frame.y, frame.size, frame.size);
     up42Ctx.globalAlpha = 1.0;
   } else {
-    // Placeholder: synthetic suitability overlay for this module
+    // Fallback: computed suitability overlay for this module
     drawSyntheticHeatmap(up42ActiveModule);
   }
+}
+
+function getUp42IllumTerrain() {
+  const site = upSelectedSite;
+  const illumImg = site ? up42SiteImgCache[site.id + '_illum'] : null;
+  if (illumImg && !up42IllumTerrain) {
+    up42IllumTerrain = buildIllumFromPng(illumImg, 80);
+  }
+  return up42IllumTerrain;
+}
+
+function drawSolarIllumHeatmap() {
+  const illumTerrain = getUp42IllumTerrain();
+  if (!illumTerrain) {
+    drawSyntheticHeatmap('SolarPowerSystem');
+    return;
+  }
+
+  const GRID = illumTerrain.length;
+  const frame = getUp42MapFrame();
+  const cellW = frame.size / GRID;
+  const cellH = frame.size / GRID;
+
+  for (let y = 0; y < GRID; y++) {
+    for (let x = 0; x < GRID; x++) {
+      const col = illumTerrain[y][x].color;
+      up42Ctx.fillStyle = `rgba(${hexToRgb(col)},0.34)`;
+      up42Ctx.fillRect(
+        Math.round(frame.x + x*cellW),
+        Math.round(frame.y + y*cellH),
+        Math.ceil(cellW)+1,
+        Math.ceil(cellH)+1
+      );
+    }
+  }
+}
+
+function canvasPointToTerrainGrid(px, py, GRID) {
+  const frame = getUp42MapFrame();
+  return {
+    gx: Math.min(GRID - 1, Math.max(0, Math.round((px - frame.x) / frame.size * (GRID - 1)))),
+    gy: Math.min(GRID - 1, Math.max(0, Math.round((py - frame.y) / frame.size * (GRID - 1)))),
+  };
+}
+
+function terrainGridToCanvas(gx, gy, GRID) {
+  const frame = getUp42MapFrame();
+  return {
+    x: Math.round(frame.x + gx / (GRID - 1) * frame.size),
+    y: Math.round(frame.y + gy / (GRID - 1) * frame.size),
+  };
+}
+
+function terrainSlopeAtGrid(gx, gy) {
+  return up42SyntheticTerrain?.[gy]?.[gx] ?? Infinity;
+}
+
+function findNearestTraversableGridCell(gx, gy, GRID, maxSlope = UP42_MAX_ROUTE_SLOPE) {
+  if (terrainSlopeAtGrid(gx, gy) <= maxSlope) return { gx, gy };
+
+  for (let radius = 1; radius < GRID; radius++) {
+    let best = null;
+    for (let ny = Math.max(0, gy - radius); ny <= Math.min(GRID - 1, gy + radius); ny++) {
+      for (let nx = Math.max(0, gx - radius); nx <= Math.min(GRID - 1, gx + radius); nx++) {
+        const onRing = nx === gx - radius || nx === gx + radius || ny === gy - radius || ny === gy + radius;
+        if (!onRing) continue;
+        if (terrainSlopeAtGrid(nx, ny) > maxSlope) continue;
+        const dist = Math.hypot(nx - gx, ny - gy);
+        if (!best || dist < best.dist) best = { gx: nx, gy: ny, dist };
+      }
+    }
+    if (best) return { gx: best.gx, gy: best.gy };
+  }
+
+  return { gx, gy };
+}
+
+function getRouteSegmentCells(a, b, GRID) {
+  const from = canvasPointToTerrainGrid(a.x, a.y, GRID);
+  const to = canvasPointToTerrainGrid(b.x, b.y, GRID);
+  const steps = Math.max(Math.abs(to.gx - from.gx), Math.abs(to.gy - from.gy), 1) * 2;
+  const cells = [];
+
+  for (let i = 0; i <= steps; i++) {
+    const t = i / steps;
+    const gx = Math.round(from.gx + (to.gx - from.gx) * t);
+    const gy = Math.round(from.gy + (to.gy - from.gy) * t);
+    const prev = cells[cells.length - 1];
+    if (!prev || prev.gx !== gx || prev.gy !== gy) cells.push({ gx, gy });
+  }
+
+  return cells;
+}
+
+function routeSegmentIsTraversable(a, b, GRID, maxSlope = UP42_MAX_ROUTE_SLOPE) {
+  return getRouteSegmentCells(a, b, GRID).every(({ gx, gy }) => terrainSlopeAtGrid(gx, gy) <= maxSlope);
+}
+
+function getRouteMaxSlope(path, GRID, maxSlope = UP42_MAX_ROUTE_SLOPE) {
+  if (!path || path.length < 2) return 0;
+  let maxSeen = 0;
+
+  for (let i = 1; i < path.length; i++) {
+    const segCells = getRouteSegmentCells(path[i - 1], path[i], GRID);
+    segCells.forEach((cell, idx) => {
+      const isGlobalStart = i === 1 && idx === 0;
+      const isGlobalEnd = i === path.length - 1 && idx === segCells.length - 1;
+      if (isGlobalStart || isGlobalEnd) return;
+      const slope = terrainSlopeAtGrid(cell.gx, cell.gy);
+      maxSeen = Math.max(maxSeen, slope);
+    });
+  }
+
+  return maxSeen;
 }
 
 function drawSyntheticHeatmap(moduleId) {
   if (!up42SyntheticTerrain) return;
   const GRID = up42SyntheticTerrain.length;
-  const cellW = up42W / GRID;
-  const cellH = up42H / GRID;
+  const frame = getUp42MapFrame();
+  const cellW = frame.size / GRID;
+  const cellH = frame.size / GRID;
 
   // Criteria-based scoring: each module cares about different slope thresholds
   const thresholdGood = moduleId === 'LaunchLandingZone' ? 5 :
@@ -3950,30 +4327,11 @@ function drawSyntheticHeatmap(moduleId) {
         r=255; g=60; b=80; a=0.28;
       }
       up42Ctx.fillStyle = `rgba(${r},${g},${b},${a})`;
-      up42Ctx.fillRect(Math.round(x*cellW), Math.round(y*cellH),
+      up42Ctx.fillRect(Math.round(frame.x + x*cellW), Math.round(frame.y + y*cellH),
         Math.ceil(cellW)+1, Math.ceil(cellH)+1);
     }
   }
 
-  // Legend in top-left
-  up42Ctx.fillStyle = 'rgba(0,0,0,0.6)';
-  up42Ctx.fillRect(8, 8, 130, 52);
-  up42Ctx.font = '9px monospace';
-  const mod = moduleId.replace(/([A-Z])/g,' $1').trim();
-  up42Ctx.fillStyle = 'rgba(255,255,255,0.7)';
-  up42Ctx.fillText(`Heatmap: ${mod}`, 14, 22);
-  up42Ctx.fillText('★ Placeholder — awaiting Jenny', 14, 34);
-  [[0,255,100,'Good (<'+thresholdGood+'°)'], [255,180,50,'OK (<'+thresholdWarn+'°)'], [255,60,80,'Avoid (≥'+thresholdWarn+'°)']].forEach(([r,g,b,lbl],i) => {
-    up42Ctx.fillStyle=`rgb(${r},${g},${b})`;
-    up42Ctx.fillRect(14, 40+i*0, 0, 0);
-  });
-  // Compact single-line legend
-  [[0,255,100,'Good'],[255,180,50,'OK'],[255,60,80,'Avoid']].forEach(([r,g,b,lbl],i)=>{
-    up42Ctx.fillStyle=`rgba(${r},${g},${b},0.9)`;
-    up42Ctx.fillRect(14+i*43, 42, 8, 8);
-    up42Ctx.fillStyle='rgba(255,255,255,0.6)';
-    up42Ctx.fillText(lbl, 25+i*43, 50);
-  });
 }
 
 function drawPlacedModules() {
@@ -4069,12 +4427,23 @@ function canvasToSiteCoords(cx, cy) {
 }
 
 // ── Canvas events ──────────────────────────────────────────────────
+function canvasToWorld(mx, my) {
+  // Convert screen coords → world coords accounting for zoom/pan
+  return {
+    x: (mx - up42W/2 - up42Pan.x) / up42Zoom + up42W/2,
+    y: (my - up42H/2 - up42Pan.y) / up42Zoom + up42H/2,
+  };
+}
+
 function up42OnClick(e) {
+  if (up42PanMoved) { up42PanMoved = false; return; } // was a pan, not a click
   const rect = up42Canvas.getBoundingClientRect();
   const scaleX = up42Canvas.width  / rect.width;
   const scaleY = up42Canvas.height / rect.height;
-  const mx = (e.clientX - rect.left) * scaleX;
-  const my = (e.clientY - rect.top)  * scaleY;
+  const rawX = (e.clientX - rect.left) * scaleX;
+  const rawY = (e.clientY - rect.top)  * scaleY;
+  const {x: mx, y: my} = canvasToWorld(rawX, rawY);
+  if (!isInsideUp42Map(mx, my)) return;
 
   if (up42Phase === 'place') {
     // Place active module
@@ -4099,12 +4468,23 @@ function up42OnClick(e) {
 }
 
 function up42OnMouseDown(e) {
-  if (up42Phase !== 'routes') return;
+  if (e.button !== 0) return;
+  up42PointerDown = true;
   const rect = up42Canvas.getBoundingClientRect();
   const scaleX = up42Canvas.width  / rect.width;
   const scaleY = up42Canvas.height / rect.height;
-  const mx = (e.clientX - rect.left) * scaleX;
-  const my = (e.clientY - rect.top)  * scaleY;
+  const rawX = (e.clientX - rect.left) * scaleX;
+  const rawY = (e.clientY - rect.top)  * scaleY;
+  const {x: mx, y: my} = canvasToWorld(rawX, rawY);
+
+  // Pan starts on any mousedown — but only commits if mouse moves >5px (see mousemove)
+  up42Panning = false;
+  up42PanMoved = false;
+  up42PanStart = {x: rawX, y: rawY};
+  up42PanOrigin = {x: up42Pan.x, y: up42Pan.y};
+
+  // In routes phase, check waypoint drag first
+  if (up42Phase !== 'routes') return;
   for (let ri=0; ri<up42Routes.length; ri++) {
     const path = up42Routes[ri].pts;
     for (let pi=0; pi<path.length; pi++) {
@@ -4122,12 +4502,43 @@ function up42OnMouseMove(e) {
   const rect = up42Canvas.getBoundingClientRect();
   const scaleX = up42Canvas.width  / rect.width;
   const scaleY = up42Canvas.height / rect.height;
-  const mx = (e.clientX - rect.left) * scaleX;
-  const my = (e.clientY - rect.top)  * scaleY;
+  const rawX = (e.clientX - rect.left) * scaleX;
+  const rawY = (e.clientY - rect.top)  * scaleY;
+  const {x: mx, y: my} = canvasToWorld(rawX, rawY);
+
+  if (!up42PointerDown && !up42DragState) {
+    if (up42Phase === 'routes') {
+      let overWaypoint = false;
+      for (const route of up42Routes) {
+        const path = route.pts;
+        for (let pi=1; pi<path.length-1; pi++) {
+          if (Math.hypot(path[pi].x-mx, path[pi].y-my) < 16) { overWaypoint = true; break; }
+        }
+        if (overWaypoint) break;
+      }
+      up42Canvas.style.cursor = overWaypoint ? 'grab' : 'default';
+    } else {
+      up42Canvas.style.cursor = 'crosshair';
+    }
+    return;
+  }
+
+  // Pan — activate only after >5px movement to distinguish from click
+  const panDx = rawX - up42PanStart.x, panDy = rawY - up42PanStart.y;
+  if (up42PointerDown && !up42DragState && Math.hypot(panDx, panDy) > 5) {
+    up42Panning = true;
+    up42PanMoved = true;
+    up42Pan.x = up42PanOrigin.x + panDx;
+    up42Pan.y = up42PanOrigin.y + panDy;
+    up42Canvas.style.cursor = 'grabbing';
+    drawUp42();
+    return;
+  }
   if (up42DragState) {
     up42Routes[up42DragState.ri].pts[up42DragState.pi] = {x:mx, y:my};
     drawUp42();
     renderRouteStats();
+    updateDesDistances({ animate:false });
     return;
   }
   if (up42Phase === 'routes') {
@@ -4143,8 +4554,12 @@ function up42OnMouseMove(e) {
   }
 }
 function up42OnMouseUp() {
+  const hadDragState = !!up42DragState;
+  up42PointerDown = false;
   up42DragState = null;
+  up42Panning = false;
   up42Canvas.style.cursor = up42Phase==='place' ? 'crosshair' : 'default';
+  if (hadDragState) updateDesDistances();
 }
 
 // ── Info card ──────────────────────────────────────────────────────
@@ -4191,7 +4606,7 @@ function updateUp42InfoCard() {
       <div style="font-size:9px;color:var(--text3);margin-top:4px;">Click on the heatmap</div>
     </div>`}
     <div style="margin-top:10px;font-size:9px;color:var(--text3);line-height:1.5;">
-      ★ Heatmap: placeholder — awaiting Jenny's export
+      ★ Heatmap: computed from current terrain model
     </div>`;
 }
 
@@ -4239,26 +4654,86 @@ function inferRouteFlow(idA, idB) {
   return 'Structural';
 }
 
+function straightLinePath(posA, posB) {
+  // Fallback: direct line — ensureWaypoints adds draggable intermediates
+  const pts = [
+    { x: posA.cx, y: posA.cy },
+    { x: posB.cx, y: posB.cy },
+  ];
+  return ensureWaypoints(pts);
+}
+
 function plotBestPaths() {
   setPlacementPhase('routes');
   const placed = Object.entries(up42Placements);
   if (placed.length < 2) return;
 
+  // Ensure real slope data is loaded before routing
+  const site = upSelectedSite;
+  const hasRealGrid = up42SlopeGrids && site && up42SlopeGrids[site.id];
+
+  if (!hasRealGrid && up42SlopeGrids === null) {  // retry uniquement si pas encore initialisé
+    // Not loaded yet — load then retry
+    setHint('Loading slope data…');
+    loadSlopeGrids(() => {
+      generateSyntheticTerrain();
+      plotBestPaths();
+    });
+    return;
+  }
+
+  // Regenerate terrain from best available source before routing
+  generateSyntheticTerrain();
+
+  // Log which data source is being used
+  if (hasRealGrid) {
+    console.log('[UP] Routing with real CSV slope grid:', site.id,
+      `(min=${Math.min(...up42SyntheticTerrain.flat()).toFixed(1)}°`,
+      `max=${Math.max(...up42SyntheticTerrain.flat()).toFixed(1)}°)`);
+  } else {
+    console.warn('[UP] Routing with PNG/synthetic terrain — CSV not available for', site?.id);
+  }
+
   up42Routes = [];
   const GRID = up42SyntheticTerrain?.length || 80;
 
-  // Prim MST: n-1 routes for n placed modules
+  // Prim MST: guarantees all n modules are connected with exactly n-1 edges
   const mstEdges = primMST(placed);
+  const connected = new Set();
+
   mstEdges.forEach(([idxA, idxB]) => {
     const [idA, posA] = placed[idxA];
     const [idB, posB] = placed[idxB];
-    const path = aStar(posA, posB, GRID);
-    if (path) up42Routes.push({ from: idA, to: idB, pts: path, flow: inferRouteFlow(idA, idB) });
+
+    // Try A* — if it fails (terrain too steep everywhere), fall back to straight line
+    let path = aStar(posA, posB, GRID);
+    if (!path) {
+      console.warn(`[UP] A* failed ${idA}→${idB}, using straight-line fallback`);
+      path = straightLinePath(posA, posB);
+    }
+
+    up42Routes.push({ from: idA, to: idB, pts: path, flow: inferRouteFlow(idA, idB) });
+    connected.add(idA);
+    connected.add(idB);
+  });
+
+  // Safety check — any placed module not in MST? (shouldn't happen but just in case)
+  placed.forEach(([id, pos]) => {
+    if (!connected.has(id)) {
+      console.warn(`[UP] Module ${id} not connected — adding emergency link`);
+      const nearest = placed.find(([oid]) => oid !== id && connected.has(oid));
+      if (nearest) {
+        const [nid, npos] = nearest;
+        const path = aStar(pos, npos, GRID) || straightLinePath(pos, npos);
+        up42Routes.push({ from: id, to: nid, pts: path, flow: inferRouteFlow(id, nid) });
+        connected.add(id);
+      }
+    }
   });
 
   renderRouteStats();
   updateDesDistances();
-  setHint('Drag yellow waypoints to adjust routes');
+  setHint('Drag yellow waypoints to adjust routes.');
   drawUp42();
 }
 
@@ -4287,20 +4762,13 @@ function primMST(placed) {
 }
 
 function aStar(start, end, GRID) {
-  const toGrid = (px,py) => ({
-    gx: Math.min(GRID-1, Math.max(0, Math.round(px/up42W*(GRID-1)))),
-    gy: Math.min(GRID-1, Math.max(0, Math.round(py/up42H*(GRID-1)))),
-  });
-  const toCanvas = (gx,gy) => ({
-    x: Math.round(gx/(GRID-1)*up42W),
-    y: Math.round(gy/(GRID-1)*up42H),
-  });
-
-  const gs = toGrid(start.cx, start.cy);
-  const ge = toGrid(end.cx,   end.cy);
+  const rawStart = canvasPointToTerrainGrid(start.cx, start.cy, GRID);
+  const rawEnd = canvasPointToTerrainGrid(end.cx, end.cy, GRID);
+  const gs = findNearestTraversableGridCell(rawStart.gx, rawStart.gy, GRID);
+  const ge = findNearestTraversableGridCell(rawEnd.gx, rawEnd.gy, GRID);
   const key     = (gx,gy) => gx * GRID + gy;
   const h       = (gx,gy) => Math.hypot(gx-ge.gx, gy-ge.gy);
-  const slopeAt = (gx,gy) => up42SyntheticTerrain?.[gy]?.[gx] ?? 0;
+  const slopeAt = (gx,gy) => terrainSlopeAtGrid(gx, gy);
   const dirs    = [[-1,0],[1,0],[0,-1],[0,1],[-1,-1],[1,-1],[-1,1],[1,1]];
 
   // parent stores key→key (integer→integer), NOT key→node object
@@ -4330,10 +4798,10 @@ function aStar(start, end, GRID) {
       while (k !== undefined) {
         const gx = Math.floor(k / GRID);
         const gy = k % GRID;
-        pts.unshift(toCanvas(gx, gy));
+        pts.unshift(terrainGridToCanvas(gx, gy, GRID));
         k = parent.get(k); // undefined at start node
       }
-      return simplifyPath(pts, 6);
+      return simplifyPath(pts, GRID);
     }
 
     const curGx = Math.floor(curKey / GRID);
@@ -4346,7 +4814,7 @@ function aStar(start, end, GRID) {
       const nk = key(nx, ny);
       if (closed.has(nk)) continue;
       const s = slopeAt(nx, ny);
-      if (s > 15) continue; // impassable
+      if (s > UP42_MAX_ROUTE_SLOPE) continue; // impassable
       const moveCost = (dx!==0&&dy!==0 ? Math.SQRT2 : 1) * (1 + (s>10?(s-10)*8:0));
       const tentG = curG + moveCost;
       if (!gScore.has(nk) || tentG < gScore.get(nk)) {
@@ -4357,54 +4825,52 @@ function aStar(start, end, GRID) {
     }
   }
 
-  // Fallback — greedy slope-aware (never >15° if avoidable)
-  const fallbackPts = [];
-  let cx = gs.gx, cy = gs.gy;
-  const visited = new Set();
-  for (let step=0; step<GRID*4; step++) {
-    fallbackPts.push(toCanvas(cx, cy));
-    if (cx===ge.gx && cy===ge.gy) break;
-    visited.add(key(cx, cy));
-    let bestNx=ge.gx, bestNy=ge.gy, bestScore=Infinity;
-    for (const [dx,dy] of dirs) {
-      const nx=cx+dx, ny=cy+dy;
-      if (nx<0||ny<0||nx>=GRID||ny>=GRID||visited.has(key(nx,ny))) continue;
-      const s = slopeAt(nx,ny);
-      const dist = Math.hypot(nx-ge.gx, ny-ge.gy);
-      const score = dist + (s>10?(s-10)*4:0) + (s>15?9999:0);
-      if (score < bestScore) { bestScore=score; bestNx=nx; bestNy=ny; }
-    }
-    cx=bestNx; cy=bestNy;
-  }
-  return simplifyPath(fallbackPts, 6);
+  return null;
 }
 
-function simplifyPath(pts, step) {
-  if (pts.length <= 2) {
-    // Too short — inject 3 evenly-spaced intermediate waypoints
-    const [a, b] = [pts[0], pts[pts.length-1]];
-    return [
-      a,
-      { x: a.x + (b.x-a.x)*0.25, y: a.y + (b.y-a.y)*0.25 },
-      { x: a.x + (b.x-a.x)*0.50, y: a.y + (b.y-a.y)*0.50 },
-      { x: a.x + (b.x-a.x)*0.75, y: a.y + (b.y-a.y)*0.75 },
-      b,
-    ];
-  }
+function simplifyPath(pts, GRID) {
+  if (!pts || pts.length <= 2) return pts || [];
+
   const result = [pts[0]];
-  for (let i=step; i<pts.length-1; i+=step) result.push(pts[i]);
-  result.push(pts[pts.length-1]);
-  // Guarantee at least 3 intermediates
-  if (result.length < 5) {
-    const [a, b] = [result[0], result[result.length-1]];
-    return [
-      a,
-      { x: a.x + (b.x-a.x)*0.25, y: a.y + (b.y-a.y)*0.25 },
-      { x: a.x + (b.x-a.x)*0.50, y: a.y + (b.y-a.y)*0.50 },
-      { x: a.x + (b.x-a.x)*0.75, y: a.y + (b.y-a.y)*0.75 },
-      b,
-    ];
+  let anchor = 0;
+
+  while (anchor < pts.length - 1) {
+    let next = pts.length - 1;
+    while (next > anchor + 1 && !routeSegmentIsTraversable(pts[anchor], pts[next], GRID)) {
+      next--;
+    }
+    if (next <= anchor) next = anchor + 1;
+    result.push(pts[next]);
+    anchor = next;
   }
+
+  return ensureWaypoints(result);
+}
+
+// After simplification, guarantee at least 3 draggable waypoints between endpoints
+// by inserting evenly-spaced intermediate points every ~60px
+function ensureWaypoints(pts) {
+  if (!pts || pts.length < 2) return pts || [];
+  const MIN_SPACING = 60; // px — max distance between consecutive waypoints
+  const result = [pts[0]];
+
+  for (let i = 1; i < pts.length; i++) {
+    const prev = result[result.length - 1];
+    const curr = pts[i];
+    const dx = curr.x - prev.x, dy = curr.y - prev.y;
+    const dist = Math.hypot(dx, dy);
+    if (dist > MIN_SPACING) {
+      const steps = Math.floor(dist / MIN_SPACING);
+      for (let s = 1; s <= steps; s++) {
+        result.push({
+          x: prev.x + dx * s / (steps + 1),
+          y: prev.y + dy * s / (steps + 1),
+        });
+      }
+    }
+    result.push(curr);
+  }
+
   return result;
 }
 
@@ -4468,20 +4934,14 @@ function drawRoutes() {
 function renderRouteStats() {
   const wrap = document.getElementById('up42RouteStats');
   if (!wrap || !up42Routes.length) return;
-  const KM_PER_PX = 0.005;
   let totalKm = 0, maxSlope = 0;
   const routeDetails = up42Routes.map(route => {
     const path = route.pts;
-    let km = 0;
-    for (let i=1; i<path.length; i++) km += Math.hypot(path[i].x-path[i-1].x, path[i].y-path[i-1].y)*KM_PER_PX;
+    const km = getRoutePathDistanceKm(path);
     totalKm += km;
     if (up42SyntheticTerrain) {
       const GRID = up42SyntheticTerrain.length;
-      path.forEach(pt => {
-        const gx=Math.min(GRID-1,Math.round(pt.x/up42W*(GRID-1)));
-        const gy=Math.min(GRID-1,Math.round(pt.y/up42H*(GRID-1)));
-        maxSlope=Math.max(maxSlope,up42SyntheticTerrain[gy]?.[gx]||0);
-      });
+      maxSlope = Math.max(maxSlope, getRouteMaxSlope(path, GRID));
     }
     return { from:route.from, to:route.to, km, label: route.label || '' };
   });
@@ -4541,65 +5001,166 @@ function isLandingZone(nodeId) {
   return lower.includes('launch') || lower.includes('landing') || lower.includes('lz');
 }
 
-function updateDesDistances() {
-  const KM_PER_PX = 0.005;
-  let regolithKm = null, loxKm = null;
-
-  up42Routes.forEach(route => {
-    const path = route.pts;
-    let km = 0;
-    for (let i=1; i<path.length; i++) km += Math.hypot(path[i].x-path[i-1].x, path[i].y-path[i-1].y)*KM_PER_PX;
-
-    const a = route.from.toLowerCase(), b = route.to.toLowerCase();
-
-    // LOX haul: any route between something ISRU-like and a landing/launch zone
-    const involveIsru    = a.includes('isru') || b.includes('isru');
-    const involveLanding = a.includes('launch') || a.includes('landing') || a.includes('lz') ||
-                           b.includes('launch') || b.includes('landing') || b.includes('lz');
-    if (involveIsru && involveLanding) {
-      if (loxKm === null || km < loxKm) loxKm = km;
-    }
-
-    // Regolith haul: route between two ISRU-related nodes (plant + excavation)
-    const bothIsru = (a.includes('isru') || a.includes('plant') || a.includes('excavat') || a.includes('regolith')) &&
-                     (b.includes('isru') || b.includes('plant') || b.includes('excavat') || b.includes('regolith'));
-    if (bothIsru && a !== b) {
-      if (regolithKm === null || km < regolithKm) regolithKm = km;
-    }
-
-    // Fallback: if nothing matched yet, use shortest route for regolith and longest for LOX
-    // so the DES always gets some value
-  });
-
-  // Fallback — if detection found nothing, use all routes sorted by length
-  if (loxKm === null || regolithKm === null) {
-    const sorted = up42Routes.map(route => {
-      let km = 0;
-      const path = route.pts;
-      for (let i=1; i<path.length; i++) km += Math.hypot(path[i].x-path[i-1].x, path[i].y-path[i-1].y)*KM_PER_PX;
-      return km;
-    }).sort((a,b) => a-b);
-    if (sorted.length >= 1 && regolithKm === null) regolithKm = sorted[0];
-    if (sorted.length >= 2 && loxKm === null)      loxKm      = sorted[sorted.length-1];
-    if (sorted.length === 1 && loxKm === null)      loxKm      = sorted[0];
+function getRoutePathDistanceKm(path) {
+  if (!Array.isArray(path) || path.length < 2) return 0;
+  let km = 0;
+  for (let i = 1; i < path.length; i++) {
+    km += Math.hypot(path[i].x - path[i - 1].x, path[i].y - path[i - 1].y) * KM_PER_PX;
   }
+  return km;
+}
+
+function getWaypointDistanceKmFromMeters(waypoints) {
+  if (!Array.isArray(waypoints) || waypoints.length < 2) return 0;
+  let km = 0;
+  for (let i = 1; i < waypoints.length; i++) {
+    const [x1 = 0, y1 = 0, z1 = 0] = waypoints[i - 1] || [];
+    const [x2 = 0, y2 = 0, z2 = 0] = waypoints[i] || [];
+    km += Math.hypot(x2 - x1, y2 - y1, z2 - z1) / 1000;
+  }
+  return km;
+}
+
+function normalizeUpNodeName(value) {
+  return String(value || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+}
+
+function getUpNodeSearchText(nodeId) {
+  const part = getSysmlPartData(nodeId);
+  const attrs = Object.entries(part?.attributes || {}).flatMap(([k, v]) => [k, v]);
+  const ports = (part?.ports || []).flatMap(port => [
+    port?.name,
+    ...(port?.items || []),
+    ...(port?.direction || [])
+  ]);
+  return normalizeUpNodeName([
+    nodeId,
+    part?.displayName,
+    part?.name,
+    ...attrs,
+    ...ports
+  ].filter(Boolean).join(' '));
+}
+
+function isPropellantDepot(nodeId) {
+  const text = getUpNodeSearchText(nodeId);
+  return text.includes('propellantdepot') ||
+         (text.includes('propellant') && text.includes('depot')) ||
+         text.includes('loxstorage');
+}
+
+function findPlacedNodeByMatchers(preferredNames, fallbackPredicate, candidateIds = Object.keys(up42Placements || {})) {
+  const placedIds = candidateIds;
+  if (!placedIds.length) return null;
+
+  const preferred = preferredNames.map(normalizeUpNodeName);
+  for (const nodeId of placedIds) {
+    if (preferred.includes(normalizeUpNodeName(nodeId))) return nodeId;
+  }
+  for (const nodeId of placedIds) {
+    const searchText = getUpNodeSearchText(nodeId);
+    if (preferred.some(token => searchText.includes(token))) return nodeId;
+  }
+  return placedIds.find(nodeId => fallbackPredicate(nodeId)) || null;
+}
+
+function buildUrbanPlanningDistanceGraph(payload) {
+  const graph = new Map();
+  const edges = payload?.mst_edges || [];
+  const connections = payload?.connections || {};
+
+  edges.forEach(edge => {
+    const connection = connections[edge.key] || {};
+    const kmFromWaypoints = getWaypointDistanceKmFromMeters(connection.waypoints_m);
+    const km = kmFromWaypoints > 0 ? kmFromWaypoints : (connection.distance_km ?? edge.distance_km ?? 0);
+    if (!graph.has(edge.from)) graph.set(edge.from, []);
+    if (!graph.has(edge.to)) graph.set(edge.to, []);
+    graph.get(edge.from).push({ to: edge.to, km });
+    graph.get(edge.to).push({ to: edge.from, km });
+  });
+  return graph;
+}
+
+function getShortestNetworkDistanceKm(startId, endId, payload) {
+  if (!startId || !endId) return null;
+  if (startId === endId) return 0;
+
+  const graph = buildUrbanPlanningDistanceGraph(payload);
+  if (!graph.has(startId) || !graph.has(endId)) return null;
+
+  const best = new Map([[startId, 0]]);
+  const queue = [{ id: startId, km: 0 }];
+
+  while (queue.length) {
+    queue.sort((a, b) => a.km - b.km);
+    const current = queue.shift();
+    if (!current) break;
+    if (current.km > (best.get(current.id) ?? Infinity)) continue;
+    if (current.id === endId) return current.km;
+
+    (graph.get(current.id) || []).forEach(edge => {
+      const nextKm = current.km + edge.km;
+      if (nextKm < (best.get(edge.to) ?? Infinity)) {
+        best.set(edge.to, nextKm);
+        queue.push({ id: edge.to, km: nextKm });
+      }
+    });
+  }
+
+  return null;
+}
+
+function updateDesDistances(options = {}) {
+  const animate = options.animate !== false;
+  if (!up42Routes.length) {
+    clearUp42DesDistances();
+    return;
+  }
+
+  const payload = buildUrbanPlanningPayload({ quiet:true });
+  if (!payload) {
+    clearUp42DesDistances();
+    return;
+  }
+
+  const moduleIds = Object.keys(payload.modules || {});
+  const excavationId = findPlacedNodeByMatchers(['isruexcavation'], isIsruExcavation, moduleIds);
+  const plantId = findPlacedNodeByMatchers(['isruplant'], isIsruPlant, moduleIds);
+  const depotId = findPlacedNodeByMatchers(['propellantdepot', 'propellantdepotstorage', 'loxstorage'], isPropellantDepot, moduleIds);
+
+  const regolithKm = getShortestNetworkDistanceKm(excavationId, plantId, payload);
+  const loxKm = getShortestNetworkDistanceKm(plantId, depotId, payload);
 
   const setDist = (id, labelId, val) => {
     const input = document.getElementById(id);
     const label = document.getElementById(labelId);
-    if (!input || val === null) return;
+    if (!input) return;
+    if (val === null || !Number.isFinite(val)) {
+      input.value = '1';
+      if (label) {
+        label.textContent = '—';
+        label.style.color = 'var(--accent)';
+      }
+      return;
+    }
     const rounded = parseFloat(val.toFixed(2));
     input.value = rounded;
     if (label) {
       label.textContent = rounded.toFixed(1) + ' km';
-      label.style.color = '#00ff9d';
-      setTimeout(() => label.style.color = 'var(--accent)', 2500);
+      if (animate) {
+        label.style.color = '#00ff9d';
+        setTimeout(() => label.style.color = 'var(--accent)', 2500);
+      } else {
+        label.style.color = 'var(--accent)';
+      }
     }
   };
 
   setDist('desRegDist', 'desRegDistVal', regolithKm);
   setDist('desLoxDist', 'desLoxDistVal', loxKm);
-  console.log('[UP4.2] → DES: LOX haul', loxKm?.toFixed(2), 'km | Regolith haul', regolithKm?.toFixed(2), 'km');
+  console.log('[UP4.2] → DES routes:',
+    `Regolith ${excavationId || '?'}→${plantId || '?'} = ${regolithKm?.toFixed(2) ?? 'n/a'} km |`,
+    `LOX ${plantId || '?'}→${depotId || '?'} = ${loxKm?.toFixed(2) ?? 'n/a'} km`);
 }
 
 // ── Confirm & pass to DES ──────────────────────────────────────────
@@ -4614,7 +5175,8 @@ function confirmPlacements() {
 }
 
 // ── Build urban_planning payload for DES dispatch ─────────────────
-function buildUrbanPlanningPayload() {
+function buildUrbanPlanningPayload(options = {}) {
+  const quiet = options.quiet === true;
   const site = upSelectedSite;
   if (!site) return null;
 
@@ -4628,9 +5190,11 @@ function buildUrbanPlanningPayload() {
     return [+dx.toFixed(2), +dy.toFixed(2), 0.0];
   }
 
-  console.log('[UP] up42Routes count:', up42Routes.length, up42Routes.map(r => `${r.from}To${r.to}`));
-  console.log('[UP] up42Placements:', Object.keys(up42Placements));
-  console.log('[UP] first route pts count:', up42Routes[0]?.pts?.length, 'sample:', JSON.stringify(up42Routes[0]?.pts?.slice(0,2)));
+  if (!quiet) {
+    console.log('[UP] up42Routes count:', up42Routes.length, up42Routes.map(r => `${r.from}To${r.to}`));
+    console.log('[UP] up42Placements:', Object.keys(up42Placements));
+    console.log('[UP] first route pts count:', up42Routes[0]?.pts?.length, 'sample:', JSON.stringify(up42Routes[0]?.pts?.slice(0,2)));
+  }
 
   // Modules → position_m + rotation_deg
   const modules = {};
@@ -4647,10 +5211,7 @@ function buildUrbanPlanningPayload() {
   up42Routes.forEach(route => {
     const key = `${route.from}To${route.to}`;
     const waypoints = (route.pts || []).map(pt => canvasToMeters(pt.x, pt.y));
-    let distKm = 0;
-    for (let i = 1; i < (route.pts||[]).length; i++) {
-      distKm += Math.hypot(route.pts[i].x - route.pts[i-1].x, route.pts[i].y - route.pts[i-1].y) * KM_PER_PX;
-    }
+    const distKm = getRoutePathDistanceKm(route.pts || []);
     connections[key] = {
       flow: route.flow || 'Structural',
       waypoints_m: waypoints,
@@ -4665,12 +5226,7 @@ function buildUrbanPlanningPayload() {
     to: route.to,
     key: `${route.from}To${route.to}`,
     flow: route.flow || 'Structural',
-    distance_km: (() => {
-      let d = 0;
-      for (let i = 1; i < (route.pts||[]).length; i++)
-        d += Math.hypot(route.pts[i].x - route.pts[i-1].x, route.pts[i].y - route.pts[i-1].y) * KM_PER_PX;
-      return +d.toFixed(3);
-    })()
+    distance_km: +getRoutePathDistanceKm(route.pts || []).toFixed(3)
   }));
 
   const payload = {
@@ -4682,8 +5238,10 @@ function buildUrbanPlanningPayload() {
     connections,
     mst_edges
   };
-  console.log('[UP] connections keys:', Object.keys(connections));
-  console.log('[UP] first connection waypoints count:', Object.values(connections)[0]?.waypoints_m?.length);
+  if (!quiet) {
+    console.log('[UP] connections keys:', Object.keys(connections));
+    console.log('[UP] first connection waypoints count:', Object.values(connections)[0]?.waypoints_m?.length);
+  }
   return payload;
 }
 
@@ -4699,13 +5257,15 @@ function onUp42TabOpen() {
       if (up42ActiveModule) { updateUp42InfoCard(); loadHeatmap(up42ActiveModule); }
       drawUp42();
     }
-    // Preload both slope and illum for selected site
-    loadSiteHeatmap('slope', () => drawUp42());
+    // Load real CSV slope grids (priority over PNG)
+    loadSlopeGrids(() => { generateSyntheticTerrain(); drawUp42(); });
+    // Also preload PNG heatmaps as visual fallback
+    loadSiteHeatmap('slope', () => { generateSyntheticTerrain(); drawUp42(); });
     loadSiteHeatmap('illum', () => {});
   }, 80);
 }
 
-// Load moon south pole texture as map background placeholder
+// Load moon south pole texture as map background
 let up42MoonImg = null;
 (function preloadMoonImg() {
   const img = new Image();
@@ -5704,7 +6264,8 @@ let up42MoonImg = null;
     const propsWrap = document.getElementById('materialPropsWrap');
     if (propsWrap) propsWrap.style.display = 'none';
 
-    document.getElementById('usdPbrBlock')?.remove();
+    clearMaterialVisualFields();
+    currentUsdMaterialPreview = null;
 
     const massEl = document.getElementById('cadMass');
     if (massEl) massEl.value = '';
@@ -5842,6 +6403,7 @@ let up42MoonImg = null;
   const moduleFiles = {};
   const moduleMetaCache = {};
   const cadPreviewState = Object.create(null);
+  let currentUsdMaterialPreview = null;
 
   function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
@@ -5911,8 +6473,137 @@ let up42MoonImg = null;
     }
   }
 
+  function formatVisualScalar(val) {
+    if (val === null || val === undefined || val === '') return '';
+    if (typeof val === 'number' && Number.isFinite(val)) {
+      return Number.isInteger(val) ? String(val) : String(Number(val.toFixed(3)));
+    }
+    return String(val);
+  }
+
+  function formatVisualColor(val, fallback = '') {
+    if (val === null || val === undefined || val === '') return fallback;
+
+    if (Array.isArray(val)) {
+      const nums = val.map(Number);
+      if (nums.length === 3 && nums.every(Number.isFinite)) {
+        const rgb = nums.every(v => v >= 0 && v <= 1)
+          ? nums.map(v => Math.round(v * 255))
+          : nums.map(v => Math.round(v));
+        return `rgb(${rgb[0]}, ${rgb[1]}, ${rgb[2]})`;
+      }
+      return val.map(formatVisualScalar).join(', ');
+    }
+
+    if (typeof val === 'object') {
+      if (['r', 'g', 'b'].every(k => k in val)) {
+        return formatVisualColor([val.r, val.g, val.b], fallback);
+      }
+      if (['x', 'y', 'z'].every(k => k in val)) {
+        return formatVisualColor([val.x, val.y, val.z], fallback);
+      }
+    }
+
+    return String(val);
+  }
+
+  function getVisualProp(source, keys) {
+    const candidates = [
+      source,
+      source?.visualProperties,
+      source?.visual,
+      source?.appearance,
+      source?.display,
+      source?.pbr,
+      source?.usdPreviewSurface,
+      source?.properties
+    ];
+
+    for (const candidate of candidates) {
+      if (!candidate || typeof candidate !== 'object') continue;
+      for (const key of keys) {
+        const value = candidate[key];
+        if (value !== null && value !== undefined && value !== '') return value;
+      }
+    }
+
+    return undefined;
+  }
+
+  function getMaterialVisualFields(source) {
+    return {
+      diffuse: formatVisualColor(
+        getVisualProp(source, ['diffuseColor', 'baseColor', 'displayColor', 'albedo', 'diffuse', 'color']),
+        'rgb(255, 255, 255)'
+      ),
+      emissive: formatVisualColor(
+        getVisualProp(source, ['emissiveColor', 'emissive', 'emissionColor', 'emitColor']),
+        'rgb(0, 0, 0)'
+      ),
+      metallic: formatVisualScalar(
+        getVisualProp(source, ['metallic', 'metallicFactor'])
+      ) || '0',
+      normal: formatVisualColor(
+        getVisualProp(source, ['normal', 'normalColor', 'normalMap', 'normalTexture', 'normalScale']),
+        'rgb(0, 0, 255)'
+      ),
+      occlusion: formatVisualScalar(
+        getVisualProp(source, ['occlusion', 'occlusionStrength', 'ao', 'ambientOcclusion'])
+      ) || '1',
+      roughness: formatVisualScalar(
+        getVisualProp(source, ['roughness', 'roughnessFactor'])
+      ) || '0.4'
+    };
+  }
+
+  function clearMaterialVisualFields() {
+    [
+      'matDiffuse',
+      'matEmissive',
+      'matMetallic',
+      'matNormal',
+      'matOcclusion',
+      'matRoughness'
+    ].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.value = '';
+    });
+  }
+
+  function renderMaterialVisualFields(source) {
+    const wrap = document.getElementById('materialPropsWrap');
+    if (!wrap) return;
+
+    const title = document.getElementById('materialPropsTitle');
+    if (title) title.textContent = 'Material Look';
+
+    const visuals = getMaterialVisualFields(source);
+    const set = (id, value) => {
+      const el = document.getElementById(id);
+      if (el) el.value = value ?? '';
+    };
+
+    set('matDiffuse', visuals.diffuse);
+    set('matEmissive', visuals.emissive);
+    set('matMetallic', visuals.metallic);
+    set('matNormal', visuals.normal);
+    set('matOcclusion', visuals.occlusion);
+    set('matRoughness', visuals.roughness);
+
+    wrap.style.display = 'block';
+  }
+
   function onMaterialSelect(id) {
-    if (!id) return;
+    if (!id) {
+      if (currentUsdMaterialPreview) {
+        showUsdMaterialProps(currentUsdMaterialPreview);
+      } else {
+        clearMaterialVisualFields();
+        const wrap = document.getElementById('materialPropsWrap');
+        if (wrap) wrap.style.display = 'none';
+      }
+      return;
+    }
 
     const mat = materialLibrary.find(m => m.materialId === id);
     if (!mat) return;
@@ -5934,20 +6625,7 @@ let up42MoonImg = null;
   }
 
   function fillMaterialLibProps(mat) {
-    const s = (id, v) => {
-      const el = document.getElementById(id);
-      if (el) el.value = v ?? '';
-    };
-
-    s('matDensity', mat.density_kg_m3);
-    s('matYoung', mat.youngModulus_Pa ? (mat.youngModulus_Pa / 1e9).toFixed(1) : '');
-    s('matYield', mat.yieldStrength_Pa ? (mat.yieldStrength_Pa / 1e6).toFixed(0) : '');
-    s('matUltimate', mat.ultimateStrength_Pa ? (mat.ultimateStrength_Pa / 1e6).toFixed(0) : '');
-    s('matPoisson', mat.poissonRatio);
-    s('matThermal', mat.thermalConductivity_W_mK);
-
-    const wrap = document.getElementById('materialPropsWrap');
-    if (wrap) wrap.style.display = 'block';
+    renderMaterialVisualFields(mat);
   }
 
   function handleCadDrop(event) {
@@ -6171,7 +6849,8 @@ let up42MoonImg = null;
     const pw = document.getElementById('materialPropsWrap');
     if (pw) pw.style.display = 'none';
 
-    document.getElementById('usdPbrBlock')?.remove();
+    clearMaterialVisualFields();
+    currentUsdMaterialPreview = null;
 
     const me = document.getElementById('cadMass');
     if (me) me.value = '';
@@ -6585,43 +7264,12 @@ let up42MoonImg = null;
   }
 
   function showUsdMaterialProps(usdMat) {
-    const props = usdMat.properties || {};
     const fromUsdWrap = document.getElementById('materialFromUsdWrap');
     const fromUsdEl = document.getElementById('materialFromUsd');
-    const wrap = document.getElementById('materialPropsWrap');
-
+    currentUsdMaterialPreview = usdMat || null;
     if (fromUsdWrap) fromUsdWrap.style.display = 'block';
-    if (fromUsdEl) fromUsdEl.value = usdMat.path?.split('/').pop() || 'USD Material';
-    if (!wrap) return;
-
-    wrap.style.display = 'block';
-    document.getElementById('usdPbrBlock')?.remove();
-
-    const entries = Object.entries(props).filter(([, v]) => v !== null && v !== undefined);
-    if (entries.length === 0) return;
-
-    const usdBlock = document.createElement('div');
-    usdBlock.id = 'usdPbrBlock';
-    usdBlock.style.cssText = 'grid-column:span 12;display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:8px;';
-
-    entries.forEach(([key, val]) => {
-      let display = '';
-
-      if (Array.isArray(val) && val.length === 3 && val.every(x => x >= 0 && x <= 1)) {
-        display = `rgb(${Math.round(val[0] * 255)}, ${Math.round(val[1] * 255)}, ${Math.round(val[2] * 255)})`;
-      } else if (Array.isArray(val)) {
-        display = val.join(', ');
-      } else {
-        display = String(val);
-      }
-
-      const div = document.createElement('div');
-      div.className = 'field';
-      div.innerHTML = `<label>${key}</label><input value="${display}" readonly style="opacity:0.8;">`;
-      usdBlock.appendChild(div);
-    });
-
-    wrap.appendChild(usdBlock);
+    if (fromUsdEl) fromUsdEl.value = usdMat.name || usdMat.path?.split('/').pop() || 'USD Material';
+    renderMaterialVisualFields(usdMat);
   }
 
   async function deleteOldCadFiles(moduleName, newFileName) {

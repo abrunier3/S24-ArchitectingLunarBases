@@ -1,0 +1,41 @@
+{
+  "duration": 40,
+  "time_units": "seconds_for_visualization",
+  "waypoint_root": "/World/ConnectionWaypoints",
+  "actors": [
+    {
+      "id": "RegolithRover",
+      "prim_path": "/World/RegolithRover"
+    },
+    {
+      "id": "LOXRover",
+      "prim_path": "/World/LOXRover"
+    }
+  ],
+  "events": [
+    {
+      "time": 0,
+      "type": "move_start",
+      "actor": "RegolithRover",
+      "route_id": "ISRUExcavationToISRUPlant"
+    },
+    {
+      "time": 20,
+      "type": "move_end",
+      "actor": "RegolithRover",
+      "route_id": "ISRUExcavationToISRUPlant"
+    },
+    {
+      "time": 20,
+      "type": "move_start",
+      "actor": "LOXRover",
+      "route_id": "ISRUPlantToPropellantDepot"
+    },
+    {
+      "time": 40,
+      "type": "move_end",
+      "actor": "LOXRover",
+      "route_id": "ISRUPlantToPropellantDepot"
+    }
+  ]
+}
