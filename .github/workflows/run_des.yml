@@ -523,6 +523,7 @@ jobs:
           except Exception as e:
               print(f"[USD] Step 6 failed: {e}")
           EOF
+          python scripts/build_omniverse_manifest.py
 
       - name: Commit results
         run: |
@@ -535,7 +536,8 @@ jobs:
           git add clean_database/json/ECLIPSE_Project/ECLIPSE_Project.json
           git add clean_database/usd/scenes/scene.usda || true
           git add clean_database/scenes/waypoints.usda || true
+          git add extensions/lsp1.pipeline/data/manifest.json || true
           echo "=== staged files ==="
           git diff --staged --name-only
-          git diff --staged --quiet || git commit -m "chore: DES results + SysML + USD scene update [skip ci]"
+          git diff --staged --quiet || git commit -m "chore: DES results + SysML + Omniverse scene update [skip ci]"
           git push origin HEAD:"${GITHUB_REF_NAME}"
