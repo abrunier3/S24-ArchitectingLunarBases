@@ -21,7 +21,7 @@ The hub gives access to both tools:
 
 👉V3 **[Open ECLIPSE DEE Pipeline](https://abrunier3.github.io/S24-ArchitectingLunarBases/index_UP2.html)**
 
-👉V4 **[Open ECLIPSE DEE Pipeline](https://abrunier3.github.io/S24-ArchitectingLunarBases/OMNIVERSE-Integration/JennIndex.html)**
+👉V4 **[Open ECLIPSE DEE Pipeline](https://abrunier3.github.io/S24-ArchitectingLunarBases/JennIndex.html)**
 The full end-to-end pipeline interface. Covers:
 - **Step 1** — Build Requirements (MSOSA)
 - **Step 2** — Mission Network Activation — toggle active nodes and trigger `run_connectivity_graph()` via GitHub Actions
