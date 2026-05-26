@@ -1,2 +1,52 @@
-def _default_manifest_path(self) -> str:
-    return ""
+{
+  "scene_usd": "../../../clean_database/usd/scenes/scene.usda",
+  "waypoints_usd": "../../../clean_database/scenes/waypoints.usda",
+  "des_log": "../../../clean_database/usd/scenes/modified_des.json",
+  "playback": {
+    "seconds_per_sim_time_unit": 1.0,
+    "display_duration_hours": 40.0
+  },
+  "waypoint_root": "/World/ConnectionWaypoints",
+  "follow_camera": {
+    "path": "/World/DES_FollowCamera",
+    "offset": [40.0, 10.0, 20.0],
+    "rotateXYZ": [70.0, 0.0, 120.0],
+    "focal_length": 12.0
+  },
+  "terrain": {
+    "usd": "../../../clean_database/scenes/lunar_surface_v4.usdc",
+    "prim_path": "/World/Lunar_Surface_v4",
+    "translate": [1000.0, 0.0, -200.0],
+    "scale": [1000.0, 1000.0, 1000.0]
+  },
+  "actors": [
+    {
+      "id": "Regolith Cargo Rover 1",
+      "label": "Regolith Rover",
+      "prim_path": "/World/RegolithRover",
+      "from_module": "ISRUExcavation",
+      "to_module": "ISRUPlant",
+      "route_name": "ISRUExcavationToISRUPlant",
+      "start_time": 0.0,
+      "end_time": 20.0,
+      "dashboard_fields": [
+        {"key": "state", "label": "State"},
+        {"key": "current_load", "label": "Load", "unit": "kg"}
+      ]
+    },
+    {
+      "id": "LOX Cargo Rover",
+      "label": "LOX Rover",
+      "prim_path": "/World/LOXRover",
+      "from_module": "ISRUPlant",
+      "to_module": "PropellantDepot",
+      "route_name": "ISRUPlantToPropellantDepot",
+      "start_time": 20.0,
+      "end_time": 40.0,
+      "dashboard_fields": [
+        {"key": "state", "label": "State"},
+        {"key": "current_load", "label": "Load", "unit": "kg"}
+      ]
+    }
+  ]
+}
