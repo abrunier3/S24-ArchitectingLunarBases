@@ -37,7 +37,7 @@ class LSP1PipelineExtension(omni.ext.IExt):
                 ui.Label("LSP1 Pipeline")
                 self.status = ui.Label("Status: waiting")
 
-                ui.Button("Pull GitHub", clicked_fn=self._pull_github)
+                ui.Button("Pull GitHub Omniverse", clicked_fn=self._pull_github)
                 ui.Button("Load DES Playback", clicked_fn=self._load_all)
                 ui.Button("Play", clicked_fn=self._play)
                 ui.Button("Pause", clicked_fn=self._pause)
