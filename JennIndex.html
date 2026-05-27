@@ -6308,6 +6308,7 @@ let up42MoonImg = null;
     const units = part.dimensions || {};
     setField('metersPerUnit', units.metersPerUnit ?? 1);
     setSelectField('upAxis', units.upAxis ?? 'Z');
+    if (typeof setCadUnitFieldsLocked === 'function') setCadUnitFieldsLocked(false);
     setSelectField('angleUnit', units.angleUnit ?? 'deg');
     setSelectField('massUnit', units.massUnit ?? 'kg');
     setSelectField('pressureUnit', units.pressureUnit ?? 'kPa');
@@ -6674,7 +6675,15 @@ let up42MoonImg = null;
       pendingCadFileName: pendingFileName || null
     };
 
+    if (moduleMetaCache[moduleName]) {
+      delete moduleMetaCache[moduleName].detectedMetersPerUnit;
+      delete moduleMetaCache[moduleName].detectedUpAxis;
+      delete moduleMetaCache[moduleName].detectedSizeM;
+      delete moduleMetaCache[moduleName].detectedUsdPath;
+    }
+
     if (moduleName === currentModuleName) {
+      setCadUnitFieldsLocked(false);
       const wrap = document.getElementById('viewer3dWrap');
       if (wrap) {
         wrap.style.display = 'none';
@@ -6683,14 +6692,81 @@ let up42MoonImg = null;
     }
   }
 
+  function normalizeUpAxis(value, fallback = 'Z') {
+    const upAxis = String(value || fallback).toUpperCase();
+    return ['X', 'Y', 'Z'].includes(upAxis) ? upAxis : fallback;
+  }
+
+  function normalizeSizeM(value) {
+    if (!Array.isArray(value) || value.length < 3) return null;
+    const size = value.slice(0, 3).map(Number);
+    return size.every(Number.isFinite) ? size : null;
+  }
+
+  function setCadUnitFieldsLocked(locked) {
+    const metersPerUnitEl = document.getElementById('metersPerUnit');
+    const upAxisEl = document.getElementById('upAxis');
+    const title = locked
+      ? 'Detected from the CAD USD file'
+      : 'Manual fallback used when CAD metadata is not detected';
+
+    if (metersPerUnitEl) {
+      metersPerUnitEl.readOnly = locked;
+      metersPerUnitEl.title = title;
+      metersPerUnitEl.style.opacity = locked ? '0.7' : '';
+    }
+
+    if (upAxisEl) {
+      upAxisEl.disabled = locked;
+      upAxisEl.title = title;
+      upAxisEl.style.opacity = locked ? '0.7' : '';
+      upAxisEl.style.cursor = locked ? 'not-allowed' : '';
+    }
+  }
+
+  function syncDetectedCadMeta(data) {
+    if (!data?.module_name) return;
+
+    const moduleName = data.module_name;
+    const existing = moduleMetaCache[moduleName] || {};
+    const metersPerUnit = Number.isFinite(Number(data.meters_per_unit))
+      ? String(Number(data.meters_per_unit))
+      : (existing.metersPerUnit || '1');
+    const upAxis = normalizeUpAxis(data.up_axis, existing.upAxis || 'Z');
+    const sizeM = normalizeSizeM(data.size_m);
+
+    moduleMetaCache[moduleName] = {
+      ...existing,
+      metersPerUnit,
+      upAxis,
+      detectedMetersPerUnit: metersPerUnit,
+      detectedUpAxis: upAxis,
+      ...(sizeM ? { detectedSizeM: sizeM } : {}),
+      ...(data.usd_path ? { detectedUsdPath: data.usd_path } : {})
+    };
+
+    if (moduleName === currentModuleName) {
+      setField('metersPerUnit', metersPerUnit);
+      setSelectField('upAxis', upAxis);
+      setCadUnitFieldsLocked(true);
+      if (sizeM) {
+        setField('omlLength', sizeM[0]);
+        setField('omlWidth', sizeM[1]);
+        setField('omlHeight', sizeM[2]);
+      }
+    }
+  }
+
   function saveModuleMeta() {
     if (!currentModuleName) return;
+    const existing = moduleMetaCache[currentModuleName] || {};
 
     moduleMetaCache[currentModuleName] = {
+      ...existing,
       materialId: document.getElementById('materialSelect')?.value || '',
       mass: document.getElementById('cadMass')?.value || '',
-      metersPerUnit: document.getElementById('metersPerUnit')?.value || '1',
-      upAxis: document.getElementById('upAxis')?.value || 'Z',
+      metersPerUnit: existing.detectedMetersPerUnit || document.getElementById('metersPerUnit')?.value || '1',
+      upAxis: existing.detectedUpAxis || document.getElementById('upAxis')?.value || 'Z',
       massUnit: document.getElementById('massUnit')?.value || 'kg',
       lengthUnit: document.getElementById('lengthUnit')?.value || 'm'
     };
@@ -6726,8 +6802,9 @@ let up42MoonImg = null;
       if (el && v) el.value = v;
     };
 
-    s('metersPerUnit', saved.metersPerUnit);
-    s('upAxis', saved.upAxis);
+    s('metersPerUnit', saved.detectedMetersPerUnit || saved.metersPerUnit);
+    s('upAxis', saved.detectedUpAxis || saved.upAxis);
+    setCadUnitFieldsLocked(Boolean(saved.detectedMetersPerUnit || saved.detectedUpAxis));
     s('massUnit', saved.massUnit);
     s('lengthUnit', saved.lengthUnit);
   }
@@ -6887,6 +6964,8 @@ let up42MoonImg = null;
       const glbMeta = await fetchCadGlbMeta(moduleName, Date.now());
       if (!meta?.data) return;
 
+      syncDetectedCadMeta(meta.data);
+
       cadPreviewState[moduleName] = {
         ...(cadPreviewState[moduleName] || {}),
         metaSha: meta.sha || null,
@@ -6932,6 +7011,8 @@ let up42MoonImg = null;
       (!previewRequest.previousGlbSha && !!glbMeta.sha);
 
     if (!metaFresh || !glbFresh) return false;
+
+    syncDetectedCadMeta(meta.data);
 
     cadPreviewState[moduleName] = {
       ...(cadPreviewState[moduleName] || {}),
@@ -6988,7 +7069,6 @@ let up42MoonImg = null;
       await deleteOldCadFiles(moduleName, file.name);
 
       const uploaded = await uploadCadToGitHub(file, moduleName);
-      await writeAssetJson(moduleName, file);
 
       if (uploaded) {
         const usdPath = `clean_database/cad_models/${moduleName}/${file.name}`;
@@ -6996,6 +7076,7 @@ let up42MoonImg = null;
 
         updateModuleDot(moduleName, 'done');
         await pollForMeta(moduleName, runInfo, previewRequest);
+        await writeAssetJson(moduleName, file);
       } else {
         updateModuleDot(moduleName, 'error');
       }
@@ -7105,14 +7186,14 @@ let up42MoonImg = null;
 
             if (run.conclusion !== 'success') {
               updateModuleDot(moduleName, 'error');
-              return;
+              return false;
             }
           }
         }
 
         for (let i = 0; i < 8; i++) {
           const fresh = await waitForFreshCadPreview(moduleName, previewRequest);
-          if (fresh) return;
+          if (fresh) return true;
           await sleep(window.UI_POLL.outputPollMs);
         }
       } catch (e) {
@@ -7127,6 +7208,7 @@ let up42MoonImg = null;
     if (pubStatus) {
       pubStatus.textContent = `Preview timeout for ${moduleName}.`;
     }
+    return false;
   }
 
   async function loadAndApplyFreshMeta(moduleName) {
@@ -7134,6 +7216,8 @@ let up42MoonImg = null;
       const meta = await fetchCadMetaWithSha(moduleName, Date.now());
       const glbMeta = await fetchCadGlbMeta(moduleName, Date.now());
       if (!meta?.data) return;
+
+      syncDetectedCadMeta(meta.data);
 
       if (moduleName === currentModuleName) {
         await applyCadMeta(meta.data, { glbSha: glbMeta?.sha || null });
@@ -7165,14 +7249,15 @@ let up42MoonImg = null;
     const selId = saved.materialId || '';
     const selMat = materialLibrary.find(m => m.materialId === selId) || null;
     const mass = parseFloat(saved.mass) || null;
-    const metersPerUnit = parseFloat(saved.metersPerUnit) || 1;
-    const upAxis = saved.upAxis || part.dimensions?.upAxis || 'Z';
+    const metersPerUnit = parseFloat(saved.detectedMetersPerUnit || saved.metersPerUnit) || 1;
+    const upAxis = saved.detectedUpAxis || saved.upAxis || part.dimensions?.upAxis || 'Z';
     const massUnit = saved.massUnit || 'kg';
     const lengthUnit = saved.lengthUnit || 'm';
 
-    const sizeM = part.dimensions?.size_m
+    const detectedSizeM = normalizeSizeM(saved.detectedSizeM);
+    const sizeM = detectedSizeM || (part.dimensions?.size_m
       ? [part.dimensions.size_m.length, part.dimensions.size_m.width, part.dimensions.size_m.height]
-      : null;
+      : null);
 
     return {
       type: part.type || 'Part',
@@ -7194,7 +7279,9 @@ let up42MoonImg = null;
         geometryRef: `clean_database/cad_models/${moduleName}/${cadFile.name}`,
         cadFileName: cadFile.name,
         cadUploadedAt: new Date().toISOString(),
-        glbPreviewRef: `outputs/cad_previews/${moduleName}.glb`
+        glbPreviewRef: `outputs/cad_previews/${moduleName}.glb`,
+        cadDetectedUpAxis: saved.detectedUpAxis || null,
+        cadDetectedMetersPerUnit: saved.detectedMetersPerUnit ? parseFloat(saved.detectedMetersPerUnit) : null
       },
       materialRef: selId || part.materialRef || null,
       materialProperties: selMat ? {
@@ -7496,6 +7583,8 @@ let up42MoonImg = null;
 
   async function applyCadMeta(data, options = {}) {
     const status = document.getElementById('cadUploadStatus');
+
+    syncDetectedCadMeta(data);
 
     if (data.glb_path) {
       await showModelViewer(data.module_name, data.mesh_count, data.size_m, options.glbSha || null);
