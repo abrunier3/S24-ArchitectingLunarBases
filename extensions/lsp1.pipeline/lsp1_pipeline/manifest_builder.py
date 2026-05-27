@@ -25,6 +25,158 @@ def _repo_relative(path: Path, *, start: Path) -> str:
     return os.path.relpath(path.resolve(), start.resolve()).replace("\\", "/")
 
 
+def _terrain_bbox(terrain_usd_path: Path) -> dict[str, Any] | None:
+    try:
+        from pxr import Usd, UsdGeom
+    except Exception:
+        return None
+
+    try:
+        stage = Usd.Stage.Open(str(terrain_usd_path))
+    except Exception:
+        return None
+
+    if not stage:
+        return None
+
+    bound_prim = stage.GetDefaultPrim() or stage.GetPseudoRoot()
+    bbox_cache = UsdGeom.BBoxCache(Usd.TimeCode.Default(), [UsdGeom.Tokens.default_])
+    bbox_range = bbox_cache.ComputeWorldBound(bound_prim).ComputeAlignedRange()
+    mn = bbox_range.GetMin()
+    mx = bbox_range.GetMax()
+
+    return {
+        "min": [float(mn[i]) for i in range(3)],
+        "max": [float(mx[i]) for i in range(3)],
+        "size": [float(mx[i] - mn[i]) for i in range(3)],
+        "up_axis": str(UsdGeom.GetStageUpAxis(stage)),
+        "meters_per_unit": float(UsdGeom.GetStageMetersPerUnit(stage) or 1.0),
+    }
+
+
+def _collect_system_xy_points(system_json: dict[str, Any]) -> list[tuple[float, float]]:
+    points: list[tuple[float, float]] = []
+
+    for part in system_json.get("parts", []):
+        pos = part.get("transform", {}).get("position_m")
+        if isinstance(pos, list) and len(pos) >= 2:
+            points.append((float(pos[0]), float(pos[1])))
+
+    for connection in system_json.get("connections", []):
+        waypoints = connection.get("path", {}).get("waypoints_m") or []
+        for wp in waypoints:
+            if isinstance(wp, list) and len(wp) >= 2:
+                points.append((float(wp[0]), float(wp[1])))
+
+    return points
+
+
+def _map_frame_from_system(system_json: dict[str, Any]) -> dict[str, Any]:
+    urban_planning = system_json.get("urban_planning") or {}
+    frame = urban_planning.get("map_frame_m") or {}
+
+    required = ("x_min", "x_max", "y_min", "y_max")
+    if all(key in frame for key in required):
+        x_min = float(frame["x_min"])
+        x_max = float(frame["x_max"])
+        y_min = float(frame["y_min"])
+        y_max = float(frame["y_max"])
+        return {
+            **frame,
+            "x_min": x_min,
+            "x_max": x_max,
+            "y_min": y_min,
+            "y_max": y_max,
+            "width_m": float(frame.get("width_m", x_max - x_min)),
+            "height_m": float(frame.get("height_m", y_max - y_min)),
+            "source": "urban_planning.map_frame_m",
+        }
+
+    points = _collect_system_xy_points(system_json)
+    if points:
+        max_abs = max(max(abs(x), abs(y)) for x, y in points)
+        half_extent = max(1500.0, math.ceil((max_abs + 250.0) / 250.0) * 250.0)
+    else:
+        half_extent = 1500.0
+
+    return {
+        "center_m": [0.0, 0.0, 0.0],
+        "x_min": -half_extent,
+        "x_max": half_extent,
+        "y_min": -half_extent,
+        "y_max": half_extent,
+        "width_m": half_extent * 2.0,
+        "height_m": half_extent * 2.0,
+        "source": "derived_from_system_extent",
+    }
+
+
+def _build_terrain_config(
+    *,
+    terrain_usd_path: Path,
+    output_dir: Path,
+    system_json: dict[str, Any],
+) -> dict[str, Any]:
+    frame = _map_frame_from_system(system_json)
+    bbox = _terrain_bbox(terrain_usd_path)
+
+    config: dict[str, Any] = {
+        "usd": _repo_relative(terrain_usd_path, start=output_dir),
+        "prim_path": "/World/Lunar_Surface_v4",
+        "alignment": "ui_map_frame_grounded",
+        "map_frame_m": frame,
+    }
+
+    if not bbox:
+        config.update({
+            "translate": [0.0, 0.0, 0.0],
+            "scale": [1.0, 1.0, 1.0],
+            "warning": "Terrain bbox unavailable; using identity transform.",
+        })
+        return config
+
+    source_min = bbox["min"]
+    source_max = bbox["max"]
+    source_size = bbox["size"]
+    target_width = float(frame["x_max"] - frame["x_min"])
+    target_height = float(frame["y_max"] - frame["y_min"])
+
+    scale_x = target_width / source_size[0] if source_size[0] else 1.0
+    scale_y = target_height / source_size[1] if source_size[1] else scale_x
+    scale_z = (abs(scale_x) + abs(scale_y)) / 2.0
+
+    source_center_x = (source_min[0] + source_max[0]) / 2.0
+    source_center_y = (source_min[1] + source_max[1]) / 2.0
+    target_center_x = (float(frame["x_min"]) + float(frame["x_max"])) / 2.0
+    target_center_y = (float(frame["y_min"]) + float(frame["y_max"])) / 2.0
+
+    translate = [
+        target_center_x - source_center_x * scale_x,
+        target_center_y - source_center_y * scale_y,
+        -source_min[2] * scale_z,
+    ]
+
+    config.update({
+        "translate": [round(v, 6) for v in translate],
+        "scale": [round(scale_x, 9), round(scale_y, 9), round(scale_z, 9)],
+        "source_bbox": bbox,
+        "world_bbox": {
+            "min": [
+                round(source_min[0] * scale_x + translate[0], 6),
+                round(source_min[1] * scale_y + translate[1], 6),
+                0.0,
+            ],
+            "max": [
+                round(source_max[0] * scale_x + translate[0], 6),
+                round(source_max[1] * scale_y + translate[1], 6),
+                round((source_max[2] - source_min[2]) * scale_z, 6),
+            ],
+        },
+    })
+
+    return config
+
+
 def _sorted_log_items(des_data: dict[str, Any]) -> list[tuple[float, dict[str, Any]]]:
     raw_log = des_data.get("log", des_data)
     if not isinstance(raw_log, dict):
@@ -336,12 +488,11 @@ def build_manifest(
             "rotateXYZ": [70.0, 0.0, 120.0],
             "focal_length": 12.0,
         },
-        "terrain": {
-            "usd": _repo_relative(terrain_usd_path, start=output_dir),
-            "prim_path": "/World/Lunar_Surface_v4",
-            "translate": [1000.0, 0.0, -200.0],
-            "scale": [1000.0, 1000.0, 1000.0],
-        },
+        "terrain": _build_terrain_config(
+            terrain_usd_path=terrain_usd_path,
+            output_dir=output_dir,
+            system_json=system_json,
+        ),
         "actors": sorted(actors_by_id.values(), key=lambda actor: actor["id"]),
     }
 
