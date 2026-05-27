@@ -18,62 +18,6 @@ def Xform "World"
         uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
     }
 
-    def Xform "ISRUPlant"
-    {
-        custom string attributes = "{'processingRate': 1600.0, 'regHeadGrade': 0.1, 'lunarGravity': 1.62, 'LOXStored': 0.0, 'totalEnergyConsumed': 0.0, 'ISRUPlant_volume_m3': 2400.0, 'transportEnergyCoeff': 0.00036, 'liftHeight': 1.0, 'gangueTransportDist': 1.0, 'reactorEnergyCoeff': 0.385, 'electrolysisEnergyCoeff': 8.26, 'liquefactionEnergyCoeff': 1.17, 'excavationEnergyCoeff': 6.5e-06}"
-        custom string dimensions = "{'size_m': {'length': 20.0, 'width': 15.0, 'height': 8.0}, 'metersPerUnit': 1, 'upAxis': 'Z'}"
-        custom string part:name = "ISRUPlant"
-        float3 xformOp:rotateXYZ = (0, 0, 0)
-        float3 xformOp:scale = (1, 1, 1)
-        double3 xformOp:translate = (-1837.5, 392.89, 0)
-        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
-
-        def Xform "Geometry"
-        {
-            custom double3 cad:groundingTranslate = (0, 0, 13.96)
-            custom double cad:metersPerUnit = 1
-            custom string cad:sourceUpAxis = "Y"
-            float3 xformOp:rotateXYZ = (0, 0, 0)
-            float3 xformOp:scale = (1, 1, 1)
-            double3 xformOp:translate = (0, 0, 13.96)
-            uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
-
-            def Xform "Model" (
-                prepend references = @../../cad_models/ISRUPlant/isruplant.usdc@
-            )
-            {
-            }
-        }
-    }
-
-    def Xform "SolarPowerSystem"
-    {
-        custom string attributes = "{'powerOutput': 100.0, 'powerDegradationFactor': 1.0, 'batteryCapacity': 500.0, 'batteryDegradationFactor': 1.0, 'batteryCharge': 500.0, 'totalEnergyGenerated': 0.0, 'totalEnergyFromBattery': 0.0, 'SolarPowerSystem_volume_m3': 2500.0}"
-        custom string dimensions = "{'size_m': {'length': 25.0, 'width': 25.0, 'height': 4.0}, 'metersPerUnit': 1, 'upAxis': 'Z'}"
-        custom string part:name = "SolarPowerSystem"
-        float3 xformOp:rotateXYZ = (0, 0, 0)
-        float3 xformOp:scale = (1, 1, 1)
-        double3 xformOp:translate = (242.5, 397.89, 0)
-        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
-
-        def Xform "Geometry"
-        {
-            custom double3 cad:groundingTranslate = (0, 0, 3.3825)
-            custom double cad:metersPerUnit = 1
-            custom string cad:sourceUpAxis = "Y"
-            float3 xformOp:rotateXYZ = (0, 0, 0)
-            float3 xformOp:scale = (1, 1, 1)
-            double3 xformOp:translate = (0, 0, 3.3825)
-            uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
-
-            def Xform "Model" (
-                prepend references = @../../cad_models/SolarPowerSystem/solar_panels.usdc@
-            )
-            {
-            }
-        }
-    }
-
     def Xform "HabitationModule"
     {
         custom string attributes = "{'constantPowerRate': 5.0, 'totalEnergyConsumed': 0.0, 'HabitationModule_volume_m3': 1600.0}"
@@ -86,12 +30,18 @@ def Xform "World"
 
         def Xform "Geometry"
         {
-            custom double3 cad:groundingTranslate = (0, 0, 6.977)
+            custom string cad:authoredXformOps = "/scene:xformOp:translate,xformOp:rotateXYZ,xformOp:scale; /scene/Meshes:xformOp:translate,xformOp:rotateXYZ,xformOp:scale; /scene/Meshes/Sketchfab_model:xformOp:transform; /scene/Meshes/Sketchfab_model/root:xformOp:transform,xformOp:translate,xformOp:rotateXYZ,xformOp:scale; /scene/Meshes/Sketchfab_model/root/GLTF_SceneRootNode:xformOp:transform; /scene/Meshes/Sketchfab_model/root/GLTF_SceneRootNode/Sphere_2:xformOp:transform; /scene/Meshes/Sketchfab_model/root/GLTF_SceneRootNode/Sphere_2/Object_6:xformOp:transform; /scene/Meshes/Sketchfab_model/root/GLTF_SceneRootNode/Plane_3:xformOp:transform; /scene/Meshes/Sketchfab_model/root/GLTF_SceneRootNode/Plane_3/Object_8:xformOp:transform; /scene/Meshes/Sketchfab_model/root/GLTF_SceneRootNode/Plane_001_4:xformOp:transform; /scene/Meshes/Sketchfab_model/root/GLTF_SceneRootNode/Plane_001_4/Object_10:xformOp:transform; /scene/Meshes/Sketchfab_model/root/GLTF_SceneRootNode/Plane_002_5:xformOp:transform; /scene/Meshes/Sketchfab_model/root/GLTF_SceneRootNode/Plane_002_5/Object_12:xformOp:transform; /scene/Meshes/Sketchfab_model/root/GLTF_SceneRootNode/Plane_003_6:xformOp:transform; /scene/Meshes/Sketchfab_model/root/GLTF_SceneRootNode/Plane_003_6/Object_14:xformOp:transform; /scene/Meshes/Sketchfab_model/root/GLTF_SceneRootNode/Sphere_002_7:xformOp:transform; /scene/Meshes/Sketchfab_model/root/GLTF_SceneRootNode/Sphere_002_7/Object_16:xformOp:transform; /scene/Meshes/Sketchfab_model/root/GLTF_SceneRootNode/Cube_001_8:xformOp:transform; /scene/Meshes/Sketchfab_model/root/GLTF_SceneRootNode/Cube_001_8/Object_18:xformOp:transform; /scene/Meshes/Sketchfab_model/root/GLTF_SceneRootNode/Cube_001_8/Object_19:xformOp:transform"
+            custom double3 cad:bboxMax = (0.16972461832277178, 0.4947388801786715, 0.24706056118912592)
+            custom double3 cad:bboxMin = (-0.3280527505417378, -0.06435048736294803, -0.010234235782650293)
+            custom double3 cad:bboxSize = (0.49777736886450963, 0.5590893675416195, 0.2572947969717762)
+            custom double3 cad:groundingTranslate = (0, 0, 0.010234235782650293)
+            custom bool cad:hasAuthoredXforms = 1
             custom double cad:metersPerUnit = 1
+            custom string cad:normalizationMode = "preserve_authored_xforms_ground_aligned_bbox"
             custom string cad:sourceUpAxis = "Y"
             float3 xformOp:rotateXYZ = (0, 0, 0)
             float3 xformOp:scale = (1, 1, 1)
-            double3 xformOp:translate = (0, 0, 6.977)
+            double3 xformOp:translate = (0, 0, 0.010234235782650293)
             uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
 
             def Xform "Model" (
@@ -102,28 +52,69 @@ def Xform "World"
         }
     }
 
-    def Xform "LOXRover"
+    def Xform "ISRUExcavation"
     {
-        custom string attributes = "{'batteryCapacity': 100.0, 'maxCapacity': 5000.0, 'energyPerKmPerKg': 0.00034, 'batteryCharge': 100.0, 'totalDistanceTraveled': 0.0, 'totalEnergyConsumed': 0.0, 'hoursPerKm': 5.0, 'LOXRover_volume_m3': 45.0}"
-        custom string dimensions = "{'size_m': {'length': 5.0, 'width': 3.0, 'height': 3.0}, 'metersPerUnit': 1, 'upAxis': 'Z'}"
-        custom string part:name = "LOXRover"
+        custom string attributes = "{'ISRUExcavation_volume_m3': 40.0, 'excavationEnergyCoeff': 6.5e-06}"
+        custom string dimensions = "{'size_m': {'length': 4.0, 'width': 4.0, 'height': 2.5}, 'metersPerUnit': 1, 'upAxis': 'Z', 'angleUnit': 'deg', 'pressureUnit': 'kPa', 'massUnit': 'kg', 'lengthUnit': 'm'}"
+        custom string material = "Aluminum_2219_T87"
+        custom string part:name = "ISRUExcavation"
         float3 xformOp:rotateXYZ = (0, 0, 0)
         float3 xformOp:scale = (1, 1, 1)
-        double3 xformOp:translate = (0, 0, 0)
+        double3 xformOp:translate = (1437.5, 382.89, 0)
         uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
 
         def Xform "Geometry"
         {
-            custom double3 cad:groundingTranslate = (0, 0, 8.9675)
+            custom string cad:authoredXformOps = "/scene:xformOp:translate,xformOp:rotateXYZ,xformOp:scale; /scene/Meshes:xformOp:scale; /scene/Meshes/Sketchfab_model:xformOp:transform,xformOp:translate,xformOp:orient,xformOp:scale,xformOp:rotateXYZ; /scene/Meshes/Sketchfab_model/model_obj_cleaner_materialmerger_gles:xformOp:transform; /scene/Meshes/Sketchfab_model/model_obj_cleaner_materialmerger_gles/Object_2:xformOp:transform; /scene/Meshes/Sketchfab_model/model_obj_cleaner_materialmerger_gles/Object_3:xformOp:transform; /scene/Meshes/Sketchfab_model/model_obj_cleaner_materialmerger_gles/Object_4:xformOp:transform"
+            custom double3 cad:bboxMax = (3.7297183830455447, 3.6150066181522584, 0.30699756265672723)
+            custom double3 cad:bboxMin = (-2.79543897694664, -2.92032835444793, -0.18682480415179722)
+            custom double3 cad:bboxSize = (6.525157359992185, 6.535334972600189, 0.4938223668085244)
+            custom double3 cad:groundingTranslate = (0, 0, 0.18682480415179722)
+            custom bool cad:hasAuthoredXforms = 1
             custom double cad:metersPerUnit = 1
+            custom string cad:normalizationMode = "preserve_authored_xforms_ground_aligned_bbox"
             custom string cad:sourceUpAxis = "Y"
             float3 xformOp:rotateXYZ = (0, 0, 0)
             float3 xformOp:scale = (1, 1, 1)
-            double3 xformOp:translate = (0, 0, 8.9675)
+            double3 xformOp:translate = (0, 0, 0.18682480415179722)
             uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
 
             def Xform "Model" (
-                prepend references = @../../cad_models/LOXRover/LOXRover.usdc@
+                prepend references = @../../cad_models/ISRUExcavation/ISRUExcavation.usdc@
+            )
+            {
+            }
+        }
+    }
+
+    def Xform "ISRUPlant"
+    {
+        custom string attributes = "{'processingRate': 1600.0, 'regHeadGrade': 0.1, 'lunarGravity': 1.62, 'LOXStored': 0.0, 'totalEnergyConsumed': 0.0, 'ISRUPlant_volume_m3': 2400.0, 'transportEnergyCoeff': 0.00036, 'liftHeight': 1.0, 'gangueTransportDist': 1.0, 'reactorEnergyCoeff': 0.385, 'electrolysisEnergyCoeff': 8.26, 'liquefactionEnergyCoeff': 1.17, 'excavationEnergyCoeff': 6.5e-06}"
+        custom string dimensions = "{'size_m': {'length': 20.0, 'width': 15.0, 'height': 8.0}, 'metersPerUnit': 1, 'upAxis': 'Z'}"
+        custom string part:name = "ISRUPlant"
+        float3 xformOp:rotateXYZ = (0, 0, 0)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (-1837.5, 392.89, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+        def Xform "Geometry"
+        {
+            custom string cad:authoredXformOps = "/scene:xformOp:translate,xformOp:rotateXYZ,xformOp:scale; /scene/Meshes:xformOp:scale; /scene/Meshes/Sketchfab_model:xformOp:transform,xformOp:translate,xformOp:orient,xformOp:scale; /scene/Meshes/Sketchfab_model/stabNew_obj_cleaner_materialmerger_gles:xformOp:transform; /scene/Meshes/Sketchfab_model/stabNew_obj_cleaner_materialmerger_gles/Object_2:xformOp:transform; /scene/Meshes/Sketchfab_model/stabNew_obj_cleaner_materialmerger_gles/Object_3:xformOp:transform; /scene/Meshes/Sketchfab_model/stabNew_obj_cleaner_materialmerger_gles/Object_4:xformOp:transform; /scene/Meshes/Sketchfab_model/stabNew_obj_cleaner_materialmerger_gles/Object_5:xformOp:transform; /scene/Meshes/Sketchfab_model/stabNew_obj_cleaner_materialmerger_gles/Object_6:xformOp:transform; /scene/Meshes/Sketchfab_model/stabNew_obj_cleaner_materialmerger_gles/Object_7:xformOp:transform; /scene/Meshes/Sketchfab_model/stabNew_obj_cleaner_materialmerger_gles/Object_8:xformOp:transform; /scene/Meshes/Sketchfab_model/stabNew_obj_cleaner_materialmerger_gles/Object_9:xformOp:transform; /scene/Meshes/Sketchfab_model/stabNew_obj_cleaner_materialmerger_gles/Object_10:xformOp:transform; /scene/Meshes/Sketchfab_model/stabNew_obj_cleaner_materialmerger_gles/Object_11:xformOp:transform; /scene/Meshes/Sketchfab_model/stabNew_obj_cleaner_materialmerger_gles/Object_12:xformOp:transform; /scene/Meshes/Sketchfab_model/stabNew_obj_cleaner_materialmerger_gles/Object_13:xformOp:transform; /scene/Meshes/Sketchfab_model/stabNew_obj_cleaner_materialmerger_gles/Object_14:xformOp:transform; /scene/Meshes/Sketchfab_model/stabNew_obj_cleaner_materialmerger_gles/Object_15:xformOp:transform; /scene/Meshes/Sketchfab_model/stabNew_obj_cleaner_materialmerger_gles/Object_16:xformOp:transform; /scene/Meshes/Sketchfab_model/stabNew_obj_cleaner_materialmerger_gles/Object_17:xformOp:transform"
+            custom double3 cad:bboxMax = (0.9729574156516031, 0.8941815661282029, 1.692732640437684)
+            custom double3 cad:bboxMin = (-0.35470690040741615, -0.6408330320457319, -0.11220853761619272)
+            custom double3 cad:bboxSize = (1.3276643160590194, 1.5350145981739347, 1.8049411780538767)
+            custom double3 cad:groundingTranslate = (0, 0, 0.11220853761619272)
+            custom bool cad:hasAuthoredXforms = 1
+            custom double cad:metersPerUnit = 1
+            custom string cad:normalizationMode = "preserve_authored_xforms_ground_aligned_bbox"
+            custom string cad:sourceUpAxis = "Y"
+            float3 xformOp:rotateXYZ = (0, 0, 0)
+            float3 xformOp:scale = (1, 1, 1)
+            double3 xformOp:translate = (0, 0, 0.11220853761619272)
+            uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+            def Xform "Model" (
+                prepend references = @../../cad_models/ISRUPlant/isruplant.usdc@
             )
             {
             }
@@ -142,12 +133,18 @@ def Xform "World"
 
         def Xform "Geometry"
         {
-            custom double3 cad:groundingTranslate = (0, 0, 42.398)
+            custom string cad:authoredXformOps = "/scene/Meshes:xformOp:scale; /scene/Meshes/Sketchfab_model:xformOp:transform,xformOp:translate,xformOp:rotateXYZ,xformOp:scale; /scene/Meshes/Sketchfab_model/landingpad_intact_obj_cleaner_materialmerger_gles:xformOp:transform; /scene/Meshes/Sketchfab_model/landingpad_intact_obj_cleaner_materialmerger_gles/Object_2:xformOp:transform; /scene/Meshes/Sketchfab_model/landingpad_intact_obj_cleaner_materialmerger_gles/Object_2/Object_0:xformOp:translate,xformOp:rotateXYZ,xformOp:scale"
+            custom double3 cad:bboxMax = (2.849572944641114, 4.239757919311525, 0.24369559288025044)
+            custom double3 cad:bboxMin = (-2.8495729446411144, -2.341049003601075, -0.0004698181059221482)
+            custom double3 cad:bboxSize = (5.699145889282228, 6.5808069229126, 0.2441654109861726)
+            custom double3 cad:groundingTranslate = (0, 0, 0.0004698181059221482)
+            custom bool cad:hasAuthoredXforms = 1
             custom double cad:metersPerUnit = 1
+            custom string cad:normalizationMode = "preserve_authored_xforms_ground_aligned_bbox"
             custom string cad:sourceUpAxis = "Y"
             float3 xformOp:rotateXYZ = (0, 0, 0)
             float3 xformOp:scale = (1, 1, 1)
-            double3 xformOp:translate = (0, 0, 42.398)
+            double3 xformOp:translate = (0, 0, 0.0004698181059221482)
             uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
 
             def Xform "Model" (
@@ -158,11 +155,11 @@ def Xform "World"
         }
     }
 
-    def Xform "RegolithRover"
+    def Xform "LOXRover"
     {
-        custom string attributes = "{'batteryCapacity': 100.0, 'maxCapacity': 5000.0, 'energyPerKmPerKg': 0.00034, 'batteryCharge': 100.0, 'totalDistanceTraveled': 0.0, 'totalEnergyConsumed': 0.0, 'hoursPerKm': 5.0, 'RegolithRover_volume_m3': 45.0}"
+        custom string attributes = "{'batteryCapacity': 100.0, 'maxCapacity': 5000.0, 'energyPerKmPerKg': 0.00034, 'batteryCharge': 100.0, 'totalDistanceTraveled': 0.0, 'totalEnergyConsumed': 0.0, 'hoursPerKm': 5.0, 'LOXRover_volume_m3': 45.0}"
         custom string dimensions = "{'size_m': {'length': 5.0, 'width': 3.0, 'height': 3.0}, 'metersPerUnit': 1, 'upAxis': 'Z'}"
-        custom string part:name = "RegolithRover"
+        custom string part:name = "LOXRover"
         float3 xformOp:rotateXYZ = (0, 0, 0)
         float3 xformOp:scale = (1, 1, 1)
         double3 xformOp:translate = (0, 0, 0)
@@ -170,16 +167,22 @@ def Xform "World"
 
         def Xform "Geometry"
         {
-            custom double3 cad:groundingTranslate = (0, 0, 8.9675)
+            custom string cad:authoredXformOps = "/scene:xformOp:translate,xformOp:rotateXYZ,xformOp:scale; /scene/Meshes:xformOp:scale; /scene/Meshes/Sketchfab_model:xformOp:transform,xformOp:translate,xformOp:rotateXYZ,xformOp:scale; /scene/Meshes/Sketchfab_model/mars_rover_fbx:xformOp:transform; /scene/Meshes/Sketchfab_model/mars_rover_fbx/RootNode:xformOp:transform; /scene/Meshes/Sketchfab_model/mars_rover_fbx/RootNode/mars_rover:xformOp:transform; /scene/Meshes/Sketchfab_model/mars_rover_fbx/RootNode/mars_rover/_:xformOp:transform"
+            custom double3 cad:bboxMax = (0.40513343876227703, 0.7853876582137302, 0.2999983822069222)
+            custom double3 cad:bboxMin = (-0.40513343876227703, -0.7867055214319401, -0.0000016212176781228702)
+            custom double3 cad:bboxSize = (0.8102668775245541, 1.5720931796456703, 0.3000000034246003)
+            custom double3 cad:groundingTranslate = (0, 0, 0.0000016212176781228702)
+            custom bool cad:hasAuthoredXforms = 1
             custom double cad:metersPerUnit = 1
+            custom string cad:normalizationMode = "preserve_authored_xforms_ground_aligned_bbox"
             custom string cad:sourceUpAxis = "Y"
             float3 xformOp:rotateXYZ = (0, 0, 0)
             float3 xformOp:scale = (1, 1, 1)
-            double3 xformOp:translate = (0, 0, 8.9675)
+            double3 xformOp:translate = (0, 0, 0.0000016212176781228702)
             uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
 
             def Xform "Model" (
-                prepend references = @../../cad_models/RegolithRover/RegolithRover.usdc@
+                prepend references = @../../cad_models/LOXRover/LOXRover.usdc@
             )
             {
             }
@@ -222,12 +225,18 @@ def Xform "World"
 
         def Xform "Geometry"
         {
-            custom double3 cad:groundingTranslate = (0, 0, 2.6005)
+            custom string cad:authoredXformOps = "/scene:xformOp:translate,xformOp:rotateXYZ,xformOp:scale; /scene/Meshes:xformOp:scale,xformOp:translate; /scene/Meshes/Sketchfab_model:xformOp:transform,xformOp:translate,xformOp:rotateXYZ,xformOp:scale; /scene/Meshes/Sketchfab_model/Collada_visual_scene_group:xformOp:transform; /scene/Meshes/Sketchfab_model/Collada_visual_scene_group/_01:xformOp:transform; /scene/Meshes/Sketchfab_model/Collada_visual_scene_group/_01/defaultMaterial:xformOp:transform"
+            custom double3 cad:bboxMax = (-13.990831662968107, -0.552025738809645, -811.7874350266197)
+            custom double3 cad:bboxMin = (-14.506677326915684, -1.0721483458079641, -812.0874350342516)
+            custom double3 cad:bboxSize = (0.5158456639475766, 0.5201226069983191, 0.30000000763186563)
+            custom double3 cad:groundingTranslate = (0, 0, 812.0874350342516)
+            custom bool cad:hasAuthoredXforms = 1
             custom double cad:metersPerUnit = 1
+            custom string cad:normalizationMode = "preserve_authored_xforms_ground_aligned_bbox"
             custom string cad:sourceUpAxis = "Y"
             float3 xformOp:rotateXYZ = (0, 0, 0)
             float3 xformOp:scale = (1, 1, 1)
-            double3 xformOp:translate = (0, 0, 2.6005)
+            double3 xformOp:translate = (0, 0, 812.0874350342516)
             uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
 
             def Xform "Model" (
@@ -238,29 +247,34 @@ def Xform "World"
         }
     }
 
-    def Xform "ISRUExcavation"
+    def Xform "RegolithRover"
     {
-        custom string attributes = "{'ISRUExcavation_volume_m3': 40.0, 'excavationEnergyCoeff': 6.5e-06}"
-        custom string dimensions = "{'size_m': {'length': 4.0, 'width': 4.0, 'height': 2.5}, 'metersPerUnit': 1, 'upAxis': 'Z', 'angleUnit': 'deg', 'pressureUnit': 'kPa', 'massUnit': 'kg', 'lengthUnit': 'm'}"
-        custom string material = "Aluminum_2219_T87"
-        custom string part:name = "ISRUExcavation"
+        custom string attributes = "{'batteryCapacity': 100.0, 'maxCapacity': 5000.0, 'energyPerKmPerKg': 0.00034, 'batteryCharge': 100.0, 'totalDistanceTraveled': 0.0, 'totalEnergyConsumed': 0.0, 'hoursPerKm': 5.0, 'RegolithRover_volume_m3': 45.0}"
+        custom string dimensions = "{'size_m': {'length': 5.0, 'width': 3.0, 'height': 3.0}, 'metersPerUnit': 1, 'upAxis': 'Z'}"
+        custom string part:name = "RegolithRover"
         float3 xformOp:rotateXYZ = (0, 0, 0)
         float3 xformOp:scale = (1, 1, 1)
-        double3 xformOp:translate = (1437.5, 382.89, 0)
+        double3 xformOp:translate = (0, 0, 0)
         uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
 
         def Xform "Geometry"
         {
-            custom double3 cad:groundingTranslate = (0, 0, 32.8165)
+            custom string cad:authoredXformOps = "/scene:xformOp:translate,xformOp:rotateXYZ,xformOp:scale; /scene/Meshes:xformOp:scale; /scene/Meshes/Sketchfab_model:xformOp:transform,xformOp:translate,xformOp:rotateXYZ,xformOp:scale; /scene/Meshes/Sketchfab_model/mars_rover_fbx:xformOp:transform; /scene/Meshes/Sketchfab_model/mars_rover_fbx/RootNode:xformOp:transform; /scene/Meshes/Sketchfab_model/mars_rover_fbx/RootNode/mars_rover:xformOp:transform; /scene/Meshes/Sketchfab_model/mars_rover_fbx/RootNode/mars_rover/_:xformOp:transform"
+            custom double3 cad:bboxMax = (0.40513343876227703, 0.7853876582137302, 0.2999983822069222)
+            custom double3 cad:bboxMin = (-0.40513343876227703, -0.7867055214319401, -0.0000016212176781228702)
+            custom double3 cad:bboxSize = (0.8102668775245541, 1.5720931796456703, 0.3000000034246003)
+            custom double3 cad:groundingTranslate = (0, 0, 0.0000016212176781228702)
+            custom bool cad:hasAuthoredXforms = 1
             custom double cad:metersPerUnit = 1
+            custom string cad:normalizationMode = "preserve_authored_xforms_ground_aligned_bbox"
             custom string cad:sourceUpAxis = "Y"
             float3 xformOp:rotateXYZ = (0, 0, 0)
             float3 xformOp:scale = (1, 1, 1)
-            double3 xformOp:translate = (0, 0, 32.8165)
+            double3 xformOp:translate = (0, 0, 0.0000016212176781228702)
             uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
 
             def Xform "Model" (
-                prepend references = @../../cad_models/ISRUExcavation/ISRUExcavation.usdc@
+                prepend references = @../../cad_models/RegolithRover/RegolithRover.usdc@
             )
             {
             }
@@ -276,5 +290,39 @@ def Xform "World"
         float3 xformOp:scale = (1, 1, 1)
         double3 xformOp:translate = (0, 0, 0)
         uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+    }
+
+    def Xform "SolarPowerSystem"
+    {
+        custom string attributes = "{'powerOutput': 100.0, 'powerDegradationFactor': 1.0, 'batteryCapacity': 500.0, 'batteryDegradationFactor': 1.0, 'batteryCharge': 500.0, 'totalEnergyGenerated': 0.0, 'totalEnergyFromBattery': 0.0, 'SolarPowerSystem_volume_m3': 2500.0}"
+        custom string dimensions = "{'size_m': {'length': 25.0, 'width': 25.0, 'height': 4.0}, 'metersPerUnit': 1, 'upAxis': 'Z'}"
+        custom string part:name = "SolarPowerSystem"
+        float3 xformOp:rotateXYZ = (0, 0, 0)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (242.5, 397.89, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+        def Xform "Geometry"
+        {
+            custom string cad:authoredXformOps = "/scene:xformOp:translate,xformOp:rotateXYZ,xformOp:scale; /scene/Meshes:xformOp:scale; /scene/Meshes/Sketchfab_model:xformOp:transform,xformOp:translate,xformOp:rotateXYZ,xformOp:scale; /scene/Meshes/Sketchfab_model/SolarPanels_fbx:xformOp:transform; /scene/Meshes/Sketchfab_model/SolarPanels_fbx/RootNode:xformOp:transform; /scene/Meshes/Sketchfab_model/SolarPanels_fbx/RootNode/SolarPanels:xformOp:transform; /scene/Meshes/Sketchfab_model/SolarPanels_fbx/RootNode/SolarPanels/SolarPanel:xformOp:transform; /scene/Meshes/Sketchfab_model/SolarPanels_fbx/RootNode/SolarPanels/SolarPanel/SolarPanel_Foundation:xformOp:transform; /scene/Meshes/Sketchfab_model/SolarPanels_fbx/RootNode/SolarPanels/SolarPanel/SolarPanel_Foundation/SolarPanel_Foundation_Placeable_0:xformOp:transform; /scene/Meshes/Sketchfab_model/SolarPanels_fbx/RootNode/SolarPanels/SolarPanel/SolarPanel_Body:xformOp:transform; /scene/Meshes/Sketchfab_model/SolarPanels_fbx/RootNode/SolarPanels/SolarPanel/SolarPanel_Body/SolarPanel_Body_Placeable_0:xformOp:transform; /scene/Meshes/Sketchfab_model/SolarPanels_fbx/RootNode/SolarPanels/SolarPanel/SolarPanel_Body/SolarPanel_Panel:xformOp:transform; /scene/Meshes/Sketchfab_model/SolarPanels_fbx/RootNode/SolarPanels/SolarPanel/SolarPanel_Body/SolarPanel_Panel/SolarPanel_Panel_Placeable_0:xformOp:transform; /scene/Meshes/Sketchfab_model/SolarPanels_fbx/RootNode/SolarPanels/SolarPanelTowerComplex:xformOp:transform; /scene/Meshes/Sketchfab_model/SolarPanels_fbx/RootNode/SolarPanels/SolarPanelTowerComplex/SolarPanelTowerComplex_Neck:xformOp:transform; /scene/Meshes/Sketchfab_model/SolarPanels_fbx/RootNode/SolarPanels/SolarPanelTowerComplex/SolarPanelTowerComplex_Neck/SolarPanelTowerComplex_Neck_Placeable_0:xformOp:transform; /scene/Meshes/Sketchfab_model/SolarPanels_fbx/RootNode/SolarPanels/SolarPanelTowerComplex/SolarPanelTowerComplex_Neck/SolarPanelTowerComplex_UpperNeck:xformOp:transform; /scene/Meshes/Sketchfab_model/SolarPanels_fbx/RootNode/SolarPanels/SolarPanelTowerComplex/SolarPanelTowerComplex_Neck/SolarPanelTowerComplex_UpperNeck/SolarPanelTowerComplex_UpperNeck_Placeable_0:xformOp:transform; /scene/Meshes/Sketchfab_model/SolarPanels_fbx/RootNode/SolarPanels/SolarPanelTowerComplex/SolarPanelTowerComplex_Neck/SolarPanelTowerComplex_UpperNeck/SolarPanelTowerComplex_Head:xformOp:transform; /scene/Meshes/Sketchfab_model/SolarPanels_fbx/RootNode/SolarPanels/SolarPanelTowerComplex/SolarPanelTowerComplex_Neck/SolarPanelTowerComplex_UpperNeck/SolarPanelTowerComplex_Head/SolarPanelTowerComplex_Head_Placeable_0:xformOp:transform"
+            custom double3 cad:bboxMax = (0.43212258043276713, 0.33821891331375387, 0.2999999178081787)
+            custom double3 cad:bboxMin = (-0.4844629124652441, -0.3366534666072426, -7.892902622366902e-8)
+            custom double3 cad:bboxSize = (0.9165854928980113, 0.6748723799209965, 0.2999999967372049)
+            custom double3 cad:groundingTranslate = (0, 0, 7.892902622366902e-8)
+            custom bool cad:hasAuthoredXforms = 1
+            custom double cad:metersPerUnit = 1
+            custom string cad:normalizationMode = "preserve_authored_xforms_ground_aligned_bbox"
+            custom string cad:sourceUpAxis = "Y"
+            float3 xformOp:rotateXYZ = (0, 0, 0)
+            float3 xformOp:scale = (1, 1, 1)
+            double3 xformOp:translate = (0, 0, 7.892902622366902e-8)
+            uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+            def Xform "Model" (
+                prepend references = @../../cad_models/SolarPowerSystem/solar_panels.usdc@
+            )
+            {
+            }
+        }
     }
 }
