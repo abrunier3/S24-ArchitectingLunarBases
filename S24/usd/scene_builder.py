@@ -87,6 +87,11 @@ def _cad_normalization(cad_path: str, *, repo_root: Path) -> Dict[str, Any]:
             "rotate_xyz": [0.0, 0.0, 0.0],
             "scale": [1.0, 1.0, 1.0],
             "translate": [0.0, 0.0, 0.0],
+            "bbox_min": [0.0, 0.0, 0.0],
+            "bbox_max": [0.0, 0.0, 0.0],
+            "bbox_size": [0.0, 0.0, 0.0],
+            "has_authored_xforms": False,
+            "authored_xform_ops": [],
         }
 
     up_axis = str(UsdGeom.GetStageUpAxis(stage)).upper()
@@ -98,9 +103,27 @@ def _cad_normalization(cad_path: str, *, repo_root: Path) -> Dict[str, Any]:
 
     scale = [meters_per_unit, meters_per_unit, meters_per_unit]
 
+    default_prim = stage.GetDefaultPrim()
+    bound_prim = default_prim if default_prim else stage.GetPseudoRoot()
+
+    authored_xform_ops = []
+    for prim in stage.Traverse():
+        if not prim.IsA(UsdGeom.Xformable):
+            continue
+        xformable = UsdGeom.Xformable(prim)
+        ops = xformable.GetOrderedXformOps()
+        if not ops:
+            continue
+        authored_xform_ops.append(
+            f"{prim.GetPath()}:{','.join(op.GetOpName() for op in ops)}"
+        )
+
     bbox_cache = UsdGeom.BBoxCache(Usd.TimeCode.Default(), [UsdGeom.Tokens.default_])
-    bbox = bbox_cache.ComputeWorldBound(stage.GetPseudoRoot())
-    bbox_range = bbox.GetRange()
+    bbox = bbox_cache.ComputeWorldBound(bound_prim)
+    # ComputeWorldBound can return a box with a non-identity matrix. Using only
+    # GetRange() ignores that matrix, which is exactly how CAD-internal offsets
+    # can slip through and leave a referenced model below the terrain.
+    bbox_range = bbox.ComputeAlignedRange()
     corners = _transform_bbox_corners(
         bbox_range.GetMin(),
         bbox_range.GetMax(),
@@ -108,6 +131,15 @@ def _cad_normalization(cad_path: str, *, repo_root: Path) -> Dict[str, Any]:
         scale=scale,
     )
     min_z = min((corner[2] for corner in corners), default=0.0)
+    min_pt = bbox_range.GetMin()
+    max_pt = bbox_range.GetMax()
+    bbox_min = [float(min_pt[i]) * meters_per_unit for i in range(3)]
+    bbox_max = [float(max_pt[i]) * meters_per_unit for i in range(3)]
+    bbox_size = [
+        bbox_max[0] - bbox_min[0],
+        bbox_max[1] - bbox_min[1],
+        bbox_max[2] - bbox_min[2],
+    ]
 
     return {
         "up_axis": up_axis,
@@ -115,6 +147,11 @@ def _cad_normalization(cad_path: str, *, repo_root: Path) -> Dict[str, Any]:
         "rotate_xyz": rotate_xyz,
         "scale": scale,
         "translate": [0.0, 0.0, -min_z],
+        "bbox_min": bbox_min,
+        "bbox_max": bbox_max,
+        "bbox_size": bbox_size,
+        "has_authored_xforms": bool(authored_xform_ops),
+        "authored_xform_ops": authored_xform_ops[:20],
     }
 
 
@@ -206,6 +243,24 @@ def build_usd_scene_from_manifest(
             geom_prim.CreateAttribute("cad:groundingTranslate", Sdf.ValueTypeNames.Double3).Set(
                 Gf.Vec3d(*norm.get("translate", [0.0, 0.0, 0.0]))
             )
+            geom_prim.CreateAttribute("cad:bboxMin", Sdf.ValueTypeNames.Double3).Set(
+                Gf.Vec3d(*norm.get("bbox_min", [0.0, 0.0, 0.0]))
+            )
+            geom_prim.CreateAttribute("cad:bboxMax", Sdf.ValueTypeNames.Double3).Set(
+                Gf.Vec3d(*norm.get("bbox_max", [0.0, 0.0, 0.0]))
+            )
+            geom_prim.CreateAttribute("cad:bboxSize", Sdf.ValueTypeNames.Double3).Set(
+                Gf.Vec3d(*norm.get("bbox_size", [0.0, 0.0, 0.0]))
+            )
+            geom_prim.CreateAttribute("cad:hasAuthoredXforms", Sdf.ValueTypeNames.Bool).Set(
+                bool(norm.get("has_authored_xforms", False))
+            )
+            geom_prim.CreateAttribute("cad:authoredXformOps", Sdf.ValueTypeNames.String).Set(
+                "; ".join(norm.get("authored_xform_ops", []))
+            )
+            geom_prim.CreateAttribute("cad:normalizationMode", Sdf.ValueTypeNames.String).Set(
+                "preserve_authored_xforms_ground_aligned_bbox"
+            )
 
             model_path = f"{geom_path}/Model"
             model_xform = UsdGeom.Xform.Define(stage, model_path)
@@ -231,6 +286,8 @@ def build_usd_scene_from_manifest(
             if normalization:
                 print(f"  CAD upAxis        : {normalization['up_axis']}")
                 print(f"  CAD correction    : rotate={normalization['rotate_xyz']} translate={normalization['translate']}")
+                print(f"  CAD bbox min/max  : {normalization['bbox_min']} / {normalization['bbox_max']}")
+                print(f"  CAD authored ops  : {len(normalization['authored_xform_ops'])}")
 
     stage.GetRootLayer().Save()
 
