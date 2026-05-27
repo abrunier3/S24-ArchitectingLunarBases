@@ -108,8 +108,10 @@ jobs:
                                   mat_data["properties"][key] = to_json_val(v)
                   materials_found.append(mat_data)
 
-          # Extract meshes
+          # Extract meshes with their authored USD transforms applied. This keeps
+          # the browser preview consistent with what Omniverse will reference.
           meshes_data = []
+          xform_cache = UsdGeom.XformCache(Usd.TimeCode.Default())
           for prim in stage.Traverse():
               if prim.IsA(UsdGeom.Mesh):
                   m = UsdGeom.Mesh(prim)
@@ -117,7 +119,11 @@ jobs:
                   idxs   = m.GetFaceVertexIndicesAttr().Get()
                   counts = m.GetFaceVertexCountsAttr().Get()
                   if not (pts and idxs and counts): continue
-                  verts = np.array([[p[0],p[1],p[2]] for p in pts], dtype=np.float32) * mpu
+                  world_xform = xform_cache.GetLocalToWorldTransform(prim)
+                  verts = np.array([
+                      list(world_xform.Transform(p))
+                      for p in pts
+                  ], dtype=np.float32) * mpu
                   faces, idx = [], 0
                   for c in counts:
                       face = [idxs[idx+i] for i in range(c)]
