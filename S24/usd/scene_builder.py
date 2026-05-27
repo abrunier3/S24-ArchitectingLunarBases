@@ -92,6 +92,13 @@ def _cad_normalization(cad_path: str, *, repo_root: Path) -> Dict[str, Any]:
     meters_per_unit = float(UsdGeom.GetStageMetersPerUnit(stage) or 1.0)
 
     rotate_xyz = [0.0, 0.0, 0.0]
+<<<<<<< HEAD
+=======
+    if up_axis == "Y":
+        rotate_xyz = [-90.0, 0.0, 0.0]
+    elif up_axis == "X":
+        rotate_xyz = [0.0, -90.0, 0.0]
+>>>>>>> 8983c3d88ed9a5280bf5bc326176b3fb5e9ac289
 
     scale = [meters_per_unit, meters_per_unit, meters_per_unit]
 
