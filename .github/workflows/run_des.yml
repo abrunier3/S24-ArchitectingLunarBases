@@ -373,6 +373,8 @@ jobs:
                   "site_lat":  urban_planning.get("site_lat"),
                   "site_lon":  urban_planning.get("site_lon"),
               }
+              if urban_planning.get("map_frame_m"):
+                  sysml["urban_planning"]["map_frame_m"] = urban_planning["map_frame_m"]
 
               with sysml_path.open("w") as f:
                   json.dump(sysml, f, indent=2)
