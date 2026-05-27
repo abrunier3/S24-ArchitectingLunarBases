@@ -447,7 +447,10 @@ jobs:
           try:
               from S24.usd.model_submission import build_submission_manifest
 
-              asset_paths = list(Path("clean_database/json/ECLIPSE_Project/assets").glob("*.json"))
+              asset_paths = sorted(
+                  Path("clean_database/json/ECLIPSE_Project/assets").glob("*.json"),
+                  key=lambda p: p.name.lower(),
+              )
               if not asset_paths:
                   print("[USD] No asset JSON files found — skipping USD generation.")
                   sys.exit(0)
