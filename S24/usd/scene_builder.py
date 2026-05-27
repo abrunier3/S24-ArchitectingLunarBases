@@ -70,11 +70,12 @@ def _transform_bbox_corners(min_pt, max_pt, *, rotate_xyz, scale):
 
 def _cad_normalization(cad_path: str, *, repo_root: Path) -> Dict[str, Any]:
     """
-    Return a universal correction transform for a referenced CAD layer.
+    Return a universal placement transform for a referenced CAD layer.
 
     The assembly scene is Z-up and meters-based. Uploaded CAD files can be
-    authored with their own stage upAxis/metersPerUnit. This normalizes the
-    referenced geometry without requiring per-model manual corrections.
+    authored with their own stage upAxis/metersPerUnit. The CAD's authored
+    orientation is preserved under a child reference prim; this wrapper only
+    applies unit scale and grounding.
     """
 
     cad_abs = _resolve_asset_path(cad_path, repo_root=repo_root)
@@ -91,6 +92,8 @@ def _cad_normalization(cad_path: str, *, repo_root: Path) -> Dict[str, Any]:
     up_axis = str(UsdGeom.GetStageUpAxis(stage)).upper()
     meters_per_unit = float(UsdGeom.GetStageMetersPerUnit(stage) or 1.0)
 
+    # Do not rotate from stage upAxis alone. Several Sketchfab/Omniverse USDs
+    # already encode their visual orientation in authored xformOps.
     rotate_xyz = [0.0, 0.0, 0.0]
 
     scale = [meters_per_unit, meters_per_unit, meters_per_unit]
@@ -184,7 +187,6 @@ def build_usd_scene_from_manifest(
             geom_path = f"{prim_path}/Geometry"
             geom_xform = UsdGeom.Xform.Define(stage, geom_path)
             geom_prim = geom_xform.GetPrim()
-            geom_prim.GetReferences().AddReference(cad_ref_path)
 
             norm = normalization or {}
             geom_xform.ClearXformOpOrder()
@@ -204,6 +206,10 @@ def build_usd_scene_from_manifest(
             geom_prim.CreateAttribute("cad:groundingTranslate", Sdf.ValueTypeNames.Double3).Set(
                 Gf.Vec3d(*norm.get("translate", [0.0, 0.0, 0.0]))
             )
+
+            model_path = f"{geom_path}/Model"
+            model_xform = UsdGeom.Xform.Define(stage, model_path)
+            model_xform.GetPrim().GetReferences().AddReference(cad_ref_path)
 
         prim.CreateAttribute("part:name", Sdf.ValueTypeNames.String).Set(name)
 
