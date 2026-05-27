@@ -93,7 +93,7 @@ def _cad_normalization(cad_path: str, *, repo_root: Path) -> Dict[str, Any]:
 
     rotate_xyz = [0.0, 0.0, 0.0]
     if up_axis == "Y":
-        rotate_xyz = [90.0, 0.0, 0.0]
+        rotate_xyz = [-90.0, 0.0, 0.0]
     elif up_axis == "X":
         rotate_xyz = [0.0, -90.0, 0.0]
 
