@@ -16,7 +16,7 @@ def main() -> int:
         "--waypoints-usd", str(repo_root / "clean_database" / "scenes" / "waypoints.usda"),
         "--des-json", str(repo_root / "outputs" / "des_results.json"),
         "--scene-usd", str(repo_root / "clean_database" / "usd" / "scenes" / "scene.usda"),
-        "--terrain-usd", str(repo_root / "clean_database" / "scenes" / "lunar_surface_v4.usdc"),
+        "--terrain-usd", str(repo_root / "clean_database" / "scenes" / "Lunar_surface_v4.usdc"),
         "--output", str(repo_root / "extensions" / "lsp1.pipeline" / "data" / "manifest.json"),
     ])
 
