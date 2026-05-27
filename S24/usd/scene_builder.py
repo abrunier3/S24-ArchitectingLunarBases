@@ -48,6 +48,77 @@ def _make_usd_reference_path(
     return ref_path.replace("\\", "/")
 
 
+def _resolve_asset_path(asset_path: str, *, repo_root: Path) -> Path:
+    asset = Path(asset_path)
+    if asset.is_absolute():
+        return asset.resolve()
+    return (repo_root / asset).resolve()
+
+
+def _transform_bbox_corners(min_pt, max_pt, *, rotate_xyz, scale):
+    corners = []
+    for x in (min_pt[0], max_pt[0]):
+        for y in (min_pt[1], max_pt[1]):
+            for z in (min_pt[2], max_pt[2]):
+                vec = Gf.Vec3d(x * scale[0], y * scale[1], z * scale[2])
+                matrix = Gf.Matrix4d(1.0).SetRotate(Gf.Rotation(Gf.Vec3d(1, 0, 0), rotate_xyz[0]))
+                matrix = matrix * Gf.Matrix4d(1.0).SetRotate(Gf.Rotation(Gf.Vec3d(0, 1, 0), rotate_xyz[1]))
+                matrix = matrix * Gf.Matrix4d(1.0).SetRotate(Gf.Rotation(Gf.Vec3d(0, 0, 1), rotate_xyz[2]))
+                corners.append(matrix.Transform(vec))
+    return corners
+
+
+def _cad_normalization(cad_path: str, *, repo_root: Path) -> Dict[str, Any]:
+    """
+    Return a universal correction transform for a referenced CAD layer.
+
+    The assembly scene is Z-up and meters-based. Uploaded CAD files can be
+    authored with their own stage upAxis/metersPerUnit. This normalizes the
+    referenced geometry without requiring per-model manual corrections.
+    """
+
+    cad_abs = _resolve_asset_path(cad_path, repo_root=repo_root)
+    stage = Usd.Stage.Open(str(cad_abs))
+    if not stage:
+        return {
+            "up_axis": "Z",
+            "meters_per_unit": 1.0,
+            "rotate_xyz": [0.0, 0.0, 0.0],
+            "scale": [1.0, 1.0, 1.0],
+            "translate": [0.0, 0.0, 0.0],
+        }
+
+    up_axis = str(UsdGeom.GetStageUpAxis(stage)).upper()
+    meters_per_unit = float(UsdGeom.GetStageMetersPerUnit(stage) or 1.0)
+
+    rotate_xyz = [0.0, 0.0, 0.0]
+    if up_axis == "Y":
+        rotate_xyz = [90.0, 0.0, 0.0]
+    elif up_axis == "X":
+        rotate_xyz = [0.0, -90.0, 0.0]
+
+    scale = [meters_per_unit, meters_per_unit, meters_per_unit]
+
+    bbox_cache = UsdGeom.BBoxCache(Usd.TimeCode.Default(), [UsdGeom.Tokens.default_])
+    bbox = bbox_cache.ComputeWorldBound(stage.GetPseudoRoot())
+    bbox_range = bbox.GetRange()
+    corners = _transform_bbox_corners(
+        bbox_range.GetMin(),
+        bbox_range.GetMax(),
+        rotate_xyz=rotate_xyz,
+        scale=scale,
+    )
+    min_z = min((corner[2] for corner in corners), default=0.0)
+
+    return {
+        "up_axis": up_axis,
+        "meters_per_unit": meters_per_unit,
+        "rotate_xyz": rotate_xyz,
+        "scale": scale,
+        "translate": [0.0, 0.0, -min_z],
+    }
+
+
 def build_usd_scene_from_manifest(
     manifest: Dict[str, Any],
     *,
@@ -90,13 +161,15 @@ def build_usd_scene_from_manifest(
         cad_path = part.get("cad_path")
         cad_ref_path = None
 
+        normalization = None
+
         if cad_path:
             cad_ref_path = _make_usd_reference_path(
                 cad_path,
                 output_path=str(output_path_obj),
                 repo_root=repo_root,
             )
-            prim.GetReferences().AddReference(cad_ref_path)
+            normalization = _cad_normalization(cad_path, repo_root=repo_root)
 
         pos = part.get("position_m", [0, 0, 0])
         rot = part.get("rotation_deg", [0, 0, 0])
@@ -110,6 +183,31 @@ def build_usd_scene_from_manifest(
             UsdGeom.XformCommonAPI.RotationOrderXYZ,
         )
         xform_api.SetScale(Gf.Vec3f(*scale))
+
+        if cad_ref_path:
+            geom_path = f"{prim_path}/Geometry"
+            geom_xform = UsdGeom.Xform.Define(stage, geom_path)
+            geom_prim = geom_xform.GetPrim()
+            geom_prim.GetReferences().AddReference(cad_ref_path)
+
+            norm = normalization or {}
+            geom_api = UsdGeom.XformCommonAPI(geom_xform)
+            geom_api.SetTranslate(Gf.Vec3d(*norm.get("translate", [0.0, 0.0, 0.0])))
+            geom_api.SetRotate(
+                Gf.Vec3f(*norm.get("rotate_xyz", [0.0, 0.0, 0.0])),
+                UsdGeom.XformCommonAPI.RotationOrderXYZ,
+            )
+            geom_api.SetScale(Gf.Vec3f(*norm.get("scale", [1.0, 1.0, 1.0])))
+
+            geom_prim.CreateAttribute("cad:sourceUpAxis", Sdf.ValueTypeNames.String).Set(
+                str(norm.get("up_axis", "Z"))
+            )
+            geom_prim.CreateAttribute("cad:metersPerUnit", Sdf.ValueTypeNames.Double).Set(
+                float(norm.get("meters_per_unit", 1.0))
+            )
+            geom_prim.CreateAttribute("cad:groundingTranslate", Sdf.ValueTypeNames.Double3).Set(
+                Gf.Vec3d(*norm.get("translate", [0.0, 0.0, 0.0]))
+            )
 
         prim.CreateAttribute("part:name", Sdf.ValueTypeNames.String).Set(name)
 
@@ -128,6 +226,9 @@ def build_usd_scene_from_manifest(
             print(f"  CAD USD ref path  : {cad_ref_path if cad_ref_path else 'None'}")
             print(f"  Pos               : {pos}")
             print(f"  Rot               : {rot}")
+            if normalization:
+                print(f"  CAD upAxis        : {normalization['up_axis']}")
+                print(f"  CAD correction    : rotate={normalization['rotate_xyz']} translate={normalization['translate']}")
 
     stage.GetRootLayer().Save()
 
