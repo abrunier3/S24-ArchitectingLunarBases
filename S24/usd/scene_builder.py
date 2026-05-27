@@ -191,13 +191,13 @@ def build_usd_scene_from_manifest(
             geom_prim.GetReferences().AddReference(cad_ref_path)
 
             norm = normalization or {}
-            geom_api = UsdGeom.XformCommonAPI(geom_xform)
-            geom_api.SetTranslate(Gf.Vec3d(*norm.get("translate", [0.0, 0.0, 0.0])))
-            geom_api.SetRotate(
-                Gf.Vec3f(*norm.get("rotate_xyz", [0.0, 0.0, 0.0])),
-                UsdGeom.XformCommonAPI.RotationOrderXYZ,
-            )
-            geom_api.SetScale(Gf.Vec3f(*norm.get("scale", [1.0, 1.0, 1.0])))
+            geom_xform.ClearXformOpOrder()
+            translate_op = geom_xform.AddTranslateOp(UsdGeom.XformOp.PrecisionDouble)
+            rotate_op = geom_xform.AddRotateXYZOp(UsdGeom.XformOp.PrecisionFloat)
+            scale_op = geom_xform.AddScaleOp(UsdGeom.XformOp.PrecisionFloat)
+            translate_op.Set(Gf.Vec3d(*norm.get("translate", [0.0, 0.0, 0.0])))
+            rotate_op.Set(Gf.Vec3f(*norm.get("rotate_xyz", [0.0, 0.0, 0.0])))
+            scale_op.Set(Gf.Vec3f(*norm.get("scale", [1.0, 1.0, 1.0])))
 
             geom_prim.CreateAttribute("cad:sourceUpAxis", Sdf.ValueTypeNames.String).Set(
                 str(norm.get("up_axis", "Z"))
