@@ -68,7 +68,24 @@ def _transform_bbox_corners(min_pt, max_pt, *, rotate_xyz, scale):
     return corners
 
 
-def _cad_normalization(cad_path: str, *, repo_root: Path) -> Dict[str, Any]:
+def _target_size_from_dimensions(dimensions: Dict[str, Any]) -> list[float] | None:
+    size_m = (dimensions or {}).get("size_m") or {}
+    values = [
+        size_m.get("length"),
+        size_m.get("width"),
+        size_m.get("height"),
+    ]
+    if not all(isinstance(value, (int, float)) and value > 0 for value in values):
+        return None
+    return [float(value) for value in values]
+
+
+def _cad_normalization(
+    cad_path: str,
+    *,
+    repo_root: Path,
+    dimensions: Dict[str, Any] | None = None,
+) -> Dict[str, Any]:
     """
     Return a universal placement transform for a referenced CAD layer.
 
@@ -101,7 +118,7 @@ def _cad_normalization(cad_path: str, *, repo_root: Path) -> Dict[str, Any]:
     # already encode their visual orientation in authored xformOps.
     rotate_xyz = [0.0, 0.0, 0.0]
 
-    scale = [meters_per_unit, meters_per_unit, meters_per_unit]
+    unit_scale = [meters_per_unit, meters_per_unit, meters_per_unit]
 
     default_prim = stage.GetDefaultPrim()
     bound_prim = default_prim if default_prim else stage.GetPseudoRoot()
@@ -124,13 +141,6 @@ def _cad_normalization(cad_path: str, *, repo_root: Path) -> Dict[str, Any]:
     # GetRange() ignores that matrix, which is exactly how CAD-internal offsets
     # can slip through and leave a referenced model below the terrain.
     bbox_range = bbox.ComputeAlignedRange()
-    corners = _transform_bbox_corners(
-        bbox_range.GetMin(),
-        bbox_range.GetMax(),
-        rotate_xyz=rotate_xyz,
-        scale=scale,
-    )
-    min_z = min((corner[2] for corner in corners), default=0.0)
     min_pt = bbox_range.GetMin()
     max_pt = bbox_range.GetMax()
     bbox_min = [float(min_pt[i]) * meters_per_unit for i in range(3)]
@@ -140,16 +150,46 @@ def _cad_normalization(cad_path: str, *, repo_root: Path) -> Dict[str, Any]:
         bbox_max[1] - bbox_min[1],
         bbox_max[2] - bbox_min[2],
     ]
+    target_size = _target_size_from_dimensions(dimensions or {})
+    fit_scale = [1.0, 1.0, 1.0]
+    scale_mode = "cad_native_units"
+    if target_size and all(size > 0 for size in bbox_size):
+        target_variants = [
+            target_size,
+            [target_size[1], target_size[0], target_size[2]],
+        ]
+        fit_ratio = max(
+            min(target[i] / bbox_size[i] for i in range(3))
+            for target in target_variants
+        )
+        fit_scale = [fit_ratio, fit_ratio, fit_ratio]
+        scale_mode = "sysml_size_m_uniform_bbox_fit_xy_interchangeable"
+
+    scale = [unit_scale[i] * fit_scale[i] for i in range(3)]
+    fitted_bbox_size = [bbox_size[i] * fit_scale[i] for i in range(3)]
+
+    corners = _transform_bbox_corners(
+        bbox_range.GetMin(),
+        bbox_range.GetMax(),
+        rotate_xyz=rotate_xyz,
+        scale=scale,
+    )
+    min_z = min((corner[2] for corner in corners), default=0.0)
 
     return {
         "up_axis": up_axis,
         "meters_per_unit": meters_per_unit,
         "rotate_xyz": rotate_xyz,
         "scale": scale,
+        "unit_scale": unit_scale,
+        "fit_scale": fit_scale,
+        "scale_mode": scale_mode,
+        "target_size": target_size or [0.0, 0.0, 0.0],
         "translate": [0.0, 0.0, -min_z],
         "bbox_min": bbox_min,
         "bbox_max": bbox_max,
         "bbox_size": bbox_size,
+        "fitted_bbox_size": fitted_bbox_size,
         "has_authored_xforms": bool(authored_xform_ops),
         "authored_xform_ops": authored_xform_ops[:20],
     }
@@ -205,7 +245,11 @@ def build_usd_scene_from_manifest(
                 output_path=str(output_path_obj),
                 repo_root=repo_root,
             )
-            normalization = _cad_normalization(cad_path, repo_root=repo_root)
+            normalization = _cad_normalization(
+                cad_path,
+                repo_root=repo_root,
+                dimensions=part.get("dimensions"),
+            )
 
         pos = part.get("position_m", [0, 0, 0])
         rot = part.get("rotation_deg", [0, 0, 0])
@@ -240,6 +284,18 @@ def build_usd_scene_from_manifest(
             geom_prim.CreateAttribute("cad:metersPerUnit", Sdf.ValueTypeNames.Double).Set(
                 float(norm.get("meters_per_unit", 1.0))
             )
+            geom_prim.CreateAttribute("cad:scaleMode", Sdf.ValueTypeNames.String).Set(
+                str(norm.get("scale_mode", "cad_native_units"))
+            )
+            geom_prim.CreateAttribute("cad:unitScale", Sdf.ValueTypeNames.Double3).Set(
+                Gf.Vec3d(*norm.get("unit_scale", [1.0, 1.0, 1.0]))
+            )
+            geom_prim.CreateAttribute("cad:fitScale", Sdf.ValueTypeNames.Double3).Set(
+                Gf.Vec3d(*norm.get("fit_scale", [1.0, 1.0, 1.0]))
+            )
+            geom_prim.CreateAttribute("cad:targetSizeM", Sdf.ValueTypeNames.Double3).Set(
+                Gf.Vec3d(*norm.get("target_size", [0.0, 0.0, 0.0]))
+            )
             geom_prim.CreateAttribute("cad:groundingTranslate", Sdf.ValueTypeNames.Double3).Set(
                 Gf.Vec3d(*norm.get("translate", [0.0, 0.0, 0.0]))
             )
@@ -252,6 +308,9 @@ def build_usd_scene_from_manifest(
             geom_prim.CreateAttribute("cad:bboxSize", Sdf.ValueTypeNames.Double3).Set(
                 Gf.Vec3d(*norm.get("bbox_size", [0.0, 0.0, 0.0]))
             )
+            geom_prim.CreateAttribute("cad:fittedBboxSize", Sdf.ValueTypeNames.Double3).Set(
+                Gf.Vec3d(*norm.get("fitted_bbox_size", [0.0, 0.0, 0.0]))
+            )
             geom_prim.CreateAttribute("cad:hasAuthoredXforms", Sdf.ValueTypeNames.Bool).Set(
                 bool(norm.get("has_authored_xforms", False))
             )
@@ -259,7 +318,7 @@ def build_usd_scene_from_manifest(
                 "; ".join(norm.get("authored_xform_ops", []))
             )
             geom_prim.CreateAttribute("cad:normalizationMode", Sdf.ValueTypeNames.String).Set(
-                "preserve_authored_xforms_ground_aligned_bbox"
+                "preserve_authored_xforms_sysml_size_uniform_bbox_fit_xy_interchangeable_ground_aligned"
             )
 
             model_path = f"{geom_path}/Model"
@@ -286,7 +345,9 @@ def build_usd_scene_from_manifest(
             if normalization:
                 print(f"  CAD upAxis        : {normalization['up_axis']}")
                 print(f"  CAD correction    : rotate={normalization['rotate_xyz']} translate={normalization['translate']}")
+                print(f"  CAD scale mode    : {normalization['scale_mode']} scale={normalization['scale']}")
                 print(f"  CAD bbox min/max  : {normalization['bbox_min']} / {normalization['bbox_max']}")
+                print(f"  CAD fitted size   : {normalization['fitted_bbox_size']}")
                 print(f"  CAD authored ops  : {len(normalization['authored_xform_ops'])}")
 
     stage.GetRootLayer().Save()
