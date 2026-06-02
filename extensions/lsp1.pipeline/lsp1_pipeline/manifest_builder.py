@@ -592,18 +592,20 @@ def _build_module_terrain_diagnostics(
         footprint_samples = _module_footprint_sample_points(part, x, y)
         sampled_points = []
         missing_samples = 0
-        for sample_x, sample_y, label in footprint_samples:
+        for sample_x, sample_y, label, local_x, local_y in footprint_samples:
             terrain_z = sampler.sample_height(sample_x, sample_y)
             if terrain_z is None:
                 missing_samples += 1
                 sampled_points.append({
                     "label": label,
+                    "local_xy_m": [round(local_x, 3), round(local_y, 3)],
                     "xy_m": [round(sample_x, 3), round(sample_y, 3)],
                     "terrain_z_m": None,
                 })
             else:
                 sampled_points.append({
                     "label": label,
+                    "local_xy_m": [round(local_x, 3), round(local_y, 3)],
                     "xy_m": [round(sample_x, 3), round(sample_y, 3)],
                     "terrain_z_m": round(terrain_z, 3),
                 })
@@ -625,13 +627,30 @@ def _build_module_terrain_diagnostics(
             }
             continue
 
-        placement_z = max(valid_z)
+        terrain_plane = _fit_module_terrain_plane(sampled_points)
+        if terrain_plane:
+            placement_z = terrain_plane["placement_z_m"]
+            base_rotation = part.get("transform", {}).get("rotation_deg") or [0.0, 0.0, 0.0]
+            while len(base_rotation) < 3:
+                base_rotation.append(0.0)
+            plane_rotation = terrain_plane["placement_rotation_deg"]
+            placement_rotation = [
+                round(float(base_rotation[0]) + plane_rotation[0], 3),
+                round(float(base_rotation[1]) + plane_rotation[1], 3),
+                round(float(base_rotation[2]), 3),
+            ]
+        else:
+            placement_z = max(valid_z)
+            placement_rotation = None
+
         modules[name] = {
             "status": "partial_footprint_out_of_bounds" if missing_samples else "ok",
             "position_xy_m": [round(x, 3), round(y, 3)],
             "authored_z_m": round(authored_z, 3),
             "placement_z_m": round(placement_z, 3),
             "delta_z_m": round(authored_z - placement_z, 3),
+            "placement_rotation_deg": placement_rotation,
+            "terrain_plane": terrain_plane,
             "sample_strategy": "center_corners_edge_midpoints_grid_5x5_max",
             "footprint_sample_count": len(sampled_points),
             "missing_sample_count": missing_samples,
@@ -649,12 +668,12 @@ def _module_footprint_sample_points(
     part: dict[str, Any],
     center_x: float,
     center_y: float,
-) -> list[tuple[float, float, str]]:
+) -> list[tuple[float, float, str, float, float]]:
     size_m = (part.get("dimensions") or {}).get("size_m") or {}
     length = float(size_m.get("length") or 0.0)
     width = float(size_m.get("width") or 0.0)
     if length <= 0 or width <= 0:
-        return [(center_x, center_y, "center")]
+        return [(center_x, center_y, "center", 0.0, 0.0)]
 
     rotation = part.get("transform", {}).get("rotation_deg") or [0.0, 0.0, 0.0]
     yaw_deg = float(rotation[2]) if len(rotation) >= 3 else 0.0
@@ -697,9 +716,110 @@ def _module_footprint_sample_points(
     for local_x, local_y, label in local_samples:
         world_x = center_x + local_x * cos_yaw - local_y * sin_yaw
         world_y = center_y + local_x * sin_yaw + local_y * cos_yaw
-        world_samples.append((world_x, world_y, label))
+        world_samples.append((world_x, world_y, label, local_x, local_y))
 
     return world_samples
+
+
+def _fit_module_terrain_plane(
+    sampled_points: list[dict[str, Any]],
+) -> dict[str, Any] | None:
+    valid = [
+        sample for sample in sampled_points
+        if sample.get("terrain_z_m") is not None and sample.get("local_xy_m")
+    ]
+    if len(valid) < 3:
+        return None
+
+    rows = []
+    for sample in valid:
+        local_x, local_y = sample["local_xy_m"]
+        rows.append((float(local_x), float(local_y), float(sample["terrain_z_m"])))
+
+    # Least-squares fit: z = a*x + b*y + c in module-local coordinates.
+    sx = sy = sz = sxx = syy = sxy = sxz = syz = 0.0
+    n = float(len(rows))
+    for x, y, z in rows:
+        sx += x
+        sy += y
+        sz += z
+        sxx += x * x
+        syy += y * y
+        sxy += x * y
+        sxz += x * z
+        syz += y * z
+
+    solution = _solve_3x3(
+        [
+            [sxx, sxy, sx],
+            [sxy, syy, sy],
+            [sx, sy, n],
+        ],
+        [sxz, syz, sz],
+    )
+    if solution is None:
+        return None
+
+    a, b, c = solution
+    roll_deg = math.degrees(math.atan(b))
+    pitch_deg = math.degrees(math.atan(-a))
+
+    residuals = []
+    max_grounding_z = None
+    for x, y, z in rows:
+        tilted_bottom_z = a * x + b * y
+        required_origin_z = z - tilted_bottom_z
+        if max_grounding_z is None or required_origin_z > max_grounding_z:
+            max_grounding_z = required_origin_z
+        residuals.append(z - (a * x + b * y + c))
+
+    max_abs_residual = max((abs(value) for value in residuals), default=0.0)
+    rms_residual = math.sqrt(
+        sum(value * value for value in residuals) / len(residuals)
+    ) if residuals else 0.0
+
+    return {
+        "model": "z = a*x_local + b*y_local + c",
+        "a_dz_dx": round(a, 6),
+        "b_dz_dy": round(b, 6),
+        "c_z_at_origin_m": round(c, 3),
+        "placement_z_m": round(max_grounding_z if max_grounding_z is not None else c, 3),
+        "placement_rotation_deg": [
+            round(roll_deg, 3),
+            round(pitch_deg, 3),
+            0.0,
+        ],
+        "max_abs_residual_m": round(max_abs_residual, 3),
+        "rms_residual_m": round(rms_residual, 3),
+    }
+
+
+def _solve_3x3(
+    matrix: list[list[float]],
+    vector: list[float],
+) -> list[float] | None:
+    a = [row[:] + [value] for row, value in zip(matrix, vector)]
+    size = 3
+
+    for col in range(size):
+        pivot = max(range(col, size), key=lambda row: abs(a[row][col]))
+        if abs(a[pivot][col]) < 1e-9:
+            return None
+        if pivot != col:
+            a[col], a[pivot] = a[pivot], a[col]
+
+        pivot_value = a[col][col]
+        for item in range(col, size + 1):
+            a[col][item] /= pivot_value
+
+        for row in range(size):
+            if row == col:
+                continue
+            factor = a[row][col]
+            for item in range(col, size + 1):
+                a[row][item] -= factor * a[col][item]
+
+    return [a[row][size] for row in range(size)]
 
 
 def _sorted_log_items(des_data: dict[str, Any]) -> list[tuple[float, dict[str, Any]]]:
