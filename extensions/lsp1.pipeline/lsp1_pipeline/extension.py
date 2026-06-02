@@ -1,5 +1,6 @@
 import os
 import json
+import math
 import subprocess
 
 import omni.ext
@@ -339,10 +340,12 @@ class LSP1PipelineExtension(omni.ext.IExt):
 
                 xformable = UsdGeom.Xformable(prim)
                 translate_op = None
+                rotate_op = None
                 for op in xformable.GetOrderedXformOps():
                     if op.GetOpType() == UsdGeom.XformOp.TypeTranslate:
                         translate_op = op
-                        break
+                    elif op.GetOpType() == UsdGeom.XformOp.TypeRotateXYZ:
+                        rotate_op = op
 
                 if translate_op is None:
                     translate_op = xformable.AddTranslateOp()
@@ -351,9 +354,19 @@ class LSP1PipelineExtension(omni.ext.IExt):
                 x = float(current[0]) if current is not None else 0.0
                 y = float(current[1]) if current is not None else 0.0
                 translate_op.Set(Gf.Vec3d(x, y, float(terrain_z)))
+
+                rotation = info.get("placement_rotation_deg")
+                if isinstance(rotation, list) and len(rotation) >= 3:
+                    if rotate_op is None:
+                        rotate_op = xformable.AddRotateXYZOp()
+                    rotate_op.Set(Gf.Vec3f(
+                        float(rotation[0]),
+                        float(rotation[1]),
+                        float(rotation[2]),
+                    ))
                 moved += 1
 
-            print(f"[LSP1 Pipeline] Applied terrain elevation to {moved} module prim(s).")
+            print(f"[LSP1 Pipeline] Applied terrain pose to {moved} module prim(s).")
 
         except Exception as e:
             print("[LSP1 Pipeline] Module terrain projection failed:", repr(e))
@@ -681,12 +694,13 @@ class LSP1PipelineExtension(omni.ext.IExt):
                     continue
 
                 if des_time <= start_time:
-                    pos = points[0]
+                    progress = 0.0
                 elif des_time >= end_time:
-                    pos = points[-1]
+                    progress = 1.0
                 else:
                     progress = (des_time - start_time) / (end_time - start_time)
-                    pos = self._interp_polyline(points, progress)
+
+                pos, tangent = self._sample_polyline_pose(points, progress)
 
                 prim = stage.GetPrimAtPath(prim_path)
                 if not prim or not prim.IsValid():
@@ -696,15 +710,22 @@ class LSP1PipelineExtension(omni.ext.IExt):
                 xformable = UsdGeom.Xformable(prim)
 
                 translate_op = None
+                rotate_op = None
                 for op in xformable.GetOrderedXformOps():
                     if op.GetOpType() == UsdGeom.XformOp.TypeTranslate:
                         translate_op = op
-                        break
+                    elif op.GetOpType() == UsdGeom.XformOp.TypeRotateXYZ:
+                        rotate_op = op
 
                 if translate_op is None:
                     translate_op = xformable.AddTranslateOp()
 
                 translate_op.Set(Gf.Vec3d(pos[0], pos[1], pos[2]))
+                rotation = self._route_tangent_rotation(tangent)
+                if rotation:
+                    if rotate_op is None:
+                        rotate_op = xformable.AddRotateXYZOp()
+                    rotate_op.Set(Gf.Vec3f(*rotation))
 
         except Exception as e:
             print("[LSP1 Pipeline] Waypoint motion failed:", repr(e))
@@ -874,27 +895,75 @@ class LSP1PipelineExtension(omni.ext.IExt):
             return []
 
     def _interp_polyline(self, points, progress):
+        return self._sample_polyline_pose(points, progress)[0]
+
+    def _sample_polyline_pose(self, points, progress):
         if not points:
-            return [0, 0, 0]
+            return [0, 0, 0], None
 
         if len(points) == 1:
-            return points[0]
+            return points[0], None
 
         progress = max(0.0, min(1.0, progress))
 
-        segment_count = len(points) - 1
-        scaled = progress * segment_count
-        idx = min(int(scaled), segment_count - 1)
-        local_t = scaled - idx
+        lengths = []
+        total = 0.0
+        for idx in range(len(points) - 1):
+            p0 = points[idx]
+            p1 = points[idx + 1]
+            segment_length = math.sqrt(
+                (p1[0] - p0[0]) ** 2
+                + (p1[1] - p0[1]) ** 2
+                + (p1[2] - p0[2]) ** 2
+            )
+            lengths.append(segment_length)
+            total += segment_length
 
-        p0 = points[idx]
-        p1 = points[idx + 1]
+        if total <= 0:
+            return points[0], None
 
-        return [
-            p0[0] + (p1[0] - p0[0]) * local_t,
-            p0[1] + (p1[1] - p0[1]) * local_t,
-            p0[2] + (p1[2] - p0[2]) * local_t,
+        target = progress * total
+        travelled = 0.0
+        for idx, segment_length in enumerate(lengths):
+            if travelled + segment_length >= target:
+                p0 = points[idx]
+                p1 = points[idx + 1]
+                local_t = (
+                    (target - travelled) / segment_length
+                    if segment_length > 0 else 0.0
+                )
+                pos = [
+                    p0[0] + (p1[0] - p0[0]) * local_t,
+                    p0[1] + (p1[1] - p0[1]) * local_t,
+                    p0[2] + (p1[2] - p0[2]) * local_t,
+                ]
+                tangent = [
+                    p1[0] - p0[0],
+                    p1[1] - p0[1],
+                    p1[2] - p0[2],
+                ]
+                return pos, tangent
+
+            travelled += segment_length
+
+        return points[-1], [
+            points[-1][0] - points[-2][0],
+            points[-1][1] - points[-2][1],
+            points[-1][2] - points[-2][2],
         ]
+
+    def _route_tangent_rotation(self, tangent):
+        if not tangent:
+            return None
+
+        dx, dy, dz = [float(value) for value in tangent[:3]]
+        horizontal = math.hypot(dx, dy)
+        if horizontal <= 1e-6:
+            return None
+
+        yaw_deg = math.degrees(math.atan2(dy, dx))
+        pitch_deg = -math.degrees(math.atan2(dz, horizontal))
+        return [0.0, pitch_deg, yaw_deg]
 
     def _update_dashboard(self, snap):
         for actor in self.actors:
