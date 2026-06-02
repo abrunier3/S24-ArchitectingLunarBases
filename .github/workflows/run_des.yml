@@ -449,10 +449,35 @@ jobs:
           try:
               from S24.usd.model_submission import build_submission_manifest
 
-              asset_paths = sorted(
+              all_asset_paths = sorted(
                   Path("clean_database/json/ECLIPSE_Project/assets").glob("*.json"),
                   key=lambda p: p.name.lower(),
               )
+              eclipse_path = Path("clean_database/json/ECLIPSE_Project/ECLIPSE_Project.json")
+              active_part_names = set()
+              if eclipse_path.exists():
+                  with eclipse_path.open() as f:
+                      eclipse = json.load(f)
+                  active_part_names = {
+                      part.get("name")
+                      for part in eclipse.get("parts", [])
+                      if part.get("name")
+                  }
+
+              asset_paths = [
+                  path for path in all_asset_paths
+                  if not active_part_names or path.stem in active_part_names
+              ]
+              skipped_assets = [
+                  path.stem for path in all_asset_paths
+                  if path not in asset_paths
+              ]
+              if skipped_assets:
+                  print(
+                      "[USD] Skipped inactive asset JSON(s): "
+                      + ", ".join(skipped_assets)
+                  )
+
               if not asset_paths:
                   print("[USD] No asset JSON files found — skipping USD generation.")
                   sys.exit(0)
