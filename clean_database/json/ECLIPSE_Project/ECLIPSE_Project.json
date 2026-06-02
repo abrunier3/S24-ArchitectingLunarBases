@@ -65,14 +65,14 @@
       },
       "transform": {
         "position_m": [
-          -342.5,
-          1297.89,
-          0
+          0.0,
+          0.0,
+          0.0
         ],
         "rotation_deg": [
-          0,
-          0,
-          0
+          0.0,
+          0.0,
+          0.0
         ]
       },
       "attributes": {
@@ -112,14 +112,14 @@
       },
       "transform": {
         "position_m": [
-          -947.5,
-          1092.89,
-          0
+          0.0,
+          0.0,
+          0.0
         ],
         "rotation_deg": [
-          0,
-          0,
-          0
+          0.0,
+          0.0,
+          0.0
         ]
       },
       "attributes": {
@@ -186,14 +186,14 @@
       },
       "transform": {
         "position_m": [
-          -1162.5,
-          632.89,
-          0
+          0.0,
+          0.0,
+          0.0
         ],
         "rotation_deg": [
-          0,
-          0,
-          0
+          0.0,
+          0.0,
+          0.0
         ]
       },
       "attributes": {
@@ -240,14 +240,14 @@
       },
       "transform": {
         "position_m": [
-          -497.5,
-          77.89,
-          0
+          0.0,
+          5.0,
+          0.0
         ],
         "rotation_deg": [
-          0,
-          0,
-          0
+          0.0,
+          0.0,
+          0.0
         ]
       },
       "attributes": {
@@ -348,14 +348,14 @@
       },
       "transform": {
         "position_m": [
-          57.5,
-          157.89,
-          0
+          0.0,
+          0.0,
+          0.0
         ],
         "rotation_deg": [
-          0,
-          0,
-          0
+          0.0,
+          0.0,
+          0.0
         ]
       },
       "attributes": {
@@ -494,14 +494,14 @@
       },
       "transform": {
         "position_m": [
-          402.5,
-          777.89,
-          0
+          0.0,
+          5.0,
+          0.0
         ],
         "rotation_deg": [
-          0,
-          0,
-          0
+          0.0,
+          0.0,
+          0.0
         ]
       },
       "attributes": {
@@ -537,7 +537,7 @@
   ],
   "connections": [
     {
-      "name": "ISRUPlantToLaunchLandingZone",
+      "name": "ISRUPlantToRover",
       "type": "LOXMovement",
       "flow": "LOX",
       "from": {
@@ -547,45 +547,10 @@
       "to": {
         "part": "ISRUPlant",
         "port": "ISRU_LOXPortOut"
-      },
-      "path": {
-        "waypoints_m": [
-          [
-            -927.5,
-            1117.5,
-            0
-          ],
-          [
-            -1055,
-            862.5,
-            0
-          ],
-          [
-            -1182.5,
-            607.5,
-            0
-          ],
-          [
-            -947.5,
-            437.5,
-            0
-          ],
-          [
-            -712.5,
-            267.5,
-            0
-          ],
-          [
-            -477.5,
-            97.5,
-            0
-          ]
-        ],
-        "distance_km": 1.44
       }
     },
     {
-      "name": "ISRUPlantToPropellantDepot",
+      "name": "RoverToPropellantDepot",
       "type": "LOXMovement",
       "flow": "LOX",
       "from": {
@@ -595,56 +560,6 @@
       "to": {
         "part": "PropellantDepot",
         "port": "Propellant_LOXPortIn"
-      },
-      "path": {
-        "waypoints_m": [
-          [
-            -927.5,
-            1117.5,
-            0
-          ],
-          [
-            -1055,
-            862.5,
-            0
-          ],
-          [
-            -1182.5,
-            607.5,
-            0
-          ],
-          [
-            -947.5,
-            437.5,
-            0
-          ],
-          [
-            -712.5,
-            267.5,
-            0
-          ],
-          [
-            -477.5,
-            97.5,
-            0
-          ],
-          [
-            -712.5,
-            267.5,
-            0
-          ],
-          [
-            -947.5,
-            437.5,
-            0
-          ],
-          [
-            -1182.5,
-            607.5,
-            0
-          ]
-        ],
-        "distance_km": 2.31
       }
     },
     {
@@ -700,7 +615,7 @@
       }
     },
     {
-      "name": "ISRUExcavationToISRUPlant",
+      "name": "ISRUExcavationToRegolithRover",
       "type": "RegolithMovement",
       "flow": "Regolith",
       "from": {
@@ -710,66 +625,19 @@
       "to": {
         "part": "RegolithRover",
         "port": "RegolithRover_RegolithPortInOut"
+      }
+    },
+    {
+      "name": "RegolithRoverToISRUPlant",
+      "type": "RegolithMovement",
+      "flow": "Regolith",
+      "from": {
+        "part": "RegolithRover",
+        "port": "RegolithRover_RegolithPortInOut"
       },
-      "path": {
-        "waypoints_m": [
-          [
-            417.5,
-            797.5,
-            0
-          ],
-          [
-            289.17,
-            584.17,
-            0
-          ],
-          [
-            160.83,
-            370.83,
-            0
-          ],
-          [
-            32.5,
-            157.5,
-            0
-          ],
-          [
-            -222.5,
-            127.5,
-            0
-          ],
-          [
-            -477.5,
-            97.5,
-            0
-          ],
-          [
-            -712.5,
-            267.5,
-            0
-          ],
-          [
-            -947.5,
-            437.5,
-            0
-          ],
-          [
-            -1182.5,
-            607.5,
-            0
-          ],
-          [
-            -1055,
-            862.5,
-            0
-          ],
-          [
-            -927.5,
-            1117.5,
-            0
-          ]
-        ],
-        "distance_km": 2.701
+      "to": {
+        "part": "ISRUPlant",
+        "port": "ISRU_RegolithPortIn"
       }
     },
     {
@@ -785,11 +653,5 @@
         "port": "Excavation_PowerPortIn"
       }
     }
-  ],
-  "urban_planning": {
-    "site": "MMA",
-    "site_name": "Malapert Massif",
-    "site_lat": -85.9,
-    "site_lon": -0.5
-  }
+  ]
 }
