@@ -175,6 +175,12 @@ def _cad_normalization(
         scale=scale,
     )
     min_z = min((corner[2] for corner in corners), default=0.0)
+    min_x = min((corner[0] for corner in corners), default=0.0)
+    max_x = max((corner[0] for corner in corners), default=0.0)
+    min_y = min((corner[1] for corner in corners), default=0.0)
+    max_y = max((corner[1] for corner in corners), default=0.0)
+    center_x = (min_x + max_x) / 2.0
+    center_y = (min_y + max_y) / 2.0
 
     return {
         "up_axis": up_axis,
@@ -185,7 +191,8 @@ def _cad_normalization(
         "fit_scale": fit_scale,
         "scale_mode": scale_mode,
         "target_size": target_size or [0.0, 0.0, 0.0],
-        "translate": [0.0, 0.0, -min_z],
+        "translate": [-center_x, -center_y, -min_z],
+        "bbox_center_xy_offset": [center_x, center_y],
         "bbox_min": bbox_min,
         "bbox_max": bbox_max,
         "bbox_size": bbox_size,
@@ -299,6 +306,9 @@ def build_usd_scene_from_manifest(
             geom_prim.CreateAttribute("cad:groundingTranslate", Sdf.ValueTypeNames.Double3).Set(
                 Gf.Vec3d(*norm.get("translate", [0.0, 0.0, 0.0]))
             )
+            geom_prim.CreateAttribute("cad:bboxCenterXYOffset", Sdf.ValueTypeNames.Double2).Set(
+                Gf.Vec2d(*norm.get("bbox_center_xy_offset", [0.0, 0.0]))
+            )
             geom_prim.CreateAttribute("cad:bboxMin", Sdf.ValueTypeNames.Double3).Set(
                 Gf.Vec3d(*norm.get("bbox_min", [0.0, 0.0, 0.0]))
             )
@@ -318,7 +328,7 @@ def build_usd_scene_from_manifest(
                 "; ".join(norm.get("authored_xform_ops", []))
             )
             geom_prim.CreateAttribute("cad:normalizationMode", Sdf.ValueTypeNames.String).Set(
-                "preserve_authored_xforms_sysml_size_uniform_bbox_fit_xy_interchangeable_ground_aligned"
+                "preserve_authored_xforms_sysml_size_uniform_bbox_fit_xy_interchangeable_centered_ground_aligned"
             )
 
             model_path = f"{geom_path}/Model"
