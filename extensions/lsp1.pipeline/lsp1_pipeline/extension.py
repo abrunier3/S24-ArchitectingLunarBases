@@ -150,6 +150,8 @@ class LSP1PipelineExtension(omni.ext.IExt):
             self._open_scene_stage(scene_path)
             self._load_waypoints_under_world()
             self._load_terrain_model()
+            self._apply_module_terrain_projection()
+            self._draw_route_slope_debug()
 
             self.elapsed_seconds = 0.0
             self.is_loaded = True
@@ -158,7 +160,16 @@ class LSP1PipelineExtension(omni.ext.IExt):
             self._ensure_timeline()
             self._update_all(0.0)
 
-            self.status.text = "Status: loaded manifest + scene + DES + waypoints"
+            route_projection = (
+                self.manifest.get("terrain_projection", {})
+                .get("routes", {})
+            )
+            warning_count = int(route_projection.get("warning_count", 0) or 0)
+            caution_count = int(route_projection.get("caution_count", 0) or 0)
+            self.status.text = (
+                "Status: loaded manifest + scene + DES + waypoints"
+                f" | slope warnings: {warning_count}, cautions: {caution_count}"
+            )
 
         except Exception as e:
             self.status.text = f"Status: load failed: {e}"
@@ -288,6 +299,130 @@ class LSP1PipelineExtension(omni.ext.IExt):
 
         except Exception as e:
             print("[LSP1 Pipeline] Terrain model load failed:", repr(e))
+
+    def _apply_module_terrain_projection(self):
+        try:
+            import omni.usd
+            from pxr import UsdGeom, Gf
+
+            modules = (
+                self.manifest.get("terrain_projection", {})
+                .get("modules", {})
+                .get("modules", {})
+            )
+            if not modules:
+                print("[LSP1 Pipeline] No module terrain projection in manifest.")
+                return
+
+            stage = omni.usd.get_context().get_stage()
+            if not stage:
+                return
+
+            moved = 0
+            for module_name, info in modules.items():
+                terrain_z = info.get("placement_z_m", info.get("terrain_z_m"))
+                if terrain_z is None:
+                    continue
+
+                prim = stage.GetPrimAtPath(f"/World/{module_name}")
+                if not prim or not prim.IsValid():
+                    continue
+
+                xformable = UsdGeom.Xformable(prim)
+                translate_op = None
+                for op in xformable.GetOrderedXformOps():
+                    if op.GetOpType() == UsdGeom.XformOp.TypeTranslate:
+                        translate_op = op
+                        break
+
+                if translate_op is None:
+                    translate_op = xformable.AddTranslateOp()
+
+                current = translate_op.Get()
+                x = float(current[0]) if current is not None else 0.0
+                y = float(current[1]) if current is not None else 0.0
+                translate_op.Set(Gf.Vec3d(x, y, float(terrain_z)))
+                moved += 1
+
+            print(f"[LSP1 Pipeline] Applied terrain elevation to {moved} module prim(s).")
+
+        except Exception as e:
+            print("[LSP1 Pipeline] Module terrain projection failed:", repr(e))
+
+    def _draw_route_slope_debug(self):
+        try:
+            import omni.usd
+            from pxr import UsdGeom, Gf, Sdf
+
+            route_projection = (
+                self.manifest.get("terrain_projection", {})
+                .get("routes", {})
+                .get("routes", {})
+            )
+            if not route_projection:
+                print("[LSP1 Pipeline] No route slope debug data in manifest.")
+                return
+
+            stage = omni.usd.get_context().get_stage()
+            if not stage:
+                return
+
+            root_path = "/World/TerrainRouteSlopeDebug"
+            old_prim = stage.GetPrimAtPath(root_path)
+            if old_prim and old_prim.IsValid():
+                stage.RemovePrim(root_path)
+
+            UsdGeom.Xform.Define(stage, root_path)
+            drawn = 0
+
+            for route_name, route_info in route_projection.items():
+                route_root = UsdGeom.Xform.Define(stage, f"{root_path}/{route_name}")
+                route_root.GetPrim().CreateAttribute(
+                    "route:maxSlopeDeg",
+                    Sdf.ValueTypeNames.Double,
+                ).Set(float(route_info.get("max_slope_deg") or 0.0))
+                route_root.GetPrim().CreateAttribute(
+                    "route:status",
+                    Sdf.ValueTypeNames.String,
+                ).Set(str(route_info.get("status", "")))
+
+                for segment in route_info.get("original_segments", []):
+                    p0 = segment.get("from_m")
+                    p1 = segment.get("to_m")
+                    if not p0 or not p1:
+                        continue
+
+                    seg_idx = int(segment.get("index", drawn))
+                    curve = UsdGeom.BasisCurves.Define(
+                        stage,
+                        f"{root_path}/{route_name}/Segment_{seg_idx:03d}",
+                    )
+                    curve.CreateTypeAttr("linear")
+                    curve.CreateBasisAttr("bezier")
+                    curve.CreateCurveVertexCountsAttr([2])
+                    curve.CreatePointsAttr([
+                        Gf.Vec3f(float(p0[0]), float(p0[1]), float(p0[2]) + 1.0),
+                        Gf.Vec3f(float(p1[0]), float(p1[1]), float(p1[2]) + 1.0),
+                    ])
+                    curve.CreateWidthsAttr([8.0])
+                    color = segment.get("color_rgb") or [0.65, 0.65, 0.65]
+                    curve.CreateDisplayColorAttr([
+                        Gf.Vec3f(float(color[0]), float(color[1]), float(color[2]))
+                    ])
+
+                    prim = curve.GetPrim()
+                    prim.CreateAttribute("slope:maxDeg", Sdf.ValueTypeNames.Double).Set(
+                        float(segment.get("max_slope_deg") or 0.0)
+                    )
+                    prim.CreateAttribute("slope:status", Sdf.ValueTypeNames.String).Set(
+                        str(segment.get("status", ""))
+                    )
+                    drawn += 1
+
+            print(f"[LSP1 Pipeline] Drew {drawn} slope-colored route segment(s).")
+
+        except Exception as e:
+            print("[LSP1 Pipeline] Route slope debug draw failed:", repr(e))
 
     def _load_waypoints_under_world(self):
         try:
@@ -459,22 +594,28 @@ class LSP1PipelineExtension(omni.ext.IExt):
                 prim_path = actor["prim_path"]
                 movement = self._get_actor_movement(actor, des_time, include_future=True)
                 if movement:
+                    route_name = movement["route_name"]
                     route_path = movement.get("route_path")
                     if not route_path:
-                        route_path = f"{waypoint_root}/{movement['route_name']}"
+                        route_path = f"{waypoint_root}/{route_name}"
                     start_time = float(movement.get("start_time", 0.0))
                     end_time = float(movement.get("end_time", start_time))
                 else:
+                    route_name = actor["route_name"]
                     route_path = actor.get("route_path")
                     if not route_path:
-                        route_path = f"{waypoint_root}/{actor['route_name']}"
+                        route_path = f"{waypoint_root}/{route_name}"
                     start_time = float(actor.get("start_time", 0.0))
                     end_time = float(actor.get("end_time", start_time))
 
                 if end_time <= start_time:
                     continue
 
-                points = self._get_route_points(stage, route_path)
+                # Prefer terrain-projected manifest routes. Fall back to the
+                # original waypoint USD only for older manifests/debug runs.
+                points = self._get_manifest_route_points(route_name)
+                if not points:
+                    points = self._get_route_points(stage, route_path)
                 if not points:
                     print("[LSP1 Pipeline] No waypoint points found for", route_path)
                     continue
@@ -503,8 +644,6 @@ class LSP1PipelineExtension(omni.ext.IExt):
                 if translate_op is None:
                     translate_op = xformable.AddTranslateOp()
 
-                # Fixed waypoint XYZ only.
-                # No terrain Z projection.
                 translate_op.Set(Gf.Vec3d(pos[0], pos[1], pos[2]))
 
         except Exception as e:
@@ -609,6 +748,31 @@ class LSP1PipelineExtension(omni.ext.IExt):
             return movements[0]
 
         return None
+
+    def _get_manifest_route_points(self, route_name):
+        cache_key = f"manifest:{route_name}"
+        if cache_key in self.route_cache:
+            return self.route_cache[cache_key]
+
+        route_info = (
+            self.manifest.get("terrain_projection", {})
+            .get("routes", {})
+            .get("routes", {})
+            .get(route_name, {})
+        )
+        points = route_info.get("sampled_waypoints_m") or []
+        if not points:
+            self.route_cache[cache_key] = []
+            return []
+
+        parsed = [
+            [float(point[0]), float(point[1]), float(point[2])]
+            for point in points
+            if isinstance(point, list) and len(point) >= 3
+        ]
+        self.route_cache[cache_key] = parsed
+        print("[LSP1 Pipeline] Cached", len(parsed), "terrain-projected waypoints for", route_name)
+        return parsed
 
     def _get_route_points(self, stage, route_path):
         if route_path in self.route_cache:
