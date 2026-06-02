@@ -177,6 +177,514 @@ def _build_terrain_config(
     return config
 
 
+def _round_point(point: tuple[float, float, float], digits: int = 3) -> list[float]:
+    return [round(float(value), digits) for value in point]
+
+
+def _point_in_triangle_height(
+    x: float,
+    y: float,
+    triangle: tuple[tuple[float, float, float], tuple[float, float, float], tuple[float, float, float]],
+) -> float | None:
+    (x1, y1, z1), (x2, y2, z2), (x3, y3, z3) = triangle
+    denom = (y2 - y3) * (x1 - x3) + (x3 - x2) * (y1 - y3)
+    if abs(denom) < 1e-12:
+        return None
+
+    a = ((y2 - y3) * (x - x3) + (x3 - x2) * (y - y3)) / denom
+    b = ((y3 - y1) * (x - x3) + (x1 - x3) * (y - y3)) / denom
+    c = 1.0 - a - b
+    eps = 1e-7
+    if a < -eps or b < -eps or c < -eps:
+        return None
+    return a * z1 + b * z2 + c * z3
+
+
+class _TerrainSampler:
+    def __init__(
+        self,
+        triangles: list[
+            tuple[
+                tuple[float, float, float],
+                tuple[float, float, float],
+                tuple[float, float, float],
+            ]
+        ],
+    ) -> None:
+        self.triangles = triangles
+
+    def sample_height(self, x: float, y: float) -> float | None:
+        for triangle in self.triangles:
+            height = _point_in_triangle_height(x, y, triangle)
+            if height is not None:
+                return height
+        return None
+
+
+def _build_terrain_sampler(
+    *,
+    terrain_usd_path: Path,
+    terrain_config: dict[str, Any],
+) -> _TerrainSampler | None:
+    try:
+        from pxr import Gf, Usd, UsdGeom
+    except Exception:
+        return None
+
+    try:
+        stage = Usd.Stage.Open(str(terrain_usd_path))
+    except Exception:
+        return None
+    if not stage:
+        return None
+
+    translate = terrain_config.get("translate", [0.0, 0.0, 0.0])
+    scale = terrain_config.get("scale", [1.0, 1.0, 1.0])
+    if len(translate) < 3 or len(scale) < 3:
+        return None
+
+    def to_manifest_world(point: Gf.Vec3d) -> tuple[float, float, float]:
+        return (
+            float(point[0]) * float(scale[0]) + float(translate[0]),
+            float(point[1]) * float(scale[1]) + float(translate[1]),
+            float(point[2]) * float(scale[2]) + float(translate[2]),
+        )
+
+    xform_cache = UsdGeom.XformCache(Usd.TimeCode.Default())
+    triangles: list[
+        tuple[
+            tuple[float, float, float],
+            tuple[float, float, float],
+            tuple[float, float, float],
+        ]
+    ] = []
+
+    for prim in stage.Traverse():
+        if not prim.IsA(UsdGeom.Mesh):
+            continue
+
+        mesh = UsdGeom.Mesh(prim)
+        points = mesh.GetPointsAttr().Get() or []
+        counts = mesh.GetFaceVertexCountsAttr().Get() or []
+        indices = mesh.GetFaceVertexIndicesAttr().Get() or []
+        if not points or not counts or not indices:
+            continue
+
+        local_to_stage = xform_cache.GetLocalToWorldTransform(prim)
+        stage_points = [
+            to_manifest_world(local_to_stage.Transform(Gf.Vec3d(point)))
+            for point in points
+        ]
+
+        cursor = 0
+        for count in counts:
+            face_indices = indices[cursor:cursor + count]
+            cursor += count
+            if count < 3:
+                continue
+
+            first = stage_points[face_indices[0]]
+            for idx in range(1, count - 1):
+                triangles.append((
+                    first,
+                    stage_points[face_indices[idx]],
+                    stage_points[face_indices[idx + 1]],
+                ))
+
+    if not triangles:
+        return None
+    return _TerrainSampler(triangles)
+
+
+def _densify_waypoints(
+    waypoints: list[list[float]],
+    *,
+    spacing_m: float,
+) -> list[tuple[float, float, float]]:
+    dense: list[tuple[float, float, float]] = []
+    for idx, waypoint in enumerate(waypoints):
+        if len(waypoint) < 2:
+            continue
+
+        current = (
+            float(waypoint[0]),
+            float(waypoint[1]),
+            float(waypoint[2]) if len(waypoint) > 2 else 0.0,
+        )
+        if idx == 0:
+            dense.append(current)
+            continue
+
+        previous = dense[-1]
+        dx = current[0] - previous[0]
+        dy = current[1] - previous[1]
+        distance = math.hypot(dx, dy)
+        if distance <= 1e-9:
+            continue
+
+        steps = max(1, int(math.ceil(distance / spacing_m)))
+        for step in range(1, steps + 1):
+            t = step / steps
+            dense.append((
+                previous[0] + dx * t,
+                previous[1] + dy * t,
+                previous[2] + (current[2] - previous[2]) * t,
+            ))
+
+    return dense
+
+
+def _waypoint_tuple(waypoint: list[float]) -> tuple[float, float, float] | None:
+    if len(waypoint) < 2:
+        return None
+    return (
+        float(waypoint[0]),
+        float(waypoint[1]),
+        float(waypoint[2]) if len(waypoint) > 2 else 0.0,
+    )
+
+
+def _densify_segment(
+    start: tuple[float, float, float],
+    end: tuple[float, float, float],
+    *,
+    spacing_m: float,
+) -> list[tuple[float, float, float]]:
+    dx = end[0] - start[0]
+    dy = end[1] - start[1]
+    dz = end[2] - start[2]
+    distance = math.hypot(dx, dy)
+    if distance <= 1e-9:
+        return [start, end]
+
+    steps = max(1, int(math.ceil(distance / spacing_m)))
+    return [
+        (
+            start[0] + dx * (step / steps),
+            start[1] + dy * (step / steps),
+            start[2] + dz * (step / steps),
+        )
+        for step in range(steps + 1)
+    ]
+
+
+def _slope_color_rgb(max_slope_deg: float | None, out_of_bounds_count: int) -> list[float]:
+    if out_of_bounds_count or max_slope_deg is None:
+        return [0.65, 0.65, 0.65]
+    if max_slope_deg > 15.0:
+        return [1.0, 0.05, 0.0]
+    if max_slope_deg > 10.0:
+        return [1.0, 0.45, 0.0]
+    if max_slope_deg > 5.0:
+        return [1.0, 0.9, 0.0]
+    return [0.0, 0.85, 0.2]
+
+
+def _slope_status(max_slope_deg: float | None, out_of_bounds_count: int) -> str:
+    if out_of_bounds_count:
+        return "terrain_alignment_warning"
+    if max_slope_deg is None:
+        return "unavailable"
+    if max_slope_deg > 15.0:
+        return "terrain_alignment_warning"
+    if max_slope_deg > 10.0:
+        return "caution"
+    return "ok"
+
+
+def _slope_stats_from_sampled(
+    sampled: list[tuple[float, float, float] | None],
+) -> tuple[list[float], list[dict[str, Any]], tuple[float, float, float] | None, tuple[float, float, float] | None]:
+    slopes: list[float] = []
+    slope_segments: list[dict[str, Any]] = []
+    valid_samples = [point for point in sampled if point is not None]
+    previous: tuple[float, float, float] | None = None
+    for point in sampled:
+        if point is None:
+            previous = None
+            continue
+        if previous is not None:
+            horizontal = math.hypot(point[0] - previous[0], point[1] - previous[1])
+            if horizontal > 1e-9:
+                slope_deg = math.degrees(math.atan2(abs(point[2] - previous[2]), horizontal))
+                slopes.append(slope_deg)
+                slope_segments.append({
+                    "slope_deg": slope_deg,
+                    "from_m": previous,
+                    "to_m": point,
+                })
+        previous = point
+
+    start = valid_samples[0] if valid_samples else None
+    end = valid_samples[-1] if valid_samples else None
+    return slopes, slope_segments, start, end
+
+
+def _build_original_segment_diagnostics(
+    *,
+    waypoints: list[list[float]],
+    sampler: _TerrainSampler,
+    sample_spacing_m: float,
+) -> list[dict[str, Any]]:
+    segments = []
+    for idx in range(len(waypoints) - 1):
+        start = _waypoint_tuple(waypoints[idx])
+        end = _waypoint_tuple(waypoints[idx + 1])
+        if start is None or end is None:
+            continue
+
+        dense = _densify_segment(start, end, spacing_m=sample_spacing_m)
+        sampled: list[tuple[float, float, float] | None] = []
+        out_of_bounds = 0
+        for point in dense:
+            z = sampler.sample_height(point[0], point[1])
+            if z is None:
+                sampled.append(None)
+                out_of_bounds += 1
+            else:
+                sampled.append((point[0], point[1], z))
+
+        slopes, slope_segments, projected_start, projected_end = _slope_stats_from_sampled(sampled)
+        max_slope = max(slopes) if slopes else None
+        mean_slope = sum(slopes) / len(slopes) if slopes else None
+        max_slope_segment = max(
+            slope_segments,
+            key=lambda segment: segment["slope_deg"],
+            default=None,
+        )
+
+        segments.append({
+            "index": idx,
+            "from_waypoint_index": idx,
+            "to_waypoint_index": idx + 1,
+            "status": _slope_status(max_slope, out_of_bounds),
+            "color_rgb": _slope_color_rgb(max_slope, out_of_bounds),
+            "sample_count": len(dense),
+            "valid_sample_count": len([point for point in sampled if point is not None]),
+            "out_of_bounds_count": out_of_bounds,
+            "max_slope_deg": round(max_slope, 3) if max_slope is not None else None,
+            "mean_slope_deg": round(mean_slope, 3) if mean_slope is not None else None,
+            "from_m": _round_point(projected_start) if projected_start else None,
+            "to_m": _round_point(projected_end) if projected_end else None,
+            "max_slope_subsegment": {
+                "slope_deg": round(max_slope_segment["slope_deg"], 3),
+                "from_m": _round_point(max_slope_segment["from_m"]),
+                "to_m": _round_point(max_slope_segment["to_m"]),
+            } if max_slope_segment else None,
+        })
+
+    return segments
+
+
+def _build_terrain_route_diagnostics(
+    *,
+    system_json: dict[str, Any],
+    sampler: _TerrainSampler | None,
+    sample_spacing_m: float = 10.0,
+) -> dict[str, Any]:
+    if sampler is None:
+        return {
+            "status": "unavailable",
+            "reason": "Terrain sampler unavailable. OpenUSD may be missing or the terrain mesh could not be read.",
+            "sample_spacing_m": sample_spacing_m,
+            "routes": {},
+        }
+
+    routes: dict[str, Any] = {}
+    for connection in system_json.get("connections", []):
+        path = connection.get("path") or {}
+        waypoints = path.get("waypoints_m") or []
+        if not waypoints:
+            continue
+
+        route_name = connection.get("name", "UnnamedRoute")
+        dense = _densify_waypoints(waypoints, spacing_m=sample_spacing_m)
+        original_segments = _build_original_segment_diagnostics(
+            waypoints=waypoints,
+            sampler=sampler,
+            sample_spacing_m=sample_spacing_m,
+        )
+        sampled: list[tuple[float, float, float] | None] = []
+        out_of_bounds = 0
+        for point in dense:
+            z = sampler.sample_height(point[0], point[1])
+            if z is None:
+                sampled.append(None)
+                out_of_bounds += 1
+            else:
+                sampled.append((point[0], point[1], z))
+
+        slopes, slope_segments, _, _ = _slope_stats_from_sampled(sampled)
+        valid_samples = [point for point in sampled if point is not None]
+        max_slope = max(slopes) if slopes else None
+        mean_slope = sum(slopes) / len(slopes) if slopes else None
+        max_slope_segment = max(
+            slope_segments,
+            key=lambda segment: segment["slope_deg"],
+            default=None,
+        )
+
+        routes[route_name] = {
+            "flow": connection.get("flow"),
+            "status": _slope_status(max_slope, out_of_bounds),
+            "input_waypoint_count": len(waypoints),
+            "sample_count": len(dense),
+            "valid_sample_count": len(valid_samples),
+            "out_of_bounds_count": out_of_bounds,
+            "max_slope_deg": round(max_slope, 3) if max_slope is not None else None,
+            "mean_slope_deg": round(mean_slope, 3) if mean_slope is not None else None,
+            "segment_color_basis": "original_waypoint_segments_by_max_slope",
+            "original_segments": original_segments,
+            "max_slope_segment": {
+                "slope_deg": round(max_slope_segment["slope_deg"], 3),
+                "from_m": _round_point(max_slope_segment["from_m"]),
+                "to_m": _round_point(max_slope_segment["to_m"]),
+            } if max_slope_segment else None,
+            "max_allowed_slope_deg": 15.0,
+            "sampled_waypoints_m": [
+                _round_point(point)
+                for point in valid_samples
+            ],
+        }
+
+    warning_count = sum(
+        1 for route in routes.values()
+        if route.get("status") == "terrain_alignment_warning"
+    )
+    caution_count = sum(
+        1 for route in routes.values()
+        if route.get("status") == "caution"
+    )
+
+    return {
+        "status": "terrain_alignment_warning" if warning_count else "ok",
+        "sample_spacing_m": sample_spacing_m,
+        "max_allowed_slope_deg": 15.0,
+        "warning_count": warning_count,
+        "caution_count": caution_count,
+        "routes": routes,
+    }
+
+
+def _build_module_terrain_diagnostics(
+    *,
+    system_json: dict[str, Any],
+    sampler: _TerrainSampler | None,
+) -> dict[str, Any]:
+    if sampler is None:
+        return {
+            "status": "unavailable",
+            "reason": "Terrain sampler unavailable. OpenUSD may be missing or the terrain mesh could not be read.",
+            "modules": {},
+        }
+
+    modules: dict[str, Any] = {}
+    out_of_bounds = 0
+    for part in system_json.get("parts", []):
+        name = part.get("name")
+        position = part.get("transform", {}).get("position_m")
+        if not name or not isinstance(position, list) or len(position) < 2:
+            continue
+
+        x = float(position[0])
+        y = float(position[1])
+        authored_z = float(position[2]) if len(position) > 2 else 0.0
+        footprint_samples = _module_footprint_sample_points(part, x, y)
+        sampled_points = []
+        missing_samples = 0
+        for sample_x, sample_y, label in footprint_samples:
+            terrain_z = sampler.sample_height(sample_x, sample_y)
+            if terrain_z is None:
+                missing_samples += 1
+                sampled_points.append({
+                    "label": label,
+                    "xy_m": [round(sample_x, 3), round(sample_y, 3)],
+                    "terrain_z_m": None,
+                })
+            else:
+                sampled_points.append({
+                    "label": label,
+                    "xy_m": [round(sample_x, 3), round(sample_y, 3)],
+                    "terrain_z_m": round(terrain_z, 3),
+                })
+
+        valid_z = [
+            float(sample["terrain_z_m"])
+            for sample in sampled_points
+            if sample["terrain_z_m"] is not None
+        ]
+        if not valid_z:
+            out_of_bounds += 1
+            modules[name] = {
+                "status": "out_of_terrain_bounds",
+                "position_xy_m": [round(x, 3), round(y, 3)],
+                "authored_z_m": round(authored_z, 3),
+                "placement_z_m": None,
+                "sample_strategy": "center_corners_edge_midpoints_max",
+                "footprint_samples": sampled_points,
+            }
+            continue
+
+        placement_z = max(valid_z)
+        modules[name] = {
+            "status": "partial_footprint_out_of_bounds" if missing_samples else "ok",
+            "position_xy_m": [round(x, 3), round(y, 3)],
+            "authored_z_m": round(authored_z, 3),
+            "placement_z_m": round(placement_z, 3),
+            "delta_z_m": round(authored_z - placement_z, 3),
+            "sample_strategy": "center_corners_edge_midpoints_max",
+            "footprint_sample_count": len(sampled_points),
+            "missing_sample_count": missing_samples,
+            "footprint_samples": sampled_points,
+        }
+
+    return {
+        "status": "terrain_alignment_warning" if out_of_bounds else "ok",
+        "out_of_bounds_count": out_of_bounds,
+        "modules": modules,
+    }
+
+
+def _module_footprint_sample_points(
+    part: dict[str, Any],
+    center_x: float,
+    center_y: float,
+) -> list[tuple[float, float, str]]:
+    size_m = (part.get("dimensions") or {}).get("size_m") or {}
+    length = float(size_m.get("length") or 0.0)
+    width = float(size_m.get("width") or 0.0)
+    if length <= 0 or width <= 0:
+        return [(center_x, center_y, "center")]
+
+    rotation = part.get("transform", {}).get("rotation_deg") or [0.0, 0.0, 0.0]
+    yaw_deg = float(rotation[2]) if len(rotation) >= 3 else 0.0
+    yaw = math.radians(yaw_deg)
+    cos_yaw = math.cos(yaw)
+    sin_yaw = math.sin(yaw)
+    half_l = length / 2.0
+    half_w = width / 2.0
+
+    local_samples = [
+        (0.0, 0.0, "center"),
+        (-half_l, -half_w, "corner_front_left"),
+        (half_l, -half_w, "corner_front_right"),
+        (half_l, half_w, "corner_back_right"),
+        (-half_l, half_w, "corner_back_left"),
+        (0.0, -half_w, "edge_front_mid"),
+        (half_l, 0.0, "edge_right_mid"),
+        (0.0, half_w, "edge_back_mid"),
+        (-half_l, 0.0, "edge_left_mid"),
+    ]
+
+    world_samples = []
+    for local_x, local_y, label in local_samples:
+        world_x = center_x + local_x * cos_yaw - local_y * sin_yaw
+        world_y = center_y + local_x * sin_yaw + local_y * cos_yaw
+        world_samples.append((world_x, world_y, label))
+
+    return world_samples
+
+
 def _sorted_log_items(des_data: dict[str, Any]) -> list[tuple[float, dict[str, Any]]]:
     raw_log = des_data.get("log", des_data)
     if not isinstance(raw_log, dict):
@@ -466,6 +974,23 @@ def build_manifest(
         actor["end_time"] = first.get("end_time")
 
     sim_end = _simulation_end_time(des_data)
+    terrain_config = _build_terrain_config(
+        terrain_usd_path=terrain_usd_path,
+        output_dir=output_dir,
+        system_json=system_json,
+    )
+    terrain_sampler = _build_terrain_sampler(
+        terrain_usd_path=terrain_usd_path,
+        terrain_config=terrain_config,
+    )
+    terrain_routes = _build_terrain_route_diagnostics(
+        system_json=system_json,
+        sampler=terrain_sampler,
+    )
+    terrain_modules = _build_module_terrain_diagnostics(
+        system_json=system_json,
+        sampler=terrain_sampler,
+    )
     manifest = {
         "scene_usd": _repo_relative(scene_usd_path, start=output_dir),
         "waypoints_usd": _repo_relative(waypoints_usd_path, start=output_dir),
@@ -488,11 +1013,11 @@ def build_manifest(
             "rotateXYZ": [70.0, 0.0, 120.0],
             "focal_length": 12.0,
         },
-        "terrain": _build_terrain_config(
-            terrain_usd_path=terrain_usd_path,
-            output_dir=output_dir,
-            system_json=system_json,
-        ),
+        "terrain": terrain_config,
+        "terrain_projection": {
+            "routes": terrain_routes,
+            "modules": terrain_modules,
+        },
         "actors": sorted(actors_by_id.values(), key=lambda actor: actor["id"]),
     }
 
