@@ -29,6 +29,8 @@ class LSP1PipelineExtension(omni.ext.IExt):
         self.is_loaded = False
         self.route_cache = {}
         self.actor_labels = {}
+        self.routes_visible = False
+        self.show_routes_button = None
 
         self.window = ui.Window("LSP1 Pipeline", width=520, height=430)
 
@@ -42,6 +44,10 @@ class LSP1PipelineExtension(omni.ext.IExt):
                 ui.Button("Play", clicked_fn=self._play)
                 ui.Button("Pause", clicked_fn=self._pause)
                 ui.Button("Reset", clicked_fn=self._reset)
+                self.show_routes_button = ui.Button(
+                    "Show Routes",
+                    clicked_fn=self._toggle_routes,
+                )
 
                 self.time_label = ui.Label("Mission Time: --")
                 self.des_time_label = ui.Label("DES Playback Time: --")
@@ -152,6 +158,9 @@ class LSP1PipelineExtension(omni.ext.IExt):
             self._load_terrain_model()
             self._apply_module_terrain_projection()
             self._draw_route_slope_debug()
+            self.routes_visible = False
+            self._set_route_slope_debug_visible(False)
+            self._update_show_routes_button()
 
             self.elapsed_seconds = 0.0
             self.is_loaded = True
@@ -405,6 +414,7 @@ class LSP1PipelineExtension(omni.ext.IExt):
                         Gf.Vec3f(float(p1[0]), float(p1[1]), float(p1[2]) + 1.0),
                     ])
                     curve.CreateWidthsAttr([8.0])
+                    curve.SetWidthsInterpolation(UsdGeom.Tokens.constant)
                     color = segment.get("color_rgb") or [0.65, 0.65, 0.65]
                     curve.CreateDisplayColorAttr([
                         Gf.Vec3f(float(color[0]), float(color[1]), float(color[2]))
@@ -423,6 +433,56 @@ class LSP1PipelineExtension(omni.ext.IExt):
 
         except Exception as e:
             print("[LSP1 Pipeline] Route slope debug draw failed:", repr(e))
+
+    def _set_route_slope_debug_visible(self, visible):
+        try:
+            import omni.usd
+            from pxr import UsdGeom
+
+            stage = omni.usd.get_context().get_stage()
+            if not stage:
+                return
+
+            prim = stage.GetPrimAtPath("/World/TerrainRouteSlopeDebug")
+            if not prim or not prim.IsValid():
+                return
+
+            imageable = UsdGeom.Imageable(prim)
+            if visible:
+                imageable.MakeVisible()
+            else:
+                imageable.MakeInvisible()
+
+        except Exception as e:
+            print("[LSP1 Pipeline] Route visibility update failed:", repr(e))
+
+    def _update_show_routes_button(self):
+        try:
+            if self.show_routes_button:
+                self.show_routes_button.text = (
+                    "Hide Routes" if self.routes_visible else "Show Routes"
+                )
+        except Exception:
+            pass
+
+    def _toggle_routes(self):
+        if not self.is_loaded:
+            self._load_all()
+            if not self.is_loaded:
+                return
+
+        self.routes_visible = not self.routes_visible
+        if self.routes_visible:
+            self._draw_route_slope_debug()
+
+        self._set_route_slope_debug_visible(self.routes_visible)
+        self._update_show_routes_button()
+
+        self.status.text = (
+            "Status: routes visible"
+            if self.routes_visible
+            else "Status: routes hidden"
+        )
 
     def _load_waypoints_under_world(self):
         try:
