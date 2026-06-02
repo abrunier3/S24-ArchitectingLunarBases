@@ -480,7 +480,7 @@ def _build_terrain_route_diagnostics(
     *,
     system_json: dict[str, Any],
     sampler: _TerrainSampler | None,
-    sample_spacing_m: float = 10.0,
+    sample_spacing_m: float = 2.0,
 ) -> dict[str, Any]:
     if sampler is None:
         return {
@@ -620,7 +620,7 @@ def _build_module_terrain_diagnostics(
                 "position_xy_m": [round(x, 3), round(y, 3)],
                 "authored_z_m": round(authored_z, 3),
                 "placement_z_m": None,
-                "sample_strategy": "center_corners_edge_midpoints_max",
+                "sample_strategy": "center_corners_edge_midpoints_grid_5x5_max",
                 "footprint_samples": sampled_points,
             }
             continue
@@ -632,7 +632,7 @@ def _build_module_terrain_diagnostics(
             "authored_z_m": round(authored_z, 3),
             "placement_z_m": round(placement_z, 3),
             "delta_z_m": round(authored_z - placement_z, 3),
-            "sample_strategy": "center_corners_edge_midpoints_max",
+            "sample_strategy": "center_corners_edge_midpoints_grid_5x5_max",
             "footprint_sample_count": len(sampled_points),
             "missing_sample_count": missing_samples,
             "footprint_samples": sampled_points,
@@ -664,17 +664,34 @@ def _module_footprint_sample_points(
     half_l = length / 2.0
     half_w = width / 2.0
 
+    named_samples = {
+        (0.0, 0.0): "center",
+        (-half_l, -half_w): "corner_front_left",
+        (half_l, -half_w): "corner_front_right",
+        (half_l, half_w): "corner_back_right",
+        (-half_l, half_w): "corner_back_left",
+        (0.0, -half_w): "edge_front_mid",
+        (half_l, 0.0): "edge_right_mid",
+        (0.0, half_w): "edge_back_mid",
+        (-half_l, 0.0): "edge_left_mid",
+    }
+
     local_samples = [
-        (0.0, 0.0, "center"),
-        (-half_l, -half_w, "corner_front_left"),
-        (half_l, -half_w, "corner_front_right"),
-        (half_l, half_w, "corner_back_right"),
-        (-half_l, half_w, "corner_back_left"),
-        (0.0, -half_w, "edge_front_mid"),
-        (half_l, 0.0, "edge_right_mid"),
-        (0.0, half_w, "edge_back_mid"),
-        (-half_l, 0.0, "edge_left_mid"),
+        (local_x, local_y, label)
+        for (local_x, local_y), label in named_samples.items()
     ]
+    grid_count = 5
+    for i in range(grid_count):
+        local_x = -half_l + (length * i / (grid_count - 1))
+        for j in range(grid_count):
+            local_y = -half_w + (width * j / (grid_count - 1))
+            key = (round(local_x, 9), round(local_y, 9))
+            label = named_samples.get(key, f"grid_{i}_{j}")
+            if not any(
+                round(existing_x, 9) == key[0] and round(existing_y, 9) == key[1]
+                for existing_x, existing_y, _ in local_samples
+            ):
+                local_samples.append((local_x, local_y, label))
 
     world_samples = []
     for local_x, local_y, label in local_samples:
