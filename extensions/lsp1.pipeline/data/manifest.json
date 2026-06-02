@@ -8,9 +8,7 @@
     "waypoints_usd": "../../../clean_database/scenes/waypoints.usda",
     "des_json": "../../../outputs/des_results.json"
   },
-  "warnings": [
-    "No LOX rover movements were generated from the DES output."
-  ],
+  "warnings": [],
   "playback": {
     "seconds_per_sim_time_unit": 1.0,
     "display_duration_hours": 59.0
@@ -40,23 +38,23 @@
         0.0,
         0.0
       ],
-      "x_min": -1750.0,
-      "x_max": 1750.0,
-      "y_min": -1750.0,
-      "y_max": 1750.0,
-      "width_m": 3500.0,
-      "height_m": 3500.0,
+      "x_min": -2000.0,
+      "x_max": 2000.0,
+      "y_min": -2000.0,
+      "y_max": 2000.0,
+      "width_m": 4000.0,
+      "height_m": 4000.0,
       "source": "derived_from_system_extent"
     },
     "translate": [
-      3147.667444,
-      0.034366,
-      167.535569
+      3597.334222,
+      0.039275,
+      191.469222
     ],
     "scale": [
-      62.953349983,
-      62.951523252,
-      62.952436618
+      71.946685695,
+      71.944598003,
+      71.945641849
     ],
     "source_bbox": {
       "min": [
@@ -79,18 +77,55 @@
     },
     "world_bbox": {
       "min": [
-        -1750.0,
-        -1750.0,
+        -2000.0,
+        -2000.0,
         0.0
       ],
       "max": [
-        1750.0,
-        1750.0,
-        287.805383
+        2000.0,
+        2000.0,
+        328.920437
       ]
     }
   },
   "actors": [
+    {
+      "id": "LOX Cargo Rover",
+      "label": "LOX Rover",
+      "prim_path": "/World/LOXRover",
+      "dashboard_fields": [
+        {
+          "key": "current_load",
+          "label": "Load",
+          "unit": "kg"
+        },
+        {
+          "key": "battery_charge",
+          "label": "Battery",
+          "unit": "kWh"
+        },
+        {
+          "key": "total_distance_traveled",
+          "label": "Distance",
+          "unit": "km"
+        }
+      ],
+      "movements": [
+        {
+          "route_name": "ISRUPlantToPropellantDepot",
+          "from_module": "ISRUPlant",
+          "to_module": "PropellantDepot",
+          "start_time": 22.0,
+          "end_time": 59.0,
+          "source": "des:LOX rover load episode"
+        }
+      ],
+      "from_module": "ISRUPlant",
+      "to_module": "PropellantDepot",
+      "route_name": "ISRUPlantToPropellantDepot",
+      "start_time": 22.0,
+      "end_time": 59.0
+    },
     {
       "id": "Regolith Cargo Rover 1",
       "label": "Regolith Rover 1",
@@ -118,38 +153,46 @@
           "from_module": "ISRUExcavation",
           "to_module": "ISRUPlant",
           "start_time": 0.0,
-          "end_time": 13.5,
+          "end_time": 10.05,
           "source": "des:Regolith_Haul_Distance*Rover_Travel_Time"
         },
         {
           "route_name": "ISRUExcavationToISRUPlant",
           "from_module": "ISRUExcavation",
           "to_module": "ISRUPlant",
-          "start_time": 13.5,
-          "end_time": 27.0,
+          "start_time": 10.05,
+          "end_time": 20.1,
           "source": "des:Regolith_Haul_Distance*Rover_Travel_Time"
         },
         {
           "route_name": "ISRUExcavationToISRUPlant",
           "from_module": "ISRUExcavation",
           "to_module": "ISRUPlant",
-          "start_time": 27.0,
-          "end_time": 40.5,
+          "start_time": 20.1,
+          "end_time": 30.15,
           "source": "des:Regolith_Haul_Distance*Rover_Travel_Time"
         },
         {
           "route_name": "ISRUExcavationToISRUPlant",
           "from_module": "ISRUExcavation",
           "to_module": "ISRUPlant",
-          "start_time": 40.5,
-          "end_time": 54.0,
+          "start_time": 30.15,
+          "end_time": 40.2,
           "source": "des:Regolith_Haul_Distance*Rover_Travel_Time"
         },
         {
           "route_name": "ISRUExcavationToISRUPlant",
           "from_module": "ISRUExcavation",
           "to_module": "ISRUPlant",
-          "start_time": 54.0,
+          "start_time": 40.2,
+          "end_time": 50.25,
+          "source": "des:Regolith_Haul_Distance*Rover_Travel_Time"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant",
+          "start_time": 50.25,
           "end_time": 59.0,
           "source": "des:Regolith_Haul_Distance*Rover_Travel_Time"
         }
@@ -158,7 +201,161 @@
       "to_module": "ISRUPlant",
       "route_name": "ISRUExcavationToISRUPlant",
       "start_time": 0.0,
-      "end_time": 13.5
+      "end_time": 10.05
+    },
+    {
+      "id": "Regolith Cargo Rover 2",
+      "label": "Regolith Rover 2",
+      "prim_path": "/World/RegolithRover",
+      "dashboard_fields": [
+        {
+          "key": "current_load",
+          "label": "Load",
+          "unit": "kg"
+        },
+        {
+          "key": "battery_charge",
+          "label": "Battery",
+          "unit": "kWh"
+        },
+        {
+          "key": "total_distance_traveled",
+          "label": "Distance",
+          "unit": "km"
+        }
+      ],
+      "movements": [
+        {
+          "route_name": "ISRUExcavationToISRUPlant",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant",
+          "start_time": 0.0,
+          "end_time": 10.05,
+          "source": "des:Regolith_Haul_Distance*Rover_Travel_Time"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant",
+          "start_time": 10.05,
+          "end_time": 20.1,
+          "source": "des:Regolith_Haul_Distance*Rover_Travel_Time"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant",
+          "start_time": 20.1,
+          "end_time": 30.15,
+          "source": "des:Regolith_Haul_Distance*Rover_Travel_Time"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant",
+          "start_time": 30.15,
+          "end_time": 40.2,
+          "source": "des:Regolith_Haul_Distance*Rover_Travel_Time"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant",
+          "start_time": 40.2,
+          "end_time": 50.25,
+          "source": "des:Regolith_Haul_Distance*Rover_Travel_Time"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant",
+          "start_time": 50.25,
+          "end_time": 59.0,
+          "source": "des:Regolith_Haul_Distance*Rover_Travel_Time"
+        }
+      ],
+      "from_module": "ISRUExcavation",
+      "to_module": "ISRUPlant",
+      "route_name": "ISRUExcavationToISRUPlant",
+      "start_time": 0.0,
+      "end_time": 10.05
+    },
+    {
+      "id": "Regolith Cargo Rover 3",
+      "label": "Regolith Rover 3",
+      "prim_path": "/World/RegolithRover",
+      "dashboard_fields": [
+        {
+          "key": "current_load",
+          "label": "Load",
+          "unit": "kg"
+        },
+        {
+          "key": "battery_charge",
+          "label": "Battery",
+          "unit": "kWh"
+        },
+        {
+          "key": "total_distance_traveled",
+          "label": "Distance",
+          "unit": "km"
+        }
+      ],
+      "movements": [
+        {
+          "route_name": "ISRUExcavationToISRUPlant",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant",
+          "start_time": 0.0,
+          "end_time": 10.05,
+          "source": "des:Regolith_Haul_Distance*Rover_Travel_Time"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant",
+          "start_time": 10.05,
+          "end_time": 20.1,
+          "source": "des:Regolith_Haul_Distance*Rover_Travel_Time"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant",
+          "start_time": 20.1,
+          "end_time": 30.15,
+          "source": "des:Regolith_Haul_Distance*Rover_Travel_Time"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant",
+          "start_time": 30.15,
+          "end_time": 40.2,
+          "source": "des:Regolith_Haul_Distance*Rover_Travel_Time"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant",
+          "start_time": 40.2,
+          "end_time": 50.25,
+          "source": "des:Regolith_Haul_Distance*Rover_Travel_Time"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant",
+          "start_time": 50.25,
+          "end_time": 59.0,
+          "source": "des:Regolith_Haul_Distance*Rover_Travel_Time"
+        }
+      ],
+      "from_module": "ISRUExcavation",
+      "to_module": "ISRUPlant",
+      "route_name": "ISRUExcavationToISRUPlant",
+      "start_time": 0.0,
+      "end_time": 10.05
     }
   ]
 }
