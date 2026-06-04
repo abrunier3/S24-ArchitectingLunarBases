@@ -686,9 +686,12 @@ class LSP1PipelineExtension(omni.ext.IExt):
                 if end_time <= start_time:
                     continue
 
-                # Prefer terrain-projected manifest routes. Fall back to the
-                # original waypoint USD only for older manifests/debug runs.
-                points = self._get_manifest_route_points(route_name)
+                # Prefer terrain-projected manifest poses. Fall back to route
+                # points only for older manifests/debug runs.
+                poses = self._get_manifest_route_poses(route_name)
+                points = [pose["position_m"] for pose in poses] if poses else []
+                if not points:
+                    points = self._get_manifest_route_points(route_name)
                 if not points:
                     points = self._get_route_points(stage, route_path)
                 if not points:
@@ -702,7 +705,11 @@ class LSP1PipelineExtension(omni.ext.IExt):
                 else:
                     progress = (des_time - start_time) / (end_time - start_time)
 
-                pos, tangent = self._sample_polyline_pose(points, progress)
+                route_rotation = None
+                if poses:
+                    pos, tangent, route_rotation = self._sample_route_pose(poses, progress)
+                else:
+                    pos, tangent = self._sample_polyline_pose(points, progress)
 
                 prim = stage.GetPrimAtPath(prim_path)
                 if not prim or not prim.IsValid():
@@ -727,7 +734,7 @@ class LSP1PipelineExtension(omni.ext.IExt):
                     pos[1],
                     pos[2] + ROVER_TERRAIN_CLEARANCE_M,
                 ))
-                rotation = self._route_tangent_rotation(tangent)
+                rotation = route_rotation or self._route_tangent_rotation(tangent)
                 if rotation:
                     if rotate_op is None:
                         rotate_op = xformable.AddRotateXYZOp()
@@ -861,6 +868,44 @@ class LSP1PipelineExtension(omni.ext.IExt):
         print("[LSP1 Pipeline] Cached", len(parsed), "terrain-projected waypoints for", route_name)
         return parsed
 
+    def _get_manifest_route_poses(self, route_name):
+        cache_key = f"manifest-poses:{route_name}"
+        if cache_key in self.route_cache:
+            return self.route_cache[cache_key]
+
+        route_info = (
+            self.manifest.get("terrain_projection", {})
+            .get("routes", {})
+            .get("routes", {})
+            .get(route_name, {})
+        )
+        poses = route_info.get("sampled_poses") or []
+        parsed = []
+        for pose in poses:
+            position = pose.get("position_m")
+            rotation = pose.get("rotation_deg")
+            if (
+                isinstance(position, list) and len(position) >= 3
+                and isinstance(rotation, list) and len(rotation) >= 3
+            ):
+                parsed.append({
+                    "position_m": [
+                        float(position[0]),
+                        float(position[1]),
+                        float(position[2]),
+                    ],
+                    "rotation_deg": [
+                        float(rotation[0]),
+                        float(rotation[1]),
+                        float(rotation[2]),
+                    ],
+                })
+
+        self.route_cache[cache_key] = parsed
+        if parsed:
+            print("[LSP1 Pipeline] Cached", len(parsed), "terrain-fitted rover poses for", route_name)
+        return parsed
+
     def _get_route_points(self, stage, route_path):
         if route_path in self.route_cache:
             return self.route_cache[route_path]
@@ -957,6 +1002,66 @@ class LSP1PipelineExtension(omni.ext.IExt):
             points[-1][1] - points[-2][1],
             points[-1][2] - points[-2][2],
         ]
+
+    def _sample_route_pose(self, poses, progress):
+        points = [pose["position_m"] for pose in poses]
+        if not points:
+            return [0, 0, 0], None, None
+        if len(points) == 1:
+            return points[0], None, poses[0]["rotation_deg"]
+
+        progress = max(0.0, min(1.0, progress))
+        lengths = []
+        total = 0.0
+        for idx in range(len(points) - 1):
+            p0 = points[idx]
+            p1 = points[idx + 1]
+            segment_length = math.sqrt(
+                (p1[0] - p0[0]) ** 2
+                + (p1[1] - p0[1]) ** 2
+                + (p1[2] - p0[2]) ** 2
+            )
+            lengths.append(segment_length)
+            total += segment_length
+
+        if total <= 0:
+            return points[0], None, poses[0]["rotation_deg"]
+
+        target = progress * total
+        travelled = 0.0
+        for idx, segment_length in enumerate(lengths):
+            if travelled + segment_length >= target:
+                p0 = points[idx]
+                p1 = points[idx + 1]
+                local_t = (
+                    (target - travelled) / segment_length
+                    if segment_length > 0 else 0.0
+                )
+                pos = [
+                    p0[0] + (p1[0] - p0[0]) * local_t,
+                    p0[1] + (p1[1] - p0[1]) * local_t,
+                    p0[2] + (p1[2] - p0[2]) * local_t,
+                ]
+                tangent = [
+                    p1[0] - p0[0],
+                    p1[1] - p0[1],
+                    p1[2] - p0[2],
+                ]
+                rot0 = poses[idx]["rotation_deg"]
+                rot1 = poses[idx + 1]["rotation_deg"]
+                rotation = [
+                    rot0[axis] + (rot1[axis] - rot0[axis]) * local_t
+                    for axis in range(3)
+                ]
+                return pos, tangent, rotation
+
+            travelled += segment_length
+
+        return points[-1], [
+            points[-1][0] - points[-2][0],
+            points[-1][1] - points[-2][1],
+            points[-1][2] - points[-2][2],
+        ], poses[-1]["rotation_deg"]
 
     def _route_tangent_rotation(self, tangent):
         if not tangent:
