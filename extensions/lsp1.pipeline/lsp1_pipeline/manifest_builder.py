@@ -480,6 +480,7 @@ def _build_terrain_route_diagnostics(
     *,
     system_json: dict[str, Any],
     sampler: _TerrainSampler | None,
+    scene_cad_footprints: dict[str, dict[str, Any]] | None = None,
     sample_spacing_m: float = 2.0,
 ) -> dict[str, Any]:
     if sampler is None:
@@ -491,6 +492,7 @@ def _build_terrain_route_diagnostics(
         }
 
     routes: dict[str, Any] = {}
+    scene_cad_footprints = scene_cad_footprints or {}
     for connection in system_json.get("connections", []):
         path = connection.get("path") or {}
         waypoints = path.get("waypoints_m") or []
@@ -516,6 +518,14 @@ def _build_terrain_route_diagnostics(
 
         slopes, slope_segments, _, _ = _slope_stats_from_sampled(sampled)
         valid_samples = [point for point in sampled if point is not None]
+        sampled_poses = _build_route_pose_samples(
+            sampled_points=valid_samples,
+            sampler=sampler,
+            rover_footprint=_rover_footprint_for_route(
+                connection.get("flow"),
+                scene_cad_footprints,
+            ),
+        )
         max_slope = max(slopes) if slopes else None
         mean_slope = sum(slopes) / len(slopes) if slopes else None
         max_slope_segment = max(
@@ -545,6 +555,7 @@ def _build_terrain_route_diagnostics(
                 _round_point(point)
                 for point in valid_samples
             ],
+            "sampled_poses": sampled_poses,
         }
 
     warning_count = sum(
@@ -671,6 +682,100 @@ def _build_module_terrain_diagnostics(
     }
 
 
+def _rover_footprint_for_route(
+    flow: str | None,
+    scene_cad_footprints: dict[str, dict[str, Any]],
+) -> dict[str, Any] | None:
+    rover_name = "LOXRover" if flow == "LOX" else "RegolithRover"
+    return scene_cad_footprints.get(rover_name)
+
+
+def _build_route_pose_samples(
+    *,
+    sampled_points: list[tuple[float, float, float]],
+    sampler: _TerrainSampler,
+    rover_footprint: dict[str, Any] | None,
+) -> list[dict[str, Any]]:
+    size_m = (rover_footprint or {}).get("size_m") or {}
+    length = float(size_m.get("length") or 0.0)
+    width = float(size_m.get("width") or 0.0)
+    if length <= 0 or width <= 0 or len(sampled_points) < 2:
+        return []
+
+    poses = []
+    for idx, point in enumerate(sampled_points):
+        tangent = _route_sample_tangent(sampled_points, idx)
+        if tangent is None:
+            continue
+
+        dx, dy, _ = tangent
+        horizontal = math.hypot(dx, dy)
+        if horizontal <= 1e-6:
+            continue
+
+        route_yaw = math.degrees(math.atan2(dy, dx))
+        rover_yaw = route_yaw - 90.0
+        samples = []
+        for sample_x, sample_y, label, local_x, local_y in _oriented_footprint_sample_points(
+            center_x=point[0],
+            center_y=point[1],
+            length=length,
+            width=width,
+            yaw_deg=rover_yaw,
+            grid_count=3,
+        ):
+            terrain_z = sampler.sample_height(sample_x, sample_y)
+            if terrain_z is None:
+                continue
+            samples.append({
+                "label": label,
+                "local_xy_m": [round(local_x, 3), round(local_y, 3)],
+                "xy_m": [round(sample_x, 3), round(sample_y, 3)],
+                "terrain_z_m": round(terrain_z, 3),
+            })
+
+        plane = _fit_module_terrain_plane(samples)
+        if not plane:
+            continue
+
+        local_rotation = plane.get("placement_rotation_deg") or [0.0, 0.0, 0.0]
+        poses.append({
+            "position_m": [
+                round(float(point[0]), 3),
+                round(float(point[1]), 3),
+                round(float(plane["placement_z_m"]), 3),
+            ],
+            "rotation_deg": [
+                round(float(local_rotation[0]), 3),
+                round(float(local_rotation[1]), 3),
+                round(rover_yaw, 3),
+            ],
+            "terrain_plane": {
+                "placement_strategy": plane.get("placement_strategy"),
+                "min_clearance_m": plane.get("min_clearance_m"),
+                "mean_clearance_m": plane.get("mean_clearance_m"),
+                "max_clearance_m": plane.get("max_clearance_m"),
+            },
+        })
+
+    return poses
+
+
+def _route_sample_tangent(
+    points: list[tuple[float, float, float]],
+    idx: int,
+) -> tuple[float, float, float] | None:
+    if len(points) < 2:
+        return None
+    if idx <= 0:
+        p0, p1 = points[0], points[1]
+    elif idx >= len(points) - 1:
+        p0, p1 = points[-2], points[-1]
+    else:
+        p0, p1 = points[idx - 1], points[idx + 1]
+    return (p1[0] - p0[0], p1[1] - p0[1], p1[2] - p0[2])
+
+
 def _module_footprint_sample_points(
     part: dict[str, Any],
     center_x: float,
@@ -687,6 +792,25 @@ def _module_footprint_sample_points(
 
     rotation = part.get("transform", {}).get("rotation_deg") or [0.0, 0.0, 0.0]
     yaw_deg = float(rotation[2]) if len(rotation) >= 3 else 0.0
+    return _oriented_footprint_sample_points(
+        center_x=center_x,
+        center_y=center_y,
+        length=length,
+        width=width,
+        yaw_deg=yaw_deg,
+        grid_count=5,
+    )
+
+
+def _oriented_footprint_sample_points(
+    *,
+    center_x: float,
+    center_y: float,
+    length: float,
+    width: float,
+    yaw_deg: float,
+    grid_count: int,
+) -> list[tuple[float, float, str, float, float]]:
     yaw = math.radians(yaw_deg)
     cos_yaw = math.cos(yaw)
     sin_yaw = math.sin(yaw)
@@ -709,7 +833,6 @@ def _module_footprint_sample_points(
         (local_x, local_y, label)
         for (local_x, local_y), label in named_samples.items()
     ]
-    grid_count = 5
     for i in range(grid_count):
         local_x = -half_l + (length * i / (grid_count - 1))
         for j in range(grid_count):
@@ -1181,11 +1304,12 @@ def build_manifest(
         terrain_usd_path=terrain_usd_path,
         terrain_config=terrain_config,
     )
+    scene_cad_footprints = _load_scene_cad_footprints(scene_usd_path)
     terrain_routes = _build_terrain_route_diagnostics(
         system_json=system_json,
         sampler=terrain_sampler,
+        scene_cad_footprints=scene_cad_footprints,
     )
-    scene_cad_footprints = _load_scene_cad_footprints(scene_usd_path)
     terrain_modules = _build_module_terrain_diagnostics(
         system_json=system_json,
         sampler=terrain_sampler,
