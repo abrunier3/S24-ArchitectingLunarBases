@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import itertools
 import json
 import math
 import os
@@ -736,64 +737,97 @@ def _fit_module_terrain_plane(
         local_x, local_y = sample["local_xy_m"]
         rows.append((float(local_x), float(local_y), float(sample["terrain_z_m"])))
 
-    # Least-squares fit: z = a*x + b*y + c in module-local coordinates.
-    sx = sy = sz = sxx = syy = sxy = sxz = syz = 0.0
-    n = float(len(rows))
-    for x, y, z in rows:
-        sx += x
-        sy += y
-        sz += z
-        sxx += x * x
-        syy += y * y
-        sxy += x * y
-        sxz += x * z
-        syz += y * z
+    # Support-plane fit: z = a*x + b*y + c in module-local coordinates.
+    # The chosen plane stays above all sampled terrain points and minimizes
+    # average clearance. At least one sampled point touches the plane.
+    best = None
+    tolerance = 1e-6
+    for triplet in itertools.combinations(rows, 3):
+        solution = _plane_from_three_points(triplet)
+        if solution is None:
+            continue
 
-    solution = _solve_3x3(
-        [
-            [sxx, sxy, sx],
-            [sxy, syy, sy],
-            [sx, sy, n],
-        ],
-        [sxz, syz, sz],
-    )
-    if solution is None:
-        return None
+        a, b, c = solution
+        clearances = [
+            a * x + b * y + c - z
+            for x, y, z in rows
+        ]
+        if min(clearances) < -tolerance:
+            continue
 
-    a, b, c = solution
+        mean_clearance = sum(clearances) / len(clearances)
+        max_clearance = max(clearances)
+        rms_clearance = math.sqrt(
+            sum(value * value for value in clearances) / len(clearances)
+        )
+        slope_magnitude = math.hypot(a, b)
+        score = (
+            round(mean_clearance, 9),
+            round(rms_clearance, 9),
+            round(max_clearance, 9),
+            round(slope_magnitude, 9),
+        )
+        if best is None or score < best["score"]:
+            best = {
+                "a": a,
+                "b": b,
+                "c": c,
+                "clearances": clearances,
+                "score": score,
+            }
+
+    if best is None:
+        max_z = max(z for _, _, z in rows)
+        best = {
+            "a": 0.0,
+            "b": 0.0,
+            "c": max_z,
+            "clearances": [max_z - z for _, _, z in rows],
+            "score": None,
+        }
+
+    a = best["a"]
+    b = best["b"]
+    c = best["c"]
+    clearances = best["clearances"]
     roll_deg = math.degrees(math.atan(b))
     pitch_deg = math.degrees(math.atan(-a))
 
-    residuals = []
-    max_grounding_z = None
-    for x, y, z in rows:
-        tilted_bottom_z = a * x + b * y
-        required_origin_z = z - tilted_bottom_z
-        if max_grounding_z is None or required_origin_z > max_grounding_z:
-            max_grounding_z = required_origin_z
-        residuals.append(z - (a * x + b * y + c))
-
-    max_abs_residual = max((abs(value) for value in residuals), default=0.0)
-    rms_residual = math.sqrt(
-        sum(value * value for value in residuals) / len(residuals)
-    ) if residuals else 0.0
+    min_clearance = min(clearances, default=0.0)
+    mean_clearance = sum(clearances) / len(clearances) if clearances else 0.0
+    max_clearance = max(clearances, default=0.0)
+    rms_clearance = math.sqrt(
+        sum(value * value for value in clearances) / len(clearances)
+    ) if clearances else 0.0
 
     return {
         "model": "z = a*x_local + b*y_local + c",
         "a_dz_dx": round(a, 6),
         "b_dz_dy": round(b, 6),
         "c_z_at_origin_m": round(c, 3),
-        "max_non_intersection_z_m": round(max_grounding_z if max_grounding_z is not None else c, 3),
         "placement_z_m": round(c, 3),
-        "placement_strategy": "least_squares_plane_center_visual_contact",
+        "placement_strategy": "minimum_mean_clearance_support_plane",
         "placement_rotation_deg": [
             round(roll_deg, 3),
             round(pitch_deg, 3),
             0.0,
         ],
-        "max_abs_residual_m": round(max_abs_residual, 3),
-        "rms_residual_m": round(rms_residual, 3),
+        "min_clearance_m": round(min_clearance, 3),
+        "mean_clearance_m": round(mean_clearance, 3),
+        "max_clearance_m": round(max_clearance, 3),
+        "rms_clearance_m": round(rms_clearance, 3),
     }
+
+
+def _plane_from_three_points(
+    points: tuple[tuple[float, float, float], ...],
+) -> list[float] | None:
+    matrix = []
+    vector = []
+    for x, y, z in points:
+        matrix.append([x, y, 1.0])
+        vector.append(z)
+    return _solve_3x3(matrix, vector)
 
 
 def _solve_3x3(
