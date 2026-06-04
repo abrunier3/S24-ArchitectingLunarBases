@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import argparse
-import itertools
 import json
 import math
 import os
@@ -571,6 +570,7 @@ def _build_module_terrain_diagnostics(
     *,
     system_json: dict[str, Any],
     sampler: _TerrainSampler | None,
+    scene_cad_footprints: dict[str, dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     if sampler is None:
         return {
@@ -581,6 +581,7 @@ def _build_module_terrain_diagnostics(
 
     modules: dict[str, Any] = {}
     out_of_bounds = 0
+    scene_cad_footprints = scene_cad_footprints or {}
     for part in system_json.get("parts", []):
         name = part.get("name")
         position = part.get("transform", {}).get("position_m")
@@ -590,7 +591,8 @@ def _build_module_terrain_diagnostics(
         x = float(position[0])
         y = float(position[1])
         authored_z = float(position[2]) if len(position) > 2 else 0.0
-        footprint_samples = _module_footprint_sample_points(part, x, y)
+        footprint = scene_cad_footprints.get(name)
+        footprint_samples = _module_footprint_sample_points(part, x, y, footprint)
         sampled_points = []
         missing_samples = 0
         for sample_x, sample_y, label, local_x, local_y in footprint_samples:
@@ -624,6 +626,8 @@ def _build_module_terrain_diagnostics(
                 "authored_z_m": round(authored_z, 3),
                 "placement_z_m": None,
                 "sample_strategy": "center_corners_edge_midpoints_grid_5x5_max",
+                "footprint_source": (footprint or {}).get("source", "sysml_size_m"),
+                "footprint_size_m": (footprint or {}).get("size_m"),
                 "footprint_samples": sampled_points,
             }
             continue
@@ -653,6 +657,8 @@ def _build_module_terrain_diagnostics(
             "placement_rotation_deg": placement_rotation,
             "terrain_plane": terrain_plane,
             "sample_strategy": "center_corners_edge_midpoints_grid_5x5_max",
+            "footprint_source": (footprint or {}).get("source", "sysml_size_m"),
+            "footprint_size_m": (footprint or {}).get("size_m"),
             "footprint_sample_count": len(sampled_points),
             "missing_sample_count": missing_samples,
             "footprint_samples": sampled_points,
@@ -669,8 +675,11 @@ def _module_footprint_sample_points(
     part: dict[str, Any],
     center_x: float,
     center_y: float,
+    footprint: dict[str, Any] | None = None,
 ) -> list[tuple[float, float, str, float, float]]:
-    size_m = (part.get("dimensions") or {}).get("size_m") or {}
+    size_m = (footprint or {}).get("size_m")
+    if not size_m:
+        size_m = (part.get("dimensions") or {}).get("size_m") or {}
     length = float(size_m.get("length") or 0.0)
     width = float(size_m.get("width") or 0.0)
     if length <= 0 or width <= 0:
@@ -722,6 +731,53 @@ def _module_footprint_sample_points(
     return world_samples
 
 
+def _load_scene_cad_footprints(
+    scene_usd_path: Path,
+) -> dict[str, dict[str, Any]]:
+    footprints: dict[str, dict[str, Any]] = {}
+    try:
+        from pxr import Usd
+    except Exception:
+        return footprints
+
+    try:
+        stage = Usd.Stage.Open(str(scene_usd_path))
+        if not stage:
+            return footprints
+
+        world = stage.GetPrimAtPath("/World")
+        if not world or not world.IsValid():
+            return footprints
+
+        for prim in world.GetChildren():
+            geom = stage.GetPrimAtPath(f"{prim.GetPath()}/Geometry")
+            if not geom or not geom.IsValid():
+                continue
+
+            attr = geom.GetAttribute("cad:fittedBboxSize")
+            value = attr.Get() if attr else None
+            if value is None:
+                continue
+
+            length = abs(float(value[0]))
+            width = abs(float(value[1]))
+            if length <= 0 or width <= 0:
+                continue
+
+            footprints[prim.GetName()] = {
+                "source": "cad_fitted_bbox_xy",
+                "size_m": {
+                    "length": length,
+                    "width": width,
+                },
+            }
+
+    except Exception:
+        return footprints
+
+    return footprints
+
+
 def _fit_module_terrain_plane(
     sampled_points: list[dict[str, Any]],
 ) -> dict[str, Any] | None:
@@ -737,59 +793,39 @@ def _fit_module_terrain_plane(
         local_x, local_y = sample["local_xy_m"]
         rows.append((float(local_x), float(local_y), float(sample["terrain_z_m"])))
 
-    # Support-plane fit: z = a*x + b*y + c in module-local coordinates.
-    # The chosen plane stays above all sampled terrain points and minimizes
-    # average clearance. At least one sampled point touches the plane.
-    best = None
-    tolerance = 1e-6
-    for triplet in itertools.combinations(rows, 3):
-        solution = _plane_from_three_points(triplet)
-        if solution is None:
-            continue
+    # Least-squares fit: z = a*x + b*y + c in module-local coordinates.
+    sx = sy = sz = sxx = syy = sxy = sxz = syz = 0.0
+    n = float(len(rows))
+    for x, y, z in rows:
+        sx += x
+        sy += y
+        sz += z
+        sxx += x * x
+        syy += y * y
+        sxy += x * y
+        sxz += x * z
+        syz += y * z
 
-        a, b, c = solution
-        clearances = [
-            a * x + b * y + c - z
-            for x, y, z in rows
-        ]
-        if min(clearances) < -tolerance:
-            continue
+    solution = _solve_3x3(
+        [
+            [sxx, sxy, sx],
+            [sxy, syy, sy],
+            [sx, sy, n],
+        ],
+        [sxz, syz, sz],
+    )
+    if solution is None:
+        return None
 
-        mean_clearance = sum(clearances) / len(clearances)
-        max_clearance = max(clearances)
-        rms_clearance = math.sqrt(
-            sum(value * value for value in clearances) / len(clearances)
-        )
-        slope_magnitude = math.hypot(a, b)
-        score = (
-            round(mean_clearance, 9),
-            round(rms_clearance, 9),
-            round(max_clearance, 9),
-            round(slope_magnitude, 9),
-        )
-        if best is None or score < best["score"]:
-            best = {
-                "a": a,
-                "b": b,
-                "c": c,
-                "clearances": clearances,
-                "score": score,
-            }
-
-    if best is None:
-        max_z = max(z for _, _, z in rows)
-        best = {
-            "a": 0.0,
-            "b": 0.0,
-            "c": max_z,
-            "clearances": [max_z - z for _, _, z in rows],
-            "score": None,
-        }
-
-    a = best["a"]
-    b = best["b"]
-    c = best["c"]
-    clearances = best["clearances"]
+    a, b, c_fit = solution
+    placement_z = max(
+        z - (a * x + b * y)
+        for x, y, z in rows
+    )
+    clearances = [
+        a * x + b * y + placement_z - z
+        for x, y, z in rows
+    ]
     roll_deg = math.degrees(math.atan(b))
     pitch_deg = math.degrees(math.atan(-a))
 
@@ -804,9 +840,9 @@ def _fit_module_terrain_plane(
         "model": "z = a*x_local + b*y_local + c",
         "a_dz_dx": round(a, 6),
         "b_dz_dy": round(b, 6),
-        "c_z_at_origin_m": round(c, 3),
-        "placement_z_m": round(c, 3),
-        "placement_strategy": "minimum_mean_clearance_support_plane",
+        "least_squares_c_z_at_origin_m": round(c_fit, 3),
+        "placement_z_m": round(placement_z, 3),
+        "placement_strategy": "least_squares_orientation_max_grounding_offset",
         "placement_rotation_deg": [
             round(roll_deg, 3),
             round(pitch_deg, 3),
@@ -817,17 +853,6 @@ def _fit_module_terrain_plane(
         "max_clearance_m": round(max_clearance, 3),
         "rms_clearance_m": round(rms_clearance, 3),
     }
-
-
-def _plane_from_three_points(
-    points: tuple[tuple[float, float, float], ...],
-) -> list[float] | None:
-    matrix = []
-    vector = []
-    for x, y, z in points:
-        matrix.append([x, y, 1.0])
-        vector.append(z)
-    return _solve_3x3(matrix, vector)
 
 
 def _solve_3x3(
@@ -1160,9 +1185,11 @@ def build_manifest(
         system_json=system_json,
         sampler=terrain_sampler,
     )
+    scene_cad_footprints = _load_scene_cad_footprints(scene_usd_path)
     terrain_modules = _build_module_terrain_diagnostics(
         system_json=system_json,
         sampler=terrain_sampler,
+        scene_cad_footprints=scene_cad_footprints,
     )
     manifest = {
         "scene_usd": _repo_relative(scene_usd_path, start=output_dir),
