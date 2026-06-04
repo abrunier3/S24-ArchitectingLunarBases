@@ -16911,28 +16911,30 @@
           "placement_z_m": 193.537,
           "delta_z_m": -193.537,
           "placement_rotation_deg": [
-            4.592,
-            -0.172,
+            0.425,
+            0.152,
             0.0
           ],
           "terrain_plane": {
             "model": "z = a*x_local + b*y_local + c",
-            "a_dz_dx": 0.003004,
-            "b_dz_dy": 0.08032,
-            "c_z_at_origin_m": 193.537,
+            "a_dz_dx": -0.00265,
+            "b_dz_dy": 0.00742,
+            "least_squares_c_z_at_origin_m": 153.546,
             "placement_z_m": 193.537,
-            "placement_strategy": "minimum_mean_clearance_support_plane",
+            "placement_strategy": "least_squares_orientation_max_grounding_offset",
             "placement_rotation_deg": [
-              4.592,
-              -0.172,
+              0.425,
+              0.152,
               0.0
             ],
             "min_clearance_m": 0.0,
             "mean_clearance_m": 39.991,
-            "max_clearance_m": 89.17,
-            "rms_clearance_m": 49.27
+            "max_clearance_m": 54.969,
+            "rms_clearance_m": 41.943
           },
           "sample_strategy": "center_corners_edge_midpoints_grid_5x5_max",
+          "footprint_source": "sysml_size_m",
+          "footprint_size_m": null,
           "footprint_sample_count": 25,
           "missing_sample_count": 0,
           "footprint_samples": [
@@ -17248,28 +17250,33 @@
           "placement_z_m": 192.423,
           "delta_z_m": -192.423,
           "placement_rotation_deg": [
-            -18.517,
-            -17.683,
+            -18.514,
+            -17.684,
             0.0
           ],
           "terrain_plane": {
             "model": "z = a*x_local + b*y_local + c",
-            "a_dz_dx": 0.318822,
-            "b_dz_dy": -0.334933,
-            "c_z_at_origin_m": 192.423,
+            "a_dz_dx": 0.318824,
+            "b_dz_dy": -0.334865,
+            "least_squares_c_z_at_origin_m": 192.422,
             "placement_z_m": 192.423,
-            "placement_strategy": "minimum_mean_clearance_support_plane",
+            "placement_strategy": "least_squares_orientation_max_grounding_offset",
             "placement_rotation_deg": [
-              -18.517,
-              -17.683,
+              -18.514,
+              -17.684,
               0.0
             ],
-            "min_clearance_m": -0.0,
+            "min_clearance_m": 0.0,
             "mean_clearance_m": 0.0,
             "max_clearance_m": 0.001,
-            "rms_clearance_m": 0.0
+            "rms_clearance_m": 0.001
           },
           "sample_strategy": "center_corners_edge_midpoints_grid_5x5_max",
+          "footprint_source": "cad_fitted_bbox_xy",
+          "footprint_size_m": {
+            "length": 10.0,
+            "width": 11.23171527096481
+          },
           "footprint_sample_count": 25,
           "missing_sample_count": 0,
           "footprint_samples": [
@@ -17288,233 +17295,65 @@
             {
               "label": "corner_front_left",
               "local_xy_m": [
-                -10.0,
-                -5.0
+                -5.0,
+                -5.616
               ],
               "xy_m": [
-                -1302.5,
-                1352.89
+                -1297.5,
+                1352.274
               ],
-              "terrain_z_m": 190.909
+              "terrain_z_m": 192.709
             },
             {
               "label": "corner_front_right",
               "local_xy_m": [
-                10.0,
-                -5.0
+                5.0,
+                -5.616
               ],
               "xy_m": [
-                -1282.5,
-                1352.89
+                -1287.5,
+                1352.274
               ],
-              "terrain_z_m": 197.285
+              "terrain_z_m": 195.897
             },
             {
               "label": "corner_back_right",
               "local_xy_m": [
-                10.0,
-                5.0
+                5.0,
+                5.616
               ],
               "xy_m": [
-                -1282.5,
-                1362.89
+                -1287.5,
+                1363.506
               ],
-              "terrain_z_m": 193.936
+              "terrain_z_m": 192.136
             },
             {
               "label": "corner_back_left",
               "local_xy_m": [
-                -10.0,
-                5.0
+                -5.0,
+                5.616
               ],
               "xy_m": [
-                -1302.5,
-                1362.89
+                -1297.5,
+                1363.506
               ],
-              "terrain_z_m": 187.56
+              "terrain_z_m": 188.948
             },
             {
               "label": "edge_front_mid",
               "local_xy_m": [
                 0.0,
-                -5.0
+                -5.616
               ],
               "xy_m": [
                 -1292.5,
-                1352.89
+                1352.274
               ],
-              "terrain_z_m": 194.097
+              "terrain_z_m": 194.303
             },
             {
               "label": "edge_right_mid",
-              "local_xy_m": [
-                10.0,
-                0.0
-              ],
-              "xy_m": [
-                -1282.5,
-                1357.89
-              ],
-              "terrain_z_m": 195.611
-            },
-            {
-              "label": "edge_back_mid",
-              "local_xy_m": [
-                0.0,
-                5.0
-              ],
-              "xy_m": [
-                -1292.5,
-                1362.89
-              ],
-              "terrain_z_m": 190.748
-            },
-            {
-              "label": "edge_left_mid",
-              "local_xy_m": [
-                -10.0,
-                0.0
-              ],
-              "xy_m": [
-                -1302.5,
-                1357.89
-              ],
-              "terrain_z_m": 189.234
-            },
-            {
-              "label": "grid_0_1",
-              "local_xy_m": [
-                -10.0,
-                -2.5
-              ],
-              "xy_m": [
-                -1302.5,
-                1355.39
-              ],
-              "terrain_z_m": 190.072
-            },
-            {
-              "label": "grid_0_3",
-              "local_xy_m": [
-                -10.0,
-                2.5
-              ],
-              "xy_m": [
-                -1302.5,
-                1360.39
-              ],
-              "terrain_z_m": 188.397
-            },
-            {
-              "label": "grid_1_0",
-              "local_xy_m": [
-                -5.0,
-                -5.0
-              ],
-              "xy_m": [
-                -1297.5,
-                1352.89
-              ],
-              "terrain_z_m": 192.503
-            },
-            {
-              "label": "grid_1_1",
-              "local_xy_m": [
-                -5.0,
-                -2.5
-              ],
-              "xy_m": [
-                -1297.5,
-                1355.39
-              ],
-              "terrain_z_m": 191.666
-            },
-            {
-              "label": "grid_1_2",
-              "local_xy_m": [
-                -5.0,
-                0.0
-              ],
-              "xy_m": [
-                -1297.5,
-                1357.89
-              ],
-              "terrain_z_m": 190.828
-            },
-            {
-              "label": "grid_1_3",
-              "local_xy_m": [
-                -5.0,
-                2.5
-              ],
-              "xy_m": [
-                -1297.5,
-                1360.39
-              ],
-              "terrain_z_m": 189.991
-            },
-            {
-              "label": "grid_1_4",
-              "local_xy_m": [
-                -5.0,
-                5.0
-              ],
-              "xy_m": [
-                -1297.5,
-                1362.89
-              ],
-              "terrain_z_m": 189.154
-            },
-            {
-              "label": "grid_2_1",
-              "local_xy_m": [
-                0.0,
-                -2.5
-              ],
-              "xy_m": [
-                -1292.5,
-                1355.39
-              ],
-              "terrain_z_m": 193.26
-            },
-            {
-              "label": "grid_2_3",
-              "local_xy_m": [
-                0.0,
-                2.5
-              ],
-              "xy_m": [
-                -1292.5,
-                1360.39
-              ],
-              "terrain_z_m": 191.585
-            },
-            {
-              "label": "grid_3_0",
-              "local_xy_m": [
-                5.0,
-                -5.0
-              ],
-              "xy_m": [
-                -1287.5,
-                1352.89
-              ],
-              "terrain_z_m": 195.691
-            },
-            {
-              "label": "grid_3_1",
-              "local_xy_m": [
-                5.0,
-                -2.5
-              ],
-              "xy_m": [
-                -1287.5,
-                1355.39
-              ],
-              "terrain_z_m": 194.854
-            },
-            {
-              "label": "grid_3_2",
               "local_xy_m": [
                 5.0,
                 0.0
@@ -17526,52 +17365,220 @@
               "terrain_z_m": 194.017
             },
             {
-              "label": "grid_3_3",
+              "label": "edge_back_mid",
               "local_xy_m": [
-                5.0,
-                2.5
+                0.0,
+                5.616
               ],
               "xy_m": [
-                -1287.5,
-                1360.39
+                -1292.5,
+                1363.506
               ],
-              "terrain_z_m": 193.179
+              "terrain_z_m": 190.542
+            },
+            {
+              "label": "edge_left_mid",
+              "local_xy_m": [
+                -5.0,
+                0.0
+              ],
+              "xy_m": [
+                -1297.5,
+                1357.89
+              ],
+              "terrain_z_m": 190.828
+            },
+            {
+              "label": "grid_0_1",
+              "local_xy_m": [
+                -5.0,
+                -2.808
+              ],
+              "xy_m": [
+                -1297.5,
+                1355.082
+              ],
+              "terrain_z_m": 191.769
+            },
+            {
+              "label": "grid_0_3",
+              "local_xy_m": [
+                -5.0,
+                2.808
+              ],
+              "xy_m": [
+                -1297.5,
+                1360.698
+              ],
+              "terrain_z_m": 189.888
+            },
+            {
+              "label": "grid_1_0",
+              "local_xy_m": [
+                -2.5,
+                -5.616
+              ],
+              "xy_m": [
+                -1295.0,
+                1352.274
+              ],
+              "terrain_z_m": 193.506
+            },
+            {
+              "label": "grid_1_1",
+              "local_xy_m": [
+                -2.5,
+                -2.808
+              ],
+              "xy_m": [
+                -1295.0,
+                1355.082
+              ],
+              "terrain_z_m": 192.566
+            },
+            {
+              "label": "grid_1_2",
+              "local_xy_m": [
+                -2.5,
+                0.0
+              ],
+              "xy_m": [
+                -1295.0,
+                1357.89
+              ],
+              "terrain_z_m": 191.625
+            },
+            {
+              "label": "grid_1_3",
+              "local_xy_m": [
+                -2.5,
+                2.808
+              ],
+              "xy_m": [
+                -1295.0,
+                1360.698
+              ],
+              "terrain_z_m": 190.685
+            },
+            {
+              "label": "grid_1_4",
+              "local_xy_m": [
+                -2.5,
+                5.616
+              ],
+              "xy_m": [
+                -1295.0,
+                1363.506
+              ],
+              "terrain_z_m": 189.745
+            },
+            {
+              "label": "grid_2_1",
+              "local_xy_m": [
+                0.0,
+                -2.808
+              ],
+              "xy_m": [
+                -1292.5,
+                1355.082
+              ],
+              "terrain_z_m": 193.363
+            },
+            {
+              "label": "grid_2_3",
+              "local_xy_m": [
+                0.0,
+                2.808
+              ],
+              "xy_m": [
+                -1292.5,
+                1360.698
+              ],
+              "terrain_z_m": 191.482
+            },
+            {
+              "label": "grid_3_0",
+              "local_xy_m": [
+                2.5,
+                -5.616
+              ],
+              "xy_m": [
+                -1290.0,
+                1352.274
+              ],
+              "terrain_z_m": 195.1
+            },
+            {
+              "label": "grid_3_1",
+              "local_xy_m": [
+                2.5,
+                -2.808
+              ],
+              "xy_m": [
+                -1290.0,
+                1355.082
+              ],
+              "terrain_z_m": 194.16
+            },
+            {
+              "label": "grid_3_2",
+              "local_xy_m": [
+                2.5,
+                0.0
+              ],
+              "xy_m": [
+                -1290.0,
+                1357.89
+              ],
+              "terrain_z_m": 193.22
+            },
+            {
+              "label": "grid_3_3",
+              "local_xy_m": [
+                2.5,
+                2.808
+              ],
+              "xy_m": [
+                -1290.0,
+                1360.698
+              ],
+              "terrain_z_m": 192.279
             },
             {
               "label": "grid_3_4",
               "local_xy_m": [
-                5.0,
-                5.0
+                2.5,
+                5.616
               ],
               "xy_m": [
-                -1287.5,
-                1362.89
+                -1290.0,
+                1363.506
               ],
-              "terrain_z_m": 192.342
+              "terrain_z_m": 191.339
             },
             {
               "label": "grid_4_1",
               "local_xy_m": [
-                10.0,
-                -2.5
+                5.0,
+                -2.808
               ],
               "xy_m": [
-                -1282.5,
-                1355.39
+                -1287.5,
+                1355.082
               ],
-              "terrain_z_m": 196.448
+              "terrain_z_m": 194.957
             },
             {
               "label": "grid_4_3",
               "local_xy_m": [
-                10.0,
-                2.5
+                5.0,
+                2.808
               ],
               "xy_m": [
-                -1282.5,
-                1360.39
+                -1287.5,
+                1360.698
               ],
-              "terrain_z_m": 194.773
+              "terrain_z_m": 193.076
             }
           ]
         },
@@ -17582,31 +17589,36 @@
             187.89
           ],
           "authored_z_m": 0.0,
-          "placement_z_m": 150.725,
-          "delta_z_m": -150.725,
+          "placement_z_m": 150.425,
+          "delta_z_m": -150.425,
           "placement_rotation_deg": [
-            -10.234,
-            12.178,
+            -12.458,
+            12.172,
             0.0
           ],
           "terrain_plane": {
             "model": "z = a*x_local + b*y_local + c",
-            "a_dz_dx": -0.2158,
-            "b_dz_dy": -0.180533,
-            "c_z_at_origin_m": 150.725,
-            "placement_z_m": 150.725,
-            "placement_strategy": "minimum_mean_clearance_support_plane",
+            "a_dz_dx": -0.21569,
+            "b_dz_dy": -0.220929,
+            "least_squares_c_z_at_origin_m": 150.42,
+            "placement_z_m": 150.425,
+            "placement_strategy": "least_squares_orientation_max_grounding_offset",
             "placement_rotation_deg": [
-              -10.234,
-              12.178,
+              -12.458,
+              12.172,
               0.0
             ],
             "min_clearance_m": 0.0,
-            "mean_clearance_m": 0.237,
-            "max_clearance_m": 0.609,
-            "rms_clearance_m": 0.302
+            "mean_clearance_m": 0.005,
+            "max_clearance_m": 0.006,
+            "rms_clearance_m": 0.005
           },
           "sample_strategy": "center_corners_edge_midpoints_grid_5x5_max",
+          "footprint_source": "cad_fitted_bbox_xy",
+          "footprint_size_m": {
+            "length": 5.884576548873613,
+            "width": 6.803610519115168
+          },
           "footprint_sample_count": 25,
           "missing_sample_count": 0,
           "footprint_samples": [
@@ -17625,290 +17637,290 @@
             {
               "label": "corner_front_left",
               "local_xy_m": [
-                -10.0,
-                -7.5
+                -2.942,
+                -3.402
               ],
               "xy_m": [
-                17.5,
-                180.39
+                24.558,
+                184.488
               ],
-              "terrain_z_m": 154.237
+              "terrain_z_m": 151.807
             },
             {
               "label": "corner_front_right",
               "local_xy_m": [
-                10.0,
-                -7.5
+                2.942,
+                -3.402
               ],
               "xy_m": [
-                37.5,
-                180.39
+                30.442,
+                184.488
               ],
-              "terrain_z_m": 149.92
+              "terrain_z_m": 150.537
             },
             {
               "label": "corner_back_right",
               "local_xy_m": [
-                10.0,
-                7.5
+                2.942,
+                3.402
               ],
               "xy_m": [
-                37.5,
-                195.39
+                30.442,
+                191.292
               ],
-              "terrain_z_m": 147.213
+              "terrain_z_m": 149.039
             },
             {
               "label": "corner_back_left",
               "local_xy_m": [
-                -10.0,
-                7.5
+                -2.942,
+                3.402
               ],
               "xy_m": [
-                17.5,
-                195.39
+                24.558,
+                191.292
               ],
-              "terrain_z_m": 150.92
+              "terrain_z_m": 150.303
             },
             {
               "label": "edge_front_mid",
               "local_xy_m": [
                 0.0,
-                -7.5
+                -3.402
               ],
               "xy_m": [
                 27.5,
-                180.39
+                184.488
               ],
-              "terrain_z_m": 152.078
+              "terrain_z_m": 151.172
             },
             {
               "label": "edge_right_mid",
               "local_xy_m": [
-                10.0,
+                2.942,
                 0.0
               ],
               "xy_m": [
-                37.5,
+                30.442,
                 187.89
               ],
-              "terrain_z_m": 148.298
+              "terrain_z_m": 149.785
             },
             {
               "label": "edge_back_mid",
               "local_xy_m": [
                 0.0,
-                7.5
+                3.402
               ],
               "xy_m": [
                 27.5,
-                195.39
+                191.292
               ],
-              "terrain_z_m": 148.96
+              "terrain_z_m": 149.668
             },
             {
               "label": "edge_left_mid",
               "local_xy_m": [
-                -10.0,
+                -2.942,
                 0.0
               ],
               "xy_m": [
-                17.5,
+                24.558,
                 187.89
               ],
-              "terrain_z_m": 152.578
+              "terrain_z_m": 151.055
             },
             {
               "label": "grid_0_1",
               "local_xy_m": [
-                -10.0,
-                -3.75
+                -2.942,
+                -1.701
               ],
               "xy_m": [
-                17.5,
-                184.14
+                24.558,
+                186.189
               ],
-              "terrain_z_m": 153.408
+              "terrain_z_m": 151.431
             },
             {
               "label": "grid_0_3",
               "local_xy_m": [
-                -10.0,
-                3.75
+                -2.942,
+                1.701
               ],
               "xy_m": [
-                17.5,
-                191.64
+                24.558,
+                189.591
               ],
-              "terrain_z_m": 151.749
+              "terrain_z_m": 150.679
             },
             {
               "label": "grid_1_0",
               "local_xy_m": [
-                -5.0,
-                -7.5
+                -1.471,
+                -3.402
               ],
               "xy_m": [
-                22.5,
-                180.39
+                26.029,
+                184.488
               ],
-              "terrain_z_m": 153.158
+              "terrain_z_m": 151.49
             },
             {
               "label": "grid_1_1",
               "local_xy_m": [
-                -5.0,
-                -3.75
+                -1.471,
+                -1.701
               ],
               "xy_m": [
-                22.5,
-                184.14
+                26.029,
+                186.189
               ],
-              "terrain_z_m": 152.328
+              "terrain_z_m": 151.113
             },
             {
               "label": "grid_1_2",
               "local_xy_m": [
-                -5.0,
+                -1.471,
                 0.0
               ],
               "xy_m": [
-                22.5,
+                26.029,
                 187.89
               ],
-              "terrain_z_m": 151.499
+              "terrain_z_m": 150.737
             },
             {
               "label": "grid_1_3",
               "local_xy_m": [
-                -5.0,
-                3.75
+                -1.471,
+                1.701
               ],
               "xy_m": [
-                22.5,
-                191.64
+                26.029,
+                189.591
               ],
-              "terrain_z_m": 150.67
+              "terrain_z_m": 150.361
             },
             {
               "label": "grid_1_4",
               "local_xy_m": [
-                -5.0,
-                7.5
+                -1.471,
+                3.402
               ],
               "xy_m": [
-                22.5,
-                195.39
+                26.029,
+                191.292
               ],
-              "terrain_z_m": 149.841
+              "terrain_z_m": 149.985
             },
             {
               "label": "grid_2_1",
               "local_xy_m": [
                 0.0,
-                -3.75
+                -1.701
               ],
               "xy_m": [
                 27.5,
-                184.14
+                186.189
               ],
-              "terrain_z_m": 151.249
+              "terrain_z_m": 150.796
             },
             {
               "label": "grid_2_3",
               "local_xy_m": [
                 0.0,
-                3.75
+                1.701
               ],
               "xy_m": [
                 27.5,
-                191.64
+                189.591
               ],
-              "terrain_z_m": 149.591
+              "terrain_z_m": 150.044
             },
             {
               "label": "grid_3_0",
               "local_xy_m": [
-                5.0,
-                -7.5
+                1.471,
+                -3.402
               ],
               "xy_m": [
-                32.5,
-                180.39
+                28.971,
+                184.488
               ],
-              "terrain_z_m": 150.999
+              "terrain_z_m": 150.854
             },
             {
               "label": "grid_3_1",
               "local_xy_m": [
-                5.0,
-                -3.75
+                1.471,
+                -1.701
               ],
               "xy_m": [
-                32.5,
-                184.14
+                28.971,
+                186.189
               ],
-              "terrain_z_m": 150.17
+              "terrain_z_m": 150.478
             },
             {
               "label": "grid_3_2",
               "local_xy_m": [
-                5.0,
+                1.471,
                 0.0
               ],
               "xy_m": [
-                32.5,
+                28.971,
                 187.89
               ],
-              "terrain_z_m": 149.34
+              "terrain_z_m": 150.102
             },
             {
               "label": "grid_3_3",
               "local_xy_m": [
-                5.0,
-                3.75
+                1.471,
+                1.701
               ],
               "xy_m": [
-                32.5,
-                191.64
+                28.971,
+                189.591
               ],
-              "terrain_z_m": 148.629
+              "terrain_z_m": 149.726
             },
             {
               "label": "grid_3_4",
               "local_xy_m": [
-                5.0,
-                7.5
+                1.471,
+                3.402
               ],
               "xy_m": [
-                32.5,
-                195.39
+                28.971,
+                191.292
               ],
-              "terrain_z_m": 148.087
+              "terrain_z_m": 149.35
             },
             {
               "label": "grid_4_1",
               "local_xy_m": [
-                10.0,
-                -3.75
+                2.942,
+                -1.701
               ],
               "xy_m": [
-                37.5,
-                184.14
+                30.442,
+                186.189
               ],
-              "terrain_z_m": 149.09
+              "terrain_z_m": 150.161
             },
             {
               "label": "grid_4_3",
               "local_xy_m": [
-                10.0,
-                3.75
+                2.942,
+                1.701
               ],
               "xy_m": [
-                37.5,
-                191.64
+                30.442,
+                189.591
               ],
-              "terrain_z_m": 147.756
+              "terrain_z_m": 149.409
             }
           ]
         },
@@ -17919,31 +17931,36 @@
             1142.89
           ],
           "authored_z_m": 0.0,
-          "placement_z_m": 132.578,
-          "delta_z_m": -132.578,
+          "placement_z_m": 131.98,
+          "delta_z_m": -131.98,
           "placement_rotation_deg": [
-            -20.456,
-            5.363,
+            -24.452,
+            1.248,
             0.0
           ],
           "terrain_plane": {
             "model": "z = a*x_local + b*y_local + c",
-            "a_dz_dx": -0.09388,
-            "b_dz_dy": -0.373,
-            "c_z_at_origin_m": 132.578,
-            "placement_z_m": 132.578,
-            "placement_strategy": "minimum_mean_clearance_support_plane",
+            "a_dz_dx": -0.021777,
+            "b_dz_dy": -0.454707,
+            "least_squares_c_z_at_origin_m": 127.749,
+            "placement_z_m": 131.98,
+            "placement_strategy": "least_squares_orientation_max_grounding_offset",
             "placement_rotation_deg": [
-              -20.456,
-              5.363,
+              -24.452,
+              1.248,
               0.0
             ],
-            "min_clearance_m": 0.0,
-            "mean_clearance_m": 4.54,
-            "max_clearance_m": 8.703,
-            "rms_clearance_m": 5.307
+            "min_clearance_m": -0.0,
+            "mean_clearance_m": 4.231,
+            "max_clearance_m": 6.628,
+            "rms_clearance_m": 4.607
           },
           "sample_strategy": "center_corners_edge_midpoints_grid_5x5_max",
+          "footprint_source": "cad_fitted_bbox_xy",
+          "footprint_size_m": {
+            "length": 43.3012695558605,
+            "width": 50.0
+          },
           "footprint_sample_count": 25,
           "missing_sample_count": 0,
           "footprint_samples": [
@@ -17962,50 +17979,50 @@
             {
               "label": "corner_front_left",
               "local_xy_m": [
-                -25.0,
+                -21.651,
                 -25.0
               ],
               "xy_m": [
-                577.5,
+                580.849,
                 1117.89
               ],
-              "terrain_z_m": 144.25
+              "terrain_z_m": 143.477
             },
             {
               "label": "corner_front_right",
               "local_xy_m": [
-                25.0,
+                21.651,
                 -25.0
               ],
               "xy_m": [
-                627.5,
+                624.151,
                 1117.89
               ],
-              "terrain_z_m": 139.556
+              "terrain_z_m": 139.328
             },
             {
               "label": "corner_back_right",
               "local_xy_m": [
-                25.0,
+                21.651,
                 25.0
               ],
               "xy_m": [
-                627.5,
+                624.151,
                 1167.89
               ],
-              "terrain_z_m": 120.906
+              "terrain_z_m": 120.141
             },
             {
               "label": "corner_back_left",
               "local_xy_m": [
-                -25.0,
+                -21.651,
                 25.0
               ],
               "xy_m": [
-                577.5,
+                580.849,
                 1167.89
               ],
-              "terrain_z_m": 117.179
+              "terrain_z_m": 116.789
             },
             {
               "label": "edge_front_mid",
@@ -18022,14 +18039,14 @@
             {
               "label": "edge_right_mid",
               "local_xy_m": [
-                25.0,
+                21.651,
                 0.0
               ],
               "xy_m": [
-                627.5,
+                624.151,
                 1142.89
               ],
-              "terrain_z_m": 127.715
+              "terrain_z_m": 127.711
             },
             {
               "label": "edge_back_mid",
@@ -18046,98 +18063,98 @@
             {
               "label": "edge_left_mid",
               "local_xy_m": [
-                -25.0,
+                -21.651,
                 0.0
               ],
               "xy_m": [
-                577.5,
+                580.849,
                 1142.89
               ],
-              "terrain_z_m": 129.839
+              "terrain_z_m": 129.071
             },
             {
               "label": "grid_0_1",
               "local_xy_m": [
-                -25.0,
+                -21.651,
                 -12.5
               ],
               "xy_m": [
-                577.5,
+                580.849,
                 1130.39
               ],
-              "terrain_z_m": 136.767
+              "terrain_z_m": 135.999
             },
             {
               "label": "grid_0_3",
               "local_xy_m": [
-                -25.0,
+                -21.651,
                 12.5
               ],
               "xy_m": [
-                577.5,
+                580.849,
                 1155.39
               ],
-              "terrain_z_m": 122.911
+              "terrain_z_m": 122.338
             },
             {
               "label": "grid_1_0",
               "local_xy_m": [
-                -12.5,
+                -10.825,
                 -25.0
               ],
               "xy_m": [
-                590.0,
+                591.675,
                 1117.89
               ],
-              "terrain_z_m": 141.366
+              "terrain_z_m": 140.98
             },
             {
               "label": "grid_1_1",
               "local_xy_m": [
-                -12.5,
+                -10.825,
                 -12.5
               ],
               "xy_m": [
-                590.0,
+                591.675,
                 1130.39
               ],
-              "terrain_z_m": 133.902
+              "terrain_z_m": 133.518
             },
             {
               "label": "grid_1_2",
               "local_xy_m": [
-                -12.5,
+                -10.825,
                 0.0
               ],
               "xy_m": [
-                590.0,
+                591.675,
                 1142.89
               ],
-              "terrain_z_m": 126.974
+              "terrain_z_m": 126.626
             },
             {
               "label": "grid_1_3",
               "local_xy_m": [
-                -12.5,
+                -10.825,
                 12.5
               ],
               "xy_m": [
-                590.0,
+                591.675,
                 1155.39
               ],
-              "terrain_z_m": 121.272
+              "terrain_z_m": 121.077
             },
             {
               "label": "grid_1_4",
               "local_xy_m": [
-                -12.5,
+                -10.825,
                 25.0
               ],
               "xy_m": [
-                590.0,
+                591.675,
                 1167.89
               ],
-              "terrain_z_m": 115.723
+              "terrain_z_m": 115.528
             },
             {
               "label": "grid_2_1",
@@ -18166,86 +18183,86 @@
             {
               "label": "grid_3_0",
               "local_xy_m": [
-                12.5,
+                10.825,
                 -25.0
               ],
               "xy_m": [
-                615.0,
+                613.325,
                 1117.89
               ],
-              "terrain_z_m": 138.482
+              "terrain_z_m": 138.265
             },
             {
               "label": "grid_3_1",
               "local_xy_m": [
-                12.5,
+                10.825,
                 -12.5
               ],
               "xy_m": [
-                615.0,
+                613.325,
                 1130.39
               ],
-              "terrain_z_m": 131.104
+              "terrain_z_m": 131.102
             },
             {
               "label": "grid_3_2",
               "local_xy_m": [
-                12.5,
+                10.825,
                 0.0
               ],
               "xy_m": [
-                615.0,
+                613.325,
                 1142.89
               ],
-              "terrain_z_m": 127.341
+              "terrain_z_m": 126.939
             },
             {
               "label": "grid_3_3",
               "local_xy_m": [
-                12.5,
+                10.825,
                 12.5
               ],
               "xy_m": [
-                615.0,
+                613.325,
                 1155.39
               ],
-              "terrain_z_m": 122.641
+              "terrain_z_m": 122.239
             },
             {
               "label": "grid_3_4",
               "local_xy_m": [
-                12.5,
+                10.825,
                 25.0
               ],
               "xy_m": [
-                615.0,
+                613.325,
                 1167.89
               ],
-              "terrain_z_m": 117.942
+              "terrain_z_m": 117.539
             },
             {
               "label": "grid_4_1",
               "local_xy_m": [
-                25.0,
+                21.651,
                 -12.5
               ],
               "xy_m": [
-                627.5,
+                624.151,
                 1130.39
               ],
-              "terrain_z_m": 131.12
+              "terrain_z_m": 131.116
             },
             {
               "label": "grid_4_3",
               "local_xy_m": [
-                25.0,
+                21.651,
                 12.5
               ],
               "xy_m": [
-                627.5,
+                624.151,
                 1155.39
               ],
-              "terrain_z_m": 124.311
+              "terrain_z_m": 124.307
             }
           ]
         },
@@ -18259,28 +18276,33 @@
           "placement_z_m": 202.339,
           "delta_z_m": -202.339,
           "placement_rotation_deg": [
-            0.988,
-            12.257,
+            0.991,
+            12.253,
             0.0
           ],
           "terrain_plane": {
             "model": "z = a*x_local + b*y_local + c",
-            "a_dz_dx": -0.21725,
-            "b_dz_dy": 0.01725,
-            "c_z_at_origin_m": 202.339,
+            "a_dz_dx": -0.217177,
+            "b_dz_dy": 0.0173,
+            "least_squares_c_z_at_origin_m": 202.339,
             "placement_z_m": 202.339,
-            "placement_strategy": "minimum_mean_clearance_support_plane",
+            "placement_strategy": "least_squares_orientation_max_grounding_offset",
             "placement_rotation_deg": [
-              0.988,
-              12.257,
+              0.991,
+              12.253,
               0.0
             ],
-            "min_clearance_m": -0.0,
+            "min_clearance_m": 0.0,
             "mean_clearance_m": 0.0,
             "max_clearance_m": 0.001,
             "rms_clearance_m": 0.001
           },
           "sample_strategy": "center_corners_edge_midpoints_grid_5x5_max",
+          "footprint_source": "cad_fitted_bbox_xy",
+          "footprint_size_m": {
+            "length": 3.9671081933898225,
+            "width": 4.0
+          },
           "footprint_sample_count": 25,
           "missing_sample_count": 0,
           "footprint_samples": [
@@ -18299,50 +18321,50 @@
             {
               "label": "corner_front_left",
               "local_xy_m": [
-                -2.0,
+                -1.984,
                 -2.0
               ],
               "xy_m": [
-                1150.5,
+                1150.516,
                 -529.11
               ],
-              "terrain_z_m": 202.738
+              "terrain_z_m": 202.735
             },
             {
               "label": "corner_front_right",
               "local_xy_m": [
-                2.0,
+                1.984,
                 -2.0
               ],
               "xy_m": [
-                1154.5,
+                1154.484,
                 -529.11
               ],
-              "terrain_z_m": 201.869
+              "terrain_z_m": 201.873
             },
             {
               "label": "corner_back_right",
               "local_xy_m": [
-                2.0,
+                1.984,
                 2.0
               ],
               "xy_m": [
-                1154.5,
+                1154.484,
                 -525.11
               ],
-              "terrain_z_m": 201.939
+              "terrain_z_m": 201.942
             },
             {
               "label": "corner_back_left",
               "local_xy_m": [
-                -2.0,
+                -1.984,
                 2.0
               ],
               "xy_m": [
-                1150.5,
+                1150.516,
                 -525.11
               ],
-              "terrain_z_m": 202.808
+              "terrain_z_m": 202.804
             },
             {
               "label": "edge_front_mid",
@@ -18359,14 +18381,14 @@
             {
               "label": "edge_right_mid",
               "local_xy_m": [
-                2.0,
+                1.984,
                 0.0
               ],
               "xy_m": [
-                1154.5,
+                1154.484,
                 -527.11
               ],
-              "terrain_z_m": 201.904
+              "terrain_z_m": 201.908
             },
             {
               "label": "edge_back_mid",
@@ -18383,98 +18405,98 @@
             {
               "label": "edge_left_mid",
               "local_xy_m": [
-                -2.0,
+                -1.984,
                 0.0
               ],
               "xy_m": [
-                1150.5,
+                1150.516,
                 -527.11
               ],
-              "terrain_z_m": 202.773
+              "terrain_z_m": 202.769
             },
             {
               "label": "grid_0_1",
               "local_xy_m": [
-                -2.0,
+                -1.984,
                 -1.0
               ],
               "xy_m": [
-                1150.5,
+                1150.516,
                 -528.11
               ],
-              "terrain_z_m": 202.756
+              "terrain_z_m": 202.752
             },
             {
               "label": "grid_0_3",
               "local_xy_m": [
-                -2.0,
+                -1.984,
                 1.0
               ],
               "xy_m": [
-                1150.5,
+                1150.516,
                 -526.11
               ],
-              "terrain_z_m": 202.79
+              "terrain_z_m": 202.787
             },
             {
               "label": "grid_1_0",
               "local_xy_m": [
-                -1.0,
+                -0.992,
                 -2.0
               ],
               "xy_m": [
-                1151.5,
+                1151.508,
                 -529.11
               ],
-              "terrain_z_m": 202.521
+              "terrain_z_m": 202.519
             },
             {
               "label": "grid_1_1",
               "local_xy_m": [
-                -1.0,
+                -0.992,
                 -1.0
               ],
               "xy_m": [
-                1151.5,
+                1151.508,
                 -528.11
               ],
-              "terrain_z_m": 202.539
+              "terrain_z_m": 202.537
             },
             {
               "label": "grid_1_2",
               "local_xy_m": [
-                -1.0,
+                -0.992,
                 0.0
               ],
               "xy_m": [
-                1151.5,
+                1151.508,
                 -527.11
               ],
-              "terrain_z_m": 202.556
+              "terrain_z_m": 202.554
             },
             {
               "label": "grid_1_3",
               "local_xy_m": [
-                -1.0,
+                -0.992,
                 1.0
               ],
               "xy_m": [
-                1151.5,
+                1151.508,
                 -526.11
               ],
-              "terrain_z_m": 202.573
+              "terrain_z_m": 202.571
             },
             {
               "label": "grid_1_4",
               "local_xy_m": [
-                -1.0,
+                -0.992,
                 2.0
               ],
               "xy_m": [
-                1151.5,
+                1151.508,
                 -525.11
               ],
-              "terrain_z_m": 202.59
+              "terrain_z_m": 202.589
             },
             {
               "label": "grid_2_1",
@@ -18503,86 +18525,86 @@
             {
               "label": "grid_3_0",
               "local_xy_m": [
-                1.0,
+                0.992,
                 -2.0
               ],
               "xy_m": [
-                1153.5,
+                1153.492,
                 -529.11
               ],
-              "terrain_z_m": 202.087
+              "terrain_z_m": 202.089
             },
             {
               "label": "grid_3_1",
               "local_xy_m": [
-                1.0,
+                0.992,
                 -1.0
               ],
               "xy_m": [
-                1153.5,
+                1153.492,
                 -528.11
               ],
-              "terrain_z_m": 202.104
+              "terrain_z_m": 202.106
             },
             {
               "label": "grid_3_2",
               "local_xy_m": [
-                1.0,
+                0.992,
                 0.0
               ],
               "xy_m": [
-                1153.5,
+                1153.492,
                 -527.11
               ],
-              "terrain_z_m": 202.121
+              "terrain_z_m": 202.123
             },
             {
               "label": "grid_3_3",
               "local_xy_m": [
-                1.0,
+                0.992,
                 1.0
               ],
               "xy_m": [
-                1153.5,
+                1153.492,
                 -526.11
               ],
-              "terrain_z_m": 202.139
+              "terrain_z_m": 202.14
             },
             {
               "label": "grid_3_4",
               "local_xy_m": [
-                1.0,
+                0.992,
                 2.0
               ],
               "xy_m": [
-                1153.5,
+                1153.492,
                 -525.11
               ],
-              "terrain_z_m": 202.156
+              "terrain_z_m": 202.158
             },
             {
               "label": "grid_4_1",
               "local_xy_m": [
-                2.0,
+                1.984,
                 -1.0
               ],
               "xy_m": [
-                1154.5,
+                1154.484,
                 -528.11
               ],
-              "terrain_z_m": 201.887
+              "terrain_z_m": 201.89
             },
             {
               "label": "grid_4_3",
               "local_xy_m": [
-                2.0,
+                1.984,
                 1.0
               ],
               "xy_m": [
-                1154.5,
+                1154.484,
                 -526.11
               ],
-              "terrain_z_m": 201.921
+              "terrain_z_m": 201.925
             }
           ]
         },
@@ -18593,31 +18615,36 @@
             0.0
           ],
           "authored_z_m": 0.0,
-          "placement_z_m": 193.569,
-          "delta_z_m": -193.569,
+          "placement_z_m": 193.56,
+          "delta_z_m": -193.56,
           "placement_rotation_deg": [
-            -28.487,
-            1.386,
+            -28.625,
+            1.591,
             0.0
           ],
           "terrain_plane": {
             "model": "z = a*x_local + b*y_local + c",
-            "a_dz_dx": -0.0242,
-            "b_dz_dy": -0.542667,
-            "c_z_at_origin_m": 193.569,
-            "placement_z_m": 193.569,
-            "placement_strategy": "minimum_mean_clearance_support_plane",
+            "a_dz_dx": -0.027778,
+            "b_dz_dy": -0.545776,
+            "least_squares_c_z_at_origin_m": 193.545,
+            "placement_z_m": 193.56,
+            "placement_strategy": "least_squares_orientation_max_grounding_offset",
             "placement_rotation_deg": [
-              -28.487,
-              1.386,
+              -28.625,
+              1.591,
               0.0
             ],
-            "min_clearance_m": -0.0,
-            "mean_clearance_m": 0.017,
-            "max_clearance_m": 0.036,
-            "rms_clearance_m": 0.02
+            "min_clearance_m": 0.0,
+            "mean_clearance_m": 0.016,
+            "max_clearance_m": 0.026,
+            "rms_clearance_m": 0.017
           },
           "sample_strategy": "center_corners_edge_midpoints_grid_5x5_max",
+          "footprint_source": "cad_fitted_bbox_xy",
+          "footprint_size_m": {
+            "length": 2.577031972453369,
+            "width": 5.0
+          },
           "footprint_sample_count": 25,
           "missing_sample_count": 0,
           "footprint_samples": [
@@ -18636,290 +18663,290 @@
             {
               "label": "corner_front_left",
               "local_xy_m": [
-                -2.5,
-                -1.5
+                -1.289,
+                -2.5
               ],
               "xy_m": [
-                -2.5,
-                -1.5
+                -1.289,
+                -2.5
               ],
-              "terrain_z_m": 194.442
+              "terrain_z_m": 194.941
             },
             {
               "label": "corner_front_right",
               "local_xy_m": [
-                2.5,
-                -1.5
+                1.289,
+                -2.5
               ],
               "xy_m": [
-                2.5,
-                -1.5
+                1.289,
+                -2.5
               ],
-              "terrain_z_m": 194.322
+              "terrain_z_m": 194.889
             },
             {
               "label": "corner_back_right",
               "local_xy_m": [
-                2.5,
-                1.5
+                1.289,
+                2.5
               ],
               "xy_m": [
-                2.5,
-                1.5
+                1.289,
+                2.5
               ],
-              "terrain_z_m": 192.671
+              "terrain_z_m": 192.137
             },
             {
               "label": "corner_back_left",
               "local_xy_m": [
-                -2.5,
-                1.5
+                -1.289,
+                2.5
               ],
               "xy_m": [
-                -2.5,
-                1.5
+                -1.289,
+                2.5
               ],
-              "terrain_z_m": 192.815
+              "terrain_z_m": 192.228
             },
             {
               "label": "edge_front_mid",
               "local_xy_m": [
                 0.0,
-                -1.5
+                -2.5
               ],
               "xy_m": [
                 0.0,
-                -1.5
+                -2.5
               ],
-              "terrain_z_m": 194.356
+              "terrain_z_m": 194.907
             },
             {
               "label": "edge_right_mid",
               "local_xy_m": [
-                2.5,
+                1.289,
                 0.0
               ],
               "xy_m": [
-                2.5,
+                1.289,
                 0.0
               ],
-              "terrain_z_m": 193.496
+              "terrain_z_m": 193.513
             },
             {
               "label": "edge_back_mid",
               "local_xy_m": [
                 0.0,
-                1.5
+                2.5
               ],
               "xy_m": [
                 0.0,
-                1.5
+                2.5
               ],
-              "terrain_z_m": 192.723
+              "terrain_z_m": 192.181
             },
             {
               "label": "edge_left_mid",
               "local_xy_m": [
-                -2.5,
+                -1.289,
                 0.0
               ],
               "xy_m": [
-                -2.5,
+                -1.289,
                 0.0
               ],
-              "terrain_z_m": 193.629
+              "terrain_z_m": 193.584
             },
             {
               "label": "grid_0_1",
               "local_xy_m": [
-                -2.5,
-                -0.75
+                -1.289,
+                -1.25
               ],
               "xy_m": [
-                -2.5,
-                -0.75
+                -1.289,
+                -1.25
               ],
-              "terrain_z_m": 194.036
+              "terrain_z_m": 194.262
             },
             {
               "label": "grid_0_3",
               "local_xy_m": [
-                -2.5,
-                0.75
+                -1.289,
+                1.25
               ],
               "xy_m": [
-                -2.5,
-                0.75
+                -1.289,
+                1.25
               ],
-              "terrain_z_m": 193.222
+              "terrain_z_m": 192.906
             },
             {
               "label": "grid_1_0",
               "local_xy_m": [
-                -1.25,
-                -1.5
+                -0.644,
+                -2.5
               ],
               "xy_m": [
-                -1.25,
-                -1.5
+                -0.644,
+                -2.5
               ],
-              "terrain_z_m": 194.397
+              "terrain_z_m": 194.917
             },
             {
               "label": "grid_1_1",
               "local_xy_m": [
-                -1.25,
-                -0.75
+                -0.644,
+                -1.25
               ],
               "xy_m": [
-                -1.25,
-                -0.75
+                -0.644,
+                -1.25
               ],
-              "terrain_z_m": 193.99
+              "terrain_z_m": 194.239
             },
             {
               "label": "grid_1_2",
               "local_xy_m": [
-                -1.25,
+                -0.644,
                 0.0
               ],
               "xy_m": [
-                -1.25,
+                -0.644,
                 0.0
               ],
-              "terrain_z_m": 193.583
+              "terrain_z_m": 193.561
             },
             {
               "label": "grid_1_3",
               "local_xy_m": [
-                -1.25,
-                0.75
+                -0.644,
+                1.25
               ],
               "xy_m": [
-                -1.25,
-                0.75
+                -0.644,
+                1.25
               ],
-              "terrain_z_m": 193.176
+              "terrain_z_m": 192.883
             },
             {
               "label": "grid_1_4",
               "local_xy_m": [
-                -1.25,
-                1.5
+                -0.644,
+                2.5
               ],
               "xy_m": [
-                -1.25,
-                1.5
+                -0.644,
+                2.5
               ],
-              "terrain_z_m": 192.769
+              "terrain_z_m": 192.205
             },
             {
               "label": "grid_2_1",
               "local_xy_m": [
                 0.0,
-                -0.75
+                -1.25
               ],
               "xy_m": [
                 0.0,
-                -0.75
+                -1.25
               ],
-              "terrain_z_m": 193.944
+              "terrain_z_m": 194.219
             },
             {
               "label": "grid_2_3",
               "local_xy_m": [
                 0.0,
-                0.75
+                1.25
               ],
               "xy_m": [
                 0.0,
-                0.75
+                1.25
               ],
-              "terrain_z_m": 193.13
+              "terrain_z_m": 192.859
             },
             {
               "label": "grid_3_0",
               "local_xy_m": [
-                1.25,
-                -1.5
+                0.644,
+                -2.5
               ],
               "xy_m": [
-                1.25,
-                -1.5
+                0.644,
+                -2.5
               ],
-              "terrain_z_m": 194.339
+              "terrain_z_m": 194.898
             },
             {
               "label": "grid_3_1",
               "local_xy_m": [
-                1.25,
-                -0.75
+                0.644,
+                -1.25
               ],
               "xy_m": [
-                1.25,
-                -0.75
+                0.644,
+                -1.25
               ],
-              "terrain_z_m": 193.926
+              "terrain_z_m": 194.21
             },
             {
               "label": "grid_3_2",
               "local_xy_m": [
-                1.25,
+                0.644,
                 0.0
               ],
               "xy_m": [
-                1.25,
+                0.644,
                 0.0
               ],
-              "terrain_z_m": 193.514
+              "terrain_z_m": 193.522
             },
             {
               "label": "grid_3_3",
               "local_xy_m": [
-                1.25,
-                0.75
+                0.644,
+                1.25
               ],
               "xy_m": [
-                1.25,
-                0.75
+                0.644,
+                1.25
               ],
-              "terrain_z_m": 193.101
+              "terrain_z_m": 192.835
             },
             {
               "label": "grid_3_4",
               "local_xy_m": [
-                1.25,
-                1.5
+                0.644,
+                2.5
               ],
               "xy_m": [
-                1.25,
-                1.5
+                0.644,
+                2.5
               ],
-              "terrain_z_m": 192.688
+              "terrain_z_m": 192.157
             },
             {
               "label": "grid_4_1",
               "local_xy_m": [
-                2.5,
-                -0.75
+                1.289,
+                -1.25
               ],
               "xy_m": [
-                2.5,
-                -0.75
+                1.289,
+                -1.25
               ],
-              "terrain_z_m": 193.909
+              "terrain_z_m": 194.201
             },
             {
               "label": "grid_4_3",
               "local_xy_m": [
-                2.5,
-                0.75
+                1.289,
+                1.25
               ],
               "xy_m": [
-                2.5,
-                0.75
+                1.289,
+                1.25
               ],
-              "terrain_z_m": 193.084
+              "terrain_z_m": 192.825
             }
           ]
         },
@@ -18930,31 +18957,36 @@
             -822.11
           ],
           "authored_z_m": 0.0,
-          "placement_z_m": 215.637,
-          "delta_z_m": -215.637,
+          "placement_z_m": 215.234,
+          "delta_z_m": -215.234,
           "placement_rotation_deg": [
-            -10.157,
-            5.837,
+            -9.538,
+            5.995,
             0.0
           ],
           "terrain_plane": {
             "model": "z = a*x_local + b*y_local + c",
-            "a_dz_dx": -0.10222,
-            "b_dz_dy": -0.17916,
-            "c_z_at_origin_m": 215.637,
-            "placement_z_m": 215.637,
-            "placement_strategy": "minimum_mean_clearance_support_plane",
+            "a_dz_dx": -0.105014,
+            "b_dz_dy": -0.16803,
+            "least_squares_c_z_at_origin_m": 214.986,
+            "placement_z_m": 215.234,
+            "placement_strategy": "least_squares_orientation_max_grounding_offset",
             "placement_rotation_deg": [
-              -10.157,
-              5.837,
+              -9.538,
+              5.995,
               0.0
             ],
             "min_clearance_m": 0.0,
-            "mean_clearance_m": 0.563,
-            "max_clearance_m": 2.628,
-            "rms_clearance_m": 0.796
+            "mean_clearance_m": 0.248,
+            "max_clearance_m": 0.522,
+            "rms_clearance_m": 0.295
           },
           "sample_strategy": "center_corners_edge_midpoints_grid_5x5_max",
+          "footprint_source": "cad_fitted_bbox_xy",
+          "footprint_size_m": {
+            "length": 12.221140038223735,
+            "width": 8.998298496811968
+          },
           "footprint_sample_count": 25,
           "missing_sample_count": 0,
           "footprint_samples": [
@@ -18973,290 +19005,290 @@
             {
               "label": "corner_front_left",
               "local_xy_m": [
-                -12.5,
-                -12.5
+                -6.111,
+                -4.499
               ],
               "xy_m": [
-                -710.0,
-                -834.61
+                -703.611,
+                -826.609
               ],
-              "terrain_z_m": 219.154
+              "terrain_z_m": 216.605
             },
             {
               "label": "corner_front_right",
               "local_xy_m": [
-                12.5,
-                -12.5
+                6.111,
+                -4.499
               ],
               "xy_m": [
-                -685.0,
-                -834.61
+                -691.389,
+                -826.609
               ],
-              "terrain_z_m": 216.263
+              "terrain_z_m": 215.207
             },
             {
               "label": "corner_back_right",
               "local_xy_m": [
-                12.5,
-                12.5
+                6.111,
+                4.499
               ],
               "xy_m": [
-                -685.0,
-                -809.61
+                -691.389,
+                -817.611
               ],
-              "terrain_z_m": 209.492
+              "terrain_z_m": 213.836
             },
             {
               "label": "corner_back_left",
               "local_xy_m": [
-                -12.5,
-                12.5
+                -6.111,
+                4.499
               ],
               "xy_m": [
-                -710.0,
-                -809.61
+                -703.611,
+                -817.611
               ],
-              "terrain_z_m": 214.675
+              "terrain_z_m": 214.981
             },
             {
               "label": "edge_front_mid",
               "local_xy_m": [
                 0.0,
-                -12.5
+                -4.499
               ],
               "xy_m": [
                 -697.5,
-                -834.61
+                -826.609
               ],
-              "terrain_z_m": 216.994
+              "terrain_z_m": 215.549
             },
             {
               "label": "edge_right_mid",
               "local_xy_m": [
-                12.5,
+                6.111,
                 0.0
               ],
               "xy_m": [
-                -685.0,
+                -691.389,
                 -822.11
               ],
-              "terrain_z_m": 214.359
+              "terrain_z_m": 214.522
             },
             {
               "label": "edge_back_mid",
               "local_xy_m": [
                 0.0,
-                12.5
+                4.499
               ],
               "xy_m": [
                 -697.5,
-                -809.61
+                -817.611
               ],
-              "terrain_z_m": 212.773
+              "terrain_z_m": 213.991
             },
             {
               "label": "edge_left_mid",
               "local_xy_m": [
-                -12.5,
+                -6.111,
                 0.0
               ],
               "xy_m": [
-                -710.0,
+                -703.611,
                 -822.11
               ],
-              "terrain_z_m": 216.897
+              "terrain_z_m": 215.793
             },
             {
               "label": "grid_0_1",
               "local_xy_m": [
-                -12.5,
-                -6.25
+                -6.111,
+                -2.25
               ],
               "xy_m": [
-                -710.0,
-                -828.36
+                -703.611,
+                -824.36
               ],
-              "terrain_z_m": 218.026
+              "terrain_z_m": 216.199
             },
             {
               "label": "grid_0_3",
               "local_xy_m": [
-                -12.5,
-                6.25
+                -6.111,
+                2.25
               ],
               "xy_m": [
-                -710.0,
-                -815.86
+                -703.611,
+                -819.86
               ],
-              "terrain_z_m": 215.782
+              "terrain_z_m": 215.387
             },
             {
               "label": "grid_1_0",
               "local_xy_m": [
-                -6.25,
-                -12.5
+                -3.055,
+                -4.499
               ],
               "xy_m": [
-                -703.75,
-                -834.61
+                -700.555,
+                -826.609
               ],
-              "terrain_z_m": 218.074
+              "terrain_z_m": 216.077
             },
             {
               "label": "grid_1_1",
               "local_xy_m": [
-                -6.25,
-                -6.25
+                -3.055,
+                -2.25
               ],
               "xy_m": [
-                -703.75,
-                -828.36
+                -700.555,
+                -824.36
               ],
-              "terrain_z_m": 216.945
+              "terrain_z_m": 215.671
             },
             {
               "label": "grid_1_2",
               "local_xy_m": [
-                -6.25,
+                -3.055,
                 0.0
               ],
               "xy_m": [
-                -703.75,
+                -700.555,
                 -822.11
               ],
-              "terrain_z_m": 215.817
+              "terrain_z_m": 215.265
             },
             {
               "label": "grid_1_3",
               "local_xy_m": [
-                -6.25,
-                6.25
+                -3.055,
+                2.25
               ],
               "xy_m": [
-                -703.75,
-                -815.86
+                -700.555,
+                -819.86
               ],
-              "terrain_z_m": 214.689
+              "terrain_z_m": 214.859
             },
             {
               "label": "grid_1_4",
               "local_xy_m": [
-                -6.25,
-                12.5
+                -3.055,
+                4.499
               ],
               "xy_m": [
-                -703.75,
-                -809.61
+                -700.555,
+                -817.611
               ],
-              "terrain_z_m": 213.569
+              "terrain_z_m": 214.453
             },
             {
               "label": "grid_2_1",
               "local_xy_m": [
                 0.0,
-                -6.25
+                -2.25
               ],
               "xy_m": [
                 -697.5,
-                -828.36
+                -824.36
               ],
-              "terrain_z_m": 215.865
+              "terrain_z_m": 215.143
             },
             {
               "label": "grid_2_3",
               "local_xy_m": [
                 0.0,
-                6.25
+                2.25
               ],
               "xy_m": [
                 -697.5,
-                -815.86
+                -819.86
               ],
-              "terrain_z_m": 213.725
+              "terrain_z_m": 214.334
             },
             {
               "label": "grid_3_0",
               "local_xy_m": [
-                6.25,
-                -12.5
+                3.055,
+                -4.499
               ],
               "xy_m": [
-                -691.25,
-                -834.61
+                -694.445,
+                -826.609
               ],
-              "terrain_z_m": 216.422
+              "terrain_z_m": 215.285
             },
             {
               "label": "grid_3_1",
               "local_xy_m": [
-                6.25,
-                -6.25
+                3.055,
+                -2.25
               ],
               "xy_m": [
-                -691.25,
-                -828.36
+                -694.445,
+                -824.36
               ],
-              "terrain_z_m": 215.47
+              "terrain_z_m": 214.942
             },
             {
               "label": "grid_3_2",
               "local_xy_m": [
-                6.25,
+                3.055,
                 0.0
               ],
               "xy_m": [
-                -691.25,
+                -694.445,
                 -822.11
               ],
-              "terrain_z_m": 214.518
+              "terrain_z_m": 214.599
             },
             {
               "label": "grid_3_3",
               "local_xy_m": [
-                6.25,
-                6.25
+                3.055,
+                2.25
               ],
               "xy_m": [
-                -691.25,
-                -815.86
+                -694.445,
+                -819.86
               ],
-              "terrain_z_m": 213.566
+              "terrain_z_m": 214.256
             },
             {
               "label": "grid_3_4",
               "local_xy_m": [
-                6.25,
-                12.5
+                3.055,
+                4.499
               ],
               "xy_m": [
-                -691.25,
-                -809.61
+                -694.445,
+                -817.611
               ],
-              "terrain_z_m": 211.214
+              "terrain_z_m": 213.914
             },
             {
               "label": "grid_4_1",
               "local_xy_m": [
-                12.5,
-                -6.25
+                6.111,
+                -2.25
               ],
               "xy_m": [
-                -685.0,
-                -828.36
+                -691.389,
+                -824.36
               ],
-              "terrain_z_m": 215.311
+              "terrain_z_m": 214.864
             },
             {
               "label": "grid_4_3",
               "local_xy_m": [
-                12.5,
-                6.25
+                6.111,
+                2.25
               ],
               "xy_m": [
-                -685.0,
-                -815.86
+                -691.389,
+                -819.86
               ],
-              "terrain_z_m": 212.504
+              "terrain_z_m": 214.179
             }
           ]
         },
@@ -19267,31 +19299,36 @@
             0.0
           ],
           "authored_z_m": 0.0,
-          "placement_z_m": 193.569,
-          "delta_z_m": -193.569,
+          "placement_z_m": 193.56,
+          "delta_z_m": -193.56,
           "placement_rotation_deg": [
-            -28.487,
-            1.386,
+            -28.625,
+            1.591,
             0.0
           ],
           "terrain_plane": {
             "model": "z = a*x_local + b*y_local + c",
-            "a_dz_dx": -0.0242,
-            "b_dz_dy": -0.542667,
-            "c_z_at_origin_m": 193.569,
-            "placement_z_m": 193.569,
-            "placement_strategy": "minimum_mean_clearance_support_plane",
+            "a_dz_dx": -0.027778,
+            "b_dz_dy": -0.545776,
+            "least_squares_c_z_at_origin_m": 193.545,
+            "placement_z_m": 193.56,
+            "placement_strategy": "least_squares_orientation_max_grounding_offset",
             "placement_rotation_deg": [
-              -28.487,
-              1.386,
+              -28.625,
+              1.591,
               0.0
             ],
-            "min_clearance_m": -0.0,
-            "mean_clearance_m": 0.017,
-            "max_clearance_m": 0.036,
-            "rms_clearance_m": 0.02
+            "min_clearance_m": 0.0,
+            "mean_clearance_m": 0.016,
+            "max_clearance_m": 0.026,
+            "rms_clearance_m": 0.017
           },
           "sample_strategy": "center_corners_edge_midpoints_grid_5x5_max",
+          "footprint_source": "cad_fitted_bbox_xy",
+          "footprint_size_m": {
+            "length": 2.577031972453369,
+            "width": 5.0
+          },
           "footprint_sample_count": 25,
           "missing_sample_count": 0,
           "footprint_samples": [
@@ -19310,290 +19347,290 @@
             {
               "label": "corner_front_left",
               "local_xy_m": [
-                -2.5,
-                -1.5
+                -1.289,
+                -2.5
               ],
               "xy_m": [
-                -2.5,
-                -1.5
+                -1.289,
+                -2.5
               ],
-              "terrain_z_m": 194.442
+              "terrain_z_m": 194.941
             },
             {
               "label": "corner_front_right",
               "local_xy_m": [
-                2.5,
-                -1.5
+                1.289,
+                -2.5
               ],
               "xy_m": [
-                2.5,
-                -1.5
+                1.289,
+                -2.5
               ],
-              "terrain_z_m": 194.322
+              "terrain_z_m": 194.889
             },
             {
               "label": "corner_back_right",
               "local_xy_m": [
-                2.5,
-                1.5
+                1.289,
+                2.5
               ],
               "xy_m": [
-                2.5,
-                1.5
+                1.289,
+                2.5
               ],
-              "terrain_z_m": 192.671
+              "terrain_z_m": 192.137
             },
             {
               "label": "corner_back_left",
               "local_xy_m": [
-                -2.5,
-                1.5
+                -1.289,
+                2.5
               ],
               "xy_m": [
-                -2.5,
-                1.5
+                -1.289,
+                2.5
               ],
-              "terrain_z_m": 192.815
+              "terrain_z_m": 192.228
             },
             {
               "label": "edge_front_mid",
               "local_xy_m": [
                 0.0,
-                -1.5
+                -2.5
               ],
               "xy_m": [
                 0.0,
-                -1.5
+                -2.5
               ],
-              "terrain_z_m": 194.356
+              "terrain_z_m": 194.907
             },
             {
               "label": "edge_right_mid",
               "local_xy_m": [
-                2.5,
+                1.289,
                 0.0
               ],
               "xy_m": [
-                2.5,
+                1.289,
                 0.0
               ],
-              "terrain_z_m": 193.496
+              "terrain_z_m": 193.513
             },
             {
               "label": "edge_back_mid",
               "local_xy_m": [
                 0.0,
-                1.5
+                2.5
               ],
               "xy_m": [
                 0.0,
-                1.5
+                2.5
               ],
-              "terrain_z_m": 192.723
+              "terrain_z_m": 192.181
             },
             {
               "label": "edge_left_mid",
               "local_xy_m": [
-                -2.5,
+                -1.289,
                 0.0
               ],
               "xy_m": [
-                -2.5,
+                -1.289,
                 0.0
               ],
-              "terrain_z_m": 193.629
+              "terrain_z_m": 193.584
             },
             {
               "label": "grid_0_1",
               "local_xy_m": [
-                -2.5,
-                -0.75
+                -1.289,
+                -1.25
               ],
               "xy_m": [
-                -2.5,
-                -0.75
+                -1.289,
+                -1.25
               ],
-              "terrain_z_m": 194.036
+              "terrain_z_m": 194.262
             },
             {
               "label": "grid_0_3",
               "local_xy_m": [
-                -2.5,
-                0.75
+                -1.289,
+                1.25
               ],
               "xy_m": [
-                -2.5,
-                0.75
+                -1.289,
+                1.25
               ],
-              "terrain_z_m": 193.222
+              "terrain_z_m": 192.906
             },
             {
               "label": "grid_1_0",
               "local_xy_m": [
-                -1.25,
-                -1.5
+                -0.644,
+                -2.5
               ],
               "xy_m": [
-                -1.25,
-                -1.5
+                -0.644,
+                -2.5
               ],
-              "terrain_z_m": 194.397
+              "terrain_z_m": 194.917
             },
             {
               "label": "grid_1_1",
               "local_xy_m": [
-                -1.25,
-                -0.75
+                -0.644,
+                -1.25
               ],
               "xy_m": [
-                -1.25,
-                -0.75
+                -0.644,
+                -1.25
               ],
-              "terrain_z_m": 193.99
+              "terrain_z_m": 194.239
             },
             {
               "label": "grid_1_2",
               "local_xy_m": [
-                -1.25,
+                -0.644,
                 0.0
               ],
               "xy_m": [
-                -1.25,
+                -0.644,
                 0.0
               ],
-              "terrain_z_m": 193.583
+              "terrain_z_m": 193.561
             },
             {
               "label": "grid_1_3",
               "local_xy_m": [
-                -1.25,
-                0.75
+                -0.644,
+                1.25
               ],
               "xy_m": [
-                -1.25,
-                0.75
+                -0.644,
+                1.25
               ],
-              "terrain_z_m": 193.176
+              "terrain_z_m": 192.883
             },
             {
               "label": "grid_1_4",
               "local_xy_m": [
-                -1.25,
-                1.5
+                -0.644,
+                2.5
               ],
               "xy_m": [
-                -1.25,
-                1.5
+                -0.644,
+                2.5
               ],
-              "terrain_z_m": 192.769
+              "terrain_z_m": 192.205
             },
             {
               "label": "grid_2_1",
               "local_xy_m": [
                 0.0,
-                -0.75
+                -1.25
               ],
               "xy_m": [
                 0.0,
-                -0.75
+                -1.25
               ],
-              "terrain_z_m": 193.944
+              "terrain_z_m": 194.219
             },
             {
               "label": "grid_2_3",
               "local_xy_m": [
                 0.0,
-                0.75
+                1.25
               ],
               "xy_m": [
                 0.0,
-                0.75
+                1.25
               ],
-              "terrain_z_m": 193.13
+              "terrain_z_m": 192.859
             },
             {
               "label": "grid_3_0",
               "local_xy_m": [
-                1.25,
-                -1.5
+                0.644,
+                -2.5
               ],
               "xy_m": [
-                1.25,
-                -1.5
+                0.644,
+                -2.5
               ],
-              "terrain_z_m": 194.339
+              "terrain_z_m": 194.898
             },
             {
               "label": "grid_3_1",
               "local_xy_m": [
-                1.25,
-                -0.75
+                0.644,
+                -1.25
               ],
               "xy_m": [
-                1.25,
-                -0.75
+                0.644,
+                -1.25
               ],
-              "terrain_z_m": 193.926
+              "terrain_z_m": 194.21
             },
             {
               "label": "grid_3_2",
               "local_xy_m": [
-                1.25,
+                0.644,
                 0.0
               ],
               "xy_m": [
-                1.25,
+                0.644,
                 0.0
               ],
-              "terrain_z_m": 193.514
+              "terrain_z_m": 193.522
             },
             {
               "label": "grid_3_3",
               "local_xy_m": [
-                1.25,
-                0.75
+                0.644,
+                1.25
               ],
               "xy_m": [
-                1.25,
-                0.75
+                0.644,
+                1.25
               ],
-              "terrain_z_m": 193.101
+              "terrain_z_m": 192.835
             },
             {
               "label": "grid_3_4",
               "local_xy_m": [
-                1.25,
-                1.5
+                0.644,
+                2.5
               ],
               "xy_m": [
-                1.25,
-                1.5
+                0.644,
+                2.5
               ],
-              "terrain_z_m": 192.688
+              "terrain_z_m": 192.157
             },
             {
               "label": "grid_4_1",
               "local_xy_m": [
-                2.5,
-                -0.75
+                1.289,
+                -1.25
               ],
               "xy_m": [
-                2.5,
-                -0.75
+                1.289,
+                -1.25
               ],
-              "terrain_z_m": 193.909
+              "terrain_z_m": 194.201
             },
             {
               "label": "grid_4_3",
               "local_xy_m": [
-                2.5,
-                0.75
+                1.289,
+                1.25
               ],
               "xy_m": [
-                2.5,
-                0.75
+                1.289,
+                1.25
               ],
-              "terrain_z_m": 193.084
+              "terrain_z_m": 192.825
             }
           ]
         },
@@ -19604,31 +19641,36 @@
             -187.11
           ],
           "authored_z_m": 0.0,
-          "placement_z_m": 232.926,
-          "delta_z_m": -232.926,
+          "placement_z_m": 232.927,
+          "delta_z_m": -232.927,
           "placement_rotation_deg": [
-            -3.643,
-            18.744,
+            -3.644,
+            18.745,
             0.0
           ],
           "terrain_plane": {
             "model": "z = a*x_local + b*y_local + c",
-            "a_dz_dx": -0.339333,
-            "b_dz_dy": -0.063667,
-            "c_z_at_origin_m": 232.926,
-            "placement_z_m": 232.926,
-            "placement_strategy": "minimum_mean_clearance_support_plane",
+            "a_dz_dx": -0.339363,
+            "b_dz_dy": -0.06368,
+            "least_squares_c_z_at_origin_m": 232.926,
+            "placement_z_m": 232.927,
+            "placement_strategy": "least_squares_orientation_max_grounding_offset",
             "placement_rotation_deg": [
-              -3.643,
-              18.744,
+              -3.644,
+              18.745,
               0.0
             ],
-            "min_clearance_m": -0.0,
-            "mean_clearance_m": 0.0,
+            "min_clearance_m": 0.0,
+            "mean_clearance_m": 0.001,
             "max_clearance_m": 0.001,
-            "rms_clearance_m": 0.0
+            "rms_clearance_m": 0.001
           },
           "sample_strategy": "center_corners_edge_midpoints_grid_5x5_max",
+          "footprint_source": "cad_fitted_bbox_xy",
+          "footprint_size_m": {
+            "length": 3.9937707170936614,
+            "width": 4.0
+          },
           "footprint_sample_count": 25,
           "missing_sample_count": 0,
           "footprint_samples": [
@@ -19647,50 +19689,50 @@
             {
               "label": "corner_front_left",
               "local_xy_m": [
-                -2.0,
+                -1.997,
                 -2.0
               ],
               "xy_m": [
-                -1014.5,
+                -1014.497,
                 -189.11
               ],
-              "terrain_z_m": 233.732
+              "terrain_z_m": 233.731
             },
             {
               "label": "corner_front_right",
               "local_xy_m": [
-                2.0,
+                1.997,
                 -2.0
               ],
               "xy_m": [
-                -1010.5,
+                -1010.503,
                 -189.11
               ],
-              "terrain_z_m": 232.375
+              "terrain_z_m": 232.376
             },
             {
               "label": "corner_back_right",
               "local_xy_m": [
-                2.0,
+                1.997,
                 2.0
               ],
               "xy_m": [
-                -1010.5,
+                -1010.503,
                 -185.11
               ],
-              "terrain_z_m": 232.12
+              "terrain_z_m": 232.121
             },
             {
               "label": "corner_back_left",
               "local_xy_m": [
-                -2.0,
+                -1.997,
                 2.0
               ],
               "xy_m": [
-                -1014.5,
+                -1014.497,
                 -185.11
               ],
-              "terrain_z_m": 233.477
+              "terrain_z_m": 233.476
             },
             {
               "label": "edge_front_mid",
@@ -19707,14 +19749,14 @@
             {
               "label": "edge_right_mid",
               "local_xy_m": [
-                2.0,
+                1.997,
                 0.0
               ],
               "xy_m": [
-                -1010.5,
+                -1010.503,
                 -187.11
               ],
-              "terrain_z_m": 232.247
+              "terrain_z_m": 232.248
             },
             {
               "label": "edge_back_mid",
@@ -19731,59 +19773,59 @@
             {
               "label": "edge_left_mid",
               "local_xy_m": [
-                -2.0,
+                -1.997,
                 0.0
               ],
               "xy_m": [
-                -1014.5,
+                -1014.497,
                 -187.11
               ],
-              "terrain_z_m": 233.605
+              "terrain_z_m": 233.604
             },
             {
               "label": "grid_0_1",
               "local_xy_m": [
-                -2.0,
+                -1.997,
                 -1.0
               ],
               "xy_m": [
-                -1014.5,
+                -1014.497,
                 -188.11
               ],
-              "terrain_z_m": 233.668
+              "terrain_z_m": 233.667
             },
             {
               "label": "grid_0_3",
               "local_xy_m": [
-                -2.0,
+                -1.997,
                 1.0
               ],
               "xy_m": [
-                -1014.5,
+                -1014.497,
                 -186.11
               ],
-              "terrain_z_m": 233.541
+              "terrain_z_m": 233.54
             },
             {
               "label": "grid_1_0",
               "local_xy_m": [
-                -1.0,
+                -0.998,
                 -2.0
               ],
               "xy_m": [
-                -1013.5,
+                -1013.498,
                 -189.11
               ],
-              "terrain_z_m": 233.393
+              "terrain_z_m": 233.392
             },
             {
               "label": "grid_1_1",
               "local_xy_m": [
-                -1.0,
+                -0.998,
                 -1.0
               ],
               "xy_m": [
-                -1013.5,
+                -1013.498,
                 -188.11
               ],
               "terrain_z_m": 233.329
@@ -19791,11 +19833,11 @@
             {
               "label": "grid_1_2",
               "local_xy_m": [
-                -1.0,
+                -0.998,
                 0.0
               ],
               "xy_m": [
-                -1013.5,
+                -1013.498,
                 -187.11
               ],
               "terrain_z_m": 233.265
@@ -19803,26 +19845,26 @@
             {
               "label": "grid_1_3",
               "local_xy_m": [
-                -1.0,
+                -0.998,
                 1.0
               ],
               "xy_m": [
-                -1013.5,
+                -1013.498,
                 -186.11
               ],
-              "terrain_z_m": 233.202
+              "terrain_z_m": 233.201
             },
             {
               "label": "grid_1_4",
               "local_xy_m": [
-                -1.0,
+                -0.998,
                 2.0
               ],
               "xy_m": [
-                -1013.5,
+                -1013.498,
                 -185.11
               ],
-              "terrain_z_m": 233.138
+              "terrain_z_m": 233.137
             },
             {
               "label": "grid_2_1",
@@ -19851,11 +19893,11 @@
             {
               "label": "grid_3_0",
               "local_xy_m": [
-                1.0,
+                0.998,
                 -2.0
               ],
               "xy_m": [
-                -1011.5,
+                -1011.502,
                 -189.11
               ],
               "terrain_z_m": 232.714
@@ -19863,23 +19905,23 @@
             {
               "label": "grid_3_1",
               "local_xy_m": [
-                1.0,
+                0.998,
                 -1.0
               ],
               "xy_m": [
-                -1011.5,
+                -1011.502,
                 -188.11
               ],
-              "terrain_z_m": 232.65
+              "terrain_z_m": 232.651
             },
             {
               "label": "grid_3_2",
               "local_xy_m": [
-                1.0,
+                0.998,
                 0.0
               ],
               "xy_m": [
-                -1011.5,
+                -1011.502,
                 -187.11
               ],
               "terrain_z_m": 232.587
@@ -19887,11 +19929,11 @@
             {
               "label": "grid_3_3",
               "local_xy_m": [
-                1.0,
+                0.998,
                 1.0
               ],
               "xy_m": [
-                -1011.5,
+                -1011.502,
                 -186.11
               ],
               "terrain_z_m": 232.523
@@ -19899,38 +19941,38 @@
             {
               "label": "grid_3_4",
               "local_xy_m": [
-                1.0,
+                0.998,
                 2.0
               ],
               "xy_m": [
-                -1011.5,
+                -1011.502,
                 -185.11
               ],
-              "terrain_z_m": 232.459
+              "terrain_z_m": 232.46
             },
             {
               "label": "grid_4_1",
               "local_xy_m": [
-                2.0,
+                1.997,
                 -1.0
               ],
               "xy_m": [
-                -1010.5,
+                -1010.503,
                 -188.11
               ],
-              "terrain_z_m": 232.311
+              "terrain_z_m": 232.312
             },
             {
               "label": "grid_4_3",
               "local_xy_m": [
-                2.0,
+                1.997,
                 1.0
               ],
               "xy_m": [
-                -1010.5,
+                -1010.503,
                 -186.11
               ],
-              "terrain_z_m": 232.183
+              "terrain_z_m": 232.185
             }
           ]
         }
