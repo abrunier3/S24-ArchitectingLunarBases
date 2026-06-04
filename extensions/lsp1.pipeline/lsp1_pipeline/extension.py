@@ -13,6 +13,7 @@ EXT_ROOT = os.path.normpath(os.path.join(THIS_DIR, ".."))
 REPO_ROOT = os.path.normpath(os.path.join(THIS_DIR, "..", "..", ".."))
 
 DEFAULT_MANIFEST_PATH = os.path.join(EXT_ROOT, "data", "manifest.json")
+ROVER_FORWARD_YAW_OFFSET_DEG = -90.0
 
 
 class LSP1PipelineExtension(omni.ext.IExt):
@@ -962,8 +963,12 @@ class LSP1PipelineExtension(omni.ext.IExt):
             return None
 
         yaw_deg = math.degrees(math.atan2(dy, dx))
-        pitch_deg = -math.degrees(math.atan2(dz, horizontal))
-        return [0.0, pitch_deg, yaw_deg]
+        pitch_deg = math.degrees(math.atan2(dz, horizontal))
+
+        # The rover CAD's nose is authored along local +Y, while atan2 gives
+        # the direction of a local +X forward vector. Rotate by -90 deg so the
+        # nose, not the side, follows the path tangent.
+        return [pitch_deg, 0.0, yaw_deg + ROVER_FORWARD_YAW_OFFSET_DEG]
 
     def _update_dashboard(self, snap):
         for actor in self.actors:
