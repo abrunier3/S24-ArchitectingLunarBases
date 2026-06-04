@@ -14,7 +14,7 @@ REPO_ROOT = os.path.normpath(os.path.join(THIS_DIR, "..", "..", ".."))
 
 DEFAULT_MANIFEST_PATH = os.path.join(EXT_ROOT, "data", "manifest.json")
 ROVER_FORWARD_YAW_OFFSET_DEG = -90.0
-ROVER_TERRAIN_CLEARANCE_M = 0.15
+ROVER_TERRAIN_CLEARANCE_M = 0.0
 
 
 class LSP1PipelineExtension(omni.ext.IExt):
