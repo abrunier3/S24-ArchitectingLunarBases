@@ -783,7 +783,9 @@ def _fit_module_terrain_plane(
         "a_dz_dx": round(a, 6),
         "b_dz_dy": round(b, 6),
         "c_z_at_origin_m": round(c, 3),
-        "placement_z_m": round(max_grounding_z if max_grounding_z is not None else c, 3),
+        "max_non_intersection_z_m": round(max_grounding_z if max_grounding_z is not None else c, 3),
+        "placement_z_m": round(c, 3),
+        "placement_strategy": "least_squares_plane_center_visual_contact",
         "placement_rotation_deg": [
             round(roll_deg, 3),
             round(pitch_deg, 3),
