@@ -14,6 +14,7 @@ REPO_ROOT = os.path.normpath(os.path.join(THIS_DIR, "..", "..", ".."))
 
 DEFAULT_MANIFEST_PATH = os.path.join(EXT_ROOT, "data", "manifest.json")
 ROVER_FORWARD_YAW_OFFSET_DEG = -90.0
+ROVER_TERRAIN_CLEARANCE_M = 0.15
 
 
 class LSP1PipelineExtension(omni.ext.IExt):
@@ -721,7 +722,11 @@ class LSP1PipelineExtension(omni.ext.IExt):
                 if translate_op is None:
                     translate_op = xformable.AddTranslateOp()
 
-                translate_op.Set(Gf.Vec3d(pos[0], pos[1], pos[2]))
+                translate_op.Set(Gf.Vec3d(
+                    pos[0],
+                    pos[1],
+                    pos[2] + ROVER_TERRAIN_CLEARANCE_M,
+                ))
                 rotation = self._route_tangent_rotation(tangent)
                 if rotation:
                     if rotate_op is None:
