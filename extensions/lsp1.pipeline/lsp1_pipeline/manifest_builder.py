@@ -518,13 +518,14 @@ def _build_terrain_route_diagnostics(
 
         slopes, slope_segments, _, _ = _slope_stats_from_sampled(sampled)
         valid_samples = [point for point in sampled if point is not None]
+        rover_footprint = _rover_footprint_for_route(
+            connection.get("flow"),
+            scene_cad_footprints,
+        )
         sampled_poses = _build_route_pose_samples(
             sampled_points=valid_samples,
             sampler=sampler,
-            rover_footprint=_rover_footprint_for_route(
-                connection.get("flow"),
-                scene_cad_footprints,
-            ),
+            rover_footprint=rover_footprint,
         )
         max_slope = max(slopes) if slopes else None
         mean_slope = sum(slopes) / len(slopes) if slopes else None
@@ -551,6 +552,8 @@ def _build_terrain_route_diagnostics(
                 "to_m": _round_point(max_slope_segment["to_m"]),
             } if max_slope_segment else None,
             "max_allowed_slope_deg": 15.0,
+            "rover_footprint_source": (rover_footprint or {}).get("source", "unavailable"),
+            "rover_footprint_size_m": (rover_footprint or {}).get("size_m"),
             "sampled_waypoints_m": [
                 _round_point(point)
                 for point in valid_samples
