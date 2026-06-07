@@ -6475,7 +6475,7 @@ let up42MoonImg = null;
     try {
       const headers = { 'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github+json' };
       const res = await fetch(
-        `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/database/json/materials.json?ref=${encodeURIComponent(GH_REF)}`,
+        `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/clean_database/json/ECLIPSE_Project/materials.json?ref=${encodeURIComponent(GH_REF)}`,
         { headers, cache: 'no-store' }
       );
       if (!res.ok) return;

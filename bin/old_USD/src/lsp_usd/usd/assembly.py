@@ -1,1 +1,0 @@
-# Assembly scene writing utilities

@@ -16,12 +16,12 @@ from S24.sysml import sysml_to_json_transformer
 from S24.jsonio.vetting import VettingProc
 
 
-#NOTE: SYSML File must be conatined under database/sysml/ and the sysml_filename must only be the name of the sysml file (i.e. "ISRUPlantModelV2.sysml")
+# NOTE: SYSML files live under clean_database/sysml/.
 def generate_json_from_sysml(sysml_filename, json_filename):
     ROOT = Path.cwd().parent
 
-    DATA_SYSML = ROOT / "S24-ArchitectingLunarBases" / "database" / "sysml"
-    DATA_JSON  = ROOT / "S24-ArchitectingLunarBases" / "database" / "json"
+    DATA_SYSML = ROOT / "S24-ArchitectingLunarBases" / "clean_database" / "sysml"
+    DATA_JSON  = ROOT / "S24-ArchitectingLunarBases" / "clean_database" / "json"
 
     #SYSML_FILE = DATA_SYSML / "ISRUPlantModelV2.sysml"
     SYSML_FILE = DATA_SYSML / sysml_filename
@@ -47,7 +47,7 @@ def generate_json_from_sysml(sysml_filename, json_filename):
 
     return vetted_parts
 
-#NOTE: JSON File must be conatined under database/json/ and the json_filename must only be the name of the json file (i.e. "ISRU.json")
+# NOTE: Runtime DES assets are read from clean_database/json/ECLIPSE_Project/assets/.
 def data_from_json(json_filename):
     NAME_MAP = {
         'ISRUV2.json':                'ISRUPlant.json',
