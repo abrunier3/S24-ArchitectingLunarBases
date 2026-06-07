@@ -56,4 +56,6 @@ extensions/lsp1.pipeline/
 - `notebooks/` are retained as proof-of-concept and exploratory material.
 - The repository cleanup removed old prototype folders, legacy USD/SysML experiments, old root-level interfaces, and inactive project JSON/SysML variants.
 
-Detailed usage instructions for the full pipeline will be added separately.
+## User Guide
+
+See [docs/USER_GUIDE.md](docs/USER_GUIDE.md) for end-to-end instructions covering the browser interface, first-time Omniverse extension installation, and DES playback visualization.
