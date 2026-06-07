@@ -38,12 +38,9 @@ outputs/
   cad_previews/              CAD preview artifacts used by the interface
 
 extensions/lsp1.pipeline/
+  build_omniverse_manifest.py
   lsp1_pipeline/             Omniverse extension
   data/manifest.json         Visualization manifest consumed by the extension
-
-scripts/
-  build_omniverse_manifest.py
-  des_playback.py
 
 .github/workflows/
   run_graph.yml              Builds graph output from SysML

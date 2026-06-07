@@ -5,8 +5,8 @@ import sys
 
 
 def main() -> int:
-    repo_root = Path(__file__).resolve().parent.parent
-    extension_root = repo_root / "extensions" / "lsp1.pipeline"
+    extension_root = Path(__file__).resolve().parent
+    repo_root = extension_root.parent.parent
     sys.path.insert(0, str(extension_root))
 
     from lsp1_pipeline.manifest_builder import main as builder_main
