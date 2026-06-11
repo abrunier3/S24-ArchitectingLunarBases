@@ -555,15 +555,17 @@ jobs:
           except Exception as e:
               print(f"[USD] Step 6 failed: {e}")
           EOF
+          echo "[OMNI] Building visualization manifest..."
           python extensions/lsp1.pipeline/build_omniverse_manifest.py
+          echo "[OMNI] Manifest build complete."
 
       - name: Commit results
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git stash --include-untracked
+          STASHED=$(git stash --include-untracked 2>&1)
           git pull --rebase origin "${GITHUB_REF_NAME}"
-          git stash pop
+          echo "$STASHED" | grep -q "No local changes" || git stash pop
           git add outputs/des_results.json
           git add clean_database/json/ECLIPSE_Project/ECLIPSE_Project.json
           git add clean_database/usd/scenes/scene.usda || true
