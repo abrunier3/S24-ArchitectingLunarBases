@@ -1940,9 +1940,9 @@
               onclick="document.getElementById('cadFileInput').click()"
             >
               <div style="font-size:24px;margin-bottom:6px;">📦</div>
-              <div style="font-size:13px;color:var(--text2);">Drag & drop a USD/USDA/USDC/USDZ file here</div>
+              <div style="font-size:13px;color:var(--text2);">Drag & drop a USD/USDA/USDC/USDZ/STEP/STP file here</div>
               <div style="font-size:11px;color:var(--text3);margin-top:3px;">or click to browse</div>
-              <input id="cadFileInput" type="file" accept=".usd,.usda,.usdc,.usdz" style="display:none;" onchange="handleCadFile(event.target.files[0])">
+              <input id="cadFileInput" type="file" accept=".usd,.usda,.usdc,.usdz,.step,.stp" style="display:none;" onchange="handleCadFile(event.target.files[0])">
             </div>
             <div id="cadUploadStatus" class="mini-note" style="margin-top:8px;">No CAD file loaded yet.</div>
           </div>
@@ -7298,10 +7298,11 @@ let up42MoonImg = null;
         ...(mass !== null ? { computed_mass_kg: mass } : {})
       },
       metadata: {
-        geometryRef: `clean_database/cad_models/${moduleName}/${cadFile.name}`,
+        geometryRef: saved.detectedUsdPath || `clean_database/cad_models/${moduleName}/${cadFile.name}`,
         cadFileName: cadFile.name,
         cadUploadedAt: new Date().toISOString(),
         glbPreviewRef: `outputs/cad_previews/${moduleName}.glb`,
+        sourceCadPath: saved.detectedUsdPath ? `clean_database/cad_models/${moduleName}/${cadFile.name}` : null,
         cadDetectedUpAxis: saved.detectedUpAxis || null,
         cadDetectedMetersPerUnit: saved.detectedMetersPerUnit ? parseFloat(saved.detectedMetersPerUnit) : null
       },
@@ -7402,7 +7403,7 @@ let up42MoonImg = null;
       if (!res.ok) return;
 
       const files = await res.json();
-      const usdExts = ['.usd', '.usda', '.usdc', '.usdz'];
+      const usdExts = ['.usd', '.usda', '.usdc', '.usdz', '.step', '.stp'];
 
       for (const file of files) {
         const isUsd = usdExts.some(ext => file.name.toLowerCase().endsWith(ext));

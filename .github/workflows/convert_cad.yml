@@ -1,4 +1,4 @@
-name: Step 3 — Convert CAD (USD → GLB + extract metadata)
+name: Step 3 — Convert CAD (CAD → USD/GLB + extract metadata)
 
 on:
   workflow_dispatch:
@@ -7,7 +7,7 @@ on:
         description: 'Module name (e.g. ISRUPlant)'
         required: true
       usd_path:
-        description: 'Path to USD file in repo (e.g. clean_database/cad_models/ISRUPlant/isruplant.usdz)'
+        description: 'Path to CAD file in repo (e.g. clean_database/cad_models/ISRUPlant/isruplant.step)'
         required: true
 
 jobs:
@@ -20,29 +20,45 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - name: Set up CAD conversion environment
+        uses: mamba-org/setup-micromamba@v2
         with:
-          python-version: '3.10'
-
-      - name: Cache pip
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/pip
-          key: pip-${{ runner.os }}-${{ hashFiles('pyproject.toml') }}
-          restore-keys: pip-${{ runner.os }}-
+          environment-name: cad-convert
+          create-args: >-
+            python=3.10
+            pythonocc-core
+            usd-core
+            trimesh
+            numpy
+            pip
 
       - name: Install dependencies
-        run: |
-          pip install usd-core trimesh numpy
-          pip install -e .
+        shell: bash -el {0}
+        run: pip install -e .
 
-      - name: Convert USD to GLB and extract metadata
+      - name: Convert CAD to USD/GLB and extract metadata
+        shell: bash -el {0}
         env:
           MODULE_NAME: ${{ github.event.inputs.module_name }}
           USD_PATH: ${{ github.event.inputs.usd_path }}
         run: |
           mkdir -p outputs/cad_previews
+          SOURCE_CAD_PATH="$USD_PATH"
+          LOWER_PATH="$(printf '%s' "$USD_PATH" | tr '[:upper:]' '[:lower:]')"
+
+          if [[ "$LOWER_PATH" == *.step || "$LOWER_PATH" == *.stp ]]; then
+            CONVERTED_USD_PATH="clean_database/cad_models/${MODULE_NAME}/${MODULE_NAME}.usdc"
+            echo "[CONVERT] STEP detected. Converting ${USD_PATH} -> ${CONVERTED_USD_PATH}"
+            python -m S24.cad.step_to_usd \
+              "$USD_PATH" \
+              --output "$CONVERTED_USD_PATH" \
+              --metadata "outputs/cad_previews/${MODULE_NAME}_source_meta.json"
+            USD_PATH="$CONVERTED_USD_PATH"
+          fi
+
+          export SOURCE_CAD_PATH
+          export USD_PATH
+
           python - <<'EOF'
           import json, os, time, zipfile
           import numpy as np
@@ -52,6 +68,7 @@ jobs:
 
           module_name = os.environ['MODULE_NAME']
           usd_path    = os.environ['USD_PATH']
+          source_cad_path = os.environ.get('SOURCE_CAD_PATH', usd_path)
 
           # Handle .usdz (zip)
           actual_usd_path = usd_path
@@ -153,9 +170,16 @@ jobs:
               print(f"[CONVERT] GLB written: {len(glb_bytes)//1024} KB")
 
           # Write metadata
+          source_meta_path = f"outputs/cad_previews/{module_name}_source_meta.json"
+          source_metadata = None
+          if os.path.exists(source_meta_path):
+              with open(source_meta_path) as f:
+                  source_metadata = json.load(f)
+
           meta = {
               "written_at":      int(time.time() * 1000),
               "module_name":     module_name,
+              "source_cad_path":  source_cad_path,
               "usd_path":        usd_path,
               "glb_path":        glb_path,
               "up_axis":         up_axis,
@@ -164,6 +188,7 @@ jobs:
               "center_m":        center_m,
               "mesh_count":      len(meshes_data),
               "materials":       materials_found,
+              "source_metadata": source_metadata,
           }
           out_path = f"outputs/cad_previews/{module_name}_meta.json"
           with open(out_path, "w") as f:
@@ -175,10 +200,10 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add outputs/cad_previews/
+          git add outputs/cad_previews/ clean_database/cad_models/
           STASHED=$(git stash 2>&1)
           git pull --rebase origin "${GITHUB_REF_NAME}"
           echo "$STASHED" | grep -q "No local changes" || git stash pop
-          git add outputs/cad_previews/
+          git add outputs/cad_previews/ clean_database/cad_models/
           git diff --staged --quiet || git commit -m "chore: CAD preview + metadata for ${{ github.event.inputs.module_name }} [skip ci]"
           git push origin HEAD:"${GITHUB_REF_NAME}"
