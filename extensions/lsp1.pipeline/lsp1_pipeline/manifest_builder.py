@@ -955,6 +955,21 @@ def _fit_module_terrain_plane(
         local_x, local_y = sample["local_xy_m"]
         rows.append((float(local_x), float(local_y), float(sample["terrain_z_m"])))
 
+    filtered_outlier_count = 0
+    if len(rows) >= 5:
+        z_values = sorted(z for _, _, z in rows)
+        median_z = z_values[len(z_values) // 2]
+        deviations = sorted(abs(z - median_z) for z in z_values)
+        median_abs_deviation = deviations[len(deviations) // 2]
+        outlier_threshold = max(25.0, 8.0 * median_abs_deviation)
+        filtered_rows = [
+            row for row in rows
+            if abs(row[2] - median_z) <= outlier_threshold
+        ]
+        if len(filtered_rows) >= 3 and len(filtered_rows) < len(rows):
+            filtered_outlier_count = len(rows) - len(filtered_rows)
+            rows = filtered_rows
+
     # Least-squares fit: z = a*x + b*y + c in module-local coordinates.
     sx = sy = sz = sxx = syy = sxy = sxz = syz = 0.0
     n = float(len(rows))
@@ -1014,6 +1029,7 @@ def _fit_module_terrain_plane(
         "mean_clearance_m": round(mean_clearance, 3),
         "max_clearance_m": round(max_clearance, 3),
         "rms_clearance_m": round(rms_clearance, 3),
+        "filtered_outlier_count": filtered_outlier_count,
     }
 
 
