@@ -956,6 +956,17 @@ def _fit_module_terrain_plane(
         rows.append((float(local_x), float(local_y), float(sample["terrain_z_m"])))
 
     filtered_outlier_count = 0
+    filtered_zero_floor_count = 0
+    if len(rows) >= 5:
+        non_floor_rows = [row for row in rows if row[2] > 1.0]
+        floor_rows = [row for row in rows if row[2] <= 1.0]
+        if len(non_floor_rows) >= 3 and floor_rows:
+            high_z_values = sorted(row[2] for row in non_floor_rows)
+            median_high_z = high_z_values[len(high_z_values) // 2]
+            if median_high_z >= 20.0:
+                filtered_zero_floor_count = len(floor_rows)
+                rows = non_floor_rows
+
     if len(rows) >= 5:
         z_values = sorted(z for _, _, z in rows)
         median_z = z_values[len(z_values) // 2]
@@ -1029,6 +1040,7 @@ def _fit_module_terrain_plane(
         "mean_clearance_m": round(mean_clearance, 3),
         "max_clearance_m": round(max_clearance, 3),
         "rms_clearance_m": round(rms_clearance, 3),
+        "filtered_zero_floor_count": filtered_zero_floor_count,
         "filtered_outlier_count": filtered_outlier_count,
     }
 
