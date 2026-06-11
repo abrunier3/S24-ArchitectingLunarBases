@@ -304,7 +304,10 @@ def convert_step_to_usd(
         face_vertex_counts=counts,
         face_vertex_indices=indices,
         source_path=input_path,
-        unit_scale_to_m=float(units["scale_to_m"]),
+        # OpenCascade's transferred BRep coordinates are expressed in its
+        # working length unit (millimeters). Normalize the generated USD to
+        # meters, and keep the STEP-declared unit separately as source metadata.
+        unit_scale_to_m=0.001,
     )
 
     return {
@@ -321,6 +324,11 @@ def convert_step_to_usd(
         "schema": header.get("schema"),
         "timestamp": header.get("timestamp"),
         "units": units,
+        "occ_shape_unit": {
+            "unit": "millimetre",
+            "scale_to_m": 0.001,
+            "source": "OpenCascade transferred shape coordinates",
+        },
         "tessellation": {
             "linear_deflection": linear_deflection,
             "angular_deflection": angular_deflection,

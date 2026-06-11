@@ -7097,7 +7097,8 @@ let up42MoonImg = null;
         const runInfo = await triggerConvertWorkflow(moduleName, usdPath, previewRequest.requestedAt);
 
         updateModuleDot(moduleName, 'done');
-        await pollForMeta(moduleName, runInfo, previewRequest);
+        const freshMeta = await pollForMeta(moduleName, runInfo, previewRequest);
+        if (freshMeta?.data) syncDetectedCadMeta(freshMeta.data);
         await writeAssetJson(moduleName, file);
       } else {
         updateModuleDot(moduleName, 'error');
@@ -7215,7 +7216,9 @@ let up42MoonImg = null;
 
         for (let i = 0; i < 8; i++) {
           const fresh = await waitForFreshCadPreview(moduleName, previewRequest);
-          if (fresh) return true;
+          if (fresh) {
+            return fetchCadMetaWithSha(moduleName, Date.now());
+          }
           await sleep(window.UI_POLL.outputPollMs);
         }
       } catch (e) {
