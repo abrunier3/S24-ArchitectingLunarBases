@@ -53,6 +53,7 @@ jobs:
             python -m S24.cad.step_to_usd \
               "$USD_PATH" \
               --output "$CONVERTED_USD_PATH" \
+              --source-up-axis Y \
               --metadata "outputs/cad_previews/${MODULE_NAME}_source_meta.json"
             USD_PATH="$CONVERTED_USD_PATH"
           fi

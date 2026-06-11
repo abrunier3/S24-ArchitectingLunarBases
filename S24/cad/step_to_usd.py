@@ -223,6 +223,20 @@ def _mesh_step_shape(shape: Any, *, linear_deflection: float, angular_deflection
     return points, face_vertex_counts, face_vertex_indices
 
 
+def _rotate_points_to_z_up(
+    points: list[tuple[float, float, float]],
+    *,
+    source_up_axis: str,
+) -> tuple[list[tuple[float, float, float]], list[float]]:
+    axis = str(source_up_axis or "Z").upper()
+    if axis == "Z":
+        return points, [0.0, 0.0, 0.0]
+    if axis == "Y":
+        # Rotate +90 deg around X so source Y-up geometry becomes Z-up.
+        return [(x, -z, y) for x, y, z in points], [90.0, 0.0, 0.0]
+    raise ValueError(f"Unsupported STEP source up axis: {source_up_axis}")
+
+
 def write_usd_mesh(
     *,
     output_path: str | Path,
@@ -231,11 +245,17 @@ def write_usd_mesh(
     face_vertex_indices: list[int],
     source_path: str | Path,
     unit_scale_to_m: float,
+    source_up_axis: str = "Y",
 ) -> str:
     from pxr import Gf, Sdf, Usd, UsdGeom, UsdShade
 
     output_path = Path(output_path)
     output_path.parent.mkdir(parents=True, exist_ok=True)
+
+    oriented_points, orientation_correction_deg = _rotate_points_to_z_up(
+        points,
+        source_up_axis=source_up_axis,
+    )
 
     scaled_points = [
         Gf.Vec3f(
@@ -243,7 +263,7 @@ def write_usd_mesh(
             float(y) * unit_scale_to_m,
             float(z) * unit_scale_to_m,
         )
-        for x, y, z in points
+        for x, y, z in oriented_points
     ]
 
     stage = Usd.Stage.CreateNew(str(output_path))
@@ -266,6 +286,11 @@ def write_usd_mesh(
     mesh.GetPrim().SetCustomDataByKey("s24:source_format", "STEP")
     mesh.GetPrim().SetCustomDataByKey("s24:source_file", Path(source_path).name)
     mesh.GetPrim().SetCustomDataByKey("s24:unit_scale_to_m", float(unit_scale_to_m))
+    mesh.GetPrim().SetCustomDataByKey("s24:source_up_axis", str(source_up_axis).upper())
+    mesh.GetPrim().SetCustomDataByKey(
+        "s24:orientation_correction_deg",
+        orientation_correction_deg,
+    )
 
     min_point = Gf.Vec3f(
         min(point[0] for point in scaled_points),
@@ -303,6 +328,7 @@ def convert_step_to_usd(
     output_path: str | Path,
     *,
     default_unit: str = "mm",
+    source_up_axis: str = "Y",
     linear_deflection: float = 0.1,
     angular_deflection: float = 0.5,
 ) -> dict[str, Any]:
@@ -327,6 +353,7 @@ def convert_step_to_usd(
         # working length unit (millimeters). Normalize the generated USD to
         # meters, and keep the STEP-declared unit separately as source metadata.
         unit_scale_to_m=0.001,
+        source_up_axis=source_up_axis,
     )
 
     return {
@@ -342,6 +369,11 @@ def convert_step_to_usd(
         "preprocessor": header.get("preprocessor"),
         "schema": header.get("schema"),
         "timestamp": header.get("timestamp"),
+        "source_up_axis": str(source_up_axis).upper(),
+        "target_up_axis": "Z",
+        "orientation_correction_deg": (
+            [90.0, 0.0, 0.0] if str(source_up_axis).upper() == "Y" else [0.0, 0.0, 0.0]
+        ),
         "units": units,
         "occ_shape_unit": {
             "unit": "millimetre",
@@ -368,6 +400,12 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--output", required=True, help="Output .usd/.usda/.usdc path")
     parser.add_argument("--metadata", help="Optional source metadata JSON output path")
     parser.add_argument("--default-unit", default="mm", help="Fallback STEP length unit")
+    parser.add_argument(
+        "--source-up-axis",
+        default="Y",
+        choices=("Y", "Z", "y", "z"),
+        help="Source CAD up axis to convert into USD Z-up",
+    )
     parser.add_argument("--linear-deflection", type=float, default=0.1)
     parser.add_argument("--angular-deflection", type=float, default=0.5)
     args = parser.parse_args(argv)
@@ -376,6 +414,7 @@ def main(argv: list[str] | None = None) -> int:
         args.input,
         args.output,
         default_unit=args.default_unit,
+        source_up_axis=args.source_up_axis,
         linear_deflection=args.linear_deflection,
         angular_deflection=args.angular_deflection,
     )
