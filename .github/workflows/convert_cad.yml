@@ -27,14 +27,15 @@ jobs:
           create-args: >-
             python=3.10
             pythonocc-core
-            usd-core
             trimesh
             numpy
             pip
 
       - name: Install dependencies
         shell: bash -el {0}
-        run: pip install -e .
+        run: |
+          pip install usd-core
+          pip install -e .
 
       - name: Convert CAD to USD/GLB and extract metadata
         shell: bash -el {0}
