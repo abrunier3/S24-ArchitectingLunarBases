@@ -232,7 +232,7 @@ def write_usd_mesh(
     source_path: str | Path,
     unit_scale_to_m: float,
 ) -> str:
-    from pxr import Gf, Usd, UsdGeom
+    from pxr import Gf, Sdf, Usd, UsdGeom, UsdShade
 
     output_path = Path(output_path)
     output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -258,6 +258,10 @@ def write_usd_mesh(
     mesh.CreateFaceVertexCountsAttr(face_vertex_counts)
     mesh.CreateFaceVertexIndicesAttr(face_vertex_indices)
     mesh.CreateSubdivisionSchemeAttr(UsdGeom.Tokens.none)
+    mesh.CreateOrientationAttr(UsdGeom.Tokens.rightHanded)
+    mesh.CreateDoubleSidedAttr(True)
+    mesh.CreateDisplayColorAttr([Gf.Vec3f(0.78, 0.78, 0.74)])
+    mesh.CreateDisplayOpacityAttr([1.0])
 
     mesh.GetPrim().SetCustomDataByKey("s24:source_format", "STEP")
     mesh.GetPrim().SetCustomDataByKey("s24:source_file", Path(source_path).name)
@@ -274,6 +278,21 @@ def write_usd_mesh(
         max(point[2] for point in scaled_points),
     )
     mesh.CreateExtentAttr([min_point, max_point])
+
+    UsdGeom.Scope.Define(stage, "/World/Materials")
+    material = UsdShade.Material.Define(stage, "/World/Materials/DefaultCadMaterial")
+    shader = UsdShade.Shader.Define(stage, "/World/Materials/DefaultCadMaterial/PreviewSurface")
+    shader.CreateIdAttr("UsdPreviewSurface")
+    shader.CreateInput("diffuseColor", Sdf.ValueTypeNames.Color3f).Set(
+        Gf.Vec3f(0.78, 0.78, 0.74)
+    )
+    shader.CreateInput("roughness", Sdf.ValueTypeNames.Float).Set(0.45)
+    shader.CreateInput("metallic", Sdf.ValueTypeNames.Float).Set(0.0)
+    material.CreateSurfaceOutput().ConnectToSource(
+        shader.ConnectableAPI(),
+        "surface",
+    )
+    UsdShade.MaterialBindingAPI(mesh.GetPrim()).Bind(material)
 
     stage.GetRootLayer().Save()
     return str(output_path)
