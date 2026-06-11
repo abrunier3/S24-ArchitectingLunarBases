@@ -210,11 +210,47 @@ class _TerrainSampler:
                 tuple[float, float, float],
             ]
         ],
+        *,
+        cell_size_m: float = 25.0,
     ) -> None:
         self.triangles = triangles
+        self.cell_size_m = max(float(cell_size_m), 1.0)
+        self.grid: dict[tuple[int, int], list[int]] = {}
+
+        for idx, triangle in enumerate(triangles):
+            xs = [point[0] for point in triangle]
+            ys = [point[1] for point in triangle]
+            ix_min = math.floor(min(xs) / self.cell_size_m)
+            ix_max = math.floor(max(xs) / self.cell_size_m)
+            iy_min = math.floor(min(ys) / self.cell_size_m)
+            iy_max = math.floor(max(ys) / self.cell_size_m)
+
+            for ix in range(ix_min, ix_max + 1):
+                for iy in range(iy_min, iy_max + 1):
+                    self.grid.setdefault((ix, iy), []).append(idx)
+
+    def _candidate_indices(self, x: float, y: float) -> list[int]:
+        ix = math.floor(x / self.cell_size_m)
+        iy = math.floor(y / self.cell_size_m)
+
+        candidates: list[int] = []
+        seen: set[int] = set()
+        for dx in (-1, 0, 1):
+            for dy in (-1, 0, 1):
+                for idx in self.grid.get((ix + dx, iy + dy), []):
+                    if idx not in seen:
+                        candidates.append(idx)
+                        seen.add(idx)
+
+        return candidates
 
     def sample_height(self, x: float, y: float) -> float | None:
-        for triangle in self.triangles:
+        candidate_indices = self._candidate_indices(x, y)
+        if not candidate_indices:
+            return None
+
+        for idx in candidate_indices:
+            triangle = self.triangles[idx]
             height = _point_in_triangle_height(x, y, triangle)
             if height is not None:
                 return height
@@ -1298,21 +1334,32 @@ def build_manifest(
         actor["end_time"] = first.get("end_time")
 
     sim_end = _simulation_end_time(des_data)
+    print("[OMNI] Building terrain config...", flush=True)
     terrain_config = _build_terrain_config(
         terrain_usd_path=terrain_usd_path,
         output_dir=output_dir,
         system_json=system_json,
     )
+    print("[OMNI] Building terrain sampler...", flush=True)
     terrain_sampler = _build_terrain_sampler(
         terrain_usd_path=terrain_usd_path,
         terrain_config=terrain_config,
     )
+    sampler_info = (
+        f"{len(terrain_sampler.triangles)} triangles, {len(terrain_sampler.grid)} grid cells"
+        if terrain_sampler
+        else "unavailable"
+    )
+    print(f"[OMNI] Terrain sampler: {sampler_info}", flush=True)
+    print("[OMNI] Loading scene CAD footprints...", flush=True)
     scene_cad_footprints = _load_scene_cad_footprints(scene_usd_path)
+    print("[OMNI] Building route terrain diagnostics...", flush=True)
     terrain_routes = _build_terrain_route_diagnostics(
         system_json=system_json,
         sampler=terrain_sampler,
         scene_cad_footprints=scene_cad_footprints,
     )
+    print("[OMNI] Building module terrain diagnostics...", flush=True)
     terrain_modules = _build_module_terrain_diagnostics(
         system_json=system_json,
         sampler=terrain_sampler,
