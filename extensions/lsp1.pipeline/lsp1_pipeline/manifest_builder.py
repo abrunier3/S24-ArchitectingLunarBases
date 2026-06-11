@@ -249,12 +249,15 @@ class _TerrainSampler:
         if not candidate_indices:
             return None
 
+        heights: list[float] = []
         for idx in candidate_indices:
             triangle = self.triangles[idx]
             height = _point_in_triangle_height(x, y, triangle)
             if height is not None:
-                return height
-        return None
+                heights.append(height)
+        if not heights:
+            return None
+        return max(heights)
 
 
 def _build_terrain_sampler(
