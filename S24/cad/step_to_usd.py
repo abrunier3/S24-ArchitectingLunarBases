@@ -289,7 +289,7 @@ def write_usd_mesh(
     mesh.GetPrim().SetCustomDataByKey("s24:source_up_axis", str(source_up_axis).upper())
     mesh.GetPrim().SetCustomDataByKey(
         "s24:orientation_correction_deg",
-        orientation_correction_deg,
+        Gf.Vec3f(*orientation_correction_deg),
     )
 
     min_point = Gf.Vec3f(

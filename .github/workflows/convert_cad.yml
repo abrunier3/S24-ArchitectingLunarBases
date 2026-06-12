@@ -13,6 +13,7 @@ on:
 jobs:
   convert:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     permissions:
       contents: write
 
@@ -24,6 +25,10 @@ jobs:
         uses: mamba-org/setup-micromamba@v2
         with:
           environment-name: cad-convert
+          cache-environment: true
+          cache-downloads: true
+          cache-environment-key: cad-convert-${{ runner.os }}-${{ hashFiles('.github/workflows/convert_cad.yml', 'pyproject.toml') }}
+          cache-downloads-key: cad-convert-downloads-${{ runner.os }}
           create-args: >-
             python=3.10
             pythonocc-core
@@ -55,6 +60,22 @@ jobs:
               --output "$CONVERTED_USD_PATH" \
               --source-up-axis Y \
               --metadata "outputs/cad_previews/${MODULE_NAME}_source_meta.json"
+            python - <<'EOF'
+            import json
+            import os
+            import sys
+
+            module_name = os.environ["MODULE_NAME"]
+            meta_path = f"outputs/cad_previews/{module_name}_source_meta.json"
+            with open(meta_path) as f:
+                meta = json.load(f)
+
+            if "orientation_correction_deg" not in meta:
+                print(f"[CONVERT] ERROR: {meta_path} is missing orientation_correction_deg")
+                sys.exit(1)
+
+            print(f"[CONVERT] STEP orientation correction: {meta['orientation_correction_deg']}")
+            EOF
             USD_PATH="$CONVERTED_USD_PATH"
           fi
 
