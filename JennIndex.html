@@ -6841,6 +6841,119 @@ let up42MoonImg = null;
       btn.style.color = active ? '#ffffff' : 'rgba(230, 236, 245, 0.82)';
       btn.style.boxShadow = active ? '0 0 14px rgba(23,139,255,0.45)' : 'none';
     });
+    updateCadAxisTriad(moduleName);
+  }
+
+  function toRadians(value, fallback) {
+    if (value == null) return fallback;
+    if (typeof value === 'number') {
+      return Math.abs(value) > Math.PI * 2.5 ? value * Math.PI / 180 : value;
+    }
+    const text = String(value).trim();
+    const numeric = parseFloat(text);
+    if (!Number.isFinite(numeric)) return fallback;
+    return text.includes('deg') ? numeric * Math.PI / 180 : numeric;
+  }
+
+  function vectorDot(a, b) {
+    return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+  }
+
+  function vectorCross(a, b) {
+    return [
+      a[1] * b[2] - a[2] * b[1],
+      a[2] * b[0] - a[0] * b[2],
+      a[0] * b[1] - a[1] * b[0]
+    ];
+  }
+
+  function vectorNormalize(v, fallback = [1, 0, 0]) {
+    const mag = Math.hypot(v[0], v[1], v[2]);
+    if (!Number.isFinite(mag) || mag < 1e-6) return fallback;
+    return [v[0] / mag, v[1] / mag, v[2] / mag];
+  }
+
+  function getModelViewerOrbitRadians(modelViewer) {
+    const fallback = { theta: Math.PI / 4, phi: Math.PI / 2 };
+    try {
+      const orbit = modelViewer?.getCameraOrbit?.();
+      if (orbit) {
+        return {
+          theta: toRadians(orbit.theta, fallback.theta),
+          phi: toRadians(orbit.phi, fallback.phi)
+        };
+      }
+    } catch {}
+
+    const orbitText = modelViewer?.getAttribute?.('camera-orbit') || '';
+    const pieces = orbitText.split(/\s+/);
+    return {
+      theta: toRadians(pieces[0], fallback.theta),
+      phi: toRadians(pieces[1], fallback.phi)
+    };
+  }
+
+  function projectedCadAxes(modelViewer) {
+    const { theta, phi } = getModelViewerOrbitRadians(modelViewer);
+    const camera = [
+      Math.sin(phi) * Math.sin(theta),
+      Math.cos(phi),
+      Math.sin(phi) * Math.cos(theta)
+    ];
+    const forward = vectorNormalize([-camera[0], -camera[1], -camera[2]], [0, 0, -1]);
+    let right = vectorNormalize(vectorCross(forward, [0, 1, 0]), null);
+    if (!right) right = vectorNormalize(vectorCross(forward, [0, 0, 1]), [1, 0, 0]);
+    const up = vectorNormalize(vectorCross(right, forward), [0, 1, 0]);
+
+    return {
+      X: [vectorDot([1, 0, 0], right), -vectorDot([1, 0, 0], up)],
+      Y: [vectorDot([0, 1, 0], right), -vectorDot([0, 1, 0], up)],
+      Z: [vectorDot([0, 0, 1], right), -vectorDot([0, 0, 1], up)]
+    };
+  }
+
+  function updateCadAxisTriad(moduleName) {
+    const triad = document.querySelector(`[data-cad-axis-triad="${moduleName}"]`);
+    const modelViewer = document.getElementById(`mv-${moduleName}`);
+    if (!triad || !modelViewer) return;
+
+    const selected = normalizeUpAxis(moduleMetaCache[moduleName]?.cadSourceUpAxis || 'Z', 'Z');
+    const axes = projectedCadAxes(modelViewer);
+    const origin = [58, 58];
+    const length = 38;
+
+    Object.entries(axes).forEach(([axis, direction]) => {
+      const magnitude = Math.hypot(direction[0], direction[1]) || 1;
+      const end = [
+        origin[0] + (direction[0] / magnitude) * length,
+        origin[1] + (direction[1] / magnitude) * length
+      ];
+      const active = axis === selected;
+      const color = active ? '#178bff' : 'rgba(220, 226, 236, 0.72)';
+      const line = triad.querySelector(`[data-triad-line="${axis}"]`);
+      const dot = triad.querySelector(`[data-triad-dot="${axis}"]`);
+      const label = triad.querySelector(`[data-triad-label="${axis}"]`);
+
+      if (line) {
+        line.setAttribute('x1', origin[0]);
+        line.setAttribute('y1', origin[1]);
+        line.setAttribute('x2', end[0]);
+        line.setAttribute('y2', end[1]);
+        line.setAttribute('stroke', color);
+        line.setAttribute('stroke-width', active ? '3.4' : '2.3');
+      }
+      if (dot) {
+        dot.setAttribute('cx', end[0]);
+        dot.setAttribute('cy', end[1]);
+        dot.setAttribute('fill', color);
+      }
+      if (label) {
+        label.setAttribute('x', origin[0] + (direction[0] / magnitude) * (length + 13));
+        label.setAttribute('y', origin[1] + (direction[1] / magnitude) * (length + 13) + 4);
+        label.setAttribute('fill', color);
+        label.setAttribute('font-weight', active ? '800' : '650');
+      }
+    });
   }
 
   function saveModuleMeta() {
@@ -7734,48 +7847,89 @@ let up42MoonImg = null;
     const selectedAxis = normalizeUpAxis(moduleMetaCache[moduleName]?.cadSourceUpAxis || 'Z', 'Z');
 
     wrap.innerHTML = `
-      <div style="position:relative;border-radius:12px;overflow:hidden;border:1px solid var(--border2);">
-        <model-viewer
-          id="mv-${moduleName}"
-          src="${glb.blobUrl}"
-          alt="3D model of ${moduleName}"
-          camera-controls
-          touch-action="none"
-          shadow-intensity="0.5"
-          exposure="1.2"
-          camera-orbit="45deg 90deg auto"
-          min-camera-orbit="auto 0deg auto"
-          max-camera-orbit="auto 180deg auto"
-          style="width:100%;height:360px;background:#0c1119;display:block;"
-        ></model-viewer>
-        <div style="position:absolute;bottom:10px;left:12px;font-size:10px;
-          color:rgba(255,255,255,0.7);background:rgba(0,0,0,0.6);padding:3px 8px;border-radius:4px;">
-          ${meshCount} meshes - ${sizeM[0]}x${sizeM[1]}x${sizeM[2]} m
+      <div style="display:grid;grid-template-columns:${showSourceAxis ? 'minmax(0, 1fr) 132px' : '1fr'};
+        border-radius:12px;overflow:hidden;border:1px solid var(--border2);background:#0c1119;">
+        <div style="position:relative;min-width:0;">
+          <model-viewer
+            id="mv-${moduleName}"
+            src="${glb.blobUrl}"
+            alt="3D model of ${moduleName}"
+            camera-controls
+            touch-action="none"
+            shadow-intensity="0.5"
+            exposure="1.2"
+            camera-orbit="45deg 90deg auto"
+            min-camera-orbit="auto 0deg auto"
+            max-camera-orbit="auto 180deg auto"
+            style="width:100%;height:360px;background:#0c1119;display:block;"
+          ></model-viewer>
+          <div style="position:absolute;bottom:10px;left:12px;font-size:10px;
+            color:rgba(255,255,255,0.7);background:rgba(0,0,0,0.6);padding:3px 8px;border-radius:4px;">
+            ${meshCount} meshes - ${sizeM[0]}x${sizeM[1]}x${sizeM[2]} m
+          </div>
+          <div style="position:absolute;top:10px;right:10px;font-size:10px;
+            color:rgba(255,255,255,0.5);background:rgba(0,0,0,0.5);padding:3px 8px;border-radius:4px;">
+            Drag to rotate - Scroll to zoom
+          </div>
         </div>
         ${showSourceAxis ? `
-          <div style="position:absolute;bottom:10px;right:10px;display:flex;gap:6px;align-items:center;
-            background:rgba(0,0,0,0.58);border:1px solid rgba(255,255,255,0.14);padding:6px 8px;border-radius:8px;">
-            <span style="font-size:10px;color:rgba(255,255,255,0.68);margin-right:2px;">STEP up</span>
-            ${['X', 'Y', 'Z'].map(axis => `
-              <button type="button" data-cad-axis-module="${moduleName}" data-axis="${axis}"
-                title="Use ${axis} as source up axis"
-                style="width:28px;height:28px;border-radius:50%;border:1px solid rgba(210,220,235,0.35);
-                  background:${axis === selectedAxis ? '#178bff' : 'rgba(120,132,150,0.35)'};
-                  color:${axis === selectedAxis ? '#fff' : 'rgba(230,236,245,0.82)'};
-                  font-weight:800;font-size:11px;cursor:pointer;
-                  box-shadow:${axis === selectedAxis ? '0 0 14px rgba(23,139,255,0.45)' : 'none'};">
-                ${axis}
-              </button>
-            `).join('')}
+          <div style="height:360px;border-left:1px solid rgba(255,255,255,0.12);
+            background:linear-gradient(180deg, rgba(12,20,32,0.98), rgba(7,13,22,0.98));
+            display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:13px 10px;">
+            <div style="width:100%;">
+              <div style="font-size:10px;color:rgba(255,255,255,0.62);text-align:center;margin-bottom:7px;">
+                CAD axes
+              </div>
+              <svg data-cad-axis-triad="${moduleName}" viewBox="0 0 116 116"
+                style="width:112px;height:112px;display:block;margin:0 auto;border-radius:10px;
+                  background:rgba(255,255,255,0.035);border:1px solid rgba(255,255,255,0.08);">
+                <circle cx="58" cy="58" r="3.5" fill="rgba(255,255,255,0.86)"></circle>
+                ${['X', 'Y', 'Z'].map(axis => `
+                  <line data-triad-line="${axis}" x1="58" y1="58" x2="58" y2="24"
+                    stroke="${axis === selectedAxis ? '#178bff' : 'rgba(220,226,236,0.72)'}"
+                    stroke-width="${axis === selectedAxis ? '3.4' : '2.3'}"
+                    stroke-linecap="round"></line>
+                  <circle data-triad-dot="${axis}" cx="58" cy="24" r="4"
+                    fill="${axis === selectedAxis ? '#178bff' : 'rgba(220,226,236,0.72)'}"></circle>
+                  <text data-triad-label="${axis}" x="58" y="14" text-anchor="middle"
+                    font-size="13" font-family="JetBrains Mono, monospace"
+                    fill="${axis === selectedAxis ? '#178bff' : 'rgba(220,226,236,0.72)'}"
+                    font-weight="${axis === selectedAxis ? '800' : '650'}">${axis}</text>
+                `).join('')}
+              </svg>
+            </div>
+            <div style="width:100%;">
+              <div style="font-size:10px;color:rgba(255,255,255,0.62);text-align:center;margin-bottom:8px;">
+                STEP up
+              </div>
+              <div style="display:flex;gap:7px;justify-content:center;">
+                ${['X', 'Y', 'Z'].map(axis => `
+                  <button type="button" data-cad-axis-module="${moduleName}" data-axis="${axis}"
+                    title="Use ${axis} as source up axis"
+                    style="width:31px;height:31px;border-radius:50%;border:1px solid rgba(210,220,235,0.35);
+                      background:${axis === selectedAxis ? '#178bff' : 'rgba(120,132,150,0.35)'};
+                      color:${axis === selectedAxis ? '#fff' : 'rgba(230,236,245,0.82)'};
+                      font-weight:800;font-size:11px;cursor:pointer;
+                      box-shadow:${axis === selectedAxis ? '0 0 14px rgba(23,139,255,0.45)' : 'none'};">
+                    ${axis}
+                  </button>
+                `).join('')}
+              </div>
+            </div>
           </div>
         ` : ''}
-        <div style="position:absolute;top:10px;right:10px;font-size:10px;
-          color:rgba(255,255,255,0.5);background:rgba(0,0,0,0.5);padding:3px 8px;border-radius:4px;">
-          Drag to rotate - Scroll to zoom
-        </div>
       </div>`;
 
     if (showSourceAxis) {
+      const modelViewer = document.getElementById(`mv-${moduleName}`);
+      let axisFrame = null;
+      const scheduleAxisUpdate = () => {
+        if (axisFrame) cancelAnimationFrame(axisFrame);
+        axisFrame = requestAnimationFrame(() => updateCadAxisTriad(moduleName));
+      };
+      modelViewer?.addEventListener('camera-change', scheduleAxisUpdate);
+      modelViewer?.addEventListener('load', scheduleAxisUpdate);
+
       document.querySelectorAll(`[data-cad-axis-module="${moduleName}"]`).forEach(btn => {
         btn.addEventListener('click', event => {
           event.preventDefault();
@@ -7783,6 +7937,7 @@ let up42MoonImg = null;
         });
       });
       updateCadAxisSelector(moduleName);
+      scheduleAxisUpdate();
     }
   }
 
