@@ -171,7 +171,7 @@ def _convert_one(module_name: str, cad_path: str) -> None:
         source_metadata = convert_step_to_usd(
             cad_path,
             converted_usd_path,
-            source_up_axis=os.environ.get("STEP_SOURCE_UP_AXIS", "Y"),
+            source_up_axis=os.environ.get("STEP_SOURCE_UP_AXIS", "Z"),
         )
         Path(source_meta_path).write_text(
             json.dumps(source_metadata, indent=2),

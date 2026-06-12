@@ -234,6 +234,9 @@ def _rotate_points_to_z_up(
     if axis == "Y":
         # Rotate +90 deg around X so source Y-up geometry becomes Z-up.
         return [(x, -z, y) for x, y, z in points], [90.0, 0.0, 0.0]
+    if axis == "X":
+        # Rotate -90 deg around Y so source X-up geometry becomes Z-up.
+        return [(-z, y, x) for x, y, z in points], [0.0, -90.0, 0.0]
     raise ValueError(f"Unsupported STEP source up axis: {source_up_axis}")
 
 
@@ -245,7 +248,7 @@ def write_usd_mesh(
     face_vertex_indices: list[int],
     source_path: str | Path,
     unit_scale_to_m: float,
-    source_up_axis: str = "Y",
+    source_up_axis: str = "Z",
 ) -> str:
     from pxr import Gf, Sdf, Usd, UsdGeom, UsdShade
 
@@ -328,7 +331,7 @@ def convert_step_to_usd(
     output_path: str | Path,
     *,
     default_unit: str = "mm",
-    source_up_axis: str = "Y",
+    source_up_axis: str = "Z",
     linear_deflection: float = 0.1,
     angular_deflection: float = 0.5,
 ) -> dict[str, Any]:
@@ -372,7 +375,9 @@ def convert_step_to_usd(
         "source_up_axis": str(source_up_axis).upper(),
         "target_up_axis": "Z",
         "orientation_correction_deg": (
-            [90.0, 0.0, 0.0] if str(source_up_axis).upper() == "Y" else [0.0, 0.0, 0.0]
+            [90.0, 0.0, 0.0]
+            if str(source_up_axis).upper() == "Y"
+            else ([0.0, -90.0, 0.0] if str(source_up_axis).upper() == "X" else [0.0, 0.0, 0.0])
         ),
         "units": units,
         "occ_shape_unit": {
@@ -402,8 +407,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--default-unit", default="mm", help="Fallback STEP length unit")
     parser.add_argument(
         "--source-up-axis",
-        default="Y",
-        choices=("Y", "Z", "y", "z"),
+        default="Z",
+        choices=("X", "Y", "Z", "x", "y", "z"),
         help="Source CAD up axis to convert into USD Z-up",
     )
     parser.add_argument("--linear-deflection", type=float, default=0.1)

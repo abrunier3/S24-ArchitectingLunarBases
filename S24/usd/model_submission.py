@@ -214,6 +214,7 @@ def build_submission_manifest(
             "dimensions": dimensions,
             "attributes": attributes,
             "material": material,
+            "metadata": metadata,
             "geometry_ref": geometry_ref,
 
             # --- Ports ---

@@ -80,11 +80,34 @@ def _target_size_from_dimensions(dimensions: Dict[str, Any]) -> list[float] | No
     return [float(value) for value in values]
 
 
+def _is_step_metadata(metadata: Dict[str, Any] | None) -> bool:
+    metadata = metadata or {}
+    values = [
+        metadata.get("cadFileName"),
+        metadata.get("sourceCadPath"),
+        metadata.get("geometryRef"),
+    ]
+    return any(str(value or "").lower().endswith((".step", ".stp")) for value in values)
+
+
+def _source_up_axis_rotation(metadata: Dict[str, Any] | None) -> list[float]:
+    if not _is_step_metadata(metadata):
+        return [0.0, 0.0, 0.0]
+
+    axis = str((metadata or {}).get("cadSourceUpAxis") or "Z").upper()
+    if axis == "X":
+        return [0.0, -90.0, 0.0]
+    if axis == "Y":
+        return [90.0, 0.0, 0.0]
+    return [0.0, 0.0, 0.0]
+
+
 def _cad_normalization(
     cad_path: str,
     *,
     repo_root: Path,
     dimensions: Dict[str, Any] | None = None,
+    metadata: Dict[str, Any] | None = None,
 ) -> Dict[str, Any]:
     """
     Return a universal placement transform for a referenced CAD layer.
@@ -107,6 +130,7 @@ def _cad_normalization(
             "bbox_min": [0.0, 0.0, 0.0],
             "bbox_max": [0.0, 0.0, 0.0],
             "bbox_size": [0.0, 0.0, 0.0],
+            "oriented_bbox_size": [0.0, 0.0, 0.0],
             "has_authored_xforms": False,
             "authored_xform_ops": [],
         }
@@ -115,8 +139,9 @@ def _cad_normalization(
     meters_per_unit = float(UsdGeom.GetStageMetersPerUnit(stage) or 1.0)
 
     # Do not rotate from stage upAxis alone. Several Sketchfab/Omniverse USDs
-    # already encode their visual orientation in authored xformOps.
-    rotate_xyz = [0.0, 0.0, 0.0]
+    # already encode their visual orientation in authored xformOps. For STEP
+    # uploads, apply only the explicit source up-axis selected by the user.
+    rotate_xyz = _source_up_axis_rotation(metadata)
 
     unit_scale = [meters_per_unit, meters_per_unit, meters_per_unit]
 
@@ -150,23 +175,35 @@ def _cad_normalization(
         bbox_max[1] - bbox_min[1],
         bbox_max[2] - bbox_min[2],
     ]
+
+    oriented_corners = _transform_bbox_corners(
+        bbox_range.GetMin(),
+        bbox_range.GetMax(),
+        rotate_xyz=rotate_xyz,
+        scale=unit_scale,
+    )
+    oriented_bbox_size = [
+        max(corner[i] for corner in oriented_corners) - min(corner[i] for corner in oriented_corners)
+        for i in range(3)
+    ]
+
     target_size = _target_size_from_dimensions(dimensions or {})
     fit_scale = [1.0, 1.0, 1.0]
     scale_mode = "cad_native_units"
-    if target_size and all(size > 0 for size in bbox_size):
+    if target_size and all(size > 0 for size in oriented_bbox_size):
         target_variants = [
             target_size,
             [target_size[1], target_size[0], target_size[2]],
         ]
         fit_ratio = max(
-            min(target[i] / bbox_size[i] for i in range(3))
+            min(target[i] / oriented_bbox_size[i] for i in range(3))
             for target in target_variants
         )
         fit_scale = [fit_ratio, fit_ratio, fit_ratio]
         scale_mode = "sysml_size_m_uniform_bbox_fit_xy_interchangeable"
 
     scale = [unit_scale[i] * fit_scale[i] for i in range(3)]
-    fitted_bbox_size = [bbox_size[i] * fit_scale[i] for i in range(3)]
+    fitted_bbox_size = [oriented_bbox_size[i] * fit_scale[i] for i in range(3)]
 
     corners = _transform_bbox_corners(
         bbox_range.GetMin(),
@@ -196,6 +233,7 @@ def _cad_normalization(
         "bbox_min": bbox_min,
         "bbox_max": bbox_max,
         "bbox_size": bbox_size,
+        "oriented_bbox_size": oriented_bbox_size,
         "fitted_bbox_size": fitted_bbox_size,
         "has_authored_xforms": bool(authored_xform_ops),
         "authored_xform_ops": authored_xform_ops[:20],
@@ -256,6 +294,7 @@ def build_usd_scene_from_manifest(
                 cad_path,
                 repo_root=repo_root,
                 dimensions=part.get("dimensions"),
+                metadata=part.get("metadata"),
             )
 
         pos = part.get("position_m", [0, 0, 0])
@@ -288,6 +327,9 @@ def build_usd_scene_from_manifest(
             geom_prim.CreateAttribute("cad:sourceUpAxis", Sdf.ValueTypeNames.String).Set(
                 str(norm.get("up_axis", "Z"))
             )
+            geom_prim.CreateAttribute("cad:userSourceUpAxis", Sdf.ValueTypeNames.String).Set(
+                str((part.get("metadata") or {}).get("cadSourceUpAxis") or "")
+            )
             geom_prim.CreateAttribute("cad:metersPerUnit", Sdf.ValueTypeNames.Double).Set(
                 float(norm.get("meters_per_unit", 1.0))
             )
@@ -317,6 +359,9 @@ def build_usd_scene_from_manifest(
             )
             geom_prim.CreateAttribute("cad:bboxSize", Sdf.ValueTypeNames.Double3).Set(
                 Gf.Vec3d(*norm.get("bbox_size", [0.0, 0.0, 0.0]))
+            )
+            geom_prim.CreateAttribute("cad:orientedBboxSize", Sdf.ValueTypeNames.Double3).Set(
+                Gf.Vec3d(*norm.get("oriented_bbox_size", [0.0, 0.0, 0.0]))
             )
             geom_prim.CreateAttribute("cad:fittedBboxSize", Sdf.ValueTypeNames.Double3).Set(
                 Gf.Vec3d(*norm.get("fitted_bbox_size", [0.0, 0.0, 0.0]))

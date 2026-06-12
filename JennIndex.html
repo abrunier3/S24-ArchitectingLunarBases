@@ -6340,6 +6340,23 @@ let up42MoonImg = null;
     setField('pipelineUid', part.id ?? '');
     setField('cadTitle', name);
 
+    if (part.metadata?.cadSourceUpAxis || part.metadata?.cadDetectedSizeM || part.metadata?.geometryRef) {
+      const existing = moduleMetaCache[name] || {};
+      const cadSize = part.metadata?.cadDetectedSizeM;
+      moduleMetaCache[name] = {
+        ...existing,
+        ...(part.metadata?.cadSourceUpAxis
+          ? { cadSourceUpAxis: normalizeUpAxis(part.metadata.cadSourceUpAxis, 'Z') }
+          : {}),
+        ...(cadSize
+          ? { detectedSizeM: [cadSize.length, cadSize.width, cadSize.height] }
+          : {}),
+        ...(part.metadata?.geometryRef ? { detectedUsdPath: part.metadata.geometryRef } : {}),
+        ...(part.metadata?.cadDetectedMetersPerUnit ? { detectedMetersPerUnit: String(part.metadata.cadDetectedMetersPerUnit) } : {}),
+        ...(part.metadata?.cadDetectedUpAxis ? { detectedUpAxis: part.metadata.cadDetectedUpAxis } : {})
+      };
+    }
+
     renderSysmlAttributes(part.attributes || {}, part.ports || []);
   }
 
@@ -6763,6 +6780,10 @@ let up42MoonImg = null;
       upAxis,
       detectedMetersPerUnit: metersPerUnit,
       detectedUpAxis: upAxis,
+      cadSourceUpAxis: normalizeUpAxis(
+        existing.cadSourceUpAxis || data.source_metadata?.source_up_axis || 'Z',
+        'Z'
+      ),
       ...(sizeM ? { detectedSizeM: sizeM } : {}),
       ...(data.usd_path ? { detectedUsdPath: data.usd_path } : {})
     };
@@ -6772,6 +6793,54 @@ let up42MoonImg = null;
       setSelectField('upAxis', upAxis);
       setCadUnitFieldsLocked(true);
     }
+  }
+
+  function isStepCadMeta(data) {
+    const sourcePath = String(data?.source_cad_path || data?.source_metadata?.source_file || '').toLowerCase();
+    const format = String(data?.source_metadata?.cad_format || '').toLowerCase();
+    return sourcePath.endsWith('.step') || sourcePath.endsWith('.stp') || format === 'step';
+  }
+
+  function setCadSourceUpAxis(moduleName, axis) {
+    const normalized = normalizeUpAxis(axis, 'Z');
+    moduleMetaCache[moduleName] = {
+      ...(moduleMetaCache[moduleName] || {}),
+      cadSourceUpAxis: normalized
+    };
+    updateCadAxisSelector(moduleName);
+
+    const cadFileForSave = moduleFiles[moduleName] ||
+      (sysmlPartsCache[moduleName]?.metadata?.cadFileName
+        ? { name: sysmlPartsCache[moduleName].metadata.cadFileName }
+        : null);
+
+    if (cadFileForSave) {
+      const pubStatus = document.getElementById('publishStatus');
+      if (pubStatus) pubStatus.textContent = `Saving ${moduleName} STEP up axis: ${normalized}...`;
+      writeAssetJson(moduleName, cadFileForSave)
+        .then(ok => {
+          const status = document.getElementById('publishStatus');
+          if (status) {
+            status.textContent = ok
+              ? `${moduleName} STEP up axis saved: ${normalized}.`
+              : `Could not save ${moduleName} STEP up axis.`;
+          }
+        })
+        .catch(error => {
+          console.warn('[setCadSourceUpAxis]', error);
+        });
+    }
+  }
+
+  function updateCadAxisSelector(moduleName) {
+    const selected = normalizeUpAxis(moduleMetaCache[moduleName]?.cadSourceUpAxis || 'Z', 'Z');
+    document.querySelectorAll(`[data-cad-axis-module="${moduleName}"]`).forEach(btn => {
+      const active = btn.getAttribute('data-axis') === selected;
+      btn.style.background = active ? '#178bff' : 'rgba(120, 132, 150, 0.35)';
+      btn.style.borderColor = active ? '#72c5ff' : 'rgba(210, 220, 235, 0.35)';
+      btn.style.color = active ? '#ffffff' : 'rgba(230, 236, 245, 0.82)';
+      btn.style.boxShadow = active ? '0 0 14px rgba(23,139,255,0.45)' : 'none';
+    });
   }
 
   function saveModuleMeta() {
@@ -7377,14 +7446,15 @@ let up42MoonImg = null;
         ...(mass !== null ? { computed_mass_kg: mass } : {})
       },
       metadata: {
-        geometryRef: saved.detectedUsdPath || `clean_database/cad_models/${moduleName}/${cadFile.name}`,
+        geometryRef: saved.detectedUsdPath || part.metadata?.geometryRef || `clean_database/cad_models/${moduleName}/${cadFile.name}`,
         cadFileName: cadFile.name,
         cadUploadedAt: new Date().toISOString(),
         glbPreviewRef: `outputs/cad_previews/${moduleName}.glb`,
-        sourceCadPath: saved.detectedUsdPath ? `clean_database/cad_models/${moduleName}/${cadFile.name}` : null,
+        sourceCadPath: part.metadata?.sourceCadPath || (saved.detectedUsdPath ? `clean_database/cad_models/${moduleName}/${cadFile.name}` : null),
         cadDetectedSizeM: cadDetectedSizeM
           ? { length: cadDetectedSizeM[0], width: cadDetectedSizeM[1], height: cadDetectedSizeM[2] }
           : null,
+        cadSourceUpAxis: saved.cadSourceUpAxis || null,
         cadDetectedUpAxis: saved.detectedUpAxis || null,
         cadDetectedMetersPerUnit: saved.detectedMetersPerUnit ? parseFloat(saved.detectedMetersPerUnit) : null
       },
@@ -7619,7 +7689,7 @@ let up42MoonImg = null;
     };
   }
 
-  async function showModelViewer(moduleName, meshCount, sizeM, expectedGlbSha = null) {
+  async function showModelViewer(moduleName, meshCount, sizeM, expectedGlbSha = null, options = {}) {
     const wrap = document.getElementById('viewer3dWrap');
     if (!wrap) return;
 
@@ -7660,6 +7730,9 @@ let up42MoonImg = null;
       glbSha: glb.sha
     };
 
+    const showSourceAxis = !!options.showSourceAxis;
+    const selectedAxis = normalizeUpAxis(moduleMetaCache[moduleName]?.cadSourceUpAxis || 'Z', 'Z');
+
     wrap.innerHTML = `
       <div style="position:relative;border-radius:12px;overflow:hidden;border:1px solid var(--border2);">
         <model-viewer
@@ -7679,11 +7752,38 @@ let up42MoonImg = null;
           color:rgba(255,255,255,0.7);background:rgba(0,0,0,0.6);padding:3px 8px;border-radius:4px;">
           ${meshCount} meshes - ${sizeM[0]}x${sizeM[1]}x${sizeM[2]} m
         </div>
+        ${showSourceAxis ? `
+          <div style="position:absolute;bottom:10px;right:10px;display:flex;gap:6px;align-items:center;
+            background:rgba(0,0,0,0.58);border:1px solid rgba(255,255,255,0.14);padding:6px 8px;border-radius:8px;">
+            <span style="font-size:10px;color:rgba(255,255,255,0.68);margin-right:2px;">STEP up</span>
+            ${['X', 'Y', 'Z'].map(axis => `
+              <button type="button" data-cad-axis-module="${moduleName}" data-axis="${axis}"
+                title="Use ${axis} as source up axis"
+                style="width:28px;height:28px;border-radius:50%;border:1px solid rgba(210,220,235,0.35);
+                  background:${axis === selectedAxis ? '#178bff' : 'rgba(120,132,150,0.35)'};
+                  color:${axis === selectedAxis ? '#fff' : 'rgba(230,236,245,0.82)'};
+                  font-weight:800;font-size:11px;cursor:pointer;
+                  box-shadow:${axis === selectedAxis ? '0 0 14px rgba(23,139,255,0.45)' : 'none'};">
+                ${axis}
+              </button>
+            `).join('')}
+          </div>
+        ` : ''}
         <div style="position:absolute;top:10px;right:10px;font-size:10px;
           color:rgba(255,255,255,0.5);background:rgba(0,0,0,0.5);padding:3px 8px;border-radius:4px;">
           Drag to rotate - Scroll to zoom
         </div>
       </div>`;
+
+    if (showSourceAxis) {
+      document.querySelectorAll(`[data-cad-axis-module="${moduleName}"]`).forEach(btn => {
+        btn.addEventListener('click', event => {
+          event.preventDefault();
+          setCadSourceUpAxis(moduleName, btn.getAttribute('data-axis') || 'Z');
+        });
+      });
+      updateCadAxisSelector(moduleName);
+    }
   }
 
   async function applyCadMeta(data, options = {}) {
@@ -7692,7 +7792,13 @@ let up42MoonImg = null;
     syncDetectedCadMeta(data);
 
     if (data.glb_path) {
-      await showModelViewer(data.module_name, data.mesh_count, data.size_m, options.glbSha || null);
+      await showModelViewer(
+        data.module_name,
+        data.mesh_count,
+        data.size_m,
+        options.glbSha || null,
+        { showSourceAxis: isStepCadMeta(data) }
+      );
     }
 
     if (status) {
