@@ -6771,11 +6771,6 @@ let up42MoonImg = null;
       setField('metersPerUnit', metersPerUnit);
       setSelectField('upAxis', upAxis);
       setCadUnitFieldsLocked(true);
-      if (sizeM) {
-        setField('omlLength', sizeM[0]);
-        setField('omlWidth', sizeM[1]);
-        setField('omlHeight', sizeM[2]);
-      }
     }
   }
 
@@ -7279,10 +7274,10 @@ let up42MoonImg = null;
     const massUnit = saved.massUnit || 'kg';
     const lengthUnit = saved.lengthUnit || 'm';
 
-    const detectedSizeM = normalizeSizeM(saved.detectedSizeM);
-    const sizeM = detectedSizeM || (part.dimensions?.size_m
+    const cadDetectedSizeM = normalizeSizeM(saved.detectedSizeM);
+    const sizeM = part.dimensions?.size_m
       ? [part.dimensions.size_m.length, part.dimensions.size_m.width, part.dimensions.size_m.height]
-      : null);
+      : null;
 
     return {
       type: part.type || 'Part',
@@ -7306,6 +7301,9 @@ let up42MoonImg = null;
         cadUploadedAt: new Date().toISOString(),
         glbPreviewRef: `outputs/cad_previews/${moduleName}.glb`,
         sourceCadPath: saved.detectedUsdPath ? `clean_database/cad_models/${moduleName}/${cadFile.name}` : null,
+        cadDetectedSizeM: cadDetectedSizeM
+          ? { length: cadDetectedSizeM[0], width: cadDetectedSizeM[1], height: cadDetectedSizeM[2] }
+          : null,
         cadDetectedUpAxis: saved.detectedUpAxis || null,
         cadDetectedMetersPerUnit: saved.detectedMetersPerUnit ? parseFloat(saved.detectedMetersPerUnit) : null
       },
