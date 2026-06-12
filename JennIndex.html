@@ -7023,11 +7023,9 @@ let up42MoonImg = null;
     const metaFresh =
       (meta.sha && meta.sha !== previewRequest.previousMetaSha) ||
       (writtenAt && writtenAt >= previewRequest.requestedAt);
-    const glbFresh =
-      (glbMeta.sha && glbMeta.sha !== previewRequest.previousGlbSha) ||
-      (!previewRequest.previousGlbSha && !!glbMeta.sha);
+    const glbReady = !!glbMeta.sha;
 
-    if (!metaFresh || !glbFresh) return false;
+    if (!metaFresh || !glbReady) return false;
 
     syncDetectedCadMeta(meta.data);
 
