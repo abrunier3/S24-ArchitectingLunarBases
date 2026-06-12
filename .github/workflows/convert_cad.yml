@@ -60,22 +60,7 @@ jobs:
               --output "$CONVERTED_USD_PATH" \
               --source-up-axis Y \
               --metadata "outputs/cad_previews/${MODULE_NAME}_source_meta.json"
-            python - <<'EOF'
-            import json
-            import os
-            import sys
-
-            module_name = os.environ["MODULE_NAME"]
-            meta_path = f"outputs/cad_previews/{module_name}_source_meta.json"
-            with open(meta_path) as f:
-                meta = json.load(f)
-
-            if "orientation_correction_deg" not in meta:
-                print(f"[CONVERT] ERROR: {meta_path} is missing orientation_correction_deg")
-                sys.exit(1)
-
-            print(f"[CONVERT] STEP orientation correction: {meta['orientation_correction_deg']}")
-            EOF
+            python -c 'import json, os, sys; p = "outputs/cad_previews/" + os.environ["MODULE_NAME"] + "_source_meta.json"; m = json.load(open(p)); missing = "orientation_correction_deg" not in m; print("[CONVERT] ERROR: " + p + " is missing orientation_correction_deg") if missing else print("[CONVERT] STEP orientation correction:", m["orientation_correction_deg"]); sys.exit(1 if missing else 0)'
             USD_PATH="$CONVERTED_USD_PATH"
           fi
 
