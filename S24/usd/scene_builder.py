@@ -91,10 +91,12 @@ def _is_step_metadata(metadata: Dict[str, Any] | None) -> bool:
 
 
 def _source_up_axis_rotation(metadata: Dict[str, Any] | None) -> list[float]:
-    if not _is_step_metadata(metadata):
+    metadata = metadata or {}
+    has_user_step_axis = bool(metadata.get("cadSourceUpAxis"))
+    if not (_is_step_metadata(metadata) or has_user_step_axis):
         return [0.0, 0.0, 0.0]
 
-    axis = str((metadata or {}).get("cadSourceUpAxis") or "Z").upper()
+    axis = str(metadata.get("cadSourceUpAxis") or "Z").upper()
     if axis == "X":
         return [0.0, -90.0, 0.0]
     if axis == "Y":
