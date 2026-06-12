@@ -7060,6 +7060,7 @@ let up42MoonImg = null;
     btn.textContent = 'Publishing...';
 
     let done = 0;
+    const conversionJobs = [];
 
     for (const moduleName of modules) {
       const file = moduleFiles[moduleName];
@@ -7087,17 +7088,40 @@ let up42MoonImg = null;
 
       if (uploaded) {
         const usdPath = `clean_database/cad_models/${moduleName}/${file.name}`;
-        const runInfo = await triggerConvertWorkflow(moduleName, usdPath, previewRequest.requestedAt);
-
+        conversionJobs.push({ moduleName, file, usdPath, previewRequest });
         updateModuleDot(moduleName, 'done');
-        const freshMeta = await pollForMeta(moduleName, runInfo, previewRequest);
-        if (freshMeta?.data) syncDetectedCadMeta(freshMeta.data);
-        await writeAssetJson(moduleName, file);
       } else {
         updateModuleDot(moduleName, 'error');
       }
 
       done++;
+    }
+
+    if (conversionJobs.length) {
+      if (pubStatus) {
+        pubStatus.textContent = `Converting ${conversionJobs.length} CAD file(s)...`;
+      }
+
+      const runInfo = await triggerConvertBatchWorkflow(
+        conversionJobs.map(job => ({
+          module_name: job.moduleName,
+          cad_path: job.usdPath
+        })),
+        Date.now()
+      );
+
+      let converted = 0;
+      for (const job of conversionJobs) {
+        if (pubStatus) {
+          pubStatus.textContent =
+            `Loading converted preview for ${job.moduleName}... (${converted + 1}/${conversionJobs.length})`;
+        }
+
+        const freshMeta = await pollForMeta(job.moduleName, runInfo, job.previewRequest);
+        if (freshMeta?.data) syncDetectedCadMeta(freshMeta.data);
+        await writeAssetJson(job.moduleName, job.file);
+        converted++;
+      }
     }
 
     btn.textContent = 'Save & Publish All';
@@ -7171,6 +7195,65 @@ let up42MoonImg = null;
       };
     } catch (e) {
       console.warn('[triggerConvertWorkflow]', e);
+      return { runId: null, dispatchedAt };
+    }
+  }
+
+  async function triggerConvertBatchWorkflow(jobs, dispatchedAt = Date.now()) {
+    const token = sessionStorage.getItem('gh_pat');
+    if (!token) return null;
+
+    const res = await fetch(
+      `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/actions/workflows/convert_cad.yml/dispatches`,
+      {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/vnd.github+json',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          ref: GH_REF,
+          inputs: {
+            batch_jobs_json: JSON.stringify(jobs)
+          }
+        }),
+        cache: 'no-store'
+      }
+    );
+
+    if (res.status !== 204) return null;
+
+    await sleep(window.UI_POLL.runLookupMs);
+
+    try {
+      const runsRes = await fetch(
+        `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/actions/workflows/convert_cad.yml/runs?branch=${encodeURIComponent(GH_REF)}&per_page=10&ts=${Date.now()}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/vnd.github+json'
+          },
+          cache: 'no-store'
+        }
+      );
+
+      if (!runsRes.ok) {
+        return { runId: null, dispatchedAt };
+      }
+
+      const runs = await runsRes.json();
+      const run = (runs.workflow_runs || []).find(item => {
+        const createdAt = new Date(item.created_at).getTime();
+        return createdAt >= dispatchedAt - 15000;
+      });
+
+      return {
+        runId: run?.id || null,
+        dispatchedAt
+      };
+    } catch (e) {
+      console.warn('[triggerConvertBatchWorkflow]', e);
       return { runId: null, dispatchedAt };
     }
   }

@@ -5,10 +5,13 @@ on:
     inputs:
       module_name:
         description: 'Module name (e.g. ISRUPlant)'
-        required: true
+        required: false
       usd_path:
         description: 'Path to CAD file in repo (e.g. clean_database/cad_models/ISRUPlant/isruplant.step)'
-        required: true
+        required: false
+      batch_jobs_json:
+        description: 'Optional JSON list of CAD jobs: [{"module_name":"RegolithRover","cad_path":"clean_database/..."}]'
+        required: false
 
 jobs:
   convert:
@@ -47,162 +50,9 @@ jobs:
         env:
           MODULE_NAME: ${{ github.event.inputs.module_name }}
           USD_PATH: ${{ github.event.inputs.usd_path }}
+          BATCH_JOBS_JSON: ${{ github.event.inputs.batch_jobs_json }}
         run: |
-          mkdir -p outputs/cad_previews
-          SOURCE_CAD_PATH="$USD_PATH"
-          LOWER_PATH="$(printf '%s' "$USD_PATH" | tr '[:upper:]' '[:lower:]')"
-
-          if [[ "$LOWER_PATH" == *.step || "$LOWER_PATH" == *.stp ]]; then
-            CONVERTED_USD_PATH="clean_database/cad_models/${MODULE_NAME}/${MODULE_NAME}.usdc"
-            echo "[CONVERT] STEP detected. Converting ${USD_PATH} -> ${CONVERTED_USD_PATH}"
-            python -m S24.cad.step_to_usd \
-              "$USD_PATH" \
-              --output "$CONVERTED_USD_PATH" \
-              --source-up-axis Y \
-              --metadata "outputs/cad_previews/${MODULE_NAME}_source_meta.json"
-            python -c 'import json, os, sys; p = "outputs/cad_previews/" + os.environ["MODULE_NAME"] + "_source_meta.json"; m = json.load(open(p)); missing = "orientation_correction_deg" not in m; print("[CONVERT] ERROR: " + p + " is missing orientation_correction_deg") if missing else print("[CONVERT] STEP orientation correction:", m["orientation_correction_deg"]); sys.exit(1 if missing else 0)'
-            USD_PATH="$CONVERTED_USD_PATH"
-          fi
-
-          export SOURCE_CAD_PATH
-          export USD_PATH
-
-          python - <<'EOF'
-          import json, os, time, zipfile
-          import numpy as np
-          import trimesh
-          import trimesh.transformations as tf
-          from pxr import Usd, UsdGeom, UsdShade
-
-          module_name = os.environ['MODULE_NAME']
-          usd_path    = os.environ['USD_PATH']
-          source_cad_path = os.environ.get('SOURCE_CAD_PATH', usd_path)
-
-          # Handle .usdz (zip)
-          actual_usd_path = usd_path
-          if usd_path.endswith('.usdz'):
-              tmp_dir = '/tmp/usd_extract'
-              os.makedirs(tmp_dir, exist_ok=True)
-              with zipfile.ZipFile(usd_path, 'r') as z:
-                  z.extractall(tmp_dir)
-              for root, dirs, files in os.walk(tmp_dir):
-                  for f in files:
-                      if f.endswith('.usdc') or f.endswith('.usda'):
-                          actual_usd_path = os.path.join(root, f)
-                          break
-
-          print(f"[CONVERT] Opening {actual_usd_path}")
-          stage = Usd.Stage.Open(actual_usd_path)
-          mpu     = UsdGeom.GetStageMetersPerUnit(stage)
-          up_axis = UsdGeom.GetStageUpAxis(stage)
-
-          # Bounding box
-          bbox_cache = UsdGeom.BBoxCache(Usd.TimeCode.Default(), [UsdGeom.Tokens.default_])
-          bbox  = bbox_cache.ComputeWorldBound(stage.GetPseudoRoot())
-          rng   = bbox.GetRange()
-          mn, mx = rng.GetMin(), rng.GetMax()
-          size  = mx - mn
-          size_m   = [round(abs(size[i]) * mpu, 3) for i in range(3)]
-          center_m = [round(((mn[i] + mx[i]) / 2) * mpu, 3) for i in range(3)]
-          print(f"[CONVERT] Size (m): {size_m}, up_axis: {up_axis}")
-
-          # Materials
-          def to_json_val(v):
-              if v is None: return None
-              if isinstance(v, (bool, int, str)): return v
-              if isinstance(v, float): return round(v, 4)
-              try:
-                  items = list(v)
-                  if all(isinstance(x, (int, float)) for x in items):
-                      return [round(float(x), 4) for x in items]
-              except TypeError: pass
-              try: return round(float(v), 4)
-              except (TypeError, ValueError): return str(v)
-
-          materials_found = []
-          for prim in stage.Traverse():
-              if prim.IsA(UsdShade.Material):
-                  mat_data = {"path": str(prim.GetPath()), "properties": {}}
-                  for child in prim.GetChildren():
-                      shader = UsdShade.Shader(child)
-                      if shader:
-                          for inp in shader.GetInputs():
-                              v = inp.Get()
-                              if v is not None:
-                                  key = inp.GetFullName().replace("inputs:", "")
-                                  mat_data["properties"][key] = to_json_val(v)
-                  materials_found.append(mat_data)
-
-          # Extract meshes with their authored USD transforms applied. This keeps
-          # the browser preview consistent with what Omniverse will reference.
-          meshes_data = []
-          xform_cache = UsdGeom.XformCache(Usd.TimeCode.Default())
-          for prim in stage.Traverse():
-              if prim.IsA(UsdGeom.Mesh):
-                  m = UsdGeom.Mesh(prim)
-                  pts    = m.GetPointsAttr().Get()
-                  idxs   = m.GetFaceVertexIndicesAttr().Get()
-                  counts = m.GetFaceVertexCountsAttr().Get()
-                  if not (pts and idxs and counts): continue
-                  world_xform = xform_cache.GetLocalToWorldTransform(prim)
-                  verts = np.array([
-                      list(world_xform.Transform(p))
-                      for p in pts
-                  ], dtype=np.float32) * mpu
-                  faces, idx = [], 0
-                  for c in counts:
-                      face = [idxs[idx+i] for i in range(c)]
-                      for i in range(1, len(face)-1):
-                          faces.append([face[0], face[i], face[i+1]])
-                      idx += c
-                  if faces:
-                      meshes_data.append(trimesh.Trimesh(vertices=verts, faces=np.array(faces, dtype=np.int32)))
-
-          print(f"[CONVERT] Extracted {len(meshes_data)} meshes")
-
-          # Export GLB with Y-up correction + centered at origin
-          glb_path = None
-          if meshes_data:
-              scene = trimesh.Scene(meshes_data)
-              if up_axis == 'Y':
-                  scene.apply_transform(tf.rotation_matrix(-np.pi/2, [1,0,0]))
-              # Center the scene at origin so model-viewer rotates around correct axis
-              bounds = scene.bounds
-              if bounds is not None:
-                  center = (bounds[0] + bounds[1]) / 2
-                  scene.apply_translation(-center)
-              glb_path = f"outputs/cad_previews/{module_name}.glb"
-              glb_bytes = scene.export(file_type='glb')
-              with open(glb_path, 'wb') as f:
-                  f.write(glb_bytes)
-              print(f"[CONVERT] GLB written: {len(glb_bytes)//1024} KB")
-
-          # Write metadata
-          source_meta_path = f"outputs/cad_previews/{module_name}_source_meta.json"
-          source_metadata = None
-          if os.path.exists(source_meta_path):
-              with open(source_meta_path) as f:
-                  source_metadata = json.load(f)
-
-          meta = {
-              "written_at":      int(time.time() * 1000),
-              "module_name":     module_name,
-              "source_cad_path":  source_cad_path,
-              "usd_path":        usd_path,
-              "glb_path":        glb_path,
-              "up_axis":         up_axis,
-              "meters_per_unit": mpu,
-              "size_m":          size_m,
-              "center_m":        center_m,
-              "mesh_count":      len(meshes_data),
-              "materials":       materials_found,
-              "source_metadata": source_metadata,
-          }
-          out_path = f"outputs/cad_previews/{module_name}_meta.json"
-          with open(out_path, "w") as f:
-              json.dump(meta, f, indent=2)
-          print(f"[CONVERT] Done — {out_path}")
-          EOF
+          python -m S24.cad.convert_workflow
 
       - name: Commit outputs
         run: |
@@ -213,5 +63,5 @@ jobs:
           git pull --rebase origin "${GITHUB_REF_NAME}"
           echo "$STASHED" | grep -q "No local changes" || git stash pop
           git add outputs/cad_previews/ clean_database/cad_models/
-          git diff --staged --quiet || git commit -m "chore: CAD preview + metadata for ${{ github.event.inputs.module_name }} [skip ci]"
+          git diff --staged --quiet || git commit -m "chore: CAD preview + metadata update [skip ci]"
           git push origin HEAD:"${GITHUB_REF_NAME}"
