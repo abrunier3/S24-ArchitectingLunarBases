@@ -80,20 +80,19 @@ def _target_size_from_dimensions(dimensions: Dict[str, Any]) -> list[float] | No
     return [float(value) for value in values]
 
 
-def _is_step_metadata(metadata: Dict[str, Any] | None) -> bool:
+def _uses_source_up_axis(metadata: Dict[str, Any] | None) -> bool:
     metadata = metadata or {}
     values = [
         metadata.get("cadFileName"),
         metadata.get("sourceCadPath"),
         metadata.get("geometryRef"),
     ]
-    return any(str(value or "").lower().endswith((".step", ".stp")) for value in values)
+    return any(str(value or "").lower().endswith((".step", ".stp", ".stl", ".obj")) for value in values)
 
 
 def _source_up_axis_rotation(metadata: Dict[str, Any] | None) -> list[float]:
     metadata = metadata or {}
-    has_user_step_axis = bool(metadata.get("cadSourceUpAxis"))
-    if not (_is_step_metadata(metadata) or has_user_step_axis):
+    if not _uses_source_up_axis(metadata):
         return [0.0, 0.0, 0.0]
 
     axis = str(metadata.get("cadSourceUpAxis") or "Z").upper()

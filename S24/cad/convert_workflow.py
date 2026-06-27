@@ -12,6 +12,7 @@ import trimesh
 import trimesh.transformations as tf
 from pxr import Usd, UsdGeom, UsdShade
 
+from S24.cad.mesh_to_usd import convert_mesh_to_usd
 from S24.cad.step_to_usd import convert_step_to_usd
 
 
@@ -181,6 +182,27 @@ def _convert_one(module_name: str, cad_path: str) -> None:
             raise RuntimeError(f"{source_meta_path} is missing orientation_correction_deg")
         print(
             "[CONVERT] STEP orientation correction:",
+            source_metadata["orientation_correction_deg"],
+        )
+        usd_path = converted_usd_path
+    elif lower_path.endswith((".stl", ".obj")):
+        converted_usd_path = f"clean_database/cad_models/{module_name}/{module_name}.usdc"
+        source_meta_path = f"outputs/cad_previews/{module_name}_source_meta.json"
+        print(f"[CONVERT] Mesh CAD detected. Converting {cad_path} -> {converted_usd_path}")
+        source_metadata = convert_mesh_to_usd(
+            cad_path,
+            converted_usd_path,
+            source_unit=os.environ.get("MESH_SOURCE_UNIT", "m"),
+            source_up_axis=os.environ.get("MESH_SOURCE_UP_AXIS", "Z"),
+        )
+        Path(source_meta_path).write_text(
+            json.dumps(source_metadata, indent=2),
+            encoding="utf-8",
+        )
+        if "orientation_correction_deg" not in source_metadata:
+            raise RuntimeError(f"{source_meta_path} is missing orientation_correction_deg")
+        print(
+            "[CONVERT] Mesh orientation correction:",
             source_metadata["orientation_correction_deg"],
         )
         usd_path = converted_usd_path

@@ -94,7 +94,7 @@ After the graph loads, activate or deactivate the modules you want to keep in th
 For each module that needs a CAD model:
 
 1. Select the module.
-2. Upload a USD, USDA, USDC, or USDZ file.
+2. Upload a USD, USDA, USDC, USDZ, STEP, STP, STL, or OBJ file.
 3. Review detected metadata such as material, units, dimensions, and up axis.
 4. If metadata is detected from the CAD file, treat it as the source of truth.
 5. If metadata is not detected, fill the missing fields manually.
@@ -109,6 +109,7 @@ This triggers:
 The workflow:
 
 - stores CAD files under `clean_database/cad_models/<ModuleName>/`;
+- converts STEP/STP/STL/OBJ inputs into Omniverse-ready USD;
 - generates browser preview assets under `outputs/cad_previews/`;
 - extracts CAD metadata;
 - updates the corresponding asset JSON.
@@ -271,7 +272,7 @@ This means the simulated mission consumed more energy than the active power syst
 
 ### CAD Metadata Looks Wrong
 
-If CAD metadata is detected directly from the USD file, it is treated as the source of truth. Manual fields are only fallback values when the CAD file does not provide the metadata.
+If CAD metadata is detected directly from the uploaded/converted CAD file, it is treated as the source of truth. Manual fields are only fallback values when the CAD file does not provide the metadata.
 
 If scale looks wrong, verify:
 
@@ -298,4 +299,3 @@ For a clean validation run:
 12. Load DES Playback.
 13. Play the scenario.
 14. Toggle Show Routes and verify route colors.
-

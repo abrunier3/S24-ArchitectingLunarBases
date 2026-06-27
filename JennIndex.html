@@ -1940,9 +1940,9 @@
               onclick="document.getElementById('cadFileInput').click()"
             >
               <div style="font-size:24px;margin-bottom:6px;">📦</div>
-              <div style="font-size:13px;color:var(--text2);">Drag & drop a USD/USDA/USDC/USDZ/STEP/STP file here</div>
+              <div style="font-size:13px;color:var(--text2);">Drag & drop a USD/USDA/USDC/USDZ/STEP/STP/STL/OBJ file here</div>
               <div style="font-size:11px;color:var(--text3);margin-top:3px;">or click to browse</div>
-              <input id="cadFileInput" type="file" accept=".usd,.usda,.usdc,.usdz,.step,.stp" style="display:none;" onchange="handleCadFile(event.target.files[0])">
+              <input id="cadFileInput" type="file" accept=".usd,.usda,.usdc,.usdz,.step,.stp,.stl,.obj" style="display:none;" onchange="handleCadFile(event.target.files[0])">
             </div>
             <div id="cadUploadStatus" class="mini-note" style="margin-top:8px;">No CAD file loaded yet.</div>
           </div>
@@ -6795,10 +6795,16 @@ let up42MoonImg = null;
     }
   }
 
-  function isStepCadMeta(data) {
+  function isSourceAxisCadMeta(data) {
     const sourcePath = String(data?.source_cad_path || data?.source_metadata?.source_file || '').toLowerCase();
     const format = String(data?.source_metadata?.cad_format || '').toLowerCase();
-    return sourcePath.endsWith('.step') || sourcePath.endsWith('.stp') || format === 'step';
+    return (
+      sourcePath.endsWith('.step') ||
+      sourcePath.endsWith('.stp') ||
+      sourcePath.endsWith('.stl') ||
+      sourcePath.endsWith('.obj') ||
+      ['step', 'stp', 'stl', 'obj'].includes(format)
+    );
   }
 
   function setCadSourceUpAxis(moduleName, axis) {
@@ -6816,14 +6822,14 @@ let up42MoonImg = null;
 
     if (cadFileForSave) {
       const pubStatus = document.getElementById('publishStatus');
-      if (pubStatus) pubStatus.textContent = `Saving ${moduleName} STEP up axis: ${normalized}...`;
+      if (pubStatus) pubStatus.textContent = `Saving ${moduleName} source up axis: ${normalized}...`;
       writeAssetJson(moduleName, cadFileForSave)
         .then(ok => {
           const status = document.getElementById('publishStatus');
           if (status) {
             status.textContent = ok
-              ? `${moduleName} STEP up axis saved: ${normalized}.`
-              : `Could not save ${moduleName} STEP up axis.`;
+              ? `${moduleName} source up axis saved: ${normalized}.`
+              : `Could not save ${moduleName} source up axis.`;
           }
         })
         .catch(error => {
@@ -7668,7 +7674,7 @@ let up42MoonImg = null;
       if (!res.ok) return;
 
       const files = await res.json();
-      const usdExts = ['.usd', '.usda', '.usdc', '.usdz', '.step', '.stp'];
+      const usdExts = ['.usd', '.usda', '.usdc', '.usdz', '.step', '.stp', '.stl', '.obj'];
 
       for (const file of files) {
         const isUsd = usdExts.some(ext => file.name.toLowerCase().endsWith(ext));
@@ -7900,7 +7906,7 @@ let up42MoonImg = null;
             </div>
             <div style="width:100%;">
               <div style="font-size:10px;color:rgba(255,255,255,0.62);text-align:center;margin-bottom:8px;">
-                STEP up
+                Source up
               </div>
               <div style="display:flex;gap:7px;justify-content:center;">
                 ${['X', 'Y', 'Z'].map(axis => `
@@ -7952,7 +7958,7 @@ let up42MoonImg = null;
         data.mesh_count,
         data.size_m,
         options.glbSha || null,
-        { showSourceAxis: isStepCadMeta(data) }
+        { showSourceAxis: isSourceAxisCadMeta(data) }
       );
     }
 

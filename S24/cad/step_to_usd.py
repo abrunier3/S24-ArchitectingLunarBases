@@ -249,6 +249,7 @@ def write_usd_mesh(
     source_path: str | Path,
     unit_scale_to_m: float,
     source_up_axis: str = "Z",
+    source_format: str = "STEP",
 ) -> str:
     from pxr import Gf, Sdf, Usd, UsdGeom, UsdShade
 
@@ -286,7 +287,7 @@ def write_usd_mesh(
     mesh.CreateDisplayColorAttr([Gf.Vec3f(0.78, 0.78, 0.74)])
     mesh.CreateDisplayOpacityAttr([1.0])
 
-    mesh.GetPrim().SetCustomDataByKey("s24:source_format", "STEP")
+    mesh.GetPrim().SetCustomDataByKey("s24:source_format", str(source_format).upper())
     mesh.GetPrim().SetCustomDataByKey("s24:source_file", Path(source_path).name)
     mesh.GetPrim().SetCustomDataByKey("s24:unit_scale_to_m", float(unit_scale_to_m))
     mesh.GetPrim().SetCustomDataByKey("s24:source_up_axis", str(source_up_axis).upper())
