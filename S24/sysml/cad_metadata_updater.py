@@ -223,6 +223,48 @@ def _update_asset_json(asset_path: Path, attrs: dict[str, Any]) -> None:
     asset_path.write_text(json.dumps(asset, indent=2) + "\n", encoding="utf-8")
 
 
+def _cad_path_candidates(
+    *,
+    module_name: str,
+    preview_meta: dict[str, Any],
+    metadata: dict[str, Any],
+    repo_root: Path,
+) -> list[str]:
+    candidates: list[str] = []
+
+    def add(value: Any) -> None:
+        text = str(value or "").strip()
+        if text and text not in candidates:
+            candidates.append(text)
+
+    # Prefer current converted USDs in the CAD folder. Preview metadata can be
+    # stale after a cleanup/conversion pass, while this folder is what the scene
+    # builder searches when it chooses the visual CAD.
+    cad_dir = repo_root / "clean_database" / "cad_models" / module_name
+    if cad_dir.exists():
+        usd_files = [
+            path for path in cad_dir.iterdir()
+            if path.is_file() and path.suffix.lower() in {".usdc", ".usd", ".usda", ".usdz"}
+        ]
+        usd_files.sort(
+            key=lambda path: (
+                0 if path.suffix.lower() == ".usdc" else 1,
+                0 if path.stem.lower() == module_name.lower() else 1,
+                path.name.lower(),
+            )
+        )
+        for path in usd_files:
+            try:
+                add(path.relative_to(repo_root).as_posix())
+            except ValueError:
+                add(path.as_posix())
+
+    add(preview_meta.get("usd_path"))
+    add(metadata.get("cadUsdPath"))
+    add(metadata.get("geometryRef"))
+    return candidates
+
+
 def update_cad_metadata_from_previews(
     *,
     sysml_path: Path,
@@ -243,28 +285,40 @@ def update_cad_metadata_from_previews(
             asset = json.loads(asset_path.read_text(encoding="utf-8"))
             preview_meta = json.loads(preview_path.read_text(encoding="utf-8"))
             metadata = asset.get("metadata") or {}
-            cad_path = (
-                preview_meta.get("usd_path")
-                or metadata.get("cadUsdPath")
-                or metadata.get("geometryRef")
+            cad_paths = _cad_path_candidates(
+                module_name=module_name,
+                preview_meta=preview_meta,
+                metadata=metadata,
+                repo_root=repo_root,
             )
-            if not cad_path:
+            if not cad_paths:
                 print(f"[CAD] Skipping {module_name}: no CAD path found")
                 continue
 
-            normalization = _cad_normalization(
-                str(cad_path),
-                repo_root=repo_root,
-                dimensions=asset.get("dimensions"),
-                metadata=metadata,
-            )
-            attrs = _build_sysml_attributes(
-                module_name=module_name,
-                asset=asset,
-                preview_meta=preview_meta,
-                normalization=normalization,
-                cad_path=str(cad_path),
-            )
+            attrs = None
+            selected_cad_path = None
+            for cad_path in cad_paths:
+                try:
+                    normalization = _cad_normalization(
+                        str(cad_path),
+                        repo_root=repo_root,
+                        dimensions=asset.get("dimensions"),
+                        metadata=metadata,
+                    )
+                    attrs = _build_sysml_attributes(
+                        module_name=module_name,
+                        asset=asset,
+                        preview_meta=preview_meta,
+                        normalization=normalization,
+                        cad_path=str(cad_path),
+                    )
+                    if attrs:
+                        selected_cad_path = cad_path
+                        break
+                    print(f"[CAD] Candidate skipped for {module_name}: {cad_path} has no physical metadata")
+                except Exception as exc:
+                    print(f"[CAD] Candidate skipped for {module_name}: {cad_path} ({type(exc).__name__}: {exc})")
+
             if not attrs:
                 print(f"[CAD] Skipping {module_name}: no physical CAD metadata available")
                 continue
@@ -276,7 +330,7 @@ def update_cad_metadata_from_previews(
             ):
                 _update_asset_json(asset_path, attrs)
                 updated += 1
-                print(f"[CAD] Updated SysML CAD metadata for {module_name}")
+                print(f"[CAD] Updated SysML CAD metadata for {module_name} using {selected_cad_path}")
             else:
                 print(f"[CAD] Skipping {module_name}: part not found in SysML")
         except Exception as exc:
