@@ -593,6 +593,10 @@ def _build_terrain_route_diagnostics(
             "max_allowed_slope_deg": 15.0,
             "rover_footprint_source": (rover_footprint or {}).get("source", "unavailable"),
             "rover_footprint_size_m": (rover_footprint or {}).get("size_m"),
+            "rover_route_yaw_offset_deg": (rover_footprint or {}).get(
+                "route_yaw_offset_deg",
+                -90.0,
+            ),
             "sampled_waypoints_m": [
                 _round_point(point)
                 for point in valid_samples
@@ -744,6 +748,8 @@ def _build_route_pose_samples(
     if length <= 0 or width <= 0 or len(sampled_points) < 2:
         return []
 
+    route_yaw_offset = float((rover_footprint or {}).get("route_yaw_offset_deg", -90.0))
+
     poses = []
     for idx, point in enumerate(sampled_points):
         tangent = _route_sample_tangent(sampled_points, idx)
@@ -756,7 +762,7 @@ def _build_route_pose_samples(
             continue
 
         route_yaw = math.degrees(math.atan2(dy, dx))
-        rover_yaw = route_yaw - 90.0
+        rover_yaw = route_yaw + route_yaw_offset
         samples = []
         for sample_x, sample_y, label, local_x, local_y in _oriented_footprint_sample_points(
             center_x=point[0],
@@ -929,12 +935,18 @@ def _load_scene_cad_footprints(
             if length <= 0 or width <= 0:
                 continue
 
+            source_front_attr = geom.GetAttribute("cad:userSourceFrontAxis")
+            source_front = source_front_attr.Get() if source_front_attr else None
+            route_yaw_offset = 0.0 if source_front else -90.0
+
             footprints[prim.GetName()] = {
                 "source": "cad_fitted_bbox_xy",
                 "size_m": {
                     "length": length,
                     "width": width,
                 },
+                "source_front_axis": str(source_front or ""),
+                "route_yaw_offset_deg": route_yaw_offset,
             }
 
     except Exception:

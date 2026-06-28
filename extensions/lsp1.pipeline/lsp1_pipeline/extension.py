@@ -734,7 +734,11 @@ class LSP1PipelineExtension(omni.ext.IExt):
                     pos[1],
                     pos[2] + ROVER_TERRAIN_CLEARANCE_M,
                 ))
-                rotation = route_rotation or self._route_tangent_rotation(tangent)
+                rotation = route_rotation or self._route_tangent_rotation(
+                    tangent,
+                    prim=prim,
+                    stage=stage,
+                )
                 if rotation:
                     if rotate_op is None:
                         rotate_op = xformable.AddRotateXYZOp()
@@ -1063,7 +1067,18 @@ class LSP1PipelineExtension(omni.ext.IExt):
             points[-1][2] - points[-2][2],
         ], poses[-1]["rotation_deg"]
 
-    def _route_tangent_rotation(self, tangent):
+    def _rover_forward_yaw_offset(self, stage, prim):
+        try:
+            geom = stage.GetPrimAtPath(f"{prim.GetPath()}/Geometry")
+            if geom and geom.IsValid():
+                attr = geom.GetAttribute("cad:userSourceFrontAxis")
+                if attr and attr.Get():
+                    return 0.0
+        except Exception:
+            pass
+        return ROVER_FORWARD_YAW_OFFSET_DEG
+
+    def _route_tangent_rotation(self, tangent, *, prim=None, stage=None):
         if not tangent:
             return None
 
@@ -1074,11 +1089,15 @@ class LSP1PipelineExtension(omni.ext.IExt):
 
         yaw_deg = math.degrees(math.atan2(dy, dx))
         pitch_deg = math.degrees(math.atan2(dz, horizontal))
+        yaw_offset = (
+            self._rover_forward_yaw_offset(stage, prim)
+            if stage is not None and prim is not None
+            else ROVER_FORWARD_YAW_OFFSET_DEG
+        )
 
-        # The rover CAD's nose is authored along local +Y, while atan2 gives
-        # the direction of a local +X forward vector. Rotate by -90 deg so the
-        # nose, not the side, follows the path tangent.
-        return [pitch_deg, 0.0, yaw_deg + ROVER_FORWARD_YAW_OFFSET_DEG]
+        # Older rover CADs used local +Y as forward. Converted CADs with a
+        # selected cad:userSourceFrontAxis are normalized so local +X is forward.
+        return [pitch_deg, 0.0, yaw_deg + yaw_offset]
 
     def _update_dashboard(self, snap):
         for actor in self.actors:
