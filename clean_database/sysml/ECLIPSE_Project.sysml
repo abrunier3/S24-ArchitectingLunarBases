@@ -41,14 +41,22 @@ package ECLIPSE_LSP1 {
             }
             satisfy requirement habitatPowerTest :> LSP1_8::LSP1_8_1;
             satisfy requirement habitatEnergyTest :> LSP1_8::LSP1_8_2;
+
             // BEGIN AUTO CAD METADATA: HabitationModule
+            attribute cadAreaScaleFactor = 403.580063574;
             attribute cadCenterOfMassXM = 0.685675050283;
             attribute cadCenterOfMassYM = 3.28553946567;
             attribute cadCenterOfMassZM = 0.954978730281;
+            attribute cadLengthScaleFactor = 20.0893022172;
             attribute cadMetadataScaleFactor = 20.0893022172;
+            attribute cadSourceCenterOfMassXM = -0.0450327138669;
+            attribute cadSourceCenterOfMassYM = 0.37874091546;
+            attribute cadSourceCenterOfMassZM = 0.0373024441854;
             attribute cadSourceFrontAxis = "+X";
+            attribute cadSourceSurfaceAreaM2 = 1.60374852394;
             attribute cadSourceUpAxis = "Z";
             attribute cadSurfaceAreaM2 = 647.240931246;
+            attribute cadVolumeScaleFactor = 8107.64186597;
             // END AUTO CAD METADATA: HabitationModule
 
         }
@@ -116,6 +124,21 @@ package ECLIPSE_LSP1 {
                 in item PowerIn;
             }
             satisfy requirement launchZonePowerTest :> LSP1_7::LSP1_7_1;
+            // BEGIN AUTO CAD METADATA: LaunchLandingZone
+            attribute cadAreaScaleFactor = 57.7273618468;
+            attribute cadCenterOfMassXM = 0.609205335822;
+            attribute cadCenterOfMassYM = 0.844316722688;
+            attribute cadCenterOfMassZM = 1.5671814238;
+            attribute cadLengthScaleFactor = 7.59785244966;
+            attribute cadMetadataScaleFactor = 7.59785244966;
+            attribute cadSourceCenterOfMassXM = 0.080181253829;
+            attribute cadSourceCenterOfMassYM = 1.06048016453;
+            attribute cadSourceCenterOfMassZM = 0.205796549158;
+            attribute cadSourceSurfaceAreaM2 = 32.7543266808;
+            attribute cadSurfaceAreaM2 = 1890.82086835;
+            attribute cadVolumeScaleFactor = 438.60397762;
+            // END AUTO CAD METADATA: LaunchLandingZone
+
         }
         part PropellantDepot {
             part PropellantDepot_dims {
@@ -175,6 +198,25 @@ package ECLIPSE_LSP1 {
             satisfy requirement loxRoverCapacityTest :> LSP1_3::LSP1_3_1;
             satisfy requirement loxRoverBatteryTest :> LSP1_3::LSP1_3_2;
             satisfy requirement loxRoverEnergyTest :> LSP1_3::LSP1_3_3;
+            // BEGIN AUTO CAD METADATA: LOXRover
+            attribute cadAreaScaleFactor = 3.84467526874;
+            attribute cadCenterOfMassXM = -2.30975355026e-18;
+            attribute cadCenterOfMassYM = 0.490614609343;
+            attribute cadCenterOfMassZM = 1.5;
+            attribute cadFormat = "STEP";
+            attribute cadLengthScaleFactor = 1.96078435039;
+            attribute cadMetadataScaleFactor = 1.96078435039;
+            attribute cadSourceCenterOfMassXM = -1.17797428861e-18;
+            attribute cadSourceCenterOfMassYM = 1.22523817605;
+            attribute cadSourceCenterOfMassZM = -7.06784573164e-18;
+            attribute cadSourceFile = "Viper Rover.STEP";
+            attribute cadSourceSurfaceAreaM2 = 19.7143625822;
+            attribute cadSourceVolumeM3 = 3.92702057592;
+            attribute cadSurfaceAreaM2 = 75.7953222587;
+            attribute cadVolumeM3 = 29.6041552361;
+            attribute cadVolumeScaleFactor = 7.53857909928;
+            // END AUTO CAD METADATA: LOXRover
+
         }
         part SolarPowerSystem {
             part SolarPowerSystem_dims {
@@ -249,6 +291,27 @@ package ECLIPSE_LSP1 {
             satisfy requirement regolithRoverEnergyTest :> LSP1_2::LSP1_2_3;
             satisfy requirement regolithRoverBatteryTest :> LSP1_2::LSP1_2_4;
             satisfy requirement regolithRoverRangeTest :> LSP1_2::LSP1_2_5;
+            // BEGIN AUTO CAD METADATA: RegolithRover
+            attribute cadAreaScaleFactor = 0.0019832397286;
+            attribute cadCenterOfMassXM = -0.0340625744913;
+            attribute cadCenterOfMassYM = -0.312860912769;
+            attribute cadCenterOfMassZM = 1.487062779;
+            attribute cadFormat = "STL";
+            attribute cadLengthScaleFactor = 0.0445335797865;
+            attribute cadMetadataScaleFactor = 0.0445335797865;
+            attribute cadSourceCenterOfMassXM = 65.1211638897;
+            attribute cadSourceCenterOfMassYM = 15.4788810544;
+            attribute cadSourceCenterOfMassZM = 34.4594961613;
+            attribute cadSourceFile = "body-small.STL";
+            attribute cadSourceFrontAxis = "+X";
+            attribute cadSourceSurfaceAreaM2 = 14354.929044;
+            attribute cadSourceUpAxis = "Z";
+            attribute cadSourceVolumeM3 = 36293.8120314;
+            attribute cadSurfaceAreaM2 = 28.4692655813;
+            attribute cadVolumeM3 = 3.20549723211;
+            attribute cadVolumeScaleFactor = 8.83207646895e-05;
+            // END AUTO CAD METADATA: RegolithRover
+
         }
         part ISRUExcavation {
             part ISRUExcavation_dims {
