@@ -128,7 +128,10 @@ def _build_sysml_attributes(
     source_metadata = preview_meta.get("source_metadata") or {}
 
     attrs: dict[str, Any] = {
+        "cadAreaScaleFactor": uniform_fit ** 2,
+        "cadLengthScaleFactor": uniform_fit,
         "cadMetadataScaleFactor": uniform_fit,
+        "cadVolumeScaleFactor": uniform_fit ** 3,
     }
 
     source_file = source_metadata.get("file_name") or Path(
@@ -142,13 +145,18 @@ def _build_sysml_attributes(
         attrs["cadFormat"] = str(cad_format).upper()
 
     if "volume_m3" in geometry:
+        attrs["cadSourceVolumeM3"] = float(geometry["volume_m3"])
         attrs["cadVolumeM3"] = float(geometry["volume_m3"]) * (uniform_fit ** 3)
 
     if "surface_area_m2" in geometry:
+        attrs["cadSourceSurfaceAreaM2"] = float(geometry["surface_area_m2"])
         attrs["cadSurfaceAreaM2"] = float(geometry["surface_area_m2"]) * (uniform_fit ** 2)
 
     center = geometry.get("center_of_mass_m")
     if isinstance(center, list) and len(center) == 3:
+        attrs["cadSourceCenterOfMassXM"] = float(center[0])
+        attrs["cadSourceCenterOfMassYM"] = float(center[1])
+        attrs["cadSourceCenterOfMassZM"] = float(center[2])
         transformed = _transform_center_of_mass(center, normalization=normalization)
         attrs["cadCenterOfMassXM"] = transformed[0]
         attrs["cadCenterOfMassYM"] = transformed[1]
@@ -227,45 +235,52 @@ def update_cad_metadata_from_previews(
     updated = 0
     for asset_path in sorted(assets_dir.glob("*.json")):
         module_name = asset_path.stem
-        preview_path = previews_dir / f"{module_name}_meta.json"
-        if not preview_path.exists():
-            continue
+        try:
+            preview_path = previews_dir / f"{module_name}_meta.json"
+            if not preview_path.exists():
+                continue
 
-        asset = json.loads(asset_path.read_text(encoding="utf-8"))
-        preview_meta = json.loads(preview_path.read_text(encoding="utf-8"))
-        metadata = asset.get("metadata") or {}
-        cad_path = (
-            preview_meta.get("usd_path")
-            or metadata.get("cadUsdPath")
-            or metadata.get("geometryRef")
-        )
-        if not cad_path:
-            continue
+            asset = json.loads(asset_path.read_text(encoding="utf-8"))
+            preview_meta = json.loads(preview_path.read_text(encoding="utf-8"))
+            metadata = asset.get("metadata") or {}
+            cad_path = (
+                preview_meta.get("usd_path")
+                or metadata.get("cadUsdPath")
+                or metadata.get("geometryRef")
+            )
+            if not cad_path:
+                print(f"[CAD] Skipping {module_name}: no CAD path found")
+                continue
 
-        normalization = _cad_normalization(
-            str(cad_path),
-            repo_root=repo_root,
-            dimensions=asset.get("dimensions"),
-            metadata=metadata,
-        )
-        attrs = _build_sysml_attributes(
-            module_name=module_name,
-            asset=asset,
-            preview_meta=preview_meta,
-            normalization=normalization,
-            cad_path=str(cad_path),
-        )
-        if not attrs:
-            continue
+            normalization = _cad_normalization(
+                str(cad_path),
+                repo_root=repo_root,
+                dimensions=asset.get("dimensions"),
+                metadata=metadata,
+            )
+            attrs = _build_sysml_attributes(
+                module_name=module_name,
+                asset=asset,
+                preview_meta=preview_meta,
+                normalization=normalization,
+                cad_path=str(cad_path),
+            )
+            if not attrs:
+                print(f"[CAD] Skipping {module_name}: no physical CAD metadata available")
+                continue
 
-        if update_sysml_part_metadata(
-            sysml_path=sysml_path,
-            module_name=module_name,
-            attrs=attrs,
-        ):
-            _update_asset_json(asset_path, attrs)
-            updated += 1
-            print(f"[CAD] Updated SysML CAD metadata for {module_name}")
+            if update_sysml_part_metadata(
+                sysml_path=sysml_path,
+                module_name=module_name,
+                attrs=attrs,
+            ):
+                _update_asset_json(asset_path, attrs)
+                updated += 1
+                print(f"[CAD] Updated SysML CAD metadata for {module_name}")
+            else:
+                print(f"[CAD] Skipping {module_name}: part not found in SysML")
+        except Exception as exc:
+            print(f"[CAD] Skipping {module_name}: {type(exc).__name__}: {exc}")
 
     return updated
 
