@@ -65,14 +65,14 @@
       },
       "transform": {
         "position_m": [
-          0.0,
-          0.0,
-          0.0
+          -1217.5,
+          505.47,
+          0
         ],
         "rotation_deg": [
-          0.0,
-          0.0,
-          0.0
+          0,
+          0,
+          0
         ]
       },
       "attributes": {
@@ -112,14 +112,14 @@
       },
       "transform": {
         "position_m": [
-          0.0,
-          0.0,
-          0.0
+          -132.5,
+          350.47,
+          0
         ],
         "rotation_deg": [
-          0.0,
-          0.0,
-          0.0
+          0,
+          0,
+          0
         ]
       },
       "attributes": {
@@ -186,14 +186,14 @@
       },
       "transform": {
         "position_m": [
-          0.0,
-          0.0,
-          0.0
+          587.5,
+          115.47,
+          0
         ],
         "rotation_deg": [
-          0.0,
-          0.0,
-          0.0
+          0,
+          0,
+          0
         ]
       },
       "attributes": {
@@ -240,14 +240,14 @@
       },
       "transform": {
         "position_m": [
-          0.0,
-          5.0,
-          0.0
+          -812.5,
+          -419.53,
+          0
         ],
         "rotation_deg": [
-          0.0,
-          0.0,
-          0.0
+          0,
+          0,
+          0
         ]
       },
       "attributes": {
@@ -348,14 +348,14 @@
       },
       "transform": {
         "position_m": [
-          0.0,
-          0.0,
-          0.0
+          -352.5,
+          -14.53,
+          0
         ],
         "rotation_deg": [
-          0.0,
-          0.0,
-          0.0
+          0,
+          0,
+          0
         ]
       },
       "attributes": {
@@ -494,14 +494,14 @@
       },
       "transform": {
         "position_m": [
-          0.0,
-          5.0,
-          0.0
+          -32.5,
+          -544.53,
+          0
         ],
         "rotation_deg": [
-          0.0,
-          0.0,
-          0.0
+          0,
+          0,
+          0
         ]
       },
       "attributes": {
@@ -537,7 +537,7 @@
   ],
   "connections": [
     {
-      "name": "ISRUPlantToRover",
+      "name": "ISRUPlantToLaunchLandingZone",
       "type": "LOXMovement",
       "flow": "LOX",
       "from": {
@@ -547,10 +547,45 @@
       "to": {
         "part": "ISRUPlant",
         "port": "ISRU_LOXPortOut"
+      },
+      "path": {
+        "waypoints_m": [
+          [
+            -122.5,
+            335,
+            0
+          ],
+          [
+            -230,
+            157.5,
+            0
+          ],
+          [
+            -337.5,
+            -20,
+            0
+          ],
+          [
+            -500.83,
+            -148.33,
+            0
+          ],
+          [
+            -664.17,
+            -276.67,
+            0
+          ],
+          [
+            -827.5,
+            -405,
+            0
+          ]
+        ],
+        "distance_km": 1.038
       }
     },
     {
-      "name": "RoverToPropellantDepot",
+      "name": "ISRUPlantToPropellantDepot",
       "type": "LOXMovement",
       "flow": "LOX",
       "from": {
@@ -560,6 +595,81 @@
       "to": {
         "part": "PropellantDepot",
         "port": "Propellant_LOXPortIn"
+      },
+      "path": {
+        "waypoints_m": [
+          [
+            -122.5,
+            335,
+            0
+          ],
+          [
+            -230,
+            157.5,
+            0
+          ],
+          [
+            -337.5,
+            -20,
+            0
+          ],
+          [
+            -500.83,
+            -148.33,
+            0
+          ],
+          [
+            -664.17,
+            -276.67,
+            0
+          ],
+          [
+            -827.5,
+            -405,
+            0
+          ],
+          [
+            -664.17,
+            -276.67,
+            0
+          ],
+          [
+            -500.83,
+            -148.33,
+            0
+          ],
+          [
+            -337.5,
+            -20,
+            0
+          ],
+          [
+            -230,
+            157.5,
+            0
+          ],
+          [
+            -122.5,
+            335,
+            0
+          ],
+          [
+            112.5,
+            265,
+            0
+          ],
+          [
+            347.5,
+            195,
+            0
+          ],
+          [
+            582.5,
+            125,
+            0
+          ]
+        ],
+        "distance_km": 2.812
       }
     },
     {
@@ -615,7 +725,7 @@
       }
     },
     {
-      "name": "ISRUExcavationToRegolithRover",
+      "name": "ISRUExcavationToISRUPlant",
       "type": "RegolithMovement",
       "flow": "Regolith",
       "from": {
@@ -625,19 +735,46 @@
       "to": {
         "part": "RegolithRover",
         "port": "RegolithRover_RegolithPortInOut"
-      }
-    },
-    {
-      "name": "RegolithRoverToISRUPlant",
-      "type": "RegolithMovement",
-      "flow": "Regolith",
-      "from": {
-        "part": "RegolithRover",
-        "port": "RegolithRover_RegolithPortInOut"
       },
-      "to": {
-        "part": "ISRUPlant",
-        "port": "ISRU_RegolithPortIn"
+      "path": {
+        "waypoints_m": [
+          [
+            -122.5,
+            -690,
+            0
+          ],
+          [
+            -337.5,
+            -725,
+            0
+          ],
+          [
+            -337.5,
+            -490,
+            0
+          ],
+          [
+            -337.5,
+            -255,
+            0
+          ],
+          [
+            -337.5,
+            -20,
+            0
+          ],
+          [
+            -230,
+            157.5,
+            0
+          ],
+          [
+            -122.5,
+            335,
+            0
+          ]
+        ],
+        "distance_km": 1.338
       }
     },
     {
@@ -653,5 +790,30 @@
         "port": "Excavation_PowerPortIn"
       }
     }
-  ]
+  ],
+  "urban_planning": {
+    "site": "MMA",
+    "site_name": "Malapert Massif",
+    "site_lat": -85.9,
+    "site_lon": -0.5,
+    "map_frame_m": {
+      "center_m": [
+        0,
+        0,
+        0
+      ],
+      "x_min": -1395,
+      "x_max": 1395,
+      "y_min": -1395,
+      "y_max": 1395,
+      "width_m": 2790,
+      "height_m": 2790,
+      "meters_per_pixel": 5,
+      "frame_px": {
+        "x": 169.5,
+        "y": 0,
+        "size": 558
+      }
+    }
+  }
 }
