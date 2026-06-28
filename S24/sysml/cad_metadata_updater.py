@@ -145,8 +145,16 @@ def _build_sysml_attributes(
         attrs["cadFormat"] = str(cad_format).upper()
 
     if "volume_m3" in geometry:
+        attrs["cadVolumeAvailable"] = True
+        attrs["cadVolumeStatus"] = "available"
         attrs["cadSourceVolumeM3"] = float(geometry["volume_m3"])
         attrs["cadVolumeM3"] = float(geometry["volume_m3"]) * (uniform_fit ** 3)
+    else:
+        attrs["cadVolumeAvailable"] = False
+        if geometry.get("is_watertight") is False:
+            attrs["cadVolumeStatus"] = "mesh_not_watertight"
+        else:
+            attrs["cadVolumeStatus"] = "volume_not_reported_by_extractor"
 
     if "surface_area_m2" in geometry:
         attrs["cadSourceSurfaceAreaM2"] = float(geometry["surface_area_m2"])
@@ -178,7 +186,9 @@ def _render_block(module_name: str, attrs: dict[str, Any], *, indent: str) -> st
     ]
     for key in sorted(attrs):
         value = attrs[key]
-        if isinstance(value, (int, float)):
+        if isinstance(value, bool):
+            lines.append(f"{child_indent}attribute {key} = {str(value).lower()};")
+        elif isinstance(value, (int, float)):
             lines.append(f"{child_indent}attribute {key} = {_format_number(float(value))};")
         else:
             escaped = str(value).replace("\\", "\\\\").replace('"', '\\"')
