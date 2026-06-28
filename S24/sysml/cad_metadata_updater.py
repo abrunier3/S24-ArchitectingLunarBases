@@ -90,17 +90,23 @@ def _physical_metadata_from_usd(cad_path: str) -> dict[str, Any] | None:
             _extract_meshes,
             _extract_usd_geometry_properties,
         )
-    except ImportError:
+    except ImportError as exc:
+        print(f"[CAD] Could not import USD mesh extractor for {cad_path}: {exc}")
         return None
 
     stage = Usd.Stage.Open(_actual_usd_path(cad_path))
     if not stage:
+        print(f"[CAD] Could not open USD for physical metadata: {cad_path}")
         return None
 
     meters_per_unit = float(UsdGeom.GetStageMetersPerUnit(stage) or 1.0)
     meshes = _extract_meshes(stage, meters_per_unit)
     geometry = _extract_usd_geometry_properties(meshes)
     if geometry.get("extraction_status") != "success":
+        print(
+            f"[CAD] Could not extract physical metadata from {cad_path}: "
+            f"{geometry.get('message', 'unknown reason')}"
+        )
         return None
     return geometry
 
