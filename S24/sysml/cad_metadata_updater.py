@@ -68,9 +68,38 @@ def _transform_center_of_mass(
     return [rotated[i] + float(translate[i]) for i in range(3)]
 
 
-def _physical_metadata_from_preview(preview_meta: dict[str, Any]) -> dict[str, Any] | None:
+def _physical_metadata_from_preview(
+    preview_meta: dict[str, Any],
+    *,
+    cad_path: str | None = None,
+) -> dict[str, Any] | None:
     source_metadata = preview_meta.get("source_metadata") or {}
     geometry = source_metadata.get("geometry") or {}
+    if geometry.get("extraction_status") != "success":
+        if cad_path:
+            return _physical_metadata_from_usd(cad_path)
+        return None
+    return geometry
+
+
+def _physical_metadata_from_usd(cad_path: str) -> dict[str, Any] | None:
+    try:
+        from pxr import Usd, UsdGeom
+        from S24.cad.convert_workflow import (
+            _actual_usd_path,
+            _extract_meshes,
+            _extract_usd_geometry_properties,
+        )
+    except ImportError:
+        return None
+
+    stage = Usd.Stage.Open(_actual_usd_path(cad_path))
+    if not stage:
+        return None
+
+    meters_per_unit = float(UsdGeom.GetStageMetersPerUnit(stage) or 1.0)
+    meshes = _extract_meshes(stage, meters_per_unit)
+    geometry = _extract_usd_geometry_properties(meshes)
     if geometry.get("extraction_status") != "success":
         return None
     return geometry
@@ -82,8 +111,9 @@ def _build_sysml_attributes(
     asset: dict[str, Any],
     preview_meta: dict[str, Any],
     normalization: dict[str, Any],
+    cad_path: str | None = None,
 ) -> dict[str, Any] | None:
-    geometry = _physical_metadata_from_preview(preview_meta)
+    geometry = _physical_metadata_from_preview(preview_meta, cad_path=cad_path)
     if not geometry:
         return None
 
@@ -217,6 +247,7 @@ def update_cad_metadata_from_previews(
             asset=asset,
             preview_meta=preview_meta,
             normalization=normalization,
+            cad_path=str(cad_path),
         )
         if not attrs:
             continue
