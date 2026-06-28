@@ -40,6 +40,13 @@ def _unit_scale_to_m(unit: str) -> float:
 
 
 def _load_meshes(path: Path) -> list[trimesh.Trimesh]:
+    if not path.exists():
+        raise FileNotFoundError(
+            f"CAD mesh file not found in workflow checkout: {path}. "
+            "This usually means the conversion workflow started before the "
+            "uploaded CAD commit was present in the checked-out branch."
+        )
+
     loaded = trimesh.load(path, force="scene", process=False)
 
     if isinstance(loaded, trimesh.Trimesh):
