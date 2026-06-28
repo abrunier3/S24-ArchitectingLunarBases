@@ -374,6 +374,7 @@ def convert_step_to_usd(
         "schema": header.get("schema"),
         "timestamp": header.get("timestamp"),
         "source_up_axis": str(source_up_axis).upper(),
+        "source_front_axis": "+X",
         "target_up_axis": "Z",
         "orientation_correction_deg": (
             [90.0, 0.0, 0.0]

@@ -1,5 +1,6 @@
 from typing import Dict, Any
 from pathlib import Path
+import math
 import os
 
 from pxr import Usd, UsdGeom, Sdf, Gf
@@ -103,6 +104,45 @@ def _source_up_axis_rotation(metadata: Dict[str, Any] | None) -> list[float]:
     return [0.0, 0.0, 0.0]
 
 
+def _axis_after_up_correction(axis: str, up_axis: str) -> list[float]:
+    axis = str(axis or "+X").strip().upper()
+    sign = -1.0 if axis.startswith("-") else 1.0
+    axis = axis.lstrip("+-")
+    up_axis = str(up_axis or "Z").upper()
+
+    source_vectors = {
+        "X": [1.0, 0.0, 0.0],
+        "Y": [0.0, 1.0, 0.0],
+        "Z": [0.0, 0.0, 1.0],
+    }
+    x, y, z = source_vectors.get(axis, source_vectors["X"])
+    x, y, z = sign * x, sign * y, sign * z
+
+    if up_axis == "Y":
+        return [x, -z, y]
+    if up_axis == "X":
+        return [-z, y, x]
+    return [x, y, z]
+
+
+def _source_orientation_rotation(metadata: Dict[str, Any] | None) -> list[float]:
+    metadata = metadata or {}
+    rotate_xyz = _source_up_axis_rotation(metadata)
+    if not _uses_source_up_axis(metadata):
+        return rotate_xyz
+
+    up_axis = str(metadata.get("cadSourceUpAxis") or "Z").upper()
+    front_axis = str(metadata.get("cadSourceFrontAxis") or "+X").upper()
+
+    front_vector = _axis_after_up_correction(front_axis, up_axis)
+    vx, vy = front_vector[0], front_vector[1]
+    if math.hypot(vx, vy) < 1e-9:
+        return rotate_xyz
+
+    yaw_correction = -math.degrees(math.atan2(vy, vx))
+    return [rotate_xyz[0], rotate_xyz[1], rotate_xyz[2] + yaw_correction]
+
+
 def _cad_normalization(
     cad_path: str,
     *,
@@ -140,9 +180,9 @@ def _cad_normalization(
     meters_per_unit = float(UsdGeom.GetStageMetersPerUnit(stage) or 1.0)
 
     # Do not rotate from stage upAxis alone. Several Sketchfab/Omniverse USDs
-    # already encode their visual orientation in authored xformOps. For STEP
-    # uploads, apply only the explicit source up-axis selected by the user.
-    rotate_xyz = _source_up_axis_rotation(metadata)
+    # already encode their visual orientation in authored xformOps. For converted
+    # CAD uploads, apply only the explicit source axes selected by the user.
+    rotate_xyz = _source_orientation_rotation(metadata)
 
     unit_scale = [meters_per_unit, meters_per_unit, meters_per_unit]
 
@@ -330,6 +370,9 @@ def build_usd_scene_from_manifest(
             )
             geom_prim.CreateAttribute("cad:userSourceUpAxis", Sdf.ValueTypeNames.String).Set(
                 str((part.get("metadata") or {}).get("cadSourceUpAxis") or "")
+            )
+            geom_prim.CreateAttribute("cad:userSourceFrontAxis", Sdf.ValueTypeNames.String).Set(
+                str((part.get("metadata") or {}).get("cadSourceFrontAxis") or "")
             )
             geom_prim.CreateAttribute("cad:metersPerUnit", Sdf.ValueTypeNames.Double).Set(
                 float(norm.get("meters_per_unit", 1.0))

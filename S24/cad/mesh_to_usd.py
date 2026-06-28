@@ -154,6 +154,7 @@ def convert_mesh_to_usd(
         "file_size_bytes": input_path.stat().st_size,
         "converted_usd_path": usd_path,
         "source_up_axis": str(source_up_axis).upper(),
+        "source_front_axis": "+X",
         "target_up_axis": "Z",
         "orientation_correction_deg": (
             [90.0, 0.0, 0.0]

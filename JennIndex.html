@@ -6340,13 +6340,16 @@ let up42MoonImg = null;
     setField('pipelineUid', part.id ?? '');
     setField('cadTitle', name);
 
-    if (part.metadata?.cadSourceUpAxis || part.metadata?.cadDetectedSizeM || part.metadata?.geometryRef) {
+    if (part.metadata?.cadSourceUpAxis || part.metadata?.cadSourceFrontAxis || part.metadata?.cadDetectedSizeM || part.metadata?.geometryRef) {
       const existing = moduleMetaCache[name] || {};
       const cadSize = part.metadata?.cadDetectedSizeM;
       moduleMetaCache[name] = {
         ...existing,
         ...(part.metadata?.cadSourceUpAxis
           ? { cadSourceUpAxis: normalizeUpAxis(part.metadata.cadSourceUpAxis, 'Z') }
+          : {}),
+        ...(part.metadata?.cadSourceFrontAxis
+          ? { cadSourceFrontAxis: normalizeFrontAxis(part.metadata.cadSourceFrontAxis, '+X') }
           : {}),
         ...(cadSize
           ? { detectedSizeM: [cadSize.length, cadSize.width, cadSize.height] }
@@ -6736,6 +6739,16 @@ let up42MoonImg = null;
     return ['X', 'Y', 'Z'].includes(upAxis) ? upAxis : fallback;
   }
 
+  function normalizeFrontAxis(value, fallback = '+X') {
+    let axis = String(value || fallback).trim().toUpperCase();
+    if (['X', 'Y', 'Z'].includes(axis)) axis = `+${axis}`;
+    return ['+X', '-X', '+Y', '-Y', '+Z', '-Z'].includes(axis) ? axis : fallback;
+  }
+
+  function cadAxisBase(axis) {
+    return String(axis || '').replace(/^[+-]/, '').toUpperCase();
+  }
+
   function normalizeSizeM(value) {
     if (!Array.isArray(value) || value.length < 3) return null;
     const size = value.slice(0, 3).map(Number);
@@ -6783,6 +6796,10 @@ let up42MoonImg = null;
       cadSourceUpAxis: normalizeUpAxis(
         existing.cadSourceUpAxis || data.source_metadata?.source_up_axis || 'Z',
         'Z'
+      ),
+      cadSourceFrontAxis: normalizeFrontAxis(
+        existing.cadSourceFrontAxis || data.source_metadata?.source_front_axis || '+X',
+        '+X'
       ),
       ...(sizeM ? { detectedSizeM: sizeM } : {}),
       ...(data.usd_path ? { detectedUsdPath: data.usd_path } : {})
@@ -6838,14 +6855,51 @@ let up42MoonImg = null;
     }
   }
 
+  function setCadSourceFrontAxis(moduleName, axis) {
+    const normalized = normalizeFrontAxis(axis, '+X');
+    moduleMetaCache[moduleName] = {
+      ...(moduleMetaCache[moduleName] || {}),
+      cadSourceFrontAxis: normalized
+    };
+    updateCadAxisSelector(moduleName);
+
+    const cadFileForSave = moduleFiles[moduleName] ||
+      (sysmlPartsCache[moduleName]?.metadata?.cadFileName
+        ? { name: sysmlPartsCache[moduleName].metadata.cadFileName }
+        : null);
+
+    if (cadFileForSave) {
+      const pubStatus = document.getElementById('publishStatus');
+      if (pubStatus) pubStatus.textContent = `Saving ${moduleName} source front axis: ${normalized}...`;
+      writeAssetJson(moduleName, cadFileForSave)
+        .then(ok => {
+          const status = document.getElementById('publishStatus');
+          if (status) {
+            status.textContent = ok
+              ? `${moduleName} source front axis saved: ${normalized}.`
+              : `Could not save ${moduleName} source front axis.`;
+          }
+        })
+        .catch(error => {
+          console.warn('[setCadSourceFrontAxis]', error);
+        });
+    }
+  }
+
   function updateCadAxisSelector(moduleName) {
-    const selected = normalizeUpAxis(moduleMetaCache[moduleName]?.cadSourceUpAxis || 'Z', 'Z');
+    const selectedUp = normalizeUpAxis(moduleMetaCache[moduleName]?.cadSourceUpAxis || 'Z', 'Z');
+    const selectedFront = normalizeFrontAxis(moduleMetaCache[moduleName]?.cadSourceFrontAxis || '+X', '+X');
     document.querySelectorAll(`[data-cad-axis-module="${moduleName}"]`).forEach(btn => {
+      const kind = btn.getAttribute('data-axis-kind') || 'up';
+      const selected = kind === 'front' ? selectedFront : selectedUp;
       const active = btn.getAttribute('data-axis') === selected;
-      btn.style.background = active ? '#178bff' : 'rgba(120, 132, 150, 0.35)';
-      btn.style.borderColor = active ? '#72c5ff' : 'rgba(210, 220, 235, 0.35)';
+      const activeColor = kind === 'front' ? '#f7c948' : '#178bff';
+      const borderColor = kind === 'front' ? '#ffe08a' : '#72c5ff';
+      const shadowColor = kind === 'front' ? 'rgba(247,201,72,0.45)' : 'rgba(23,139,255,0.45)';
+      btn.style.background = active ? activeColor : 'rgba(120, 132, 150, 0.35)';
+      btn.style.borderColor = active ? borderColor : 'rgba(210, 220, 235, 0.35)';
       btn.style.color = active ? '#ffffff' : 'rgba(230, 236, 245, 0.82)';
-      btn.style.boxShadow = active ? '0 0 14px rgba(23,139,255,0.45)' : 'none';
+      btn.style.boxShadow = active ? `0 0 14px ${shadowColor}` : 'none';
     });
     updateCadAxisTriad(moduleName);
   }
@@ -6923,7 +6977,8 @@ let up42MoonImg = null;
     const modelViewer = document.getElementById(`mv-${moduleName}`);
     if (!triad || !modelViewer) return;
 
-    const selected = normalizeUpAxis(moduleMetaCache[moduleName]?.cadSourceUpAxis || 'Z', 'Z');
+    const selectedUp = normalizeUpAxis(moduleMetaCache[moduleName]?.cadSourceUpAxis || 'Z', 'Z');
+    const selectedFront = normalizeFrontAxis(moduleMetaCache[moduleName]?.cadSourceFrontAxis || '+X', '+X');
     const axes = projectedCadAxes(modelViewer);
     const origin = [58, 58];
     const length = 38;
@@ -6934,8 +6989,10 @@ let up42MoonImg = null;
         origin[0] + (direction[0] / magnitude) * length,
         origin[1] + (direction[1] / magnitude) * length
       ];
-      const active = axis === selected;
-      const color = active ? '#178bff' : 'rgba(220, 226, 236, 0.72)';
+      const isUp = axis === selectedUp;
+      const isFront = axis === cadAxisBase(selectedFront);
+      const active = isUp || isFront;
+      const color = isUp ? '#178bff' : (isFront ? '#f7c948' : 'rgba(220, 226, 236, 0.72)');
       const line = triad.querySelector(`[data-triad-line="${axis}"]`);
       const dot = triad.querySelector(`[data-triad-dot="${axis}"]`);
       const label = triad.querySelector(`[data-triad-label="${axis}"]`);
@@ -7574,6 +7631,7 @@ let up42MoonImg = null;
           ? { length: cadDetectedSizeM[0], width: cadDetectedSizeM[1], height: cadDetectedSizeM[2] }
           : null,
         cadSourceUpAxis: saved.cadSourceUpAxis || null,
+        cadSourceFrontAxis: saved.cadSourceFrontAxis || null,
         cadDetectedUpAxis: saved.detectedUpAxis || null,
         cadDetectedMetersPerUnit: saved.detectedMetersPerUnit ? parseFloat(saved.detectedMetersPerUnit) : null
       },
@@ -7851,6 +7909,8 @@ let up42MoonImg = null;
 
     const showSourceAxis = !!options.showSourceAxis;
     const selectedAxis = normalizeUpAxis(moduleMetaCache[moduleName]?.cadSourceUpAxis || 'Z', 'Z');
+    const selectedFrontAxis = normalizeFrontAxis(moduleMetaCache[moduleName]?.cadSourceFrontAxis || '+X', '+X');
+    const selectedFrontAxisBase = cadAxisBase(selectedFrontAxis);
 
     wrap.innerHTML = `
       <div style="display:grid;grid-template-columns:${showSourceAxis ? 'minmax(0, 1fr) 132px' : '1fr'};
@@ -7892,25 +7952,26 @@ let up42MoonImg = null;
                 <circle cx="58" cy="58" r="3.5" fill="rgba(255,255,255,0.86)"></circle>
                 ${['X', 'Y', 'Z'].map(axis => `
                   <line data-triad-line="${axis}" x1="58" y1="58" x2="58" y2="24"
-                    stroke="${axis === selectedAxis ? '#178bff' : 'rgba(220,226,236,0.72)'}"
-                    stroke-width="${axis === selectedAxis ? '3.4' : '2.3'}"
+                    stroke="${axis === selectedAxis ? '#178bff' : (axis === selectedFrontAxisBase ? '#f7c948' : 'rgba(220,226,236,0.72)')}"
+                    stroke-width="${axis === selectedAxis || axis === selectedFrontAxisBase ? '3.4' : '2.3'}"
                     stroke-linecap="round"></line>
                   <circle data-triad-dot="${axis}" cx="58" cy="24" r="4"
-                    fill="${axis === selectedAxis ? '#178bff' : 'rgba(220,226,236,0.72)'}"></circle>
+                    fill="${axis === selectedAxis ? '#178bff' : (axis === selectedFrontAxisBase ? '#f7c948' : 'rgba(220,226,236,0.72)')}"></circle>
                   <text data-triad-label="${axis}" x="58" y="14" text-anchor="middle"
                     font-size="13" font-family="JetBrains Mono, monospace"
-                    fill="${axis === selectedAxis ? '#178bff' : 'rgba(220,226,236,0.72)'}"
-                    font-weight="${axis === selectedAxis ? '800' : '650'}">${axis}</text>
+                    fill="${axis === selectedAxis ? '#178bff' : (axis === selectedFrontAxisBase ? '#f7c948' : 'rgba(220,226,236,0.72)')}"
+                    font-weight="${axis === selectedAxis || axis === selectedFrontAxisBase ? '800' : '650'}">${axis}</text>
                 `).join('')}
               </svg>
             </div>
-            <div style="width:100%;">
+            <div style="width:100%;display:flex;flex-direction:column;gap:10px;">
+              <div>
               <div style="font-size:10px;color:rgba(255,255,255,0.62);text-align:center;margin-bottom:8px;">
                 Source up
               </div>
               <div style="display:flex;gap:7px;justify-content:center;">
                 ${['X', 'Y', 'Z'].map(axis => `
-                  <button type="button" data-cad-axis-module="${moduleName}" data-axis="${axis}"
+                  <button type="button" data-cad-axis-module="${moduleName}" data-axis-kind="up" data-axis="${axis}"
                     title="Use ${axis} as source up axis"
                     style="width:31px;height:31px;border-radius:50%;border:1px solid rgba(210,220,235,0.35);
                       background:${axis === selectedAxis ? '#178bff' : 'rgba(120,132,150,0.35)'};
@@ -7920,6 +7981,25 @@ let up42MoonImg = null;
                     ${axis}
                   </button>
                 `).join('')}
+              </div>
+              </div>
+              <div>
+              <div style="font-size:10px;color:rgba(255,255,255,0.62);text-align:center;margin-bottom:8px;">
+                Source front
+              </div>
+              <div style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap;">
+                ${['+X', '-X', '+Y', '-Y', '+Z', '-Z'].map(axis => `
+                  <button type="button" data-cad-axis-module="${moduleName}" data-axis-kind="front" data-axis="${axis}"
+                    title="Use ${axis} as source front axis"
+                    style="width:30px;height:30px;border-radius:50%;border:1px solid rgba(210,220,235,0.35);
+                      background:${axis === selectedFrontAxis ? '#f7c948' : 'rgba(120,132,150,0.35)'};
+                      color:${axis === selectedFrontAxis ? '#fff' : 'rgba(230,236,245,0.82)'};
+                      font-weight:800;font-size:11px;cursor:pointer;
+                      box-shadow:${axis === selectedFrontAxis ? '0 0 14px rgba(247,201,72,0.45)' : 'none'};">
+                    ${axis}
+                  </button>
+                `).join('')}
+              </div>
               </div>
             </div>
           </div>
@@ -7939,7 +8019,13 @@ let up42MoonImg = null;
       document.querySelectorAll(`[data-cad-axis-module="${moduleName}"]`).forEach(btn => {
         btn.addEventListener('click', event => {
           event.preventDefault();
-          setCadSourceUpAxis(moduleName, btn.getAttribute('data-axis') || 'Z');
+          const kind = btn.getAttribute('data-axis-kind') || 'up';
+          const axis = btn.getAttribute('data-axis') || (kind === 'front' ? 'X' : 'Z');
+          if (kind === 'front') {
+            setCadSourceFrontAxis(moduleName, axis);
+          } else {
+            setCadSourceUpAxis(moduleName, axis);
+          }
         });
       });
       updateCadAxisSelector(moduleName);

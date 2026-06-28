@@ -95,7 +95,7 @@ For each module that needs a CAD model:
 
 1. Select the module.
 2. Upload a USD, USDA, USDC, USDZ, STEP, STP, STL, or OBJ file.
-3. Review detected metadata such as material, units, dimensions, and up axis.
+3. Review detected metadata such as material, units, dimensions, up axis, and signed front axis.
 4. If metadata is detected from the CAD file, treat it as the source of truth.
 5. If metadata is not detected, fill the missing fields manually.
 6. Publish the CAD model.
