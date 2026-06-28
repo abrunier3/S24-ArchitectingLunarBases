@@ -41,6 +41,16 @@ package ECLIPSE_LSP1 {
             }
             satisfy requirement habitatPowerTest :> LSP1_8::LSP1_8_1;
             satisfy requirement habitatEnergyTest :> LSP1_8::LSP1_8_2;
+            // BEGIN AUTO CAD METADATA: HabitationModule
+            attribute cadCenterOfMassXM = 0.685675050283;
+            attribute cadCenterOfMassYM = 3.28553946567;
+            attribute cadCenterOfMassZM = 0.954978730281;
+            attribute cadMetadataScaleFactor = 20.0893022172;
+            attribute cadSourceFrontAxis = "+X";
+            attribute cadSourceUpAxis = "Z";
+            attribute cadSurfaceAreaM2 = 647.240931246;
+            // END AUTO CAD METADATA: HabitationModule
+
         }
         part ISRUPlant {
             part ISRUPlant_dims {
