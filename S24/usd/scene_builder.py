@@ -83,6 +83,9 @@ def _target_size_from_dimensions(dimensions: Dict[str, Any]) -> list[float] | No
 
 def _uses_source_up_axis(metadata: Dict[str, Any] | None) -> bool:
     metadata = metadata or {}
+    if metadata.get("cadSourceUpAxis") or metadata.get("cadSourceFrontAxis"):
+        return True
+
     values = [
         metadata.get("cadFileName"),
         metadata.get("sourceCadPath"),
@@ -434,6 +437,15 @@ def build_usd_scene_from_manifest(
 
         if part.get("dimensions"):
             prim.CreateAttribute("dimensions", Sdf.ValueTypeNames.String).Set(str(part["dimensions"]))
+
+        part_metadata = part.get("metadata") or {}
+        if verbose >= 1 and (part_metadata.get("cadSourceUpAxis") or part_metadata.get("cadSourceFrontAxis")):
+            print(
+                f"[USD] CAD orientation for {name}: "
+                f"up={part_metadata.get('cadSourceUpAxis') or 'Z'}, "
+                f"front={part_metadata.get('cadSourceFrontAxis') or '+X'}, "
+                f"rotate={normalization.get('rotate_xyz') if normalization else [0.0, 0.0, 0.0]}"
+            )
 
         if verbose >= 2:
             print(f"[USD] Added {name}")
