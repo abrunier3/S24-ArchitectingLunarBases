@@ -24,6 +24,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Refresh checkout with latest uploaded CAD
+        run: |
+          git fetch origin "${GITHUB_REF_NAME}"
+          git checkout -B "${GITHUB_REF_NAME}" "origin/${GITHUB_REF_NAME}"
+
       - name: Set up CAD conversion environment
         uses: mamba-org/setup-micromamba@v2
         with:
