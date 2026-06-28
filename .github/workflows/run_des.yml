@@ -47,6 +47,10 @@ on:
         description: 'JSON object with site, module positions/orientations and route waypoints'
         required: false
         default: '{}'
+      cad_axis_overrides:
+        description: 'Optional JSON object with per-module CAD source up/front axes'
+        required: false
+        default: '{}'
 
 jobs:
   run-des:
@@ -89,6 +93,7 @@ jobs:
           ISRU_PLANT_PROCESSING_RATE: ${{ github.event.inputs.ISRU_Plant_Processing_Rate }}
           LOX_TRANSPORT_THRESHOLD:    ${{ github.event.inputs.LOX_Transport_Threshold }}
           URBAN_PLANNING_JSON:        ${{ github.event.inputs.urban_planning }}
+          CAD_AXIS_OVERRIDES_JSON:    ${{ github.event.inputs.cad_axis_overrides }}
         run: |
           mkdir -p outputs
           python - <<'EOF'
@@ -440,10 +445,72 @@ jobs:
           EOF
 
       - name: Run USD Scene Generation (Steps 3, 5, 6)
+        env:
+          CAD_AXIS_OVERRIDES_JSON: ${{ github.event.inputs.cad_axis_overrides }}
         run: |
           python - <<'EOF'
           import sys, os, json
           from pathlib import Path
+
+          def normalize_axis(value, allowed, fallback):
+              axis = str(value or fallback).strip().upper()
+              if axis in {"X", "Y", "Z"} and any(item.startswith("+") for item in allowed):
+                  axis = f"+{axis}"
+              return axis if axis in allowed else fallback
+
+          def apply_cad_axis_overrides():
+              raw = os.environ.get("CAD_AXIS_OVERRIDES_JSON", "{}").strip() or "{}"
+              try:
+                  overrides = json.loads(raw)
+              except json.JSONDecodeError as exc:
+                  print(f"[USD] CAD axis overrides ignored: invalid JSON ({exc})")
+                  return
+
+              if not isinstance(overrides, dict) or not overrides:
+                  print("[USD] No CAD axis overrides provided.")
+                  return
+
+              assets_dir = Path("clean_database/json/ECLIPSE_Project/assets")
+              applied = 0
+              for module_name, values in overrides.items():
+                  if not isinstance(values, dict):
+                      continue
+                  asset_path = assets_dir / f"{module_name}.json"
+                  if not asset_path.exists():
+                      print(f"[USD] CAD axis override skipped for {module_name}: asset JSON not found.")
+                      continue
+
+                  with asset_path.open() as f:
+                      asset = json.load(f)
+
+                  metadata = asset.setdefault("metadata", {})
+                  if "cadSourceUpAxis" in values:
+                      metadata["cadSourceUpAxis"] = normalize_axis(
+                          values.get("cadSourceUpAxis"),
+                          {"X", "Y", "Z"},
+                          "Z",
+                      )
+                  if "cadSourceFrontAxis" in values:
+                      metadata["cadSourceFrontAxis"] = normalize_axis(
+                          values.get("cadSourceFrontAxis"),
+                          {"+X", "-X", "+Y", "-Y", "+Z", "-Z"},
+                          "+X",
+                      )
+
+                  with asset_path.open("w") as f:
+                      json.dump(asset, f, indent=2)
+                      f.write("\n")
+
+                  applied += 1
+                  print(
+                      f"[USD] CAD axes for {module_name}: "
+                      f"up={metadata.get('cadSourceUpAxis')}, "
+                      f"front={metadata.get('cadSourceFrontAxis')}"
+                  )
+
+              print(f"[USD] Applied CAD axis override(s): {applied}")
+
+          apply_cad_axis_overrides()
 
           # ── Step 3: Build submission manifest ─────────────────────────────
           try:
@@ -568,6 +635,7 @@ jobs:
           echo "$STASHED" | grep -q "No local changes" || git stash pop
           git add outputs/des_results.json
           git add clean_database/json/ECLIPSE_Project/ECLIPSE_Project.json
+          git add clean_database/json/ECLIPSE_Project/assets/*.json || true
           git add clean_database/usd/scenes/scene.usda || true
           git add clean_database/scenes/waypoints.usda || true
           git add extensions/lsp1.pipeline/data/manifest.json || true

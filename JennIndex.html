@@ -8289,6 +8289,40 @@ let up42MoonImg = null;
     };
   }
 
+  function getCadAxisOverrides() {
+    const overrides = {};
+    const names = new Set([
+      ...Object.keys(sysmlPartsCache || {}),
+      ...Object.keys(moduleMetaCache || {})
+    ]);
+
+    names.forEach(moduleName => {
+      const cached = moduleMetaCache[moduleName] || {};
+      const metadata = sysmlPartsCache[moduleName]?.metadata || {};
+      const sourceUp = cached.cadSourceUpAxis || metadata.cadSourceUpAxis;
+      const sourceFront = cached.cadSourceFrontAxis || metadata.cadSourceFrontAxis;
+      const geometryRef = cached.detectedUsdPath || metadata.geometryRef || '';
+      const cadFileName = metadata.cadFileName || '';
+      const sourceCadPath = metadata.sourceCadPath || '';
+      const sourceText = `${geometryRef} ${cadFileName} ${sourceCadPath}`.toLowerCase();
+      const isConvertedCad =
+        sourceText.includes('.step') ||
+        sourceText.includes('.stp') ||
+        sourceText.includes('.stl') ||
+        sourceText.includes('.obj') ||
+        sourceText.includes('/cad_models/');
+
+      if (!isConvertedCad && !sourceUp && !sourceFront) return;
+
+      overrides[moduleName] = {
+        cadSourceUpAxis: normalizeUpAxis(sourceUp || 'Z', 'Z'),
+        cadSourceFrontAxis: normalizeFrontAxis(sourceFront || '+X', '+X')
+      };
+    });
+
+    return overrides;
+  }
+
   async function triggerDesWorkflow() {
     const btn = document.getElementById('runDesBtn');
     const activeNodes = getDesActiveNodes();
@@ -8306,16 +8340,21 @@ let up42MoonImg = null;
 
     const sliderValues = getDesSliderValues();
     const urbanPlanning = buildUrbanPlanningPayload();
+    const cadAxisOverrides = getCadAxisOverrides();
     const inputs = {
       active_nodes: JSON.stringify(activeNodes),
       slider_values: JSON.stringify(sliderValues),
       ...sliderValues,
       ...(urbanPlanning ? { urban_planning: JSON.stringify(urbanPlanning) } : {}),
+      ...(Object.keys(cadAxisOverrides).length
+        ? { cad_axis_overrides: JSON.stringify(cadAxisOverrides) }
+        : {}),
     };
 
     const bodyStr = JSON.stringify({ ref: GH_REF, inputs });
     console.log('[DES DISPATCH] payload size:', bodyStr.length, 'bytes');
     console.log('[DES DISPATCH] urban_planning size:', urbanPlanning ? JSON.stringify(urbanPlanning).length : 0, 'bytes');
+    console.log('[DES DISPATCH] CAD axis overrides:', cadAxisOverrides);
 
     try {
       const res = await fetch(
