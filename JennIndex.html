@@ -6887,7 +6887,10 @@ let up42MoonImg = null;
   }
 
   function updateCadAxisSelector(moduleName) {
-    const selectedUp = normalizeUpAxis(moduleMetaCache[moduleName]?.cadSourceUpAxis || 'Z', 'Z');
+    const showUpAxis = triad.getAttribute('data-cad-show-up') === '1';
+    const selectedUp = showUpAxis
+      ? normalizeUpAxis(moduleMetaCache[moduleName]?.cadSourceUpAxis || 'Z', 'Z')
+      : null;
     const selectedFront = normalizeFrontAxis(moduleMetaCache[moduleName]?.cadSourceFrontAxis || '+X', '+X');
     document.querySelectorAll(`[data-cad-axis-module="${moduleName}"]`).forEach(btn => {
       const kind = btn.getAttribute('data-axis-kind') || 'up';
@@ -7907,13 +7910,17 @@ let up42MoonImg = null;
       glbSha: glb.sha
     };
 
-    const showSourceAxis = !!options.showSourceAxis;
-    const selectedAxis = normalizeUpAxis(moduleMetaCache[moduleName]?.cadSourceUpAxis || 'Z', 'Z');
+    const showSourceUpAxis = !!options.showSourceUpAxis || !!options.showSourceAxis;
+    const showFrontAxis = options.showFrontAxis !== false;
+    const showAxisPanel = showSourceUpAxis || showFrontAxis;
+    const selectedAxis = showSourceUpAxis
+      ? normalizeUpAxis(moduleMetaCache[moduleName]?.cadSourceUpAxis || 'Z', 'Z')
+      : null;
     const selectedFrontAxis = normalizeFrontAxis(moduleMetaCache[moduleName]?.cadSourceFrontAxis || '+X', '+X');
     const selectedFrontAxisBase = cadAxisBase(selectedFrontAxis);
 
     wrap.innerHTML = `
-      <div style="display:grid;grid-template-columns:${showSourceAxis ? 'minmax(0, 1fr) 132px' : '1fr'};
+      <div style="display:grid;grid-template-columns:${showAxisPanel ? 'minmax(0, 1fr) 132px' : '1fr'};
         border-radius:12px;overflow:hidden;border:1px solid var(--border2);background:#0c1119;">
         <div style="position:relative;min-width:0;">
           <model-viewer
@@ -7938,7 +7945,7 @@ let up42MoonImg = null;
             Drag to rotate - Scroll to zoom
           </div>
         </div>
-        ${showSourceAxis ? `
+        ${showAxisPanel ? `
           <div style="height:360px;border-left:1px solid rgba(255,255,255,0.12);
             background:linear-gradient(180deg, rgba(12,20,32,0.98), rgba(7,13,22,0.98));
             display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:13px 10px;">
@@ -7946,7 +7953,7 @@ let up42MoonImg = null;
               <div style="font-size:10px;color:rgba(255,255,255,0.62);text-align:center;margin-bottom:7px;">
                 CAD axes
               </div>
-              <svg data-cad-axis-triad="${moduleName}" viewBox="0 0 116 116"
+              <svg data-cad-axis-triad="${moduleName}" data-cad-show-up="${showSourceUpAxis ? '1' : '0'}" viewBox="0 0 116 116"
                 style="width:112px;height:112px;display:block;margin:0 auto;border-radius:10px;
                   background:rgba(255,255,255,0.035);border:1px solid rgba(255,255,255,0.08);">
                 <circle cx="58" cy="58" r="3.5" fill="rgba(255,255,255,0.86)"></circle>
@@ -7965,6 +7972,7 @@ let up42MoonImg = null;
               </svg>
             </div>
             <div style="width:100%;display:flex;flex-direction:column;gap:10px;">
+              ${showSourceUpAxis ? `
               <div>
               <div style="font-size:10px;color:rgba(255,255,255,0.62);text-align:center;margin-bottom:8px;">
                 Source up
@@ -7983,6 +7991,8 @@ let up42MoonImg = null;
                 `).join('')}
               </div>
               </div>
+              ` : ''}
+              ${showFrontAxis ? `
               <div>
               <div style="font-size:10px;color:rgba(255,255,255,0.62);text-align:center;margin-bottom:8px;">
                 Source front
@@ -8001,12 +8011,13 @@ let up42MoonImg = null;
                 `).join('')}
               </div>
               </div>
+              ` : ''}
             </div>
           </div>
         ` : ''}
       </div>`;
 
-    if (showSourceAxis) {
+    if (showAxisPanel) {
       const modelViewer = document.getElementById(`mv-${moduleName}`);
       let axisFrame = null;
       const scheduleAxisUpdate = () => {
@@ -8044,7 +8055,10 @@ let up42MoonImg = null;
         data.mesh_count,
         data.size_m,
         options.glbSha || null,
-        { showSourceAxis: isSourceAxisCadMeta(data) }
+        {
+          showSourceUpAxis: isSourceAxisCadMeta(data),
+          showFrontAxis: true
+        }
       );
     }
 
@@ -8312,12 +8326,17 @@ let up42MoonImg = null;
         sourceText.includes('.obj') ||
         sourceText.includes('/cad_models/');
 
-      if (!isConvertedCad && !sourceUp && !sourceFront) return;
+      const override = {};
+      if (isConvertedCad || sourceUp) {
+        override.cadSourceUpAxis = normalizeUpAxis(sourceUp || 'Z', 'Z');
+      }
+      if (sourceFront) {
+        override.cadSourceFrontAxis = normalizeFrontAxis(sourceFront, '+X');
+      }
 
-      overrides[moduleName] = {
-        cadSourceUpAxis: normalizeUpAxis(sourceUp || 'Z', 'Z'),
-        cadSourceFrontAxis: normalizeFrontAxis(sourceFront || '+X', '+X')
-      };
+      if (Object.keys(override).length) {
+        overrides[moduleName] = override;
+      }
     });
 
     return overrides;
