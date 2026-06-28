@@ -107,6 +107,45 @@ def _meshes_to_usd_arrays(
     return points, face_vertex_counts, face_vertex_indices
 
 
+def _extract_mesh_geometry_properties(
+    meshes: list[trimesh.Trimesh],
+    *,
+    scale_to_m: float,
+) -> dict[str, Any]:
+    try:
+        combined = trimesh.util.concatenate(meshes)
+    except Exception as exc:
+        return {
+            "extraction_status": "error",
+            "message": str(exc),
+        }
+
+    if combined.vertices is None or len(combined.vertices) == 0:
+        return {
+            "extraction_status": "error",
+            "message": "mesh has no vertices",
+        }
+
+    area = float(combined.area) * (scale_to_m ** 2)
+    centroid = np.asarray(combined.centroid, dtype=float) * scale_to_m
+
+    geometry: dict[str, Any] = {
+        "extraction_status": "success",
+        "surface_area_m2": area,
+        "center_of_mass_m": [float(value) for value in centroid],
+        "center_of_mass_source": "centroid",
+        "is_watertight": bool(combined.is_watertight),
+    }
+
+    if combined.is_watertight:
+        geometry["volume_m3"] = abs(float(combined.volume)) * (scale_to_m ** 3)
+        center = np.asarray(combined.center_mass, dtype=float) * scale_to_m
+        geometry["center_of_mass_m"] = [float(value) for value in center]
+        geometry["center_of_mass_source"] = "mass_properties"
+
+    return geometry
+
+
 def convert_mesh_to_usd(
     input_path: str | Path,
     output_path: str | Path,
@@ -121,6 +160,10 @@ def convert_mesh_to_usd(
 
     meshes = _load_meshes(input_path)
     points, counts, indices = _meshes_to_usd_arrays(meshes)
+    geometry_properties = _extract_mesh_geometry_properties(
+        meshes,
+        scale_to_m=unit_scale,
+    )
 
     usd_path = write_usd_mesh(
         output_path=output_path,
@@ -172,6 +215,7 @@ def convert_mesh_to_usd(
             "triangle_count": len(indices) // 3,
             "source_bbox": source_bbox,
         },
+        "geometry": geometry_properties,
         "extraction_status": {
             "conversion": "success",
             "metadata": "success",

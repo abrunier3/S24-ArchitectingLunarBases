@@ -512,6 +512,20 @@ jobs:
 
           apply_cad_axis_overrides()
 
+          # ── Update authoritative SysML CAD metadata ───────────────────────
+          try:
+              from S24.sysml.cad_metadata_updater import update_cad_metadata_from_previews
+
+              updated_cad_metadata = update_cad_metadata_from_previews(
+                  sysml_path=Path("clean_database/sysml/ECLIPSE_Project.sysml"),
+                  assets_dir=Path("clean_database/json/ECLIPSE_Project/assets"),
+                  previews_dir=Path("outputs/cad_previews"),
+                  repo_root=Path(".").resolve(),
+              )
+              print(f"[CAD] SysML CAD metadata update complete: {updated_cad_metadata} part(s)")
+          except Exception as e:
+              print(f"[CAD] SysML CAD metadata update failed: {e}")
+
           # ── Step 3: Build submission manifest ─────────────────────────────
           try:
               from S24.usd.model_submission import build_submission_manifest
@@ -634,6 +648,7 @@ jobs:
           git pull --rebase origin "${GITHUB_REF_NAME}"
           echo "$STASHED" | grep -q "No local changes" || git stash pop
           git add outputs/des_results.json
+          git add clean_database/sysml/ECLIPSE_Project.sysml || true
           git add clean_database/json/ECLIPSE_Project/ECLIPSE_Project.json
           git add clean_database/json/ECLIPSE_Project/assets/*.json || true
           git add clean_database/usd/scenes/scene.usda || true

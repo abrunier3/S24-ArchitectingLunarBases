@@ -177,6 +177,43 @@ def _load_step_shape(path: Path):
     return reader.OneShape()
 
 
+def _extract_step_geometry_properties(shape: Any, *, scale_to_m: float) -> dict[str, Any]:
+    try:
+        from OCC.Core.BRepGProp import brepgprop
+        from OCC.Core.GProp import GProp_GProps
+    except ImportError:
+        return {
+            "extraction_status": "unavailable",
+            "message": "pythonocc-core geometry property modules are unavailable",
+        }
+
+    try:
+        volume_props = GProp_GProps()
+        surface_props = GProp_GProps()
+        brepgprop.VolumeProperties(shape, volume_props)
+        brepgprop.SurfaceProperties(shape, surface_props)
+
+        center = volume_props.CentreOfMass()
+        volume = abs(float(volume_props.Mass()))
+        surface_area = abs(float(surface_props.Mass()))
+
+        return {
+            "extraction_status": "success",
+            "volume_m3": volume * (scale_to_m ** 3),
+            "surface_area_m2": surface_area * (scale_to_m ** 2),
+            "center_of_mass_m": [
+                float(center.X()) * scale_to_m,
+                float(center.Y()) * scale_to_m,
+                float(center.Z()) * scale_to_m,
+            ],
+        }
+    except Exception as exc:
+        return {
+            "extraction_status": "error",
+            "message": str(exc),
+        }
+
+
 def _mesh_step_shape(shape: Any, *, linear_deflection: float, angular_deflection: float):
     from OCC.Core.BRep import BRep_Tool
     from OCC.Core.BRepMesh import BRepMesh_IncrementalMesh
@@ -342,6 +379,12 @@ def convert_step_to_usd(
     header = extract_step_header(input_path)
     units = detect_step_length_scale(input_path, default_unit=default_unit)
     shape = _load_step_shape(input_path)
+    # OpenCascade transfers the current STEP files into millimeter coordinates.
+    occ_scale_to_m = 0.001
+    geometry_properties = _extract_step_geometry_properties(
+        shape,
+        scale_to_m=occ_scale_to_m,
+    )
     points, counts, indices = _mesh_step_shape(
         shape,
         linear_deflection=linear_deflection,
@@ -356,7 +399,7 @@ def convert_step_to_usd(
         # OpenCascade's transferred BRep coordinates are expressed in its
         # working length unit (millimeters). Normalize the generated USD to
         # meters, and keep the STEP-declared unit separately as source metadata.
-        unit_scale_to_m=0.001,
+        unit_scale_to_m=occ_scale_to_m,
         source_up_axis=source_up_axis,
     )
 
@@ -384,9 +427,10 @@ def convert_step_to_usd(
         "units": units,
         "occ_shape_unit": {
             "unit": "millimetre",
-            "scale_to_m": 0.001,
+            "scale_to_m": occ_scale_to_m,
             "source": "OpenCascade transferred shape coordinates",
         },
+        "geometry": geometry_properties,
         "tessellation": {
             "linear_deflection": linear_deflection,
             "angular_deflection": angular_deflection,

@@ -132,6 +132,86 @@ def _extract_meshes(stage: Usd.Stage, meters_per_unit: float) -> list[trimesh.Tr
     return meshes_data
 
 
+def _extract_usd_geometry_properties(meshes_data: list[trimesh.Trimesh]) -> dict[str, Any]:
+    if not meshes_data:
+        return {
+            "extraction_status": "error",
+            "message": "USD stage contains no readable mesh geometry",
+        }
+
+    try:
+        combined = trimesh.util.concatenate(meshes_data)
+    except Exception as exc:
+        return {
+            "extraction_status": "error",
+            "message": str(exc),
+        }
+
+    if combined.vertices is None or len(combined.vertices) == 0:
+        return {
+            "extraction_status": "error",
+            "message": "USD mesh has no vertices",
+        }
+
+    geometry: dict[str, Any] = {
+        "extraction_status": "success",
+        "surface_area_m2": float(combined.area),
+        "center_of_mass_m": [float(value) for value in np.asarray(combined.centroid)],
+        "center_of_mass_source": "centroid",
+        "is_watertight": bool(combined.is_watertight),
+    }
+
+    if combined.is_watertight:
+        geometry["volume_m3"] = abs(float(combined.volume))
+        geometry["center_of_mass_m"] = [
+            float(value) for value in np.asarray(combined.center_mass)
+        ]
+        geometry["center_of_mass_source"] = "mass_properties"
+
+    return geometry
+
+
+def _source_metadata_for_native_usd(
+    *,
+    source_cad_path: str,
+    usd_path: str,
+    stage: Usd.Stage,
+    meshes_data: list[trimesh.Trimesh],
+    meters_per_unit: float,
+    up_axis: str,
+) -> dict[str, Any]:
+    source_path = Path(source_cad_path)
+    source_format = source_path.suffix.lower().lstrip(".").upper() or "USD"
+    root_layer = stage.GetRootLayer()
+
+    return {
+        "written_at": int(time.time() * 1000),
+        "source_file": source_cad_path,
+        "file_name": source_path.name,
+        "file_extension": source_path.suffix.lower(),
+        "cad_format": source_format,
+        "file_size_bytes": source_path.stat().st_size if source_path.exists() else None,
+        "converted_usd_path": usd_path,
+        "authoring_tool": root_layer.customLayerData.get("creator")
+        if root_layer and root_layer.customLayerData
+        else None,
+        "source_up_axis": str(up_axis).upper(),
+        "source_front_axis": "+X",
+        "target_up_axis": "Z",
+        "orientation_correction_deg": [0.0, 0.0, 0.0],
+        "units": {
+            "unit": "metre",
+            "scale_to_m": meters_per_unit,
+            "source": "USD stage metersPerUnit",
+        },
+        "geometry": _extract_usd_geometry_properties(meshes_data),
+        "extraction_status": {
+            "conversion": "not_required",
+            "metadata": "success",
+        },
+    }
+
+
 def _write_glb(
     *,
     module_name: str,
@@ -239,6 +319,19 @@ def _convert_one(module_name: str, cad_path: str) -> None:
     source_metadata = None
     if source_meta_path.exists():
         source_metadata = json.loads(source_meta_path.read_text(encoding="utf-8"))
+    else:
+        source_metadata = _source_metadata_for_native_usd(
+            source_cad_path=source_cad_path,
+            usd_path=usd_path,
+            stage=stage,
+            meshes_data=meshes_data,
+            meters_per_unit=meters_per_unit,
+            up_axis=up_axis,
+        )
+        source_meta_path.write_text(
+            json.dumps(source_metadata, indent=2),
+            encoding="utf-8",
+        )
 
     metadata = {
         "written_at": int(time.time() * 1000),
