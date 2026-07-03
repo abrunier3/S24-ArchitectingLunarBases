@@ -47,6 +47,10 @@ on:
         description: 'JSON object with site, module positions/orientations and route waypoints'
         required: false
         default: '{}'
+      cad_axis_overrides:
+        description: 'Optional JSON object with per-module CAD source up/front axes'
+        required: false
+        default: '{}'
 
 jobs:
   run-des:
@@ -89,6 +93,7 @@ jobs:
           ISRU_PLANT_PROCESSING_RATE: ${{ github.event.inputs.ISRU_Plant_Processing_Rate }}
           LOX_TRANSPORT_THRESHOLD:    ${{ github.event.inputs.LOX_Transport_Threshold }}
           URBAN_PLANNING_JSON:        ${{ github.event.inputs.urban_planning }}
+          CAD_AXIS_OVERRIDES_JSON:    ${{ github.event.inputs.cad_axis_overrides }}
         run: |
           mkdir -p outputs
           python - <<'EOF'
@@ -373,6 +378,8 @@ jobs:
                   "site_lat":  urban_planning.get("site_lat"),
                   "site_lon":  urban_planning.get("site_lon"),
               }
+              if urban_planning.get("map_frame_m"):
+                  sysml["urban_planning"]["map_frame_m"] = urban_planning["map_frame_m"]
 
               with sysml_path.open("w") as f:
                   json.dump(sysml, f, indent=2)
@@ -438,16 +445,120 @@ jobs:
           EOF
 
       - name: Run USD Scene Generation (Steps 3, 5, 6)
+        env:
+          CAD_AXIS_OVERRIDES_JSON: ${{ github.event.inputs.cad_axis_overrides }}
         run: |
           python - <<'EOF'
           import sys, os, json
           from pathlib import Path
 
+          def normalize_axis(value, allowed, fallback):
+              axis = str(value or fallback).strip().upper()
+              if axis in {"X", "Y", "Z"} and any(item.startswith("+") for item in allowed):
+                  axis = f"+{axis}"
+              return axis if axis in allowed else fallback
+
+          def apply_cad_axis_overrides():
+              raw = os.environ.get("CAD_AXIS_OVERRIDES_JSON", "{}").strip() or "{}"
+              try:
+                  overrides = json.loads(raw)
+              except json.JSONDecodeError as exc:
+                  print(f"[USD] CAD axis overrides ignored: invalid JSON ({exc})")
+                  return
+
+              if not isinstance(overrides, dict) or not overrides:
+                  print("[USD] No CAD axis overrides provided.")
+                  return
+
+              assets_dir = Path("clean_database/json/ECLIPSE_Project/assets")
+              applied = 0
+              for module_name, values in overrides.items():
+                  if not isinstance(values, dict):
+                      continue
+                  asset_path = assets_dir / f"{module_name}.json"
+                  if not asset_path.exists():
+                      print(f"[USD] CAD axis override skipped for {module_name}: asset JSON not found.")
+                      continue
+
+                  with asset_path.open() as f:
+                      asset = json.load(f)
+
+                  metadata = asset.setdefault("metadata", {})
+                  if "cadSourceUpAxis" in values:
+                      metadata["cadSourceUpAxis"] = normalize_axis(
+                          values.get("cadSourceUpAxis"),
+                          {"X", "Y", "Z"},
+                          "Z",
+                      )
+                  if "cadSourceFrontAxis" in values:
+                      metadata["cadSourceFrontAxis"] = normalize_axis(
+                          values.get("cadSourceFrontAxis"),
+                          {"+X", "-X", "+Y", "-Y", "+Z", "-Z"},
+                          "+X",
+                      )
+
+                  with asset_path.open("w") as f:
+                      json.dump(asset, f, indent=2)
+                      f.write("\n")
+
+                  applied += 1
+                  print(
+                      f"[USD] CAD axes for {module_name}: "
+                      f"up={metadata.get('cadSourceUpAxis')}, "
+                      f"front={metadata.get('cadSourceFrontAxis')}"
+                  )
+
+              print(f"[USD] Applied CAD axis override(s): {applied}")
+
+          apply_cad_axis_overrides()
+
+          # ── Update authoritative SysML CAD metadata ───────────────────────
+          try:
+              from S24.sysml.cad_metadata_updater import update_cad_metadata_from_previews
+
+              updated_cad_metadata = update_cad_metadata_from_previews(
+                  sysml_path=Path("clean_database/sysml/ECLIPSE_Project.sysml"),
+                  assets_dir=Path("clean_database/json/ECLIPSE_Project/assets"),
+                  previews_dir=Path("outputs/cad_previews"),
+                  repo_root=Path(".").resolve(),
+              )
+              print(f"[CAD] SysML CAD metadata update complete: {updated_cad_metadata} part(s)")
+          except Exception as e:
+              print(f"[CAD] SysML CAD metadata update failed: {e}")
+
           # ── Step 3: Build submission manifest ─────────────────────────────
           try:
               from S24.usd.model_submission import build_submission_manifest
 
-              asset_paths = list(Path("clean_database/json/ECLIPSE_Project/assets").glob("*.json"))
+              all_asset_paths = sorted(
+                  Path("clean_database/json/ECLIPSE_Project/assets").glob("*.json"),
+                  key=lambda p: p.name.lower(),
+              )
+              eclipse_path = Path("clean_database/json/ECLIPSE_Project/ECLIPSE_Project.json")
+              active_part_names = set()
+              if eclipse_path.exists():
+                  with eclipse_path.open() as f:
+                      eclipse = json.load(f)
+                  active_part_names = {
+                      part.get("name")
+                      for part in eclipse.get("parts", [])
+                      if part.get("name")
+                  }
+
+              asset_paths = [
+                  path for path in all_asset_paths
+                  if not active_part_names or path.stem in active_part_names
+              ]
+              skipped_assets = [
+                  path.stem for path in all_asset_paths
+                  if path not in asset_paths
+              ]
+              if skipped_assets:
+                  print(
+                      "[USD] Skipped inactive asset JSON(s): "
+                      + ", ".join(skipped_assets)
+                  )
+
               if not asset_paths:
                   print("[USD] No asset JSON files found — skipping USD generation.")
                   sys.exit(0)
@@ -479,6 +590,8 @@ jobs:
                       if name in transforms:
                           part["position_m"] = transforms[name].get("position_m", [0, 0, 0])
                           part["rotation_deg"] = transforms[name].get("rotation_deg", [0, 0, 0])
+                          if "scale" in transforms[name]:
+                              part["scale"] = transforms[name]["scale"]
                           injected += 1
                   print(f"[USD] Injected positions for {injected} part(s) from ECLIPSE_Project.json")
           except Exception as e:
@@ -523,19 +636,25 @@ jobs:
           except Exception as e:
               print(f"[USD] Step 6 failed: {e}")
           EOF
+          echo "[OMNI] Building visualization manifest..."
+          python extensions/lsp1.pipeline/build_omniverse_manifest.py
+          echo "[OMNI] Manifest build complete."
 
       - name: Commit results
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git stash --include-untracked
-          git pull --rebase origin main
-          git stash pop
+          STASHED=$(git stash --include-untracked 2>&1)
+          git pull --rebase origin "${GITHUB_REF_NAME}"
+          echo "$STASHED" | grep -q "No local changes" || git stash pop
           git add outputs/des_results.json
+          git add clean_database/sysml/ECLIPSE_Project.sysml || true
           git add clean_database/json/ECLIPSE_Project/ECLIPSE_Project.json
+          git add clean_database/json/ECLIPSE_Project/assets/*.json || true
           git add clean_database/usd/scenes/scene.usda || true
           git add clean_database/scenes/waypoints.usda || true
+          git add extensions/lsp1.pipeline/data/manifest.json || true
           echo "=== staged files ==="
           git diff --staged --name-only
-          git diff --staged --quiet || git commit -m "chore: DES results + SysML + USD scene update [skip ci]"
-          git push
+          git diff --staged --quiet || git commit -m "chore: DES results + SysML + Omniverse scene update [skip ci]"
+          git push origin HEAD:"${GITHUB_REF_NAME}"
