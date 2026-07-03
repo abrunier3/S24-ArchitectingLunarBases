@@ -6887,7 +6887,8 @@ let up42MoonImg = null;
   }
 
   function updateCadAxisSelector(moduleName) {
-    const showUpAxis = triad.getAttribute('data-cad-show-up') === '1';
+    const triad = document.querySelector(`[data-cad-axis-triad="${moduleName}"]`);
+    const showUpAxis = triad?.getAttribute('data-cad-show-up') === '1';
     const selectedUp = showUpAxis
       ? normalizeUpAxis(moduleMetaCache[moduleName]?.cadSourceUpAxis || 'Z', 'Z')
       : null;
