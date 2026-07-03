@@ -75,6 +75,41 @@ def _find_cad_file(cad_dir: Path, part_name: str) -> Optional[Path]:
     return None
 
 
+def _resolve_metadata_cad_file(
+    metadata: Dict[str, Any],
+    *,
+    cad_dir: Path,
+    part_name: str,
+    repo_root: Path,
+) -> Optional[Path]:
+    """
+    Prefer the CAD file recorded by the UI metadata when it points to a real
+    USD-family file. This keeps preview metadata and Omniverse references from
+    drifting apart when a folder contains old uploads or renamed CAD files.
+    """
+    geometry_ref = metadata.get("geometryRef")
+    if geometry_ref:
+        ref_path = Path(geometry_ref)
+        candidates = []
+        if ref_path.is_absolute():
+            candidates.append(ref_path)
+        else:
+            candidates.append(repo_root / ref_path)
+            candidates.append(cad_dir / part_name / ref_path.name)
+
+        for candidate in candidates:
+            if candidate.is_file() and candidate.suffix.lower() in USD_EXTENSIONS:
+                return candidate.resolve()
+
+    cad_file_name = metadata.get("cadFileName")
+    if cad_file_name:
+        candidate = cad_dir / part_name / cad_file_name
+        if candidate.is_file() and candidate.suffix.lower() in USD_EXTENSIONS:
+            return candidate.resolve()
+
+    return None
+
+
 def build_submission_manifest(
     asset_paths: List[str],
     *,
@@ -134,8 +169,14 @@ def build_submission_manifest(
             part_data = json.load(f)
 
         part_name = part_data["name"]
+        metadata = part_data.get("metadata", {})
 
-        cad_file_abs = _find_cad_file(cad_dir, part_name)
+        cad_file_abs = _resolve_metadata_cad_file(
+            metadata,
+            cad_dir=cad_dir,
+            part_name=part_name,
+            repo_root=root,
+        ) or _find_cad_file(cad_dir, part_name)
         cad_found = cad_file_abs is not None
 
         json_path_repo = _to_repo_relative(json_path_abs, root)
@@ -148,7 +189,7 @@ def build_submission_manifest(
         dimensions = part_data.get("dimensions", {})
         attributes = part_data.get("attributes", {})
         material = part_data.get("materialRef")
-        geometry_ref = part_data.get("metadata", {}).get("geometryRef")
+        geometry_ref = metadata.get("geometryRef")
 
         entry = {
             "name": part_name,
@@ -173,6 +214,7 @@ def build_submission_manifest(
             "dimensions": dimensions,
             "attributes": attributes,
             "material": material,
+            "metadata": metadata,
             "geometry_ref": geometry_ref,
 
             # --- Ports ---

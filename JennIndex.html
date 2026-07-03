@@ -1940,9 +1940,9 @@
               onclick="document.getElementById('cadFileInput').click()"
             >
               <div style="font-size:24px;margin-bottom:6px;">📦</div>
-              <div style="font-size:13px;color:var(--text2);">Drag & drop a USD/USDA/USDC/USDZ file here</div>
+              <div style="font-size:13px;color:var(--text2);">Drag & drop a USD/USDA/USDC/USDZ/STEP/STP/STL/OBJ file here</div>
               <div style="font-size:11px;color:var(--text3);margin-top:3px;">or click to browse</div>
-              <input id="cadFileInput" type="file" accept=".usd,.usda,.usdc,.usdz" style="display:none;" onchange="handleCadFile(event.target.files[0])">
+              <input id="cadFileInput" type="file" accept=".usd,.usda,.usdc,.usdz,.step,.stp,.stl,.obj" style="display:none;" onchange="handleCadFile(event.target.files[0])">
             </div>
             <div id="cadUploadStatus" class="mini-note" style="margin-top:8px;">No CAD file loaded yet.</div>
           </div>
@@ -5190,6 +5190,27 @@ function buildUrbanPlanningPayload(options = {}) {
     return [+dx.toFixed(2), +dy.toFixed(2), 0.0];
   }
 
+  function getMapFrameMeters() {
+    const frame = getUp42MapFrame();
+    const widthM = frame.size * KM_PER_PX * 1000;
+    const heightM = frame.size * KM_PER_PX * 1000;
+    return {
+      center_m: [0.0, 0.0, 0.0],
+      x_min: +(-widthM / 2).toFixed(2),
+      x_max: +(widthM / 2).toFixed(2),
+      y_min: +(-heightM / 2).toFixed(2),
+      y_max: +(heightM / 2).toFixed(2),
+      width_m: +widthM.toFixed(2),
+      height_m: +heightM.toFixed(2),
+      meters_per_pixel: +(KM_PER_PX * 1000).toFixed(3),
+      frame_px: {
+        x: +frame.x.toFixed(2),
+        y: +frame.y.toFixed(2),
+        size: +frame.size.toFixed(2)
+      }
+    };
+  }
+
   if (!quiet) {
     console.log('[UP] up42Routes count:', up42Routes.length, up42Routes.map(r => `${r.from}To${r.to}`));
     console.log('[UP] up42Placements:', Object.keys(up42Placements));
@@ -5234,6 +5255,7 @@ function buildUrbanPlanningPayload(options = {}) {
     site_name: site.name,
     site_lat: site.lat,
     site_lon: site.lon,
+    map_frame_m: getMapFrameMeters(),
     modules,
     connections,
     mst_edges
@@ -5709,7 +5731,7 @@ let up42MoonImg = null;
 
   const GH_OWNER = "abrunier3";
   const GH_REPO  = "S24-ArchitectingLunarBases";
-  const GH_REF   = "OMNIVERSE-Integration";
+  const GH_REF   = "cleanup-branch";
   // This workflow runs:
   // step 1 SysML parsing -> JSON
   // step 2 connectivity graph generation
@@ -6308,6 +6330,7 @@ let up42MoonImg = null;
     const units = part.dimensions || {};
     setField('metersPerUnit', units.metersPerUnit ?? 1);
     setSelectField('upAxis', units.upAxis ?? 'Z');
+    if (typeof setCadUnitFieldsLocked === 'function') setCadUnitFieldsLocked(false);
     setSelectField('angleUnit', units.angleUnit ?? 'deg');
     setSelectField('massUnit', units.massUnit ?? 'kg');
     setSelectField('pressureUnit', units.pressureUnit ?? 'kPa');
@@ -6316,6 +6339,26 @@ let up42MoonImg = null;
     setField('material', part.materialRef ?? '');
     setField('pipelineUid', part.id ?? '');
     setField('cadTitle', name);
+
+    if (part.metadata?.cadSourceUpAxis || part.metadata?.cadSourceFrontAxis || part.metadata?.cadDetectedSizeM || part.metadata?.geometryRef) {
+      const existing = moduleMetaCache[name] || {};
+      const cadSize = part.metadata?.cadDetectedSizeM;
+      moduleMetaCache[name] = {
+        ...existing,
+        ...(part.metadata?.cadSourceUpAxis
+          ? { cadSourceUpAxis: normalizeUpAxis(part.metadata.cadSourceUpAxis, 'Z') }
+          : {}),
+        ...(part.metadata?.cadSourceFrontAxis
+          ? { cadSourceFrontAxis: normalizeFrontAxis(part.metadata.cadSourceFrontAxis, '+X') }
+          : {}),
+        ...(cadSize
+          ? { detectedSizeM: [cadSize.length, cadSize.width, cadSize.height] }
+          : {}),
+        ...(part.metadata?.geometryRef ? { detectedUsdPath: part.metadata.geometryRef } : {}),
+        ...(part.metadata?.cadDetectedMetersPerUnit ? { detectedMetersPerUnit: String(part.metadata.cadDetectedMetersPerUnit) } : {}),
+        ...(part.metadata?.cadDetectedUpAxis ? { detectedUpAxis: part.metadata.cadDetectedUpAxis } : {})
+      };
+    }
 
     renderSysmlAttributes(part.attributes || {}, part.ports || []);
   }
@@ -6452,7 +6495,7 @@ let up42MoonImg = null;
     try {
       const headers = { 'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github+json' };
       const res = await fetch(
-        `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/database/json/materials.json?ref=${encodeURIComponent(GH_REF)}`,
+        `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/clean_database/json/ECLIPSE_Project/materials.json?ref=${encodeURIComponent(GH_REF)}`,
         { headers, cache: 'no-store' }
       );
       if (!res.ok) return;
@@ -6674,7 +6717,15 @@ let up42MoonImg = null;
       pendingCadFileName: pendingFileName || null
     };
 
+    if (moduleMetaCache[moduleName]) {
+      delete moduleMetaCache[moduleName].detectedMetersPerUnit;
+      delete moduleMetaCache[moduleName].detectedUpAxis;
+      delete moduleMetaCache[moduleName].detectedSizeM;
+      delete moduleMetaCache[moduleName].detectedUsdPath;
+    }
+
     if (moduleName === currentModuleName) {
+      setCadUnitFieldsLocked(false);
       const wrap = document.getElementById('viewer3dWrap');
       if (wrap) {
         wrap.style.display = 'none';
@@ -6683,14 +6734,304 @@ let up42MoonImg = null;
     }
   }
 
+  function normalizeUpAxis(value, fallback = 'Z') {
+    const upAxis = String(value || fallback).toUpperCase();
+    return ['X', 'Y', 'Z'].includes(upAxis) ? upAxis : fallback;
+  }
+
+  function normalizeFrontAxis(value, fallback = '+X') {
+    let axis = String(value || fallback).trim().toUpperCase();
+    if (['X', 'Y', 'Z'].includes(axis)) axis = `+${axis}`;
+    return ['+X', '-X', '+Y', '-Y', '+Z', '-Z'].includes(axis) ? axis : fallback;
+  }
+
+  function cadAxisBase(axis) {
+    return String(axis || '').replace(/^[+-]/, '').toUpperCase();
+  }
+
+  function normalizeSizeM(value) {
+    if (!Array.isArray(value) || value.length < 3) return null;
+    const size = value.slice(0, 3).map(Number);
+    return size.every(Number.isFinite) ? size : null;
+  }
+
+  function setCadUnitFieldsLocked(locked) {
+    const metersPerUnitEl = document.getElementById('metersPerUnit');
+    const upAxisEl = document.getElementById('upAxis');
+    const title = locked
+      ? 'Detected from the CAD USD file'
+      : 'Manual fallback used when CAD metadata is not detected';
+
+    if (metersPerUnitEl) {
+      metersPerUnitEl.readOnly = locked;
+      metersPerUnitEl.title = title;
+      metersPerUnitEl.style.opacity = locked ? '0.7' : '';
+    }
+
+    if (upAxisEl) {
+      upAxisEl.disabled = locked;
+      upAxisEl.title = title;
+      upAxisEl.style.opacity = locked ? '0.7' : '';
+      upAxisEl.style.cursor = locked ? 'not-allowed' : '';
+    }
+  }
+
+  function syncDetectedCadMeta(data) {
+    if (!data?.module_name) return;
+
+    const moduleName = data.module_name;
+    const existing = moduleMetaCache[moduleName] || {};
+    const metersPerUnit = Number.isFinite(Number(data.meters_per_unit))
+      ? String(Number(data.meters_per_unit))
+      : (existing.metersPerUnit || '1');
+    const upAxis = normalizeUpAxis(data.up_axis, existing.upAxis || 'Z');
+    const sizeM = normalizeSizeM(data.size_m);
+
+    moduleMetaCache[moduleName] = {
+      ...existing,
+      metersPerUnit,
+      upAxis,
+      detectedMetersPerUnit: metersPerUnit,
+      detectedUpAxis: upAxis,
+      cadSourceUpAxis: normalizeUpAxis(
+        existing.cadSourceUpAxis || data.source_metadata?.source_up_axis || 'Z',
+        'Z'
+      ),
+      cadSourceFrontAxis: normalizeFrontAxis(
+        existing.cadSourceFrontAxis || data.source_metadata?.source_front_axis || '+X',
+        '+X'
+      ),
+      ...(sizeM ? { detectedSizeM: sizeM } : {}),
+      ...(data.usd_path ? { detectedUsdPath: data.usd_path } : {})
+    };
+
+    if (moduleName === currentModuleName) {
+      setField('metersPerUnit', metersPerUnit);
+      setSelectField('upAxis', upAxis);
+      setCadUnitFieldsLocked(true);
+    }
+  }
+
+  function isSourceAxisCadMeta(data) {
+    const sourcePath = String(data?.source_cad_path || data?.source_metadata?.source_file || '').toLowerCase();
+    const format = String(data?.source_metadata?.cad_format || '').toLowerCase();
+    return (
+      sourcePath.endsWith('.step') ||
+      sourcePath.endsWith('.stp') ||
+      sourcePath.endsWith('.stl') ||
+      sourcePath.endsWith('.obj') ||
+      ['step', 'stp', 'stl', 'obj'].includes(format)
+    );
+  }
+
+  function setCadSourceUpAxis(moduleName, axis) {
+    const normalized = normalizeUpAxis(axis, 'Z');
+    moduleMetaCache[moduleName] = {
+      ...(moduleMetaCache[moduleName] || {}),
+      cadSourceUpAxis: normalized
+    };
+    updateCadAxisSelector(moduleName);
+
+    const cadFileForSave = moduleFiles[moduleName] ||
+      (sysmlPartsCache[moduleName]?.metadata?.cadFileName
+        ? { name: sysmlPartsCache[moduleName].metadata.cadFileName }
+        : null);
+
+    if (cadFileForSave) {
+      const pubStatus = document.getElementById('publishStatus');
+      if (pubStatus) pubStatus.textContent = `Saving ${moduleName} source up axis: ${normalized}...`;
+      writeAssetJson(moduleName, cadFileForSave)
+        .then(ok => {
+          const status = document.getElementById('publishStatus');
+          if (status) {
+            status.textContent = ok
+              ? `${moduleName} source up axis saved: ${normalized}.`
+              : `Could not save ${moduleName} source up axis.`;
+          }
+        })
+        .catch(error => {
+          console.warn('[setCadSourceUpAxis]', error);
+        });
+    }
+  }
+
+  function setCadSourceFrontAxis(moduleName, axis) {
+    const normalized = normalizeFrontAxis(axis, '+X');
+    moduleMetaCache[moduleName] = {
+      ...(moduleMetaCache[moduleName] || {}),
+      cadSourceFrontAxis: normalized
+    };
+    updateCadAxisSelector(moduleName);
+
+    const cadFileForSave = moduleFiles[moduleName] ||
+      (sysmlPartsCache[moduleName]?.metadata?.cadFileName
+        ? { name: sysmlPartsCache[moduleName].metadata.cadFileName }
+        : null);
+
+    if (cadFileForSave) {
+      const pubStatus = document.getElementById('publishStatus');
+      if (pubStatus) pubStatus.textContent = `Saving ${moduleName} source front axis: ${normalized}...`;
+      writeAssetJson(moduleName, cadFileForSave)
+        .then(ok => {
+          const status = document.getElementById('publishStatus');
+          if (status) {
+            status.textContent = ok
+              ? `${moduleName} source front axis saved: ${normalized}.`
+              : `Could not save ${moduleName} source front axis.`;
+          }
+        })
+        .catch(error => {
+          console.warn('[setCadSourceFrontAxis]', error);
+        });
+    }
+  }
+
+  function updateCadAxisSelector(moduleName) {
+    const showUpAxis = triad.getAttribute('data-cad-show-up') === '1';
+    const selectedUp = showUpAxis
+      ? normalizeUpAxis(moduleMetaCache[moduleName]?.cadSourceUpAxis || 'Z', 'Z')
+      : null;
+    const selectedFront = normalizeFrontAxis(moduleMetaCache[moduleName]?.cadSourceFrontAxis || '+X', '+X');
+    document.querySelectorAll(`[data-cad-axis-module="${moduleName}"]`).forEach(btn => {
+      const kind = btn.getAttribute('data-axis-kind') || 'up';
+      const selected = kind === 'front' ? selectedFront : selectedUp;
+      const active = btn.getAttribute('data-axis') === selected;
+      const activeColor = kind === 'front' ? '#f7c948' : '#178bff';
+      const borderColor = kind === 'front' ? '#ffe08a' : '#72c5ff';
+      const shadowColor = kind === 'front' ? 'rgba(247,201,72,0.45)' : 'rgba(23,139,255,0.45)';
+      btn.style.background = active ? activeColor : 'rgba(120, 132, 150, 0.35)';
+      btn.style.borderColor = active ? borderColor : 'rgba(210, 220, 235, 0.35)';
+      btn.style.color = active ? '#ffffff' : 'rgba(230, 236, 245, 0.82)';
+      btn.style.boxShadow = active ? `0 0 14px ${shadowColor}` : 'none';
+    });
+    updateCadAxisTriad(moduleName);
+  }
+
+  function toRadians(value, fallback) {
+    if (value == null) return fallback;
+    if (typeof value === 'number') {
+      return Math.abs(value) > Math.PI * 2.5 ? value * Math.PI / 180 : value;
+    }
+    const text = String(value).trim();
+    const numeric = parseFloat(text);
+    if (!Number.isFinite(numeric)) return fallback;
+    return text.includes('deg') ? numeric * Math.PI / 180 : numeric;
+  }
+
+  function vectorDot(a, b) {
+    return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+  }
+
+  function vectorCross(a, b) {
+    return [
+      a[1] * b[2] - a[2] * b[1],
+      a[2] * b[0] - a[0] * b[2],
+      a[0] * b[1] - a[1] * b[0]
+    ];
+  }
+
+  function vectorNormalize(v, fallback = [1, 0, 0]) {
+    const mag = Math.hypot(v[0], v[1], v[2]);
+    if (!Number.isFinite(mag) || mag < 1e-6) return fallback;
+    return [v[0] / mag, v[1] / mag, v[2] / mag];
+  }
+
+  function getModelViewerOrbitRadians(modelViewer) {
+    const fallback = { theta: Math.PI / 4, phi: Math.PI / 2 };
+    try {
+      const orbit = modelViewer?.getCameraOrbit?.();
+      if (orbit) {
+        return {
+          theta: toRadians(orbit.theta, fallback.theta),
+          phi: toRadians(orbit.phi, fallback.phi)
+        };
+      }
+    } catch {}
+
+    const orbitText = modelViewer?.getAttribute?.('camera-orbit') || '';
+    const pieces = orbitText.split(/\s+/);
+    return {
+      theta: toRadians(pieces[0], fallback.theta),
+      phi: toRadians(pieces[1], fallback.phi)
+    };
+  }
+
+  function projectedCadAxes(modelViewer) {
+    const { theta, phi } = getModelViewerOrbitRadians(modelViewer);
+    const camera = [
+      Math.sin(phi) * Math.sin(theta),
+      Math.cos(phi),
+      Math.sin(phi) * Math.cos(theta)
+    ];
+    const forward = vectorNormalize([-camera[0], -camera[1], -camera[2]], [0, 0, -1]);
+    let right = vectorNormalize(vectorCross(forward, [0, 1, 0]), null);
+    if (!right) right = vectorNormalize(vectorCross(forward, [0, 0, 1]), [1, 0, 0]);
+    const up = vectorNormalize(vectorCross(right, forward), [0, 1, 0]);
+
+    return {
+      X: [vectorDot([1, 0, 0], right), -vectorDot([1, 0, 0], up)],
+      Y: [vectorDot([0, 1, 0], right), -vectorDot([0, 1, 0], up)],
+      Z: [vectorDot([0, 0, 1], right), -vectorDot([0, 0, 1], up)]
+    };
+  }
+
+  function updateCadAxisTriad(moduleName) {
+    const triad = document.querySelector(`[data-cad-axis-triad="${moduleName}"]`);
+    const modelViewer = document.getElementById(`mv-${moduleName}`);
+    if (!triad || !modelViewer) return;
+
+    const selectedUp = normalizeUpAxis(moduleMetaCache[moduleName]?.cadSourceUpAxis || 'Z', 'Z');
+    const selectedFront = normalizeFrontAxis(moduleMetaCache[moduleName]?.cadSourceFrontAxis || '+X', '+X');
+    const axes = projectedCadAxes(modelViewer);
+    const origin = [58, 58];
+    const length = 38;
+
+    Object.entries(axes).forEach(([axis, direction]) => {
+      const magnitude = Math.hypot(direction[0], direction[1]) || 1;
+      const end = [
+        origin[0] + (direction[0] / magnitude) * length,
+        origin[1] + (direction[1] / magnitude) * length
+      ];
+      const isUp = axis === selectedUp;
+      const isFront = axis === cadAxisBase(selectedFront);
+      const active = isUp || isFront;
+      const color = isUp ? '#178bff' : (isFront ? '#f7c948' : 'rgba(220, 226, 236, 0.72)');
+      const line = triad.querySelector(`[data-triad-line="${axis}"]`);
+      const dot = triad.querySelector(`[data-triad-dot="${axis}"]`);
+      const label = triad.querySelector(`[data-triad-label="${axis}"]`);
+
+      if (line) {
+        line.setAttribute('x1', origin[0]);
+        line.setAttribute('y1', origin[1]);
+        line.setAttribute('x2', end[0]);
+        line.setAttribute('y2', end[1]);
+        line.setAttribute('stroke', color);
+        line.setAttribute('stroke-width', active ? '3.4' : '2.3');
+      }
+      if (dot) {
+        dot.setAttribute('cx', end[0]);
+        dot.setAttribute('cy', end[1]);
+        dot.setAttribute('fill', color);
+      }
+      if (label) {
+        label.setAttribute('x', origin[0] + (direction[0] / magnitude) * (length + 13));
+        label.setAttribute('y', origin[1] + (direction[1] / magnitude) * (length + 13) + 4);
+        label.setAttribute('fill', color);
+        label.setAttribute('font-weight', active ? '800' : '650');
+      }
+    });
+  }
+
   function saveModuleMeta() {
     if (!currentModuleName) return;
+    const existing = moduleMetaCache[currentModuleName] || {};
 
     moduleMetaCache[currentModuleName] = {
+      ...existing,
       materialId: document.getElementById('materialSelect')?.value || '',
       mass: document.getElementById('cadMass')?.value || '',
-      metersPerUnit: document.getElementById('metersPerUnit')?.value || '1',
-      upAxis: document.getElementById('upAxis')?.value || 'Z',
+      metersPerUnit: existing.detectedMetersPerUnit || document.getElementById('metersPerUnit')?.value || '1',
+      upAxis: existing.detectedUpAxis || document.getElementById('upAxis')?.value || 'Z',
       massUnit: document.getElementById('massUnit')?.value || 'kg',
       lengthUnit: document.getElementById('lengthUnit')?.value || 'm'
     };
@@ -6726,8 +7067,9 @@ let up42MoonImg = null;
       if (el && v) el.value = v;
     };
 
-    s('metersPerUnit', saved.metersPerUnit);
-    s('upAxis', saved.upAxis);
+    s('metersPerUnit', saved.detectedMetersPerUnit || saved.metersPerUnit);
+    s('upAxis', saved.detectedUpAxis || saved.upAxis);
+    setCadUnitFieldsLocked(Boolean(saved.detectedMetersPerUnit || saved.detectedUpAxis));
     s('massUnit', saved.massUnit);
     s('lengthUnit', saved.lengthUnit);
   }
@@ -6887,6 +7229,8 @@ let up42MoonImg = null;
       const glbMeta = await fetchCadGlbMeta(moduleName, Date.now());
       if (!meta?.data) return;
 
+      syncDetectedCadMeta(meta.data);
+
       cadPreviewState[moduleName] = {
         ...(cadPreviewState[moduleName] || {}),
         metaSha: meta.sha || null,
@@ -6927,11 +7271,11 @@ let up42MoonImg = null;
     const metaFresh =
       (meta.sha && meta.sha !== previewRequest.previousMetaSha) ||
       (writtenAt && writtenAt >= previewRequest.requestedAt);
-    const glbFresh =
-      (glbMeta.sha && glbMeta.sha !== previewRequest.previousGlbSha) ||
-      (!previewRequest.previousGlbSha && !!glbMeta.sha);
+    const glbReady = !!glbMeta.sha;
 
-    if (!metaFresh || !glbFresh) return false;
+    if (!metaFresh || !glbReady) return false;
+
+    syncDetectedCadMeta(meta.data);
 
     cadPreviewState[moduleName] = {
       ...(cadPreviewState[moduleName] || {}),
@@ -6964,6 +7308,7 @@ let up42MoonImg = null;
     btn.textContent = 'Publishing...';
 
     let done = 0;
+    const conversionJobs = [];
 
     for (const moduleName of modules) {
       const file = moduleFiles[moduleName];
@@ -6988,19 +7333,43 @@ let up42MoonImg = null;
       await deleteOldCadFiles(moduleName, file.name);
 
       const uploaded = await uploadCadToGitHub(file, moduleName);
-      await writeAssetJson(moduleName, file);
 
       if (uploaded) {
         const usdPath = `clean_database/cad_models/${moduleName}/${file.name}`;
-        const runInfo = await triggerConvertWorkflow(moduleName, usdPath, previewRequest.requestedAt);
-
+        conversionJobs.push({ moduleName, file, usdPath, previewRequest });
         updateModuleDot(moduleName, 'done');
-        await pollForMeta(moduleName, runInfo, previewRequest);
       } else {
         updateModuleDot(moduleName, 'error');
       }
 
       done++;
+    }
+
+    if (conversionJobs.length) {
+      if (pubStatus) {
+        pubStatus.textContent = `Converting ${conversionJobs.length} CAD file(s)...`;
+      }
+
+      const runInfo = await triggerConvertBatchWorkflow(
+        conversionJobs.map(job => ({
+          module_name: job.moduleName,
+          cad_path: job.usdPath
+        })),
+        Date.now()
+      );
+
+      let converted = 0;
+      for (const job of conversionJobs) {
+        if (pubStatus) {
+          pubStatus.textContent =
+            `Loading converted preview for ${job.moduleName}... (${converted + 1}/${conversionJobs.length})`;
+        }
+
+        const freshMeta = await pollForMeta(job.moduleName, runInfo, job.previewRequest);
+        if (freshMeta?.data) syncDetectedCadMeta(freshMeta.data);
+        await writeAssetJson(job.moduleName, job.file);
+        converted++;
+      }
     }
 
     btn.textContent = 'Save & Publish All';
@@ -7078,6 +7447,65 @@ let up42MoonImg = null;
     }
   }
 
+  async function triggerConvertBatchWorkflow(jobs, dispatchedAt = Date.now()) {
+    const token = sessionStorage.getItem('gh_pat');
+    if (!token) return null;
+
+    const res = await fetch(
+      `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/actions/workflows/convert_cad.yml/dispatches`,
+      {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/vnd.github+json',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          ref: GH_REF,
+          inputs: {
+            batch_jobs_json: JSON.stringify(jobs)
+          }
+        }),
+        cache: 'no-store'
+      }
+    );
+
+    if (res.status !== 204) return null;
+
+    await sleep(window.UI_POLL.runLookupMs);
+
+    try {
+      const runsRes = await fetch(
+        `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/actions/workflows/convert_cad.yml/runs?branch=${encodeURIComponent(GH_REF)}&per_page=10&ts=${Date.now()}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/vnd.github+json'
+          },
+          cache: 'no-store'
+        }
+      );
+
+      if (!runsRes.ok) {
+        return { runId: null, dispatchedAt };
+      }
+
+      const runs = await runsRes.json();
+      const run = (runs.workflow_runs || []).find(item => {
+        const createdAt = new Date(item.created_at).getTime();
+        return createdAt >= dispatchedAt - 15000;
+      });
+
+      return {
+        runId: run?.id || null,
+        dispatchedAt
+      };
+    } catch (e) {
+      console.warn('[triggerConvertBatchWorkflow]', e);
+      return { runId: null, dispatchedAt };
+    }
+  }
+
   async function pollForMeta(moduleName, runInfo, previewRequest) {
     const token = sessionStorage.getItem('gh_pat');
 
@@ -7105,14 +7533,16 @@ let up42MoonImg = null;
 
             if (run.conclusion !== 'success') {
               updateModuleDot(moduleName, 'error');
-              return;
+              return false;
             }
           }
         }
 
         for (let i = 0; i < 8; i++) {
           const fresh = await waitForFreshCadPreview(moduleName, previewRequest);
-          if (fresh) return;
+          if (fresh) {
+            return fetchCadMetaWithSha(moduleName, Date.now());
+          }
           await sleep(window.UI_POLL.outputPollMs);
         }
       } catch (e) {
@@ -7127,6 +7557,7 @@ let up42MoonImg = null;
     if (pubStatus) {
       pubStatus.textContent = `Preview timeout for ${moduleName}.`;
     }
+    return false;
   }
 
   async function loadAndApplyFreshMeta(moduleName) {
@@ -7134,6 +7565,8 @@ let up42MoonImg = null;
       const meta = await fetchCadMetaWithSha(moduleName, Date.now());
       const glbMeta = await fetchCadGlbMeta(moduleName, Date.now());
       if (!meta?.data) return;
+
+      syncDetectedCadMeta(meta.data);
 
       if (moduleName === currentModuleName) {
         await applyCadMeta(meta.data, { glbSha: glbMeta?.sha || null });
@@ -7165,11 +7598,12 @@ let up42MoonImg = null;
     const selId = saved.materialId || '';
     const selMat = materialLibrary.find(m => m.materialId === selId) || null;
     const mass = parseFloat(saved.mass) || null;
-    const metersPerUnit = parseFloat(saved.metersPerUnit) || 1;
-    const upAxis = saved.upAxis || part.dimensions?.upAxis || 'Z';
+    const metersPerUnit = parseFloat(saved.detectedMetersPerUnit || saved.metersPerUnit) || 1;
+    const upAxis = saved.detectedUpAxis || saved.upAxis || part.dimensions?.upAxis || 'Z';
     const massUnit = saved.massUnit || 'kg';
     const lengthUnit = saved.lengthUnit || 'm';
 
+    const cadDetectedSizeM = normalizeSizeM(saved.detectedSizeM);
     const sizeM = part.dimensions?.size_m
       ? [part.dimensions.size_m.length, part.dimensions.size_m.width, part.dimensions.size_m.height]
       : null;
@@ -7191,10 +7625,18 @@ let up42MoonImg = null;
         ...(mass !== null ? { computed_mass_kg: mass } : {})
       },
       metadata: {
-        geometryRef: `clean_database/cad_models/${moduleName}/${cadFile.name}`,
+        geometryRef: saved.detectedUsdPath || part.metadata?.geometryRef || `clean_database/cad_models/${moduleName}/${cadFile.name}`,
         cadFileName: cadFile.name,
         cadUploadedAt: new Date().toISOString(),
-        glbPreviewRef: `outputs/cad_previews/${moduleName}.glb`
+        glbPreviewRef: `outputs/cad_previews/${moduleName}.glb`,
+        sourceCadPath: part.metadata?.sourceCadPath || (saved.detectedUsdPath ? `clean_database/cad_models/${moduleName}/${cadFile.name}` : null),
+        cadDetectedSizeM: cadDetectedSizeM
+          ? { length: cadDetectedSizeM[0], width: cadDetectedSizeM[1], height: cadDetectedSizeM[2] }
+          : null,
+        cadSourceUpAxis: saved.cadSourceUpAxis || null,
+        cadSourceFrontAxis: saved.cadSourceFrontAxis || null,
+        cadDetectedUpAxis: saved.detectedUpAxis || null,
+        cadDetectedMetersPerUnit: saved.detectedMetersPerUnit ? parseFloat(saved.detectedMetersPerUnit) : null
       },
       materialRef: selId || part.materialRef || null,
       materialProperties: selMat ? {
@@ -7293,7 +7735,7 @@ let up42MoonImg = null;
       if (!res.ok) return;
 
       const files = await res.json();
-      const usdExts = ['.usd', '.usda', '.usdc', '.usdz'];
+      const usdExts = ['.usd', '.usda', '.usdc', '.usdz', '.step', '.stp', '.stl', '.obj'];
 
       for (const file of files) {
         const isUsd = usdExts.some(ext => file.name.toLowerCase().endsWith(ext));
@@ -7427,7 +7869,7 @@ let up42MoonImg = null;
     };
   }
 
-  async function showModelViewer(moduleName, meshCount, sizeM, expectedGlbSha = null) {
+  async function showModelViewer(moduleName, meshCount, sizeM, expectedGlbSha = null, options = {}) {
     const wrap = document.getElementById('viewer3dWrap');
     if (!wrap) return;
 
@@ -7468,37 +7910,156 @@ let up42MoonImg = null;
       glbSha: glb.sha
     };
 
+    const showSourceUpAxis = !!options.showSourceUpAxis || !!options.showSourceAxis;
+    const showFrontAxis = options.showFrontAxis !== false;
+    const showAxisPanel = showSourceUpAxis || showFrontAxis;
+    const selectedAxis = showSourceUpAxis
+      ? normalizeUpAxis(moduleMetaCache[moduleName]?.cadSourceUpAxis || 'Z', 'Z')
+      : null;
+    const selectedFrontAxis = normalizeFrontAxis(moduleMetaCache[moduleName]?.cadSourceFrontAxis || '+X', '+X');
+    const selectedFrontAxisBase = cadAxisBase(selectedFrontAxis);
+
     wrap.innerHTML = `
-      <div style="position:relative;border-radius:12px;overflow:hidden;border:1px solid var(--border2);">
-        <model-viewer
-          id="mv-${moduleName}"
-          src="${glb.blobUrl}"
-          alt="3D model of ${moduleName}"
-          camera-controls
-          touch-action="none"
-          shadow-intensity="0.5"
-          exposure="1.2"
-          camera-orbit="45deg 90deg auto"
-          min-camera-orbit="auto 0deg auto"
-          max-camera-orbit="auto 180deg auto"
-          style="width:100%;height:360px;background:#0c1119;display:block;"
-        ></model-viewer>
-        <div style="position:absolute;bottom:10px;left:12px;font-size:10px;
-          color:rgba(255,255,255,0.7);background:rgba(0,0,0,0.6);padding:3px 8px;border-radius:4px;">
-          ${meshCount} meshes - ${sizeM[0]}x${sizeM[1]}x${sizeM[2]} m
+      <div style="display:grid;grid-template-columns:${showAxisPanel ? 'minmax(0, 1fr) 132px' : '1fr'};
+        border-radius:12px;overflow:hidden;border:1px solid var(--border2);background:#0c1119;">
+        <div style="position:relative;min-width:0;">
+          <model-viewer
+            id="mv-${moduleName}"
+            src="${glb.blobUrl}"
+            alt="3D model of ${moduleName}"
+            camera-controls
+            touch-action="none"
+            shadow-intensity="0.5"
+            exposure="1.2"
+            camera-orbit="45deg 90deg auto"
+            min-camera-orbit="auto 0deg auto"
+            max-camera-orbit="auto 180deg auto"
+            style="width:100%;height:360px;background:#0c1119;display:block;"
+          ></model-viewer>
+          <div style="position:absolute;bottom:10px;left:12px;font-size:10px;
+            color:rgba(255,255,255,0.7);background:rgba(0,0,0,0.6);padding:3px 8px;border-radius:4px;">
+            ${meshCount} meshes - ${sizeM[0]}x${sizeM[1]}x${sizeM[2]} m
+          </div>
+          <div style="position:absolute;top:10px;right:10px;font-size:10px;
+            color:rgba(255,255,255,0.5);background:rgba(0,0,0,0.5);padding:3px 8px;border-radius:4px;">
+            Drag to rotate - Scroll to zoom
+          </div>
         </div>
-        <div style="position:absolute;top:10px;right:10px;font-size:10px;
-          color:rgba(255,255,255,0.5);background:rgba(0,0,0,0.5);padding:3px 8px;border-radius:4px;">
-          Drag to rotate - Scroll to zoom
-        </div>
+        ${showAxisPanel ? `
+          <div style="height:360px;border-left:1px solid rgba(255,255,255,0.12);
+            background:linear-gradient(180deg, rgba(12,20,32,0.98), rgba(7,13,22,0.98));
+            display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:13px 10px;">
+            <div style="width:100%;">
+              <div style="font-size:10px;color:rgba(255,255,255,0.62);text-align:center;margin-bottom:7px;">
+                CAD axes
+              </div>
+              <svg data-cad-axis-triad="${moduleName}" data-cad-show-up="${showSourceUpAxis ? '1' : '0'}" viewBox="0 0 116 116"
+                style="width:112px;height:112px;display:block;margin:0 auto;border-radius:10px;
+                  background:rgba(255,255,255,0.035);border:1px solid rgba(255,255,255,0.08);">
+                <circle cx="58" cy="58" r="3.5" fill="rgba(255,255,255,0.86)"></circle>
+                ${['X', 'Y', 'Z'].map(axis => `
+                  <line data-triad-line="${axis}" x1="58" y1="58" x2="58" y2="24"
+                    stroke="${axis === selectedAxis ? '#178bff' : (axis === selectedFrontAxisBase ? '#f7c948' : 'rgba(220,226,236,0.72)')}"
+                    stroke-width="${axis === selectedAxis || axis === selectedFrontAxisBase ? '3.4' : '2.3'}"
+                    stroke-linecap="round"></line>
+                  <circle data-triad-dot="${axis}" cx="58" cy="24" r="4"
+                    fill="${axis === selectedAxis ? '#178bff' : (axis === selectedFrontAxisBase ? '#f7c948' : 'rgba(220,226,236,0.72)')}"></circle>
+                  <text data-triad-label="${axis}" x="58" y="14" text-anchor="middle"
+                    font-size="13" font-family="JetBrains Mono, monospace"
+                    fill="${axis === selectedAxis ? '#178bff' : (axis === selectedFrontAxisBase ? '#f7c948' : 'rgba(220,226,236,0.72)')}"
+                    font-weight="${axis === selectedAxis || axis === selectedFrontAxisBase ? '800' : '650'}">${axis}</text>
+                `).join('')}
+              </svg>
+            </div>
+            <div style="width:100%;display:flex;flex-direction:column;gap:10px;">
+              ${showSourceUpAxis ? `
+              <div>
+              <div style="font-size:10px;color:rgba(255,255,255,0.62);text-align:center;margin-bottom:8px;">
+                Source up
+              </div>
+              <div style="display:flex;gap:7px;justify-content:center;">
+                ${['X', 'Y', 'Z'].map(axis => `
+                  <button type="button" data-cad-axis-module="${moduleName}" data-axis-kind="up" data-axis="${axis}"
+                    title="Use ${axis} as source up axis"
+                    style="width:31px;height:31px;border-radius:50%;border:1px solid rgba(210,220,235,0.35);
+                      background:${axis === selectedAxis ? '#178bff' : 'rgba(120,132,150,0.35)'};
+                      color:${axis === selectedAxis ? '#fff' : 'rgba(230,236,245,0.82)'};
+                      font-weight:800;font-size:11px;cursor:pointer;
+                      box-shadow:${axis === selectedAxis ? '0 0 14px rgba(23,139,255,0.45)' : 'none'};">
+                    ${axis}
+                  </button>
+                `).join('')}
+              </div>
+              </div>
+              ` : ''}
+              ${showFrontAxis ? `
+              <div>
+              <div style="font-size:10px;color:rgba(255,255,255,0.62);text-align:center;margin-bottom:8px;">
+                Source front
+              </div>
+              <div style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap;">
+                ${['+X', '-X', '+Y', '-Y', '+Z', '-Z'].map(axis => `
+                  <button type="button" data-cad-axis-module="${moduleName}" data-axis-kind="front" data-axis="${axis}"
+                    title="Use ${axis} as source front axis"
+                    style="width:30px;height:30px;border-radius:50%;border:1px solid rgba(210,220,235,0.35);
+                      background:${axis === selectedFrontAxis ? '#f7c948' : 'rgba(120,132,150,0.35)'};
+                      color:${axis === selectedFrontAxis ? '#fff' : 'rgba(230,236,245,0.82)'};
+                      font-weight:800;font-size:11px;cursor:pointer;
+                      box-shadow:${axis === selectedFrontAxis ? '0 0 14px rgba(247,201,72,0.45)' : 'none'};">
+                    ${axis}
+                  </button>
+                `).join('')}
+              </div>
+              </div>
+              ` : ''}
+            </div>
+          </div>
+        ` : ''}
       </div>`;
+
+    if (showAxisPanel) {
+      const modelViewer = document.getElementById(`mv-${moduleName}`);
+      let axisFrame = null;
+      const scheduleAxisUpdate = () => {
+        if (axisFrame) cancelAnimationFrame(axisFrame);
+        axisFrame = requestAnimationFrame(() => updateCadAxisTriad(moduleName));
+      };
+      modelViewer?.addEventListener('camera-change', scheduleAxisUpdate);
+      modelViewer?.addEventListener('load', scheduleAxisUpdate);
+
+      document.querySelectorAll(`[data-cad-axis-module="${moduleName}"]`).forEach(btn => {
+        btn.addEventListener('click', event => {
+          event.preventDefault();
+          const kind = btn.getAttribute('data-axis-kind') || 'up';
+          const axis = btn.getAttribute('data-axis') || (kind === 'front' ? 'X' : 'Z');
+          if (kind === 'front') {
+            setCadSourceFrontAxis(moduleName, axis);
+          } else {
+            setCadSourceUpAxis(moduleName, axis);
+          }
+        });
+      });
+      updateCadAxisSelector(moduleName);
+      scheduleAxisUpdate();
+    }
   }
 
   async function applyCadMeta(data, options = {}) {
     const status = document.getElementById('cadUploadStatus');
 
+    syncDetectedCadMeta(data);
+
     if (data.glb_path) {
-      await showModelViewer(data.module_name, data.mesh_count, data.size_m, options.glbSha || null);
+      await showModelViewer(
+        data.module_name,
+        data.mesh_count,
+        data.size_m,
+        options.glbSha || null,
+        {
+          showSourceUpAxis: isSourceAxisCadMeta(data),
+          showFrontAxis: true
+        }
+      );
     }
 
     if (status) {
@@ -7742,6 +8303,45 @@ let up42MoonImg = null;
     };
   }
 
+  function getCadAxisOverrides() {
+    const overrides = {};
+    const names = new Set([
+      ...Object.keys(sysmlPartsCache || {}),
+      ...Object.keys(moduleMetaCache || {})
+    ]);
+
+    names.forEach(moduleName => {
+      const cached = moduleMetaCache[moduleName] || {};
+      const metadata = sysmlPartsCache[moduleName]?.metadata || {};
+      const sourceUp = cached.cadSourceUpAxis || metadata.cadSourceUpAxis;
+      const sourceFront = cached.cadSourceFrontAxis || metadata.cadSourceFrontAxis;
+      const geometryRef = cached.detectedUsdPath || metadata.geometryRef || '';
+      const cadFileName = metadata.cadFileName || '';
+      const sourceCadPath = metadata.sourceCadPath || '';
+      const sourceText = `${geometryRef} ${cadFileName} ${sourceCadPath}`.toLowerCase();
+      const isConvertedCad =
+        sourceText.includes('.step') ||
+        sourceText.includes('.stp') ||
+        sourceText.includes('.stl') ||
+        sourceText.includes('.obj') ||
+        sourceText.includes('/cad_models/');
+
+      const override = {};
+      if (isConvertedCad || sourceUp) {
+        override.cadSourceUpAxis = normalizeUpAxis(sourceUp || 'Z', 'Z');
+      }
+      if (sourceFront) {
+        override.cadSourceFrontAxis = normalizeFrontAxis(sourceFront, '+X');
+      }
+
+      if (Object.keys(override).length) {
+        overrides[moduleName] = override;
+      }
+    });
+
+    return overrides;
+  }
+
   async function triggerDesWorkflow() {
     const btn = document.getElementById('runDesBtn');
     const activeNodes = getDesActiveNodes();
@@ -7759,16 +8359,21 @@ let up42MoonImg = null;
 
     const sliderValues = getDesSliderValues();
     const urbanPlanning = buildUrbanPlanningPayload();
+    const cadAxisOverrides = getCadAxisOverrides();
     const inputs = {
       active_nodes: JSON.stringify(activeNodes),
       slider_values: JSON.stringify(sliderValues),
       ...sliderValues,
       ...(urbanPlanning ? { urban_planning: JSON.stringify(urbanPlanning) } : {}),
+      ...(Object.keys(cadAxisOverrides).length
+        ? { cad_axis_overrides: JSON.stringify(cadAxisOverrides) }
+        : {}),
     };
 
     const bodyStr = JSON.stringify({ ref: GH_REF, inputs });
     console.log('[DES DISPATCH] payload size:', bodyStr.length, 'bytes');
     console.log('[DES DISPATCH] urban_planning size:', urbanPlanning ? JSON.stringify(urbanPlanning).length : 0, 'bytes');
+    console.log('[DES DISPATCH] CAD axis overrides:', cadAxisOverrides);
 
     try {
       const res = await fetch(
