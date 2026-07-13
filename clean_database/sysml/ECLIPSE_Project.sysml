@@ -56,7 +56,9 @@ package ECLIPSE_LSP1 {
             attribute cadSourceSurfaceAreaM2 = 1.60374852394;
             attribute cadSourceUpAxis = "Z";
             attribute cadSurfaceAreaM2 = 647.240931246;
+            attribute cadVolumeAvailable = false;
             attribute cadVolumeScaleFactor = 8107.64186597;
+            attribute cadVolumeStatus = "mesh_not_watertight";
             // END AUTO CAD METADATA: HabitationModule
 
         }
@@ -98,6 +100,7 @@ package ECLIPSE_LSP1 {
             port ISRU_RegolithPortIn {
                 in item RegolithIn;
             }
+
             // BEGIN AUTO CAD METADATA: ISRUPlant
             attribute cadAreaScaleFactor = 19.6450829907;
             attribute cadCenterOfMassXM = 0.00773617730256;
@@ -110,7 +113,9 @@ package ECLIPSE_LSP1 {
             attribute cadSourceCenterOfMassZM = 0.224178281065;
             attribute cadSourceSurfaceAreaM2 = 21.3006266858;
             attribute cadSurfaceAreaM2 = 418.452578998;
+            attribute cadVolumeAvailable = false;
             attribute cadVolumeScaleFactor = 87.07245745;
+            attribute cadVolumeStatus = "mesh_not_watertight";
             // END AUTO CAD METADATA: ISRUPlant
 
         }
@@ -152,7 +157,9 @@ package ECLIPSE_LSP1 {
             attribute cadSourceCenterOfMassZM = 0.205796549158;
             attribute cadSourceSurfaceAreaM2 = 32.7543266808;
             attribute cadSurfaceAreaM2 = 1890.82086835;
+            attribute cadVolumeAvailable = false;
             attribute cadVolumeScaleFactor = 438.60397762;
+            attribute cadVolumeStatus = "mesh_not_watertight";
             // END AUTO CAD METADATA: LaunchLandingZone
 
         }
@@ -185,6 +192,7 @@ package ECLIPSE_LSP1 {
             port Propellant_PowerPortIn {
                 in item PowerIn;
             }
+
             // BEGIN AUTO CAD METADATA: PropellantDepot
             attribute cadAreaScaleFactor = 59.1437042219;
             attribute cadCenterOfMassXM = 0.0441818826344;
@@ -197,7 +205,9 @@ package ECLIPSE_LSP1 {
             attribute cadSourceCenterOfMassZM = -811.985589339;
             attribute cadSourceSurfaceAreaM2 = 0.438406535711;
             attribute cadSurfaceAreaM2 = 25.928986477;
+            attribute cadVolumeAvailable = false;
             attribute cadVolumeScaleFactor = 454.844326519;
+            attribute cadVolumeStatus = "mesh_not_watertight";
             // END AUTO CAD METADATA: PropellantDepot
 
         }
@@ -245,8 +255,10 @@ package ECLIPSE_LSP1 {
             attribute cadSourceSurfaceAreaM2 = 19.7143625822;
             attribute cadSourceVolumeM3 = 3.92702057592;
             attribute cadSurfaceAreaM2 = 75.7953222587;
+            attribute cadVolumeAvailable = true;
             attribute cadVolumeM3 = 29.6041552361;
             attribute cadVolumeScaleFactor = 7.53857909928;
+            attribute cadVolumeStatus = "available";
             // END AUTO CAD METADATA: LOXRover
 
         }
@@ -291,6 +303,7 @@ package ECLIPSE_LSP1 {
             satisfy requirement solarPowerOutputTest :> LSP1_6::LSP1_6_1;
             satisfy requirement solarBatteryCapacityTest :> LSP1_6::LSP1_6_2;
             satisfy requirement solarEnergyGenerationTest :> LSP1_6::LSP1_6_3;
+
             // BEGIN AUTO CAD METADATA: SolarPowerSystem
             attribute cadAreaScaleFactor = 177.777781645;
             attribute cadCenterOfMassXM = 0.454395652488;
@@ -303,7 +316,9 @@ package ECLIPSE_LSP1 {
             attribute cadSourceCenterOfMassZM = 0.0565630057093;
             attribute cadSourceSurfaceAreaM2 = 1.37934411445;
             attribute cadSurfaceAreaM2 = 245.216736791;
+            attribute cadVolumeAvailable = false;
             attribute cadVolumeScaleFactor = 2370.37044771;
+            attribute cadVolumeStatus = "mesh_not_watertight";
             // END AUTO CAD METADATA: SolarPowerSystem
 
         }
@@ -356,8 +371,10 @@ package ECLIPSE_LSP1 {
             attribute cadSourceUpAxis = "Z";
             attribute cadSourceVolumeM3 = 36293.8120314;
             attribute cadSurfaceAreaM2 = 28.4692655813;
+            attribute cadVolumeAvailable = true;
             attribute cadVolumeM3 = 3.20549723211;
             attribute cadVolumeScaleFactor = 8.83207646895e-05;
+            attribute cadVolumeStatus = "available";
             // END AUTO CAD METADATA: RegolithRover
 
         }
@@ -391,6 +408,7 @@ package ECLIPSE_LSP1 {
                 out item RegolithOut;
             }
             satisfy requirement excavationEnergyCoeffTest :> LSP1_5::LSP1_5_2;
+
             // BEGIN AUTO CAD METADATA: ISRUExcavation
             attribute cadAreaScaleFactor = 0.374614236272;
             attribute cadCenterOfMassXM = -0.131913291676;
@@ -403,7 +421,9 @@ package ECLIPSE_LSP1 {
             attribute cadSourceCenterOfMassZM = 0.0135780763968;
             attribute cadSourceSurfaceAreaM2 = 25.663819114;
             attribute cadSurfaceAreaM2 = 9.61403199719;
+            attribute cadVolumeAvailable = false;
             attribute cadVolumeScaleFactor = 0.22928540792;
+            attribute cadVolumeStatus = "mesh_not_watertight";
             // END AUTO CAD METADATA: ISRUExcavation
 
         }
