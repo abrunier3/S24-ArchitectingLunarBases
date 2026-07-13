@@ -65,14 +65,14 @@
       },
       "transform": {
         "position_m": [
-          0.0,
-          0.0,
-          0.0
+          7.5,
+          262.89,
+          0
         ],
         "rotation_deg": [
-          0.0,
-          0.0,
-          0.0
+          0,
+          0,
+          0
         ]
       },
       "attributes": {
@@ -95,7 +95,9 @@
       "metadata": {
         "geometryRef": "assets/geom/HabitationModule_geom.usda",
         "cadSourceFrontAxis": "+X",
-        "cadSourceUpAxis": "Z"
+        "cadSourceUpAxis": "Z",
+        "cadVolumeAvailable": "false",
+        "cadVolumeStatus": "mesh_not_watertight"
       },
       "materialRef": null,
       "ports": [
@@ -126,8 +128,8 @@
       },
       "transform": {
         "position_m": [
-          -432.5,
-          427.89,
+          -1392.5,
+          292.89,
           0
         ],
         "rotation_deg": [
@@ -163,7 +165,9 @@
         "cadVolumeScaleFactor": 87.07245745
       },
       "metadata": {
-        "geometryRef": "assets/geom/ISRUPlant_geom.usda"
+        "geometryRef": "assets/geom/ISRUPlant_geom.usda",
+        "cadVolumeAvailable": "false",
+        "cadVolumeStatus": "mesh_not_watertight"
       },
       "materialRef": null,
       "ports": [
@@ -212,8 +216,8 @@
       },
       "transform": {
         "position_m": [
-          822.5,
-          -272.11,
+          432.5,
+          1432.89,
           0
         ],
         "rotation_deg": [
@@ -243,7 +247,9 @@
         "cadVolumeScaleFactor": 438.60397762
       },
       "metadata": {
-        "geometryRef": "assets/geom/LaunchLandingZone_geom.usda"
+        "geometryRef": "assets/geom/LaunchLandingZone_geom.usda",
+        "cadVolumeAvailable": "false",
+        "cadVolumeStatus": "mesh_not_watertight"
       },
       "materialRef": null,
       "ports": [
@@ -278,14 +284,14 @@
       },
       "transform": {
         "position_m": [
-          0.0,
-          5.0,
-          0.0
+          -962.5,
+          -1047.11,
+          0
         ],
         "rotation_deg": [
-          0.0,
-          0.0,
-          0.0
+          0,
+          0,
+          0
         ]
       },
       "attributes": {
@@ -304,7 +310,9 @@
         "cadVolumeScaleFactor": 454.844326519
       },
       "metadata": {
-        "geometryRef": "assets/geom/Propellant_Depot_geom.usda"
+        "geometryRef": "assets/geom/Propellant_Depot_geom.usda",
+        "cadVolumeAvailable": "false",
+        "cadVolumeStatus": "mesh_not_watertight"
       },
       "materialRef": "Aluminum_2219_T87",
       "ports": [
@@ -381,7 +389,9 @@
       "metadata": {
         "geometryRef": "assets/geom/Rover_geom.usda",
         "cadFormat": "STEP",
-        "cadSourceFile": "Viper Rover.STEP"
+        "cadSourceFile": "Viper Rover.STEP",
+        "cadVolumeAvailable": "true",
+        "cadVolumeStatus": "available"
       },
       "materialRef": null,
       "ports": [
@@ -414,8 +424,8 @@
       },
       "transform": {
         "position_m": [
-          426.08,
-          1340.99,
+          1307.5,
+          -767.11,
           0
         ],
         "rotation_deg": [
@@ -447,7 +457,9 @@
         "cadVolumeScaleFactor": 2370.37044771
       },
       "metadata": {
-        "geometryRef": "assets/geom/SolarPowerSystem_geom.usda"
+        "geometryRef": "assets/geom/SolarPowerSystem_geom.usda",
+        "cadVolumeAvailable": "false",
+        "cadVolumeStatus": "mesh_not_watertight"
       },
       "materialRef": null,
       "ports": [
@@ -553,7 +565,9 @@
         "cadFormat": "STL",
         "cadSourceFile": "body-small.STL",
         "cadSourceFrontAxis": "+X",
-        "cadSourceUpAxis": "Z"
+        "cadSourceUpAxis": "Z",
+        "cadVolumeAvailable": "true",
+        "cadVolumeStatus": "available"
       },
       "materialRef": null,
       "ports": [
@@ -590,14 +604,14 @@
       },
       "transform": {
         "position_m": [
-          -1641.56,
-          701.12,
+          1562.5,
+          547.89,
           0
         ],
         "rotation_deg": [
           0,
           0,
-          97
+          0
         ]
       },
       "attributes": {
@@ -617,7 +631,9 @@
         "cadVolumeScaleFactor": 0.22928540792
       },
       "metadata": {
-        "geometryRef": "assets/geom/ISRUExcavation_geom.usda"
+        "geometryRef": "assets/geom/ISRUExcavation_geom.usda",
+        "cadVolumeAvailable": "false",
+        "cadVolumeStatus": "mesh_not_watertight"
       },
       "materialRef": "Aluminum_2219_T87",
       "ports": [
@@ -655,6 +671,41 @@
       "to": {
         "part": "ISRUPlant",
         "port": "ISRU_LOXPortOut"
+      },
+      "path": {
+        "waypoints_m": [
+          [
+            -1372.5,
+            282.5,
+            0
+          ],
+          [
+            -1294.5,
+            12.5,
+            0
+          ],
+          [
+            -1216.5,
+            -257.5,
+            0
+          ],
+          [
+            -1138.5,
+            -527.5,
+            0
+          ],
+          [
+            -1060.5,
+            -797.5,
+            0
+          ],
+          [
+            -982.5,
+            -1067.5,
+            0
+          ]
+        ],
+        "distance_km": 1.405
       }
     },
     {
@@ -668,6 +719,116 @@
       "to": {
         "part": "PropellantDepot",
         "port": "Propellant_LOXPortIn"
+      },
+      "path": {
+        "waypoints_m": [
+          [
+            -1372.5,
+            282.5,
+            0
+          ],
+          [
+            -1294.5,
+            12.5,
+            0
+          ],
+          [
+            -1216.5,
+            -257.5,
+            0
+          ],
+          [
+            -1138.5,
+            -527.5,
+            0
+          ],
+          [
+            -1060.5,
+            -797.5,
+            0
+          ],
+          [
+            -982.5,
+            -1067.5,
+            0
+          ],
+          [
+            -1060.5,
+            -797.5,
+            0
+          ],
+          [
+            -1138.5,
+            -527.5,
+            0
+          ],
+          [
+            -1216.5,
+            -257.5,
+            0
+          ],
+          [
+            -1294.5,
+            12.5,
+            0
+          ],
+          [
+            -1372.5,
+            282.5,
+            0
+          ],
+          [
+            -1093.5,
+            282.5,
+            0
+          ],
+          [
+            -814.5,
+            282.5,
+            0
+          ],
+          [
+            -535.5,
+            282.5,
+            0
+          ],
+          [
+            -256.5,
+            282.5,
+            0
+          ],
+          [
+            22.5,
+            282.5,
+            0
+          ],
+          [
+            100.5,
+            509.5,
+            0
+          ],
+          [
+            178.5,
+            736.5,
+            0
+          ],
+          [
+            256.5,
+            963.5,
+            0
+          ],
+          [
+            334.5,
+            1190.5,
+            0
+          ],
+          [
+            412.5,
+            1417.5,
+            0
+          ]
+        ],
+        "distance_km": 5.405
       }
     },
     {
@@ -737,52 +898,87 @@
       "path": {
         "waypoints_m": [
           [
-            -1637.5,
-            717.5,
+            1547.5,
+            547.5,
             0
           ],
           [
-            -1368.33,
-            601.67,
+            1320.5,
+            721.5,
             0
           ],
           [
-            -1099.17,
-            485.83,
+            1093.5,
+            895.5,
             0
           ],
           [
-            -830,
-            370,
+            866.5,
+            1069.5,
             0
           ],
           [
-            -560.83,
-            254.17,
+            639.5,
+            1243.5,
             0
           ],
           [
-            -291.67,
-            138.33,
-            0
-          ],
-          [
-            -22.5,
-            22.5,
-            0
-          ],
-          [
-            62.03,
-            395.71,
-            0
-          ],
-          [
-            -412.5,
             412.5,
+            1417.5,
+            0
+          ],
+          [
+            334.5,
+            1190.5,
+            0
+          ],
+          [
+            256.5,
+            963.5,
+            0
+          ],
+          [
+            178.5,
+            736.5,
+            0
+          ],
+          [
+            100.5,
+            509.5,
+            0
+          ],
+          [
+            22.5,
+            282.5,
+            0
+          ],
+          [
+            -256.5,
+            282.5,
+            0
+          ],
+          [
+            -535.5,
+            282.5,
+            0
+          ],
+          [
+            -814.5,
+            282.5,
+            0
+          ],
+          [
+            -1093.5,
+            282.5,
+            0
+          ],
+          [
+            -1372.5,
+            282.5,
             0
           ]
         ],
-        "distance_km": 2.615
+        "distance_km": 4.025
       }
     },
     {
