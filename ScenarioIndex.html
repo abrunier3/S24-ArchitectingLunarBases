@@ -3605,17 +3605,36 @@ function initUp42() {
   }, {passive:false});
   up42Canvas.addEventListener('dblclick', up42OnDoubleClick);
   window.addEventListener('resize', resizeUp42Canvas);
+  if (window.ResizeObserver && up42Canvas.parentElement && !up42Canvas._s24ResizeObserver) {
+    up42Canvas._s24ResizeObserver = new ResizeObserver(() => resizeUp42Canvas());
+    up42Canvas._s24ResizeObserver.observe(up42Canvas.parentElement);
+  }
 
   drawUp42();
 }
 
 function resizeUp42Canvas() {
   if (!up42Canvas) return;
-  up42W = up42Canvas.offsetWidth;
-  up42H = up42Canvas.offsetHeight;
+  const nextW = Math.max(1, Math.round(up42Canvas.offsetWidth));
+  const nextH = Math.max(1, Math.round(up42Canvas.offsetHeight));
+  if (up42Canvas.width === nextW && up42Canvas.height === nextH && up42W === nextW && up42H === nextH) return;
+  up42W = nextW;
+  up42H = nextH;
   up42Canvas.width  = up42W;
   up42Canvas.height = up42H;
   drawUp42();
+}
+
+function ensureUp42CanvasSize() {
+  if (!up42Canvas) return false;
+  const nextW = Math.max(1, Math.round(up42Canvas.offsetWidth));
+  const nextH = Math.max(1, Math.round(up42Canvas.offsetHeight));
+  if (nextW === up42W && nextH === up42H && up42Canvas.width === nextW && up42Canvas.height === nextH) return false;
+  up42W = nextW;
+  up42H = nextH;
+  up42Canvas.width = nextW;
+  up42Canvas.height = nextH;
+  return true;
 }
 
 function getUp42MapFrame() {
@@ -3988,6 +4007,7 @@ function toggleUp42Overlay() {
 // ── Drawing ────────────────────────────────────────────────────────
 function drawUp42() {
   if (!up42Ctx) return;
+  ensureUp42CanvasSize();
   up42Ctx.clearRect(0, 0, up42W, up42H);
   up42Ctx.save();
   // Apply zoom/pan — center of canvas is pivot
@@ -4936,7 +4956,11 @@ function normalizeScenarioName(value) {
 function inferNamedEndpointTypes(conn, fixedTypes) {
   const nameText = normalizeScenarioName(conn.name || conn.id || conn.key || '');
   if (!nameText) return [];
-  return fixedTypes.filter(type => nameText.includes(normalizeScenarioName(type)));
+  return fixedTypes
+    .map(type => ({ type, index: nameText.indexOf(normalizeScenarioName(type)) }))
+    .filter(item => item.index >= 0)
+    .sort((a, b) => a.index - b.index)
+    .map(item => item.type);
 }
 
 function buildTransportLinksFromConnections(connections, fixedTypes) {
@@ -5164,12 +5188,88 @@ function openModuleEquationEditor(moduleId) {
   setHint(`Editing equations for ${moduleId}. Click ports/attributes to build expressions.`);
 }
 
+function getDirectedRoutePoints(route, fromId) {
+  if (!route?.pts?.length) return [];
+  return route.from === fromId ? route.pts : [...route.pts].reverse();
+}
+
+function getNetworkRoutePath(from, to) {
+  if (!from || !to || from === to) return [];
+  const graph = new Map();
+  up42Routes.forEach((route, index) => {
+    if (!route.from || !route.to || !route.pts?.length) return;
+    if (!graph.has(route.from)) graph.set(route.from, []);
+    if (!graph.has(route.to)) graph.set(route.to, []);
+    const km = getRoutePathDistanceKm(route.pts);
+    graph.get(route.from).push({ to: route.to, route, index, km });
+    graph.get(route.to).push({ to: route.from, route, index, km });
+  });
+  if (!graph.has(from) || !graph.has(to)) return [];
+
+  const best = new Map([[from, 0]]);
+  const prev = new Map();
+  const queue = [{ id: from, km: 0 }];
+  while (queue.length) {
+    queue.sort((a, b) => a.km - b.km);
+    const current = queue.shift();
+    if (!current || current.km > (best.get(current.id) ?? Infinity)) continue;
+    if (current.id === to) break;
+    (graph.get(current.id) || []).forEach(edge => {
+      const nextKm = current.km + edge.km;
+      if (nextKm < (best.get(edge.to) ?? Infinity)) {
+        best.set(edge.to, nextKm);
+        prev.set(edge.to, { from: current.id, edge });
+        queue.push({ id: edge.to, km: nextKm });
+      }
+    });
+  }
+  if (!prev.has(to)) return [];
+
+  const segments = [];
+  let cursor = to;
+  while (cursor !== from) {
+    const step = prev.get(cursor);
+    if (!step) return [];
+    segments.push({ from: step.from, to: cursor, route: step.edge.route });
+    cursor = step.from;
+  }
+  segments.reverse();
+
+  const pts = [];
+  segments.forEach(segment => {
+    const segmentPts = getDirectedRoutePoints(segment.route, segment.from);
+    if (!segmentPts.length) return;
+    if (pts.length) pts.push(...segmentPts.slice(1));
+    else pts.push(...segmentPts);
+  });
+  return pts;
+}
+
+function drawArrowHeadOnPath(path, color, size = 10) {
+  if (!path || path.length < 2) return;
+  let end = path[path.length - 1];
+  let start = path[path.length - 2];
+  for (let i = path.length - 2; i >= 0 && Math.hypot(end.x - start.x, end.y - start.y) < 1; i--) {
+    start = path[i];
+  }
+  const angle = Math.atan2(end.y - start.y, end.x - start.x);
+  up42Ctx.save();
+  up42Ctx.fillStyle = color;
+  up42Ctx.beginPath();
+  up42Ctx.moveTo(end.x, end.y);
+  up42Ctx.lineTo(end.x - size * Math.cos(angle - 0.45), end.y - size * Math.sin(angle - 0.45));
+  up42Ctx.lineTo(end.x - size * Math.cos(angle + 0.45), end.y - size * Math.sin(angle + 0.45));
+  up42Ctx.closePath();
+  up42Ctx.fill();
+  up42Ctx.restore();
+}
+
 function drawScenarioLinks() {
   if (!up42Scenario.sysmlInterfaces?.length && !up42Scenario.transportLinks?.length) {
     syncScenarioInterfacesFromSysML();
   }
 
-  const drawPath = (pts, color, dashed = false, width = 3) => {
+  const drawPath = (pts, color, dashed = false, width = 3, arrow = true) => {
     if (!pts || pts.length < 2) return;
     up42Ctx.beginPath();
     up42Ctx.moveTo(pts[0].x, pts[0].y);
@@ -5179,6 +5279,7 @@ function drawScenarioLinks() {
     if (dashed) up42Ctx.setLineDash([8, 6]);
     up42Ctx.stroke();
     up42Ctx.setLineDash([]);
+    if (arrow) drawArrowHeadOnPath(pts, color, Math.max(8, width * 2.4));
   };
 
   const getVisualPath = (from, to) => {
@@ -5186,6 +5287,8 @@ function drawScenarioLinks() {
     if (direct?.pts?.length) return direct.pts;
     const reverse = up42Routes.find(route => route.from === to && route.to === from);
     if (reverse?.pts?.length) return [...reverse.pts].reverse();
+    const network = getNetworkRoutePath(from, to);
+    if (network.length) return network;
     const a = up42Placements[from];
     const b = up42Placements[to];
     return a && b ? [{x:a.cx, y:a.cy}, {x:b.cx, y:b.cy}] : [];
@@ -5198,7 +5301,7 @@ function drawScenarioLinks() {
     const color = getFlowColor(link.flow);
     (link.from_instances || []).forEach(from => {
       (link.to_instances || []).forEach(to => {
-        drawPath(getVisualPath(from, to), color, true, 4);
+        drawPath(getVisualPath(from, to), color, false, 5.2, true);
       });
     });
   });
@@ -5213,7 +5316,7 @@ function drawScenarioLinks() {
         const a = up42Placements[from];
         const b = up42Placements[to];
         if (!a || !b) return;
-        drawPath([{x:a.cx, y:a.cy}, {x:b.cx, y:b.cy}], color, true, 2.4);
+        drawPath([{x:a.cx, y:a.cy}, {x:b.cx, y:b.cy}], color, false, 2.8, true);
       });
     });
   });
