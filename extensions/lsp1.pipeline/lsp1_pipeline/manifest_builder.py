@@ -1184,7 +1184,7 @@ def _get_rover_names(des_data: dict[str, Any], prefix: str) -> list[str]:
         if names:
             return sorted(names)
 
-    results_key = "Regolith_Cargo_Rovers" if prefix == "Regolith Cargo Rover" else "LOX_Cargo_Rover"
+    results_key = "Regolith_Cargo_Rovers" if prefix == "Regolith Cargo Rover" else "LOX_Cargo_Rovers"
     results = des_data.get("results", {}).get(results_key, {})
     if isinstance(results, dict):
         names = [
@@ -1196,6 +1196,11 @@ def _get_rover_names(des_data: dict[str, Any], prefix: str) -> list[str]:
             return sorted(names)
         if results.get("Name"):
             return [results["Name"]]
+
+    if prefix == "LOX Cargo Rover":
+        legacy_results = des_data.get("results", {}).get("LOX_Cargo_Rover", {})
+        if isinstance(legacy_results, dict) and legacy_results.get("Name"):
+            return [legacy_results["Name"]]
 
     return []
 
@@ -1211,6 +1216,10 @@ def _final_rover_distance(des_data: dict[str, Any], rover_name: str) -> float:
     if lox.get("Name") == rover_name:
         return float(lox.get("Total_Distance_km", 0.0))
 
+    lox_fleet = results.get("LOX_Cargo_Rovers", {})
+    if rover_name in lox_fleet:
+        return float(lox_fleet[rover_name].get("Total_Distance_km", 0.0))
+
     distance = 0.0
     for _, snapshot in _sorted_log_items(des_data):
         rover = snapshot.get(rover_name, {})
@@ -1223,8 +1232,11 @@ def _build_regolith_movements(
     route: dict[str, Any],
 ) -> list[dict[str, Any]]:
     inputs = des_data.get("inputs", {})
-    distance = float(inputs.get("Regolith_Haul_Distance", 0.0))
-    hours_per_km = float(inputs.get("Rover_Travel_Time", 0.0))
+    scenario_config = des_data.get("results", {}).get("Scenario_Config", {})
+    routes_config = scenario_config.get("routes", {})
+    rover_config = scenario_config.get("rovers", {})
+    distance = float(routes_config.get("regolith_distance_km", inputs.get("Regolith_Haul_Distance", 0.0)))
+    hours_per_km = float(rover_config.get("travel_time_hr_per_km", inputs.get("Rover_Travel_Time", 0.0)))
     duration = distance * hours_per_km
     sim_end = _simulation_end_time(des_data)
 
@@ -1253,7 +1265,7 @@ def _build_regolith_movements(
                 "to_module": route.get("to_module"),
                 "start_time": round(start_time, 3),
                 "end_time": round(end_time, 3),
-                "source": "des:Regolith_Haul_Distance*Rover_Travel_Time",
+                "source": "des:Scenario_Config.routes.regolith_distance_km*rovers.travel_time_hr_per_km",
             })
 
     return movements

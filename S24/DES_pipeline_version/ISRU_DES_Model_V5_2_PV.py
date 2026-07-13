@@ -32,6 +32,7 @@ from S24.DES_pipeline_version.RoverChargingStation import RoverChargingStation
 from S24.DES_pipeline_version.LandingLaunchZone import LandingLaunchZone
 from S24.DES_pipeline_version.ImportUtility import data_from_json
 from S24.DES_pipeline_version.LoggingManager import LoggingManager
+from S24.DES_pipeline_version.scenario_config import load_scenario_config
 import json
 import time
 
@@ -71,7 +72,7 @@ def plantController(system, plant, regolithBuffer, batchSize):
 # -------------------------------------------------
 # LOX Storage Energy
 # -------------------------------------------------
-def LOXStorageEnergy(system, plant, dt=1.0):
+def LOXStorageEnergy(system, plant, dt=1.0, energyCoeff=0.31):
     """
     Continuously accounts for LOX storage energy.
     dt = accounting time step (hours)
@@ -79,47 +80,34 @@ def LOXStorageEnergy(system, plant, dt=1.0):
     while True:
         yield system.timeout(dt)
 
-        storageEnergy = 0.31 * plant.LOXStored * dt
+        storageEnergy = energyCoeff * plant.LOXStored * dt
         plant.totalEnergyConsumed += storageEnergy
 
-def LOXDeliveryController(system, plant: ISRUPlant, roverResource: simpy.Resource,
-                          rover: LunarRover, landingZone: LandingLaunchZone,
-                          distance, transportThreshold):
+def LOXDeliveryController(system, plant: ISRUPlant, roverStore: simpy.Store,
+                          landingZone: LandingLaunchZone,
+                          distance, transportThreshold, poll_dt=1.0):
     """
     Per-plant LOX delivery controller (first-come-first-served).
 
-    Each plant runs its own instance of this process.  When a plant's LOX
-    reaches the transport threshold it joins the queue for the shared
-    roverResource (a SimPy Resource with capacity=1).  Whichever plant
-    acquires the resource first gets the rover; the others wait in the
-    SimPy queue and are served in arrival order once the rover returns.
-
-    MODIFICATION: Previously a single controller managed one plant directly.
-    Now each plant has its own controller process that competes for the
-    shared rover via roverResource.  The rover itself (LunarRover) is still
-    the same single object — the Resource is just the mutex that ensures
-    only one plant uses it at a time.
+    Each plant runs its own instance of this process. When a plant's LOX
+    reaches the transport threshold it waits for an available rover from the
+    shared roverStore. This supports one or more LOX rovers without changing
+    the plant-side dispatch logic.
     """
     while True:
-        # Poll every hour until this plant's LOX hits the threshold
-        yield system.timeout(1)
+        yield system.timeout(poll_dt)
         if plant.LOXStored >= transportThreshold:
             print(f"[{system.now:.2f} hr] {plant.name} reached threshold "
                   f"({plant.LOXStored:.2f} kg LOX). Queuing for LOX rover.")
 
-            # Request the shared rover — blocks if another plant is using it.
-            # LOX is NOT zeroed out here; the plant keeps accumulating while
-            # waiting in the queue.
-            with roverResource.request() as req:
-                yield req  # wait in FCFS queue until rover is free
-
-                # Rover has arrived — snapshot and clear LOX now, picking up
+            rover = yield roverStore.get()
+            try:
+                # Rover has arrived: snapshot and clear LOX now, picking up
                 # everything the plant has produced up to this moment.
                 LOXToTransport = plant.LOXStored
                 plant.LOXStored = 0
-                print(f"[{system.now:.2f} hr] {plant.name} acquired LOX rover, "
+                print(f"[{system.now:.2f} hr] {plant.name} acquired {rover.name}, "
                       f"beginning delivery of {LOXToTransport:.2f} kg.")
-                # Load, travel, unload
                 rover.loadCargo(LOXToTransport)
                 yield system.process(rover.travel(distance))
                 rover.unloadCargo()
@@ -127,7 +115,9 @@ def LOXDeliveryController(system, plant: ISRUPlant, roverResource: simpy.Resourc
                 print(f"[{system.now:.2f} hr] {plant.name} delivered "
                       f"{LOXToTransport:.2f} kg LOX to {landingZone.name} "
                       f"(total there: {landingZone.loxStored:.2f} kg). "
-                      f"Rover released.")
+                      f"{rover.name} released.")
+            finally:
+                yield roverStore.put(rover)
 
 # -------------------------------------------------
 # Check Scenario Validity
@@ -230,6 +220,7 @@ def check_scenario_validity(active_nodes, raiseError=True):
 # -------------------------------------------------
 def run_scenario(optionsDict):
     start_time = time.perf_counter()
+    scenario_config = load_scenario_config(optionsDict)
 
     # =========================================================
     # ACTIVE NODES: Determine which systems are included in this
@@ -312,16 +303,21 @@ def run_scenario(optionsDict):
 
     # Experiment data -----------------------------------------
     experiment = "ISRU Processing Plant – Active Nodes: " + ", ".join(sorted(active_nodes))
-    roverBatch = 4000          # kg
-    simDuration = 60           # hr
+    roverBatch = scenario_config["regolith"]["batch_kg"]
+    simDuration = scenario_config["simulation"]["duration_hr"]
 
-    num_regolith_rovers = optionsDict.get("Num_Regolith_Rovers", 1)
-    num_isru_plants     = optionsDict.get("Num_ISRU_Plants", 1)
+    num_regolith_rovers = scenario_config["rovers"]["regolith"]["count"]
+    num_lox_rovers      = scenario_config["rovers"]["lox"]["count"]
+    num_isru_plants     = scenario_config["isru"]["plant_count"]
 
     # Model ---------------------------------------------------
     system = simpy.Environment()
 
-    regolithBuffer = simpy.Container(system, capacity=20_000 * num_regolith_rovers)
+    regolith_buffer_capacity = (
+        scenario_config["regolith"].get("buffer_capacity_kg")
+        or scenario_config["regolith"]["buffer_capacity_per_rover_kg"] * num_regolith_rovers
+    )
+    regolithBuffer = simpy.Container(system, capacity=regolith_buffer_capacity)
 
     logger = LoggingManager(system, time_step=1.0)
     logger.setup()
@@ -331,7 +327,7 @@ def run_scenario(optionsDict):
     plants = []
     for i in range(num_isru_plants):
         p = ISRUPlant(system, f"ISRU_Plant_{i+1}", isruPlantData.raw['attributes'])
-        p.processingRate = optionsDict["ISRU_Plant_Processing_Rate"]
+        p.processingRate = scenario_config["isru"]["processing_rate_kg_hr"]
         logger.add(p)
         plants.append(p)
 
@@ -353,7 +349,8 @@ def run_scenario(optionsDict):
     if use_habitat:
         habitationModuleData = data_from_json("HabitationModuleV1.json")['HabitationModule']
         habitat = HabitationModule(system, "Habitat-1", habitationModuleData.raw['attributes'])
-        habitat.scheduleSpike(10, 20)  # 20 kWh spike at hour 10
+        for spike in scenario_config["power"]["spikes"].get("habitation", []):
+            habitat.scheduleSpike(spike["time_hr"], spike["energy_kwh"])
         if powerManager:
             powerManager.registerConsumer(habitat)
         logger.add(habitat)
@@ -363,7 +360,8 @@ def run_scenario(optionsDict):
     if use_comms:
         communicationModuleData = data_from_json("CommunicationModuleV1.json")['CommunicationModule']
         comms = CommunicationModule(system, "CommArray-1", communicationModuleData.raw['attributes'])
-        comms.scheduleSpike(15, 10)  # 10 kWh spike at hour 15
+        for spike in scenario_config["power"]["spikes"].get("communications", []):
+            comms.scheduleSpike(spike["time_hr"], spike["energy_kwh"])
         if powerManager:
             powerManager.registerConsumer(comms)
         logger.add(comms)
@@ -373,7 +371,8 @@ def run_scenario(optionsDict):
     if use_landing_zone:
         landingZoneData = data_from_json("LaunchLandingZoneV1.json")['LaunchLandingZone']
         landingZone = LandingLaunchZone(system, "LZ-Alpha", attributeDict=landingZoneData.raw['attributes'])
-        landingZone.scheduleSpike(25, 50)  # 50 kWh spike at hour 25
+        for spike in scenario_config["power"]["spikes"].get("landing_zone", []):
+            landingZone.scheduleSpike(spike["time_hr"], spike["energy_kwh"])
         if powerManager:
             powerManager.registerConsumer(landingZone)
         logger.add(landingZone)
@@ -385,38 +384,42 @@ def run_scenario(optionsDict):
     for i in range(num_regolith_rovers):
         r = LunarRover(system, name=f"Regolith Cargo Rover {i+1}", roverType="cargo",
                        attributeDict=roverData.raw['attributes'])
-        r.energyPerKmPerKg = optionsDict["Rover_Energy_Consumption"]
-        r.hoursPerKm       = optionsDict["Rover_Travel_Time"]
+        r.energyPerKmPerKg = scenario_config["rovers"]["energy_kwh_per_km_per_kg"]
+        r.hoursPerKm       = scenario_config["rovers"]["travel_time_hr_per_km"]
         logger.add(r)
         regolithCargoRovers.append(r)
 
-    LOXCargoRover = None
+    LOXCargoRovers = []
     chargingStation = None
     if use_lox_rover:
-        LOXCargoRover = LunarRover(system, name="LOX Cargo Rover", roverType="cargo",
-                                   attributeDict=roverData.raw['attributes'])
-        LOXCargoRover.energyPerKmPerKg = optionsDict["Rover_Energy_Consumption"]
-        LOXCargoRover.hoursPerKm       = optionsDict["Rover_Travel_Time"]
-        logger.add(LOXCargoRover)
+        for i in range(num_lox_rovers):
+            r = LunarRover(system, name=f"LOX Cargo Rover {i+1}", roverType="cargo",
+                           attributeDict=roverData.raw['attributes'])
+            r.energyPerKmPerKg = scenario_config["rovers"]["energy_kwh_per_km_per_kg"]
+            r.hoursPerKm       = scenario_config["rovers"]["travel_time_hr_per_km"]
+            logger.add(r)
+            LOXCargoRovers.append(r)
 
         # Charging station is only meaningful when there are rovers needing a charge;
         # tie its existence to the LOX rover (the regolith rovers are always present
         # so the station is always built when the LOX rover is, giving it something
         # useful to do for both rover types).
-        chargingStation = RoverChargingStation(
-            system,
-            "ChargeStation-1",
-            chargingPowerRate=20,   # kW
-            efficiencyFactor=0.85
-        )
-        if powerManager:
-            powerManager.registerConsumer(chargingStation)
-        logger.add(chargingStation)
+        charging_config = scenario_config["power"]["charging_station"]
+        if charging_config.get("enabled_when_lox_rover_active", True):
+            chargingStation = RoverChargingStation(
+                system,
+                "ChargeStation-1",
+                chargingPowerRate=charging_config["charging_power_kw"],
+                efficiencyFactor=charging_config["efficiency"]
+            )
+            if powerManager:
+                powerManager.registerConsumer(chargingStation)
+            logger.add(chargingStation)
 
     # ---- Haul distances / thresholds ------------------------
-    regolith_haul_distance = optionsDict["Regolith_Haul_Distance"]
-    LOX_haul_distance      = optionsDict.get("LOX_Haul_Distance", 1)
-    transport_threshold    = optionsDict.get("LOX_Transport_Threshold", 100)
+    regolith_haul_distance = scenario_config["routes"]["regolith_distance_km"]
+    LOX_haul_distance      = scenario_config["routes"]["lox_distance_km"]
+    transport_threshold    = scenario_config["isru"]["lox_transport_threshold_kg"]
 
     # =========================================================
     # Spawn processes
@@ -430,21 +433,29 @@ def run_scenario(optionsDict):
     # ISRU plant controllers + LOX storage energy accounting
     for p in plants:
         system.process(plantController(system, p, regolithBuffer, roverBatch))
-        system.process(LOXStorageEnergy(system, p, dt=1.0))
+        system.process(LOXStorageEnergy(
+            system,
+            p,
+            dt=scenario_config["isru"]["lox_storage_energy_dt_hr"],
+            energyCoeff=scenario_config["isru"]["lox_storage_energy_kwh_per_kg_hr"],
+        ))
 
     # LOX delivery: only when both the rover AND a landing zone destination exist
-    if use_lox_rover and use_landing_zone and LOXCargoRover and landingZone:
-        LOXRoverResource = simpy.Resource(system, capacity=1)
+    if use_lox_rover and use_landing_zone and LOXCargoRovers and landingZone:
+        LOXRoverStore = simpy.Store(system, capacity=len(LOXCargoRovers))
+        for r in LOXCargoRovers:
+            LOXRoverStore.items.append(r)
         for p in plants:
             system.process(LOXDeliveryController(
-                system, p, LOXRoverResource, LOXCargoRover,
+                system, p, LOXRoverStore,
                 landingZone, distance=LOX_haul_distance,
-                transportThreshold=transport_threshold
+                transportThreshold=transport_threshold,
+                poll_dt=scenario_config["isru"]["lox_delivery_poll_dt_hr"],
             ))
 
     # Power management (only when solar system is present)
     if powerManager:
-        system.process(powerManager.managePower(dt=1.0))
+        system.process(powerManager.managePower(dt=scenario_config["power"]["management_dt_hr"]))
 
     # Experiment ----------------------------------------------
     print("="*70)
@@ -512,12 +523,12 @@ def run_scenario(optionsDict):
         print(f"  Battery Charge: {r.batteryCharge:.2f}/{r.batteryCapacity:.2f} kWh")
         print(f"  Current Load: {r.currentLoad:.2f} kg")
 
-    if use_lox_rover and LOXCargoRover:
-        print(f"\n{LOXCargoRover.name}:")
-        print(f"  Total Distance: {LOXCargoRover.totalDistanceTraveled:.2f} km")
-        print(f"  Energy Consumed: {LOXCargoRover.totalEnergyConsumed:.2f} kWh")
-        print(f"  Battery Charge: {LOXCargoRover.batteryCharge:.2f}/{LOXCargoRover.batteryCapacity:.2f} kWh")
-        print(f"  Current Load: {LOXCargoRover.currentLoad:.2f} kg")
+    for r in LOXCargoRovers:
+        print(f"\n{r.name}:")
+        print(f"  Total Distance: {r.totalDistanceTraveled:.2f} km")
+        print(f"  Energy Consumed: {r.totalEnergyConsumed:.2f} kWh")
+        print(f"  Battery Charge: {r.batteryCharge:.2f}/{r.batteryCapacity:.2f} kWh")
+        print(f"  Current Load: {r.currentLoad:.2f} kg")
 
     if chargingStation:
         print(f"\n{chargingStation.name}:")
@@ -567,14 +578,47 @@ def run_scenario(optionsDict):
         "Energy_Consumed_kWh": round(sum(r.totalEnergyConsumed   for r in regolithCargoRovers), 2),
     }
 
+    lox_rover_results = {}
+    for r in LOXCargoRovers:
+        lox_rover_results[r.name] = {
+            "Total_Distance_km":    round(r.totalDistanceTraveled, 2),
+            "Energy_Consumed_kWh":  round(r.totalEnergyConsumed, 2),
+            "Battery_Charge_kWh":   round(r.batteryCharge, 2),
+            "Battery_Capacity_kWh": round(r.batteryCapacity, 2),
+            "Current_Load_kg":      round(r.currentLoad, 2),
+        }
+    if LOXCargoRovers:
+        lox_rover_results["Fleet_Totals"] = {
+            "Num_Rovers":          len(LOXCargoRovers),
+            "Total_Distance_km":   round(sum(r.totalDistanceTraveled for r in LOXCargoRovers), 2),
+            "Energy_Consumed_kWh": round(sum(r.totalEnergyConsumed for r in LOXCargoRovers), 2),
+        }
+
+    total_lox_delivered = landingZone.loxStored if landingZone else 0.0
+    total_regolith_rover_energy = sum(r.totalEnergyConsumed for r in regolithCargoRovers)
+    total_lox_rover_energy = sum(r.totalEnergyConsumed for r in LOXCargoRovers)
+
     final_results = {
         "Sim_Metrics": {
             "Simulation_Run_Time": round(elapsed_time, 4),
             "Active_Nodes":        sorted(active_nodes),
+            "Simulation_Duration_hr": simDuration,
+        },
+        "Scenario_Config": scenario_config,
+        "MoEs": {
+            "Total_LOX_Produced_kg": round(total_lox_production, 2),
+            "Total_LOX_Delivered_kg": round(total_lox_delivered, 2),
+            "Total_LOX_Remaining_at_Plants_kg": round(total_lox_stored, 2),
+            "Total_Regolith_Received_kg": round(total_regolith_recv, 2),
+            "Total_ISRU_Energy_Consumed_kWh": round(total_energy_isru, 2),
+            "Total_Regolith_Rover_Energy_kWh": round(total_regolith_rover_energy, 2),
+            "Total_LOX_Rover_Energy_kWh": round(total_lox_rover_energy, 2),
         },
         "ISRU_Plants": isru_plant_results,
         "Regolith_Cargo_Rovers": regolith_rover_results,
     }
+    if LOXCargoRovers:
+        final_results["LOX_Cargo_Rovers"] = lox_rover_results
 
     if use_solar and solarSystem:
         final_results["Solar_Power_System"] = {
@@ -609,14 +653,15 @@ def run_scenario(optionsDict):
             "Energy_Consumed_kWh": round(landingZone.totalEnergyConsumed, 2),
         }
 
-    if use_lox_rover and LOXCargoRover:
+    if len(LOXCargoRovers) == 1:
+        only_rover = LOXCargoRovers[0]
         final_results["LOX_Cargo_Rover"] = {
-            "Name":                 LOXCargoRover.name,
-            "Total_Distance_km":    round(LOXCargoRover.totalDistanceTraveled, 2),
-            "Energy_Consumed_kWh":  round(LOXCargoRover.totalEnergyConsumed, 2),
-            "Battery_Charge_kWh":   round(LOXCargoRover.batteryCharge, 2),
-            "Battery_Capacity_kWh": round(LOXCargoRover.batteryCapacity, 2),
-            "Current_Load_kg":      round(LOXCargoRover.currentLoad, 2),
+            "Name":                 only_rover.name,
+            "Total_Distance_km":    round(only_rover.totalDistanceTraveled, 2),
+            "Energy_Consumed_kWh":  round(only_rover.totalEnergyConsumed, 2),
+            "Battery_Charge_kWh":   round(only_rover.batteryCharge, 2),
+            "Battery_Capacity_kWh": round(only_rover.batteryCapacity, 2),
+            "Current_Load_kg":      round(only_rover.currentLoad, 2),
         }
 
     if chargingStation:
@@ -709,7 +754,9 @@ def main():
     system.process(regolithRoverController(system, regolithBuffer, roverBatch, 1, regolithCargoRover))
     system.process(plantController(system, plant, regolithBuffer, roverBatch))
     system.process(LOXStorageEnergy(system, plant, dt=1.0))
-    system.process(LOXDeliveryController(system, plant, LOXCargoRover, landingZone, distance=1, transportThreshold=100))
+    LOXRoverStore = simpy.Store(system, capacity=1)
+    LOXRoverStore.items.append(LOXCargoRover)
+    system.process(LOXDeliveryController(system, plant, LOXRoverStore, landingZone, distance=1, transportThreshold=100))
     system.process(powerManager.managePower(dt=1.0))  # NEW: Power management
 
     # Experiment ----------------------------------------------

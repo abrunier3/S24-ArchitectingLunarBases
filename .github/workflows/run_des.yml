@@ -11,9 +11,17 @@ on:
         description: 'JSON object of DES slider values'
         required: false
         default: '{}'
+      scenario_config:
+        description: 'JSON object of DES scenario assumptions'
+        required: false
+        default: '{}'
       Num_Regolith_Rovers:
         description: 'Number of regolith rovers'
         required: true
+        default: '1'
+      Num_LOX_Rovers:
+        description: 'Number of LOX rovers'
+        required: false
         default: '1'
       Num_ISRU_Plants:
         description: 'Number of ISRU plants'
@@ -84,7 +92,9 @@ jobs:
         env:
           ACTIVE_NODES:               ${{ github.event.inputs.active_nodes }}
           SLIDER_VALUES_JSON:         ${{ github.event.inputs.slider_values }}
+          SCENARIO_CONFIG_JSON:       ${{ github.event.inputs.scenario_config }}
           NUM_REGOLITH_ROVERS:        ${{ github.event.inputs.Num_Regolith_Rovers }}
+          NUM_LOX_ROVERS:             ${{ github.event.inputs.Num_LOX_Rovers }}
           NUM_ISRU_PLANTS:            ${{ github.event.inputs.Num_ISRU_Plants }}
           REGOLITH_HAUL_DISTANCE:     ${{ github.event.inputs.Regolith_Haul_Distance }}
           LOX_HAUL_DISTANCE:          ${{ github.event.inputs.LOX_Haul_Distance }}
@@ -178,6 +188,7 @@ jobs:
               "active_nodes":               active_nodes,
               "sysml_active_nodes":         sysml_active_nodes,
               "Num_Regolith_Rovers":        slider_number("Num_Regolith_Rovers", "NUM_REGOLITH_ROVERS", int),
+              "Num_LOX_Rovers":             slider_number("Num_LOX_Rovers", "NUM_LOX_ROVERS", int),
               "Num_ISRU_Plants":            slider_number("Num_ISRU_Plants", "NUM_ISRU_PLANTS", int),
               "Regolith_Haul_Distance":     slider_number("Regolith_Haul_Distance", "REGOLITH_HAUL_DISTANCE"),
               "LOX_Haul_Distance":          slider_number("LOX_Haul_Distance", "LOX_HAUL_DISTANCE"),
@@ -186,6 +197,9 @@ jobs:
               "ISRU_Plant_Processing_Rate": slider_number("ISRU_Plant_Processing_Rate", "ISRU_PLANT_PROCESSING_RATE"),
               "LOX_Transport_Threshold":    slider_number("LOX_Transport_Threshold", "LOX_TRANSPORT_THRESHOLD"),
           }
+          scenario_config_raw = os.environ.get("SCENARIO_CONFIG_JSON", "{}").strip() or "{}"
+          if scenario_config_raw != "{}":
+              slider_value_dict["scenario_config"] = scenario_config_raw
           slider_value_dict.update({
               key: value for key, value in slider_values.items()
               if key not in slider_value_dict
