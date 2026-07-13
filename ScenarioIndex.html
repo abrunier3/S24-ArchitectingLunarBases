@@ -2823,7 +2823,7 @@ iframe{
 
       <!-- CENTER: Map canvas -->
       <div style="position:relative;background:#0c1119;border:1px solid var(--border);border-radius:12px;overflow:hidden;width:100%;min-height:560px;height:100%;align-self:stretch;">
-        <canvas id="up42Canvas" style="width:100%;height:100%;display:block;cursor:crosshair;"></canvas>
+        <canvas id="up42Canvas" style="width:100%;height:100%;display:block;cursor:crosshair;touch-action:none;"></canvas>
 
         <!-- Overlay instructions -->
         <div id="up42Hint" style="position:absolute;top:10px;left:50%;transform:translateX(-50%);
@@ -3603,7 +3603,11 @@ function initUp42() {
     up42Zoom = Math.max(0.5, Math.min(8, up42Zoom * factor));
     drawUp42();
   }, {passive:false});
-  up42Canvas.addEventListener('dblclick', up42OnDoubleClick);
+  up42Canvas.addEventListener('dblclick', e => {
+    e.preventDefault();
+    e.stopPropagation();
+    up42OnDoubleClick(e);
+  }, {passive:false});
   window.addEventListener('resize', resizeUp42Canvas);
   if (window.ResizeObserver && up42Canvas.parentElement && !up42Canvas._s24ResizeObserver) {
     up42Canvas._s24ResizeObserver = new ResizeObserver(() => resizeUp42Canvas());
@@ -3618,10 +3622,12 @@ function resizeUp42Canvas() {
   const nextW = Math.max(1, Math.round(up42Canvas.offsetWidth));
   const nextH = Math.max(1, Math.round(up42Canvas.offsetHeight));
   if (up42Canvas.width === nextW && up42Canvas.height === nextH && up42W === nextW && up42H === nextH) return;
+  const oldFrame = up42W && up42H ? getUp42MapFrame() : null;
   up42W = nextW;
   up42H = nextH;
   up42Canvas.width  = up42W;
   up42Canvas.height = up42H;
+  remapUp42GeometryForFrame(oldFrame, getUp42MapFrame());
   drawUp42();
 }
 
@@ -3630,10 +3636,12 @@ function ensureUp42CanvasSize() {
   const nextW = Math.max(1, Math.round(up42Canvas.offsetWidth));
   const nextH = Math.max(1, Math.round(up42Canvas.offsetHeight));
   if (nextW === up42W && nextH === up42H && up42Canvas.width === nextW && up42Canvas.height === nextH) return false;
+  const oldFrame = up42W && up42H ? getUp42MapFrame() : null;
   up42W = nextW;
   up42H = nextH;
   up42Canvas.width = nextW;
   up42Canvas.height = nextH;
+  remapUp42GeometryForFrame(oldFrame, getUp42MapFrame());
   return true;
 }
 
@@ -3642,6 +3650,30 @@ function getUp42MapFrame() {
   const x = (up42W - size) / 2;
   const y = (up42H - size) / 2;
   return { x, y, size, right: x + size, bottom: y + size };
+}
+
+function remapUp42PointForFrame(pt, oldFrame, newFrame) {
+  if (!pt || !oldFrame || !newFrame || !oldFrame.size || !newFrame.size) return pt;
+  return {
+    x: newFrame.x + ((pt.x - oldFrame.x) / oldFrame.size) * newFrame.size,
+    y: newFrame.y + ((pt.y - oldFrame.y) / oldFrame.size) * newFrame.size,
+  };
+}
+
+function remapUp42GeometryForFrame(oldFrame, newFrame) {
+  if (!oldFrame || !newFrame || !oldFrame.size || !newFrame.size) return;
+  if (Math.abs(oldFrame.x - newFrame.x) < 0.01 &&
+      Math.abs(oldFrame.y - newFrame.y) < 0.01 &&
+      Math.abs(oldFrame.size - newFrame.size) < 0.01) return;
+
+  Object.entries(up42Placements).forEach(([id, pos]) => {
+    const next = remapUp42PointForFrame({x: pos.cx, y: pos.cy}, oldFrame, newFrame);
+    up42Placements[id] = { cx: next.x, cy: next.y };
+  });
+
+  const remapPath = path => (path || []).map(pt => remapUp42PointForFrame(pt, oldFrame, newFrame));
+  up42Routes.forEach(route => { route.pts = remapPath(route.pts); });
+  up42Scenario.resourceRoutes?.forEach(route => { route.pts = remapPath(route.pts); });
 }
 
 function isInsideUp42Map(x, y) {
@@ -4622,6 +4654,8 @@ function up42OnClick(e) {
 }
 
 function up42OnDoubleClick(e) {
+  e?.preventDefault?.();
+  e?.stopPropagation?.();
   if (up42Phase !== 'logic') {
     resetUp42View();
     return;
@@ -5340,9 +5374,7 @@ function drawArrowHeadOnPath(path, color, size = 16) {
 }
 
 function drawScenarioLinks() {
-  if (!up42Scenario.sysmlInterfaces?.length && !up42Scenario.transportLinks?.length) {
-    syncScenarioInterfacesFromSysML();
-  }
+  syncScenarioInterfacesFromSysML();
 
   const drawPath = (pts, color, dashed = false, width = 3, arrow = true) => {
     if (!pts || pts.length < 2) return;
@@ -5369,18 +5401,6 @@ function drawScenarioLinks() {
     return a && b ? [{x:a.cx, y:a.cy}, {x:b.cx, y:b.cy}] : [];
   };
 
-  const transports = up42Scenario.transportLinks?.length
-    ? up42Scenario.transportLinks
-    : [];
-  transports.forEach(link => {
-    const color = getFlowColor(link.flow);
-    (link.from_instances || []).forEach(from => {
-      (link.to_instances || []).forEach(to => {
-        drawPath(getVisualPath(from, to), color, false, 5.2, true);
-      });
-    });
-  });
-
   const interfaces = up42Scenario.sysmlInterfaces?.length
     ? up42Scenario.sysmlInterfaces
     : syncScenarioInterfacesFromSysML();
@@ -5392,6 +5412,19 @@ function drawScenarioLinks() {
         const b = up42Placements[to];
         if (!a || !b) return;
         drawPath([{x:a.cx, y:a.cy}, {x:b.cx, y:b.cy}], color, false, 2.8, true);
+      });
+    });
+  });
+
+  const transports = up42Scenario.transportLinks?.length
+    ? up42Scenario.transportLinks
+    : [];
+  transports.forEach(link => {
+    const color = getFlowColor(link.flow);
+    (link.from_instances || []).forEach(from => {
+      (link.to_instances || []).forEach(to => {
+        const path = getVisualPath(from, to);
+        drawPath(path, color, false, 7.5, true);
       });
     });
   });
