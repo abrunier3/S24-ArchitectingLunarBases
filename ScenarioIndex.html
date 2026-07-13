@@ -4657,7 +4657,6 @@ function up42OnDoubleClick(e) {
   e?.preventDefault?.();
   e?.stopPropagation?.();
   if (up42Phase !== 'logic') {
-    resetUp42View();
     return;
   }
   const rect = up42Canvas.getBoundingClientRect();
@@ -5351,7 +5350,7 @@ function getNetworkRoutePath(from, to) {
   return pts;
 }
 
-function drawArrowHeadOnPath(path, color, size = 16) {
+function drawArrowHeadOnPath(path, color, size = 12) {
   if (!path || path.length < 2) return;
   let end = path[path.length - 1];
   let start = path[path.length - 2];
@@ -5376,6 +5375,8 @@ function drawArrowHeadOnPath(path, color, size = 16) {
 function drawScenarioLinks() {
   syncScenarioInterfacesFromSysML();
 
+  const routeDrawings = [];
+
   const drawPath = (pts, color, dashed = false, width = 3, arrow = true) => {
     if (!pts || pts.length < 2) return;
     up42Ctx.beginPath();
@@ -5386,7 +5387,36 @@ function drawScenarioLinks() {
     if (dashed) up42Ctx.setLineDash([8, 6]);
     up42Ctx.stroke();
     up42Ctx.setLineDash([]);
-    if (arrow) drawArrowHeadOnPath(pts, color, Math.max(16, width * 4.2));
+    if (arrow) drawArrowHeadOnPath(pts, color, Math.max(12, width * 3.4));
+  };
+
+  const offsetPath = (pts, offset) => {
+    if (!pts || pts.length < 2 || !offset) return pts;
+    return pts.map((pt, idx) => {
+      const prev = pts[Math.max(0, idx - 1)];
+      const next = pts[Math.min(pts.length - 1, idx + 1)];
+      const dx = next.x - prev.x;
+      const dy = next.y - prev.y;
+      const len = Math.hypot(dx, dy) || 1;
+      return {
+        x: pt.x + (-dy / len) * offset,
+        y: pt.y + ( dx / len) * offset,
+      };
+    });
+  };
+
+  const pathSignature = pts => {
+    if (!pts || pts.length < 2) return '';
+    const first = pts[0];
+    const last = pts[pts.length - 1];
+    const a = `${Math.round(first.x / 8)}:${Math.round(first.y / 8)}`;
+    const b = `${Math.round(last.x / 8)}:${Math.round(last.y / 8)}`;
+    return [a, b].sort().join('|');
+  };
+
+  const queueDrawing = (path, color, width, priority = 0) => {
+    if (!path || path.length < 2) return;
+    routeDrawings.push({ path, color, width, priority, signature: pathSignature(path) });
   };
 
   const getVisualPath = (from, to) => {
@@ -5411,7 +5441,7 @@ function drawScenarioLinks() {
         const a = up42Placements[from];
         const b = up42Placements[to];
         if (!a || !b) return;
-        drawPath([{x:a.cx, y:a.cy}, {x:b.cx, y:b.cy}], color, false, 2.8, true);
+        queueDrawing([{x:a.cx, y:a.cy}, {x:b.cx, y:b.cy}], color, 2.8, 0);
       });
     });
   });
@@ -5424,8 +5454,22 @@ function drawScenarioLinks() {
     (link.from_instances || []).forEach(from => {
       (link.to_instances || []).forEach(to => {
         const path = getVisualPath(from, to);
-        drawPath(path, color, false, 7.5, true);
+        queueDrawing(path, color, 2.8, 1);
       });
+    });
+  });
+
+  const groups = new Map();
+  routeDrawings.forEach(item => {
+    if (!groups.has(item.signature)) groups.set(item.signature, []);
+    groups.get(item.signature).push(item);
+  });
+  [...groups.values()].forEach(group => {
+    group.sort((a, b) => a.priority - b.priority);
+    const count = group.length;
+    group.forEach((item, idx) => {
+      const offset = count > 1 ? (idx - (count - 1) / 2) * 9 : 0;
+      drawPath(offsetPath(item.path, offset), item.color, false, item.width, true);
     });
   });
 }
