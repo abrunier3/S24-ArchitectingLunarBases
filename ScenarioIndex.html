@@ -2797,7 +2797,7 @@ iframe{
 
       <!-- LEFT: Module list -->
       <div style="background:var(--panel);border:1px solid var(--border);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;align-self:stretch;">
-        <div style="padding:12px 14px;border-bottom:1px solid var(--border);">
+        <div id="up42AssetHeader" style="padding:12px 14px;border-bottom:1px solid var(--border);">
           <div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:2px;">Scenario Assets</div>
           <div style="font-size:10px;color:var(--text3);">Set count, then place each instance</div>
         </div>
@@ -2813,7 +2813,7 @@ iframe{
             Double-click a placed module to define equations between its inputs and outputs.
           </div>
         </div>
-        <div style="padding:10px 14px;border-top:1px solid var(--border);">
+        <div id="up42PlacementLegend" style="padding:10px 14px;border-top:1px solid var(--border);">
           <div style="font-size:9px;color:var(--text3);margin-bottom:6px;">
             <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#4a5568;margin-right:4px;"></span>Not placed
             <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#00ff9d;margin-right:4px;margin-left:8px;"></span>Placed
@@ -3525,9 +3525,11 @@ let up42Scenario = {
   comLinks: [],
   moduleLogic: {},
   sysmlInterfaces: [],
+  transportLinks: [],
   moduleEquations: {},
   roverCounts: { regolith: 1, lox: 1 }
 };
+let up42EquationEditorModule = null;
 let up42DragWaypoint  = null;
 let up42DragState     = null;
 let up42HeatmapImgs   = {};
@@ -4007,7 +4009,7 @@ function drawUp42() {
   // Phase-specific overlay
   if (up42Phase === 'routes') {
     // no extra overlay in routes phase — terrain already visible
-  } else if (up42ActiveModule) {
+  } else if (up42ActiveModule && up42Phase !== 'logic') {
     drawHeatmapOverlay();     // module suitability overlay
   }
 
@@ -4725,6 +4727,8 @@ function updateUp42InfoCard() {
   const sz       = getModuleSize(up42ActiveModule);
 
   const savedEquations = up42Scenario.moduleEquations?.[up42ActiveModule] || '';
+  const showEquationEditor = up42Phase === 'logic' && up42EquationEditorModule === up42ActiveModule;
+  const equationTokens = getEquationTokenGroups(up42ActiveModule);
 
   card.innerHTML = `
     <div style="font-size:13px;font-weight:700;color:${color};margin-bottom:8px;">${up42ActiveModule}</div>
@@ -4759,8 +4763,11 @@ function updateUp42InfoCard() {
     ${up42Phase === 'logic' ? `
     <div style="background:rgba(0,212,255,0.06);border:1px solid rgba(0,212,255,0.22);border-radius:8px;padding:10px;margin-bottom:10px;">
       <div style="font-size:10px;color:var(--accent);font-weight:700;margin-bottom:6px;">MODULE EQUATIONS</div>
-      <div style="font-size:9px;color:var(--text3);line-height:1.45;margin-bottom:6px;">Double-click this module on the map to edit equations between its SysML input and output ports.</div>
-      <pre style="margin:0;white-space:pre-wrap;font-size:9px;color:var(--text2);font-family:monospace;">${savedEquations ? escapeHtml(savedEquations) : 'No equation defined yet.'}</pre>
+      <div style="font-size:9px;color:var(--text3);line-height:1.45;margin-bottom:8px;">Double-click this module on the map to open the equation builder.</div>
+      ${showEquationEditor ? renderEquationBuilder(up42ActiveModule, equationTokens, savedEquations) : `
+        <pre style="margin:0;white-space:pre-wrap;font-size:9px;color:var(--text2);font-family:monospace;">${savedEquations ? escapeHtml(savedEquations) : 'No equation defined yet.'}</pre>
+        <button class="btn" style="width:100%;padding:7px;margin-top:8px;font-size:10px;" onclick="openModuleEquationEditor('${up42ActiveModule}')">Edit equations</button>
+      `}
     </div>` : ''}
     <div style="margin-top:10px;font-size:9px;color:var(--text3);line-height:1.5;">
       ★ Heatmap: computed from current terrain model
@@ -4922,15 +4929,60 @@ function getFlowColor(flow) {
   return '#8bffce';
 }
 
+function normalizeScenarioName(value) {
+  return String(value || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+}
+
+function inferNamedEndpointTypes(conn, fixedTypes) {
+  const nameText = normalizeScenarioName(conn.name || conn.id || conn.key || '');
+  if (!nameText) return [];
+  return fixedTypes.filter(type => nameText.includes(normalizeScenarioName(type)));
+}
+
+function buildTransportLinksFromConnections(connections, fixedTypes) {
+  const links = [];
+  const dedupe = new Set();
+
+  connections.forEach(conn => {
+    const flow = String(conn.flow || '');
+    const flowKey = flow.toLowerCase();
+    if (!flowKey.includes('regolith') && !flowKey.includes('lox')) return;
+
+    const endpointTypes = inferNamedEndpointTypes(conn, fixedTypes);
+    if (endpointTypes.length < 2) return;
+
+    const fromType = endpointTypes[0];
+    const toType = endpointTypes[1];
+    const key = `${flowKey}:${fromType}:${toType}`;
+    if (dedupe.has(key)) return;
+    dedupe.add(key);
+
+    links.push({
+      id: conn.name || key,
+      flow,
+      from_type: fromType,
+      to_type: toType,
+      rover_type: flowKey.includes('regolith') ? 'RegolithRover' : 'LOXRover',
+      from_instances: getPlacedInstancesForBase(fromType),
+      to_instances: getPlacedInstancesForBase(toType)
+    });
+  });
+
+  return links;
+}
+
 function syncScenarioInterfacesFromSysML() {
   const graphData = getUp42ActiveGraphData();
+  const nodeNames = getGraphActiveNodeList(graphData);
+  const fixedTypes = nodeNames.filter(name => !isRoverNode(name));
   const connections = normalizeSysmlConnections(
     graphData.connections || [],
-    getGraphActiveNodeList(graphData)
+    nodeNames
   );
 
   up42Scenario.sysmlInterfaces = connections
     .filter(conn => !String(conn.flow || '').toLowerCase().includes('com'))
+    .filter(conn => !isRoverNode(conn.fromName) && !isRoverNode(conn.toName))
     .map((conn, idx) => ({
       id: conn.id || conn.key || `sysml_interface_${idx + 1}`,
       from_type: conn.fromName,
@@ -4941,6 +4993,7 @@ function syncScenarioInterfacesFromSysML() {
       from_instances: getPlacedInstancesForBase(conn.fromName),
       to_instances: getPlacedInstancesForBase(conn.toName)
     }));
+  up42Scenario.transportLinks = buildTransportLinksFromConnections(connections, fixedTypes);
 
   renderSysmlInterfaceList();
   return up42Scenario.sysmlInterfaces;
@@ -4950,11 +5003,16 @@ function renderSysmlInterfaceList() {
   const list = document.getElementById('up42SysmlInterfaceList');
   if (!list) return;
   const interfaces = up42Scenario.sysmlInterfaces || [];
-  if (!interfaces.length) {
+  const transports = up42Scenario.transportLinks || [];
+  const rows = [
+    ...transports.map(link => ({...link, visualType: 'Rover route'})),
+    ...interfaces.map(link => ({...link, visualType: 'Interface'}))
+  ];
+  if (!rows.length) {
     list.innerHTML = '<div style="font-size:10px;color:var(--text3);line-height:1.45;">No active SysML interface loaded yet.</div>';
     return;
   }
-  list.innerHTML = interfaces.map(link => {
+  list.innerHTML = rows.map(link => {
     const active = link.from_instances.length && link.to_instances.length;
     const color = getFlowColor(link.flow);
     return `
@@ -4964,9 +5022,29 @@ function renderSysmlInterfaceList() {
           <span style="font-size:8px;color:${active ? '#00ff9d' : 'var(--text3)'};">${active ? 'placed' : 'waiting'}</span>
         </div>
         <div style="font-size:9px;color:var(--text2);line-height:1.35;">${escapeHtml(link.from_type)} → ${escapeHtml(link.to_type)}</div>
+        <div style="font-size:8px;color:var(--text3);line-height:1.35;margin-top:2px;">${escapeHtml(link.visualType)}${link.rover_type ? ` via ${escapeHtml(link.rover_type)}` : ''}</div>
         <div style="font-size:8px;color:var(--text3);line-height:1.35;margin-top:3px;">${link.from_instances.length || 0} source instance(s), ${link.to_instances.length || 0} target instance(s)</div>
       </div>`;
   }).join('');
+}
+
+function updateUp42PhaseSidebar() {
+  const isLogic = up42Phase === 'logic';
+  const assetHeader = document.getElementById('up42AssetHeader');
+  const moduleList = document.getElementById('up42ModuleList');
+  const placementLegend = document.getElementById('up42PlacementLegend');
+  const interfacePanel = document.getElementById('up42SysmlInterfacePanel');
+  const interfaceList = document.getElementById('up42SysmlInterfaceList');
+  if (assetHeader) assetHeader.style.display = isLogic ? 'none' : 'block';
+  if (moduleList) moduleList.style.display = isLogic ? 'none' : 'flex';
+  if (placementLegend) placementLegend.style.display = isLogic ? 'none' : 'block';
+  if (interfacePanel) {
+    interfacePanel.style.display = isLogic ? 'block' : 'none';
+    interfacePanel.style.borderTop = isLogic ? 'none' : '1px solid var(--border)';
+    interfacePanel.style.flex = isLogic ? '1' : '';
+    interfacePanel.style.overflowY = isLogic ? 'auto' : '';
+  }
+  if (interfaceList) interfaceList.style.maxHeight = isLogic ? 'none' : '210px';
 }
 
 function describeModulePorts(moduleId) {
@@ -4982,23 +5060,115 @@ function describeModulePorts(moduleId) {
   }).join('\n');
 }
 
-function openModuleEquationEditor(moduleId) {
-  const previous = up42Scenario.moduleEquations?.[moduleId] || '';
-  const ports = describeModulePorts(moduleId);
-  const next = prompt(
-    `Define equations for ${moduleId}.\n\nSysML ports:\n${ports}\n\nExample:\nLOXOut = conversionRate * RegolithIn\nPowerOut = availableSolarPower - modulePowerDemand`,
-    previous
-  );
-  if (next === null) return;
-  const cleaned = next.trim();
+function jsString(value) {
+  return String(value ?? '').replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\n/g, '\\n');
+}
+
+function getDefaultEquationTemplate(moduleId) {
+  const baseId = getBaseModuleId(moduleId);
+  if (baseId === 'ISRUPlant') {
+    return [
+      'LOXOut = RegolithIn * extractedLOXFraction',
+      'ProcessingTime = RegolithIn / processingRate',
+      'EnergyConsumed = E_exc + E_trans + E_bene + E_reactor + E_electro + E_liq'
+    ].join('\n');
+  }
+  if (baseId === 'RegolithRover') {
+    return 'RegolithDelivered = min(RoverCapacity, RegolithAvailable)';
+  }
+  if (baseId === 'LOXRover') {
+    return 'LOXDelivered = min(LOXStored, LOXTransportThreshold)';
+  }
+  return '';
+}
+
+function getEquationTokenGroups(moduleId) {
+  const baseId = getBaseModuleId(moduleId);
+  const part = getSysmlPartData(baseId) || {};
+  const ports = (Array.isArray(part.ports) ? part.ports : []).map(port => port.name || port.id).filter(Boolean);
+  const attrs = Object.keys(part.attributes || {});
+  return {
+    ports,
+    attrs,
+    ops: ['=', '+', '-', '*', '/', '^', '(', ')', 'min(', 'max(']
+  };
+}
+
+function renderTokenButtons(label, values, color) {
+  if (!values.length) {
+    return `<div style="font-size:9px;color:var(--text3);">No ${label.toLowerCase()} detected.</div>`;
+  }
+  return `
+    <div style="font-size:9px;color:var(--text3);font-weight:700;margin:8px 0 4px;">${label}</div>
+    <div style="display:flex;flex-wrap:wrap;gap:5px;">
+      ${values.map(token => `
+        <button type="button" class="btn" style="padding:4px 6px;font-size:9px;border-color:${color};color:${color};"
+          onclick="appendEquationToken('${jsString(token)}')">${escapeHtml(token)}</button>
+      `).join('')}
+    </div>`;
+}
+
+function renderEquationBuilder(moduleId, groups, savedEquations) {
+  const initial = savedEquations || getDefaultEquationTemplate(moduleId);
+  return `
+    <textarea id="up42EquationText" spellcheck="false"
+      style="width:100%;min-height:96px;resize:vertical;background:#07101a;color:var(--text1);border:1px solid var(--border2);border-radius:8px;padding:8px;font-size:10px;font-family:monospace;line-height:1.45;">${escapeHtml(initial)}</textarea>
+    ${renderTokenButtons('Ports', groups.ports, '#4cc9f0')}
+    ${renderTokenButtons('Attributes', groups.attrs.slice(0, 24), '#ffd166')}
+    ${renderTokenButtons('Operators', groups.ops, '#00ff9d')}
+    <div style="display:flex;gap:6px;margin-top:10px;">
+      <button type="button" class="btn btn-primary" style="flex:1;padding:7px;font-size:10px;" onclick="saveModuleEquation('${moduleId}')">Save</button>
+      <button type="button" class="btn" style="padding:7px;font-size:10px;" onclick="clearModuleEquation('${moduleId}')">Clear</button>
+    </div>`;
+}
+
+function appendEquationToken(token) {
+  const textarea = document.getElementById('up42EquationText');
+  if (!textarea) return;
+  const start = textarea.selectionStart ?? textarea.value.length;
+  const end = textarea.selectionEnd ?? textarea.value.length;
+  const before = textarea.value.slice(0, start);
+  const after = textarea.value.slice(end);
+  const needsSpaceBefore = before && !/[\s(]$/.test(before) && !/^[=+\-*/^)]$/.test(token);
+  const needsSpaceAfter = after && !/^[\s)]/.test(after) && !/[=(]$/.test(token);
+  const insert = `${needsSpaceBefore ? ' ' : ''}${token}${needsSpaceAfter ? ' ' : ''}`;
+  textarea.value = before + insert + after;
+  const cursor = before.length + insert.length;
+  textarea.focus();
+  textarea.setSelectionRange(cursor, cursor);
+}
+
+function saveModuleEquation(moduleId) {
+  const textarea = document.getElementById('up42EquationText');
+  const cleaned = (textarea?.value || '').trim();
   if (cleaned) up42Scenario.moduleEquations[moduleId] = cleaned;
   else delete up42Scenario.moduleEquations[moduleId];
+  up42EquationEditorModule = null;
   updateUp42InfoCard();
   renderScenarioValidation();
   setHint(cleaned ? `Equations saved for ${moduleId}.` : `Equations cleared for ${moduleId}.`);
 }
 
+function clearModuleEquation(moduleId) {
+  delete up42Scenario.moduleEquations[moduleId];
+  const textarea = document.getElementById('up42EquationText');
+  if (textarea) textarea.value = '';
+  renderScenarioValidation();
+  setHint(`Equations cleared for ${moduleId}.`);
+}
+
+function openModuleEquationEditor(moduleId) {
+  up42ActiveModule = moduleId;
+  up42EquationEditorModule = moduleId;
+  updateUp42InfoCard();
+  setHint(`Editing equations for ${moduleId}. Click ports/attributes to build expressions.`);
+}
+
 function drawScenarioLinks() {
+  if (!up42Scenario.sysmlInterfaces?.length && !up42Scenario.transportLinks?.length) {
+    syncScenarioInterfacesFromSysML();
+  }
+
   const drawPath = (pts, color, dashed = false, width = 3) => {
     if (!pts || pts.length < 2) return;
     up42Ctx.beginPath();
@@ -5010,6 +5180,28 @@ function drawScenarioLinks() {
     up42Ctx.stroke();
     up42Ctx.setLineDash([]);
   };
+
+  const getVisualPath = (from, to) => {
+    const direct = up42Routes.find(route => route.from === from && route.to === to);
+    if (direct?.pts?.length) return direct.pts;
+    const reverse = up42Routes.find(route => route.from === to && route.to === from);
+    if (reverse?.pts?.length) return [...reverse.pts].reverse();
+    const a = up42Placements[from];
+    const b = up42Placements[to];
+    return a && b ? [{x:a.cx, y:a.cy}, {x:b.cx, y:b.cy}] : [];
+  };
+
+  const transports = up42Scenario.transportLinks?.length
+    ? up42Scenario.transportLinks
+    : [];
+  transports.forEach(link => {
+    const color = getFlowColor(link.flow);
+    (link.from_instances || []).forEach(from => {
+      (link.to_instances || []).forEach(to => {
+        drawPath(getVisualPath(from, to), color, true, 4);
+      });
+    });
+  });
 
   const interfaces = up42Scenario.sysmlInterfaces?.length
     ? up42Scenario.sysmlInterfaces
@@ -5039,6 +5231,7 @@ function buildScenarioLogicPayload() {
     })),
     rover_counts: {...up42Scenario.roverCounts},
     sysml_interfaces: up42Scenario.sysmlInterfaces,
+    transport_links: up42Scenario.transportLinks,
     module_equations: {...up42Scenario.moduleEquations}
   };
 }
@@ -5063,6 +5256,7 @@ function getScenarioValidationMessages() {
     if (!base.includes('solar') && !base.includes('power') && !powered.has(id)) warnings.push(`${id} has no incoming power link.`);
   });
   if (!up42Scenario.sysmlInterfaces.length) warnings.push('No SysML interface available from the active graph.');
+  if (!(up42Scenario.transportLinks || []).length) warnings.push('No rover transport link inferred from SysML connection names.');
   if (!equationModules.length) warnings.push('No module equations defined yet.');
 
   return { errors, warnings };
@@ -5081,6 +5275,7 @@ function renderScenarioValidation() {
         Instances: <b style="color:var(--text1);">${getScenarioInstances().length}</b><br>
         Terrain routes: <b style="color:var(--text1);">${up42Routes.length}</b><br>
         SysML interfaces: <b style="color:var(--text1);">${up42Scenario.sysmlInterfaces.length}</b><br>
+        Rover transport links: <b style="color:var(--text1);">${(up42Scenario.transportLinks || []).length}</b><br>
         Equation blocks: <b style="color:var(--text1);">${Object.keys(up42Scenario.moduleEquations || {}).length}</b>
       </div>
     </div>
@@ -5108,8 +5303,7 @@ function setPlacementPhase(phase) {
   });
   const routeCard = document.getElementById('up42RouteCard');
   if (routeCard) routeCard.style.display = (phase==='routes' || phase==='logic' || phase==='validate')?'block':'none';
-  const interfacePanel = document.getElementById('up42SysmlInterfacePanel');
-  if (interfacePanel) interfacePanel.style.display = phase === 'logic' ? 'block' : 'none';
+  updateUp42PhaseSidebar();
   up42Canvas.style.cursor = phase==='place'?'crosshair':(phase==='logic'?'pointer':'default');
   if (phase==='routes') setHint('Drag waypoints to adjust routes');
   else if (phase==='logic') {
