@@ -4966,30 +4966,102 @@ function inferNamedEndpointTypes(conn, fixedTypes) {
 function buildTransportLinksFromConnections(connections, fixedTypes) {
   const links = [];
   const dedupe = new Set();
+  const partials = [];
+
+  const inferEndpointRole = (conn, endpointType, roverType) => {
+    const nameText = normalizeScenarioName(conn.name || conn.id || conn.key || '');
+    const endpointKey = normalizeScenarioName(endpointType);
+    const roverKey = normalizeScenarioName(roverType);
+    const endpointIdx = nameText.indexOf(endpointKey);
+    let roverIdx = nameText.indexOf(roverKey);
+    if (roverIdx < 0) roverIdx = nameText.indexOf('rover');
+    if (endpointIdx >= 0 && roverIdx >= 0) return endpointIdx < roverIdx ? 'source' : 'target';
+    if (!isRoverNode(conn.fromName) && conn.fromName === endpointType) return 'source';
+    if (!isRoverNode(conn.toName) && conn.toName === endpointType) return 'target';
+    return 'unknown';
+  };
+
+  const pushLink = (flow, fromType, toType, roverType, id) => {
+    if (!fromType || !toType || fromType === toType) return;
+    const key = `${String(flow).toLowerCase()}:${fromType}:${toType}:${roverType || ''}`;
+    if (dedupe.has(key)) return;
+    dedupe.add(key);
+    links.push({
+      id: id || key,
+      flow,
+      from_type: fromType,
+      to_type: toType,
+      rover_type: roverType,
+      from_instances: getPlacedInstancesForBase(fromType),
+      to_instances: getPlacedInstancesForBase(toType)
+    });
+  };
 
   connections.forEach(conn => {
     const flow = String(conn.flow || '');
     const flowKey = flow.toLowerCase();
     if (!flowKey.includes('regolith') && !flowKey.includes('lox')) return;
 
-    const endpointTypes = inferNamedEndpointTypes(conn, fixedTypes);
-    if (endpointTypes.length < 2) return;
+    const roverType = [conn.fromName, conn.toName].find(name => isRoverNode(name)) ||
+      (flowKey.includes('regolith') ? 'RegolithRover' : 'LOXRover');
+    const endpointTypes = [
+      ...inferNamedEndpointTypes(conn, fixedTypes),
+      conn.fromName,
+      conn.toName
+    ].filter(name => name && fixedTypes.includes(name) && !isRoverNode(name));
+    const uniqueEndpoints = [...new Set(endpointTypes)];
 
-    const fromType = endpointTypes[0];
-    const toType = endpointTypes[1];
-    const key = `${flowKey}:${fromType}:${toType}`;
-    if (dedupe.has(key)) return;
-    dedupe.add(key);
+    if (uniqueEndpoints.length >= 2) {
+      pushLink(flow, uniqueEndpoints[0], uniqueEndpoints[1], roverType, conn.name);
+      return;
+    }
 
-    links.push({
-      id: conn.name || key,
-      flow,
-      from_type: fromType,
-      to_type: toType,
-      rover_type: flowKey.includes('regolith') ? 'RegolithRover' : 'LOXRover',
-      from_instances: getPlacedInstancesForBase(fromType),
-      to_instances: getPlacedInstancesForBase(toType)
-    });
+    if (uniqueEndpoints.length === 1) {
+      const endpointType = uniqueEndpoints[0];
+      partials.push({
+        flow,
+        flowKey,
+        roverType,
+        endpointType,
+        role: inferEndpointRole(conn, endpointType, roverType),
+        id: conn.name || `${flowKey}:${endpointType}:${roverType}`
+      });
+    }
+  });
+
+  const partialGroups = new Map();
+  partials.forEach(partial => {
+    const key = `${partial.flowKey}:${partial.roverType}`;
+    if (!partialGroups.has(key)) partialGroups.set(key, []);
+    partialGroups.get(key).push(partial);
+  });
+
+  partialGroups.forEach(group => {
+    const sources = group.filter(item => item.role === 'source');
+    const targets = group.filter(item => item.role === 'target');
+    if (sources.length && targets.length) {
+      sources.forEach(source => {
+        targets.forEach(target => pushLink(
+          source.flow,
+          source.endpointType,
+          target.endpointType,
+          source.roverType,
+          `${source.id}_${target.id}`
+        ));
+      });
+      return;
+    }
+
+    if (group.length >= 2) {
+      const first = group[0];
+      group.slice(1).forEach(other => pushLink(
+        first.flow,
+        first.endpointType,
+        other.endpointType,
+        first.roverType,
+        `${first.id}_${other.id}`
+      ));
+    }
   });
 
   return links;
@@ -5245,7 +5317,7 @@ function getNetworkRoutePath(from, to) {
   return pts;
 }
 
-function drawArrowHeadOnPath(path, color, size = 10) {
+function drawArrowHeadOnPath(path, color, size = 16) {
   if (!path || path.length < 2) return;
   let end = path[path.length - 1];
   let start = path[path.length - 2];
@@ -5255,12 +5327,15 @@ function drawArrowHeadOnPath(path, color, size = 10) {
   const angle = Math.atan2(end.y - start.y, end.x - start.x);
   up42Ctx.save();
   up42Ctx.fillStyle = color;
+  up42Ctx.strokeStyle = 'rgba(0,0,0,0.45)';
+  up42Ctx.lineWidth = Math.max(1.5, size * 0.12);
   up42Ctx.beginPath();
   up42Ctx.moveTo(end.x, end.y);
-  up42Ctx.lineTo(end.x - size * Math.cos(angle - 0.45), end.y - size * Math.sin(angle - 0.45));
-  up42Ctx.lineTo(end.x - size * Math.cos(angle + 0.45), end.y - size * Math.sin(angle + 0.45));
+  up42Ctx.lineTo(end.x - size * Math.cos(angle - 0.68), end.y - size * Math.sin(angle - 0.68));
+  up42Ctx.lineTo(end.x - size * Math.cos(angle + 0.68), end.y - size * Math.sin(angle + 0.68));
   up42Ctx.closePath();
   up42Ctx.fill();
+  up42Ctx.stroke();
   up42Ctx.restore();
 }
 
@@ -5279,7 +5354,7 @@ function drawScenarioLinks() {
     if (dashed) up42Ctx.setLineDash([8, 6]);
     up42Ctx.stroke();
     up42Ctx.setLineDash([]);
-    if (arrow) drawArrowHeadOnPath(pts, color, Math.max(8, width * 2.4));
+    if (arrow) drawArrowHeadOnPath(pts, color, Math.max(16, width * 4.2));
   };
 
   const getVisualPath = (from, to) => {
