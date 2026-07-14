@@ -639,7 +639,44 @@ def _build_module_terrain_diagnostics(
     modules: dict[str, Any] = {}
     out_of_bounds = 0
     scene_cad_footprints = scene_cad_footprints or {}
-    for part in system_json.get("parts", []):
+    base_parts = {
+        part.get("name"): part
+        for part in system_json.get("parts", [])
+        if part.get("name")
+    }
+    module_instances = (
+        system_json.get("urban_planning", {}).get("module_instances", {})
+    )
+    parts_to_place: list[tuple[dict[str, Any], str, str]] = []
+    if module_instances:
+        for instance_name, instance in module_instances.items():
+            source_name = instance.get("type") or re.sub(r"_\d+$", "", instance_name)
+            source_part = base_parts.get(source_name)
+            if not source_part:
+                continue
+            part = dict(source_part)
+            part["name"] = instance_name
+            part["transform"] = {
+                "position_m": instance.get("position_m", [0.0, 0.0, 0.0]),
+                "rotation_deg": instance.get("rotation_deg", [0.0, 0.0, 0.0]),
+            }
+            parts_to_place.append((part, instance_name, source_name))
+    else:
+        parts_to_place = [
+            (part, part.get("name"), part.get("name"))
+            for part in system_json.get("parts", [])
+            if part.get("name")
+        ]
+
+    source_instance_counts: dict[str, int] = {}
+    for part, name, source_name in parts_to_place:
+        source_instance_counts[source_name] = source_instance_counts.get(source_name, 0) + 1
+        source_index = source_instance_counts[source_name]
+        prim_path = (
+            f"/World/{source_name}"
+            if source_index == 1
+            else f"/World/{name}"
+        )
         name = part.get("name")
         position = part.get("transform", {}).get("position_m")
         if not name or not isinstance(position, list) or len(position) < 2:
@@ -648,7 +685,7 @@ def _build_module_terrain_diagnostics(
         x = float(position[0])
         y = float(position[1])
         authored_z = float(position[2]) if len(position) > 2 else 0.0
-        footprint = scene_cad_footprints.get(name)
+        footprint = scene_cad_footprints.get(source_name)
         footprint_samples = _module_footprint_sample_points(part, x, y, footprint)
         sampled_points = []
         missing_samples = 0
@@ -679,6 +716,8 @@ def _build_module_terrain_diagnostics(
             out_of_bounds += 1
             modules[name] = {
                 "status": "out_of_terrain_bounds",
+                "source_module": source_name,
+                "prim_path": prim_path,
                 "position_xy_m": [round(x, 3), round(y, 3)],
                 "authored_z_m": round(authored_z, 3),
                 "placement_z_m": None,
@@ -707,6 +746,8 @@ def _build_module_terrain_diagnostics(
 
         modules[name] = {
             "status": "partial_footprint_out_of_bounds" if missing_samples else "ok",
+            "source_module": source_name,
+            "prim_path": prim_path,
             "position_xy_m": [round(x, 3), round(y, 3)],
             "authored_z_m": round(authored_z, 3),
             "placement_z_m": round(placement_z, 3),
@@ -1151,11 +1192,42 @@ def _split_route_name(route_name: str, part_names: set[str]) -> tuple[str | None
 def _movement_connections(
     system_json: dict[str, Any],
     waypoints_path: Path,
-) -> dict[str, dict[str, Any]]:
+    des_data: dict[str, Any],
+) -> dict[str, list[dict[str, Any]]]:
     part_names = _system_part_names(system_json)
     waypoint_routes = _route_names_from_waypoints(waypoints_path)
 
-    movement_routes: dict[str, dict[str, Any]] = {}
+    movement_routes: dict[str, list[dict[str, Any]]] = {
+        "Regolith": [],
+        "LOX": [],
+    }
+    scenario_builder = (
+        des_data.get("results", {})
+        .get("Scenario_Config", {})
+        .get("scenario_builder", {})
+    ) or system_json.get("scenario_logic", {})
+    for route in scenario_builder.get("resource_routes", []):
+        flow = route.get("flow")
+        if flow not in movement_routes:
+            continue
+        route_name = route.get("route_name") or (
+            f"{route.get('from')}To{route.get('to')}_{flow}"
+        )
+        if route_name not in waypoint_routes:
+            continue
+        movement_routes[flow].append({
+            "route_name": route_name,
+            "from_module": route.get("from"),
+            "to_module": route.get("to"),
+            "flow": flow,
+            "rover_id": route.get("rover_id"),
+            "stops": route.get("stops", []),
+            "distance_km": route.get("distance_km"),
+            "type": "ScenarioRoute",
+        })
+
+    # Compatibility fallback for manifests generated before instance-level
+    # resource routes were added to the scenario builder.
     for connection in system_json.get("connections", []):
         route_name = connection.get("name")
         flow = connection.get("flow")
@@ -1163,17 +1235,41 @@ def _movement_connections(
             continue
         if flow not in {"Regolith", "LOX"}:
             continue
+        if movement_routes[flow]:
+            continue
 
         from_module, to_module = _split_route_name(route_name, part_names)
-        movement_routes[flow] = {
+        movement_routes[flow].append({
             "route_name": route_name,
             "from_module": from_module or connection.get("from", {}).get("part"),
             "to_module": to_module or connection.get("to", {}).get("part"),
             "flow": flow,
+            "rover_id": None,
+            "distance_km": (connection.get("path") or {}).get("distance_km"),
             "type": connection.get("type"),
-        }
+        })
 
-    return movement_routes
+    return {flow: items for flow, items in movement_routes.items() if items}
+
+
+def _rover_scenario_id(des_data: dict[str, Any], rover_name: str, rover_type: str) -> str:
+    match = re.search(r"(\d+)$", rover_name)
+    index = int(match.group(1)) if match else 1
+    config = des_data.get("results", {}).get("Scenario_Config", {})
+    count_key = "regolith" if rover_type == "RegolithRover" else "lox"
+    count = int(config.get("rovers", {}).get(count_key, {}).get("count", 1) or 0)
+    return rover_type if count == 1 else f"{rover_type}_{index}"
+
+
+def _route_for_rover(
+    routes: list[dict[str, Any]],
+    rover_id: str,
+) -> dict[str, Any] | None:
+    assigned = next((route for route in routes if route.get("rover_id") == rover_id), None)
+    if assigned:
+        return assigned
+    unassigned = next((route for route in routes if not route.get("rover_id")), None)
+    return unassigned or (routes[0] if len(routes) == 1 else None)
 
 
 def _get_rover_names(des_data: dict[str, Any], prefix: str) -> list[str]:
@@ -1229,31 +1325,38 @@ def _final_rover_distance(des_data: dict[str, Any], rover_name: str) -> float:
 
 def _build_regolith_movements(
     des_data: dict[str, Any],
-    route: dict[str, Any],
+    routes: list[dict[str, Any]],
 ) -> list[dict[str, Any]]:
     inputs = des_data.get("inputs", {})
     scenario_config = des_data.get("results", {}).get("Scenario_Config", {})
     routes_config = scenario_config.get("routes", {})
     rover_config = scenario_config.get("rovers", {})
-    distance = float(routes_config.get("regolith_distance_km", inputs.get("Regolith_Haul_Distance", 0.0)))
     hours_per_km = float(rover_config.get("travel_time_hr_per_km", inputs.get("Rover_Travel_Time", 0.0)))
-    duration = distance * hours_per_km
     sim_end = _simulation_end_time(des_data)
 
-    if distance <= 0 or duration <= 0 or sim_end <= 0:
+    if sim_end <= 0:
         return []
 
     movements = []
     rover_names = _get_rover_names(des_data, "Regolith Cargo Rover")
 
     for rover_name in rover_names:
+        rover_id = _rover_scenario_id(des_data, rover_name, "RegolithRover")
+        route = _route_for_rover(routes, rover_id)
+        if not route:
+            continue
+        distance = float(
+            route.get("distance_km")
+            or routes_config.get("regolith_distance_km", inputs.get("Regolith_Haul_Distance", 0.0))
+        )
+        duration = distance * hours_per_km
         total_distance = _final_rover_distance(des_data, rover_name)
-        if total_distance <= 0:
+        if total_distance <= 0 or distance <= 0 or duration <= 0:
             continue
 
-        trip_count = max(1, int(math.ceil(total_distance / distance - 1e-9)))
-        for trip_idx in range(trip_count):
-            start_time = trip_idx * duration
+        leg_count = max(1, int(math.ceil(total_distance / distance - 1e-9)))
+        for leg_idx in range(leg_count):
+            start_time = leg_idx * duration
             if start_time > sim_end:
                 break
 
@@ -1265,6 +1368,7 @@ def _build_regolith_movements(
                 "to_module": route.get("to_module"),
                 "start_time": round(start_time, 3),
                 "end_time": round(end_time, 3),
+                "reverse": bool(leg_idx % 2),
                 "source": "des:Scenario_Config.routes.regolith_distance_km*rovers.travel_time_hr_per_km",
             })
 
@@ -1273,14 +1377,29 @@ def _build_regolith_movements(
 
 def _build_lox_movements(
     des_data: dict[str, Any],
-    route: dict[str, Any],
+    routes: list[dict[str, Any]],
 ) -> list[dict[str, Any]]:
     log_items = _sorted_log_items(des_data)
     if not log_items:
         return []
 
+    inputs = des_data.get("inputs", {})
+    scenario_config = des_data.get("results", {}).get("Scenario_Config", {})
+    routes_config = scenario_config.get("routes", {})
+    rover_config = scenario_config.get("rovers", {})
+    hours_per_km = float(rover_config.get("travel_time_hr_per_km", inputs.get("Rover_Travel_Time", 0.0)))
+    sim_end = _simulation_end_time(des_data)
     movements = []
     for rover_name in _get_rover_names(des_data, "LOX Cargo Rover"):
+        rover_id = _rover_scenario_id(des_data, rover_name, "LOXRover")
+        route = _route_for_rover(routes, rover_id)
+        if not route:
+            continue
+        distance = float(
+            route.get("distance_km")
+            or routes_config.get("lox_distance_km", inputs.get("LOX_Haul_Distance", 0.0))
+        )
+        return_duration = distance * hours_per_km
         in_motion = False
         start_time = None
 
@@ -1300,8 +1419,21 @@ def _build_lox_movements(
                     "to_module": route.get("to_module"),
                     "start_time": round(start_time, 3),
                     "end_time": round(t, 3),
+                    "reverse": False,
                     "source": "des:LOX rover load episode",
                 })
+                return_end = min(t + return_duration, sim_end)
+                if return_duration > 0 and return_end > t:
+                    movements.append({
+                        "actor_id": rover_name,
+                        "route_name": route["route_name"],
+                        "from_module": route.get("to_module"),
+                        "to_module": route.get("from_module"),
+                        "start_time": round(t, 3),
+                        "end_time": round(return_end, 3),
+                        "reverse": True,
+                        "source": "des:LOX rover empty return",
+                    })
                 in_motion = False
                 start_time = None
 
@@ -1313,6 +1445,7 @@ def _build_lox_movements(
                 "to_module": route.get("to_module"),
                 "start_time": round(start_time, 3),
                 "end_time": round(log_items[-1][0], 3),
+                "reverse": False,
                 "source": "des:LOX rover load episode",
             })
 
@@ -1321,10 +1454,22 @@ def _build_lox_movements(
 
 def _actor_prim_path(actor_id: str) -> str:
     if actor_id.startswith("Regolith Cargo Rover"):
-        return "/World/RegolithRover"
-    if actor_id == "LOX Cargo Rover":
-        return "/World/LOXRover"
+        match = re.search(r"(\d+)$", actor_id)
+        index = int(match.group(1)) if match else 1
+        return "/World/RegolithRover" if index == 1 else f"/World/RegolithRover_{index}"
+    if actor_id.startswith("LOX Cargo Rover"):
+        match = re.search(r"(\d+)$", actor_id)
+        index = int(match.group(1)) if match else 1
+        return "/World/LOXRover" if index == 1 else f"/World/LOXRover_{index}"
     return f"/World/{actor_id.replace(' ', '_')}"
+
+
+def _actor_source_prim_path(actor_id: str) -> str:
+    if actor_id.startswith("Regolith Cargo Rover"):
+        return "/World/RegolithRover"
+    if actor_id.startswith("LOX Cargo Rover"):
+        return "/World/LOXRover"
+    return _actor_prim_path(actor_id)
 
 
 def _actor_label(actor_id: str) -> str:
@@ -1352,16 +1497,16 @@ def build_manifest(
 
     system_json = _load_json(system_json_path)
     des_data = _load_json(des_json_path)
-    routes = _movement_connections(system_json, waypoints_usd_path)
+    routes = _movement_connections(system_json, waypoints_usd_path, des_data)
 
     all_movements: list[dict[str, Any]] = []
     warnings: list[str] = []
-    if "Regolith" in routes:
+    if routes.get("Regolith"):
         regolith_movements = _build_regolith_movements(des_data, routes["Regolith"])
         all_movements.extend(regolith_movements)
         if not regolith_movements:
             warnings.append("No regolith rover movements were generated from the DES output.")
-    if "LOX" in routes:
+    if routes.get("LOX"):
         lox_movements = _build_lox_movements(des_data, routes["LOX"])
         all_movements.extend(lox_movements)
         if not lox_movements:
@@ -1374,6 +1519,7 @@ def build_manifest(
             "id": actor_id,
             "label": _actor_label(actor_id),
             "prim_path": _actor_prim_path(actor_id),
+            "source_prim_path": _actor_source_prim_path(actor_id),
             "dashboard_fields": DEFAULT_DASHBOARD_FIELDS,
             "movements": [],
         })

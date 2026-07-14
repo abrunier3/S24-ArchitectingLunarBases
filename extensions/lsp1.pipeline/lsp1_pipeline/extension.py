@@ -157,6 +157,8 @@ class LSP1PipelineExtension(omni.ext.IExt):
 
             self._normalize_des_log()
             self._open_scene_stage(scene_path)
+            self._ensure_actor_prims()
+            self._ensure_module_instance_prims()
             self._load_waypoints_under_world()
             self._load_terrain_model()
             self._apply_module_terrain_projection()
@@ -256,6 +258,77 @@ class LSP1PipelineExtension(omni.ext.IExt):
 
         omni.usd.get_context().open_stage(scene_path.replace("\\", "/"))
 
+    def _ensure_actor_prims(self):
+        """Create one referenced scene prim for every simulated rover instance."""
+        try:
+            import omni.usd
+            from pxr import UsdGeom
+
+            stage = omni.usd.get_context().get_stage()
+            if not stage:
+                return
+
+            for actor in self.actors:
+                prim_path = actor.get("prim_path")
+                source_path = actor.get("source_prim_path", prim_path)
+                if not prim_path or not source_path or prim_path == source_path:
+                    continue
+
+                source_prim = stage.GetPrimAtPath(source_path)
+                if not source_prim or not source_prim.IsValid():
+                    print(
+                        "[LSP1 Pipeline] Cannot create actor instance; source prim missing:",
+                        source_path,
+                    )
+                    continue
+
+                existing = stage.GetPrimAtPath(prim_path)
+                if existing and existing.IsValid():
+                    stage.RemovePrim(prim_path)
+
+                actor_xform = UsdGeom.Xform.Define(stage, prim_path)
+                actor_xform.GetPrim().GetReferences().AddInternalReference(source_path)
+                print(
+                    "[LSP1 Pipeline] Created actor instance:",
+                    prim_path,
+                    "from",
+                    source_path,
+                )
+        except Exception as exc:
+            print("[LSP1 Pipeline] Actor instance creation failed:", repr(exc))
+
+    def _ensure_module_instance_prims(self):
+        """Reference the source CAD prim for each additional placed instance."""
+        try:
+            import omni.usd
+            from pxr import UsdGeom
+
+            stage = omni.usd.get_context().get_stage()
+            if not stage:
+                return
+            modules = (
+                self.manifest.get("terrain_projection", {})
+                .get("modules", {})
+                .get("modules", {})
+            )
+            for module_name, info in modules.items():
+                prim_path = info.get("prim_path", f"/World/{module_name}")
+                source_path = f"/World/{info.get('source_module', module_name)}"
+                if prim_path == source_path:
+                    continue
+                source_prim = stage.GetPrimAtPath(source_path)
+                if not source_prim or not source_prim.IsValid():
+                    print("[LSP1 Pipeline] Module source prim missing:", source_path)
+                    continue
+                existing = stage.GetPrimAtPath(prim_path)
+                if existing and existing.IsValid():
+                    stage.RemovePrim(prim_path)
+                instance_xform = UsdGeom.Xform.Define(stage, prim_path)
+                instance_xform.GetPrim().GetReferences().AddInternalReference(source_path)
+                print("[LSP1 Pipeline] Created module instance:", prim_path)
+        except Exception as exc:
+            print("[LSP1 Pipeline] Module instance creation failed:", repr(exc))
+
     def _load_terrain_model(self):
         try:
             import omni.usd
@@ -336,7 +409,7 @@ class LSP1PipelineExtension(omni.ext.IExt):
                 if terrain_z is None:
                     continue
 
-                prim = stage.GetPrimAtPath(f"/World/{module_name}")
+                prim = stage.GetPrimAtPath(info.get("prim_path", f"/World/{module_name}"))
                 if not prim or not prim.IsValid():
                     continue
 
@@ -352,9 +425,9 @@ class LSP1PipelineExtension(omni.ext.IExt):
                 if translate_op is None:
                     translate_op = xformable.AddTranslateOp()
 
-                current = translate_op.Get()
-                x = float(current[0]) if current is not None else 0.0
-                y = float(current[1]) if current is not None else 0.0
+                position_xy = info.get("position_xy_m") or [0.0, 0.0]
+                x = float(position_xy[0])
+                y = float(position_xy[1])
                 translate_op.Set(Gf.Vec3d(x, y, float(terrain_z)))
 
                 rotation = info.get("placement_rotation_deg")
@@ -705,11 +778,19 @@ class LSP1PipelineExtension(omni.ext.IExt):
                 else:
                     progress = (des_time - start_time) / (end_time - start_time)
 
+                reverse = bool(movement.get("reverse", False)) if movement else False
+                if reverse:
+                    progress = 1.0 - progress
+
                 route_rotation = None
                 if poses:
                     pos, tangent, route_rotation = self._sample_route_pose(poses, progress)
                 else:
                     pos, tangent = self._sample_polyline_pose(points, progress)
+
+                if reverse and tangent:
+                    tangent = [-float(value) for value in tangent]
+                    route_rotation = None
 
                 prim = stage.GetPrimAtPath(prim_path)
                 if not prim or not prim.IsValid():

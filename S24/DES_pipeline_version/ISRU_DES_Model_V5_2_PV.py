@@ -24,7 +24,12 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 
 from S24.DES_pipeline_version.ISRUPlant import ISRUPlant
 from S24.DES_pipeline_version.SolarPowerSystem import SolarPowerSystem
-from S24.DES_pipeline_version.PowerManager import PowerManager
+from S24.DES_pipeline_version.PowerManager import (
+    EquationPowerConsumer,
+    PowerManager,
+    PowerModelConsumer,
+    StaticPowerConsumer,
+)
 from S24.DES_pipeline_version.HabitationModule import HabitationModule
 from S24.DES_pipeline_version.CommunicationModule import CommunicationModule
 from S24.DES_pipeline_version.LunarRover import LunarRover
@@ -33,8 +38,10 @@ from S24.DES_pipeline_version.LandingLaunchZone import LandingLaunchZone
 from S24.DES_pipeline_version.ImportUtility import data_from_json
 from S24.DES_pipeline_version.LoggingManager import LoggingManager
 from S24.DES_pipeline_version.scenario_config import load_scenario_config
+from S24.DES_pipeline_version.scenario_equations import evaluate_equations
 import json
 import time
+import re
 
 
 def test_function():
@@ -66,6 +73,155 @@ def _least_filled_regolith_target(targets, rover_load):
     )
 
 
+class RegolithSourceRuntime:
+    def __init__(self, system, name, attributes, equations):
+        self.system = system
+        self.name = name
+        self.attributes = dict(attributes)
+        self.equations = equations or ""
+        self.totalEnergyConsumed = 0.0
+        self.pendingPowerDemand = 0.0
+        self.lastEquationOutputs = {}
+        self.lastRequestedRegolith = 0.0
+
+    def produce(self, requested_kg, simulation_time):
+        self.lastRequestedRegolith = float(requested_kg)
+        context = {
+            key: value for key, value in self.attributes.items()
+            if isinstance(value, (int, float)) and not isinstance(value, bool)
+        }
+        context.update({
+            "SimulationTime": float(simulation_time),
+            "RequestedRegolith": float(requested_kg),
+            "RegolithOut": float(requested_kg),
+            "PowerIn": 0.0,
+            "EnergyConsumed": 0.0,
+        })
+        outputs = evaluate_equations(
+            self.equations,
+            context,
+            effect_outputs={"RegolithOut", "PowerIn", "EnergyConsumed"},
+        )
+        self.lastEquationOutputs = outputs
+        produced = outputs.get("RegolithOut", requested_kg)
+        energy = outputs.get("EnergyConsumed", 0.0)
+        if produced < 0:
+            raise RuntimeError(f"{self.name}: RegolithOut cannot be negative")
+        if energy < 0:
+            raise RuntimeError(f"{self.name}: EnergyConsumed cannot be negative")
+        self.totalEnergyConsumed += energy
+        self.pendingPowerDemand += energy
+        return produced
+
+    def getCurrentPowerDemand(self, dt):
+        context = {
+            key: value for key, value in self.attributes.items()
+            if isinstance(value, (int, float)) and not isinstance(value, bool)
+        }
+        context.update({
+            "SimulationTime": float(self.system.now),
+            "RequestedRegolith": self.lastRequestedRegolith,
+            "RegolithOut": self.lastRequestedRegolith,
+            "PowerIn": 0.0,
+            "EnergyConsumed": 0.0,
+        })
+        outputs = evaluate_equations(
+            self.equations,
+            context,
+            effect_outputs={"RegolithOut", "PowerIn", "EnergyConsumed"},
+        )
+        continuous_energy = outputs.get("PowerIn", 0.0) * dt
+        if continuous_energy < 0:
+            raise RuntimeError(f"{self.name}: PowerIn cannot be negative")
+        demand = self.pendingPowerDemand + continuous_energy
+        self.pendingPowerDemand = 0.0
+        self.totalEnergyConsumed += continuous_energy
+        return demand
+
+    def getLoggingAttributes(self):
+        return {
+            "Name": self.name,
+            "total_energy_consumed": self.totalEnergyConsumed,
+            "scenario_equation_outputs": self.lastEquationOutputs,
+        }
+
+
+class PropellantDepotRuntime:
+    def __init__(self, system, name, attributes, equations):
+        self.system = system
+        self.name = name
+        self.attributes = dict(attributes)
+        self.equations = equations or ""
+        self.loxStored = 0.0
+        self.totalEnergyConsumed = 0.0
+        self.pendingEventEnergy = 0.0
+        self.lastEquationOutputs = {}
+
+    def _evaluate(self, lox_in, dt):
+        context = {
+            key: value for key, value in self.attributes.items()
+            if isinstance(value, (int, float)) and not isinstance(value, bool)
+        }
+        context.update({
+            "SimulationTime": float(self.system.now),
+            "dt": float(dt),
+            "LOXIn": float(lox_in),
+            "LOXStored": float(self.loxStored),
+            "PowerIn": 0.0,
+            "EnergyConsumed": 0.0,
+        })
+        outputs = evaluate_equations(
+            self.equations,
+            context,
+            effect_outputs={"LOXIn", "LOXStored", "PowerIn", "EnergyConsumed"},
+        )
+        self.lastEquationOutputs = outputs
+        return outputs
+
+    def receiveLOX(self, amount):
+        outputs = self._evaluate(amount, 0.0)
+        accepted = outputs.get("LOXIn", amount)
+        if accepted < 0 or accepted > amount:
+            raise RuntimeError(f"{self.name}: LOXIn must be between 0 and delivered LOX")
+        self.loxStored = outputs.get("LOXStored", self.loxStored + accepted)
+        if self.loxStored < 0:
+            raise RuntimeError(f"{self.name}: LOXStored cannot be negative")
+        event_energy = outputs.get("EnergyConsumed", 0.0)
+        if event_energy < 0:
+            raise RuntimeError(f"{self.name}: EnergyConsumed cannot be negative")
+        self.totalEnergyConsumed += event_energy
+        self.pendingEventEnergy += event_energy
+        print(
+            f"[{self.system.now:.2f} hr] {self.name}: Received {accepted:.2f} kg LOX "
+            f"(Total stored: {self.loxStored:.2f} kg)"
+        )
+
+    def getCurrentPowerDemand(self, dt):
+        outputs = self._evaluate(0.0, dt)
+        if "LOXStored" in outputs:
+            if outputs["LOXStored"] < 0:
+                raise RuntimeError(f"{self.name}: LOXStored cannot be negative")
+            self.loxStored = outputs["LOXStored"]
+        if "PowerIn" in outputs:
+            continuous_demand = outputs["PowerIn"] * dt
+        else:
+            continuous_demand = 0.0
+        demand = continuous_demand + self.pendingEventEnergy
+        self.pendingEventEnergy = 0.0
+        if demand < 0:
+            raise RuntimeError(f"{self.name}: PowerIn cannot be negative")
+        self.totalEnergyConsumed += continuous_demand
+        return demand
+
+    def getLoggingAttributes(self):
+        return {
+            "Name": self.name,
+            "LOX_Stored": self.loxStored,
+            "total_energy_consumed": self.totalEnergyConsumed,
+            "scenario_equation_outputs": self.lastEquationOutputs,
+        }
+
+
 def regolithRoverController(system, plant_targets, rover_load, rover: LunarRover, poll_dt=0.1):
     """Dispatch a shared rover to the least-filled eligible ISRU plant."""
     while True:
@@ -74,18 +230,48 @@ def regolithRoverController(system, plant_targets, rover_load, rover: LunarRover
             yield system.timeout(poll_dt)
             continue
 
-        target["reserved_inbound_kg"] += rover_load
+        source = target["source"]
+        source_output = min(
+            rover_load,
+            source.produce(rover_load, system.now),
+            rover.maxCapacity,
+        )
+        if source_output <= 0:
+            yield system.timeout(poll_dt)
+            continue
+
+        target["reserved_inbound_kg"] += source_output
+        reservation_active = True
         try:
-            rover.loadCargo(rover_load)
-            yield system.process(rover.travel(target["distance_km"]))
-            delivered = rover.unloadCargo()
+            rover.loadCargo(source_output)
+            outbound_outputs = rover.evaluateTransport(
+                "Regolith", source_output, target["distance_km"]
+            )
+            yield system.process(rover.travel(target["distance_km"], outbound_outputs))
+            unloaded = rover.unloadCargo()
+            delivered = outbound_outputs.get("RegolithOut", unloaded)
+            if delivered < 0 or delivered > unloaded:
+                raise RuntimeError(
+                    f"{rover.name}: RegolithOut must be between 0 and RegolithIn"
+                )
             yield target["buffer"].put(delivered)
+            target["reserved_inbound_kg"] -= source_output
+            reservation_active = False
             print(
                 f"[{system.now:.2f} hr] {rover.name} delivered {delivered:.2f} kg regolith "
                 f"to {target['instance_id']} (input inventory: {target['buffer'].level:.2f} kg)"
             )
+            return_outputs = rover.evaluateTransport(
+                "Regolith", 0.0, target["distance_km"]
+            )
+            yield system.process(rover.travel(target["distance_km"], return_outputs))
+            print(
+                f"[{system.now:.2f} hr] {rover.name} returned empty from "
+                f"{target['instance_id']} to its regolith loading point"
+            )
         finally:
-            target["reserved_inbound_kg"] -= rover_load
+            if reservation_active:
+                target["reserved_inbound_kg"] -= source_output
 
 # -------------------------------------------------
 # Plant Controller
@@ -118,13 +304,54 @@ def _module_equations(scenario_builder, instance_id, module_type):
     return equations.get(instance_id, equations.get(module_type, ""))
 
 
-def _resource_route_distance(scenario_builder, flow, target_id, fallback):
+def _module_power_model(scenario_config, instance_id, module_type):
+    models = scenario_config.get("power", {}).get("module_models", {})
+    return models.get(instance_id, models.get(module_type))
+
+
+def _base_instance_type(instance_id):
+    return re.sub(r"_\d+$", "", str(instance_id or ""))
+
+
+def _resource_route(scenario_builder, flow, target_id):
     routes = [
         route for route in scenario_builder.get("resource_routes", [])
         if str(route.get("flow", "")).lower() == flow.lower()
     ]
     direct = next((route for route in routes if route.get("to") == target_id), None)
-    route = direct or (routes[0] if len(routes) == 1 else None)
+    return direct or (routes[0] if len(routes) == 1 else None)
+
+
+def _resource_route_from(scenario_builder, flow, source_id):
+    routes = [
+        route for route in scenario_builder.get("resource_routes", [])
+        if str(route.get("flow", "")).lower() == flow.lower()
+    ]
+    direct = next((route for route in routes if route.get("from") == source_id), None)
+    return direct or (routes[0] if len(routes) == 1 else None)
+
+
+def _resource_routes_for_rover(scenario_builder, flow, rover_id):
+    routes = [
+        route for route in scenario_builder.get("resource_routes", [])
+        if str(route.get("flow", "")).lower() == flow.lower()
+    ]
+    assigned = [route for route in routes if route.get("rover_id") == rover_id]
+    if assigned:
+        return assigned
+    return [route for route in routes if not route.get("rover_id")]
+
+
+def _has_assigned_resource_routes(scenario_builder, flow):
+    return any(
+        route.get("rover_id")
+        for route in scenario_builder.get("resource_routes", [])
+        if str(route.get("flow", "")).lower() == flow.lower()
+    )
+
+
+def _resource_route_distance(scenario_builder, flow, target_id, fallback):
+    route = _resource_route(scenario_builder, flow, target_id)
     if not route:
         return fallback
     try:
@@ -148,8 +375,9 @@ def LOXStorageEnergy(system, plant, dt=1.0, energyCoeff=0.31):
         plant.recordEnergyDemand(storageEnergy)
 
 def LOXDeliveryController(system, plant: ISRUPlant, roverStore: simpy.Store,
-                          landingZone: LandingLaunchZone,
-                          distance, transportThreshold, poll_dt=1.0):
+                          destination,
+                          distance, transportThreshold, poll_dt=1.0,
+                          assignedRoverId=None):
     """
     Per-plant LOX delivery controller (first-come-first-served).
 
@@ -164,22 +392,33 @@ def LOXDeliveryController(system, plant: ISRUPlant, roverStore: simpy.Store,
             print(f"[{system.now:.2f} hr] {plant.name} reached threshold "
                   f"({plant.LOXStored:.2f} kg LOX). Queuing for LOX rover.")
 
-            rover = yield roverStore.get()
+            rover = yield (
+                roverStore.get(lambda candidate: getattr(candidate, "instanceId", None) == assignedRoverId)
+                if assignedRoverId else roverStore.get()
+            )
             try:
-                # Rover has arrived: snapshot and clear LOX now, picking up
-                # everything the plant has produced up to this moment.
-                LOXToTransport = plant.LOXStored
-                plant.LOXStored = 0
+                # Rover has arrived: load up to its payload capacity and leave
+                # any excess inventory at the plant for a later trip.
+                LOXToTransport = min(plant.LOXStored, rover.maxCapacity)
+                plant.LOXStored -= LOXToTransport
                 print(f"[{system.now:.2f} hr] {plant.name} acquired {rover.name}, "
                       f"beginning delivery of {LOXToTransport:.2f} kg.")
                 rover.loadCargo(LOXToTransport)
-                yield system.process(rover.travel(distance))
-                rover.unloadCargo()
-                landingZone.receiveLOX(LOXToTransport)
+                outbound_outputs = rover.evaluateTransport("LOX", LOXToTransport, distance)
+                yield system.process(rover.travel(distance, outbound_outputs))
+                unloaded = rover.unloadCargo()
+                delivered = outbound_outputs.get("LOXOut", unloaded)
+                if delivered < 0 or delivered > unloaded:
+                    raise RuntimeError(f"{rover.name}: LOXOut must be between 0 and LOXIn")
+                plant.LOXStored += unloaded - delivered
+                destination.receiveLOX(delivered)
                 print(f"[{system.now:.2f} hr] {plant.name} delivered "
-                      f"{LOXToTransport:.2f} kg LOX to {landingZone.name} "
-                      f"(total there: {landingZone.loxStored:.2f} kg). "
-                      f"{rover.name} released.")
+                      f"{delivered:.2f} kg LOX to {destination.name} "
+                      f"(total there: {destination.loxStored:.2f} kg). "
+                      f"{rover.name} beginning empty return.")
+                return_outputs = rover.evaluateTransport("LOX", 0.0, distance)
+                yield system.process(rover.travel(distance, return_outputs))
+                print(f"[{system.now:.2f} hr] {rover.name} returned empty to {plant.name}.")
             finally:
                 yield roverStore.put(rover)
 
@@ -368,6 +607,27 @@ def run_scenario(optionsDict):
     # Experiment data -----------------------------------------
     experiment = "ISRU Processing Plant – Active Nodes: " + ", ".join(sorted(active_nodes))
     scenario_builder = scenario_config.get("scenario_builder", {})
+    supported_equation_modules = {
+        "ISRUPlant",
+        "ISRUExcavation",
+        "RegolithRover",
+        "LOXRover",
+        "SolarPowerSystem",
+        "HabitationModule",
+        "CommunicationModule",
+        "LaunchLandingZone",
+        "PropellantDepot",
+    }
+    unsupported_equations = [
+        module_id for module_id, equations in scenario_builder.get("module_equations", {}).items()
+        if str(equations or "").strip()
+        and _base_instance_type(module_id) not in supported_equation_modules
+    ]
+    if unsupported_equations:
+        raise ValueError(
+            "No DES equation runtime exists for module(s): "
+            + ", ".join(sorted(unsupported_equations))
+        )
     regolith_config = scenario_config["regolith"]
     rover_load = float(regolith_config.get(
         "rover_load_kg",
@@ -399,18 +659,40 @@ def run_scenario(optionsDict):
 
     # ---- ISRU Plants (always present — enforced above) ------
     isruPlantData = data_from_json("ISRUV2.json")['ISRUPlant']
+    excavationData = data_from_json("ISRUExcavation.json")['ISRUExcavation']
+    plant_attributes = dict(isruPlantData.raw['attributes'])
+    plant_attributes.setdefault(
+        "excavationEnergyCoeff",
+        excavationData.raw.get('attributes', {}).get("excavationEnergyCoeff", 0.0),
+    )
     plant_instances = _scenario_instances(scenario_builder, "ISRUPlant", num_isru_plants)
     num_isru_plants = len(plant_instances)
     if num_isru_plants < 1:
         raise ValueError("At least one ISRU plant is required by the current ISRU process")
     plants = []
     plant_targets = []
+    regolith_sources = {}
     for i, instance in enumerate(plant_instances):
         instance_id = instance["id"]
+        route = _resource_route(scenario_builder, "Regolith", instance_id)
+        source_instance_id = (route or {}).get("from", "ISRUExcavation")
+        if source_instance_id not in regolith_sources:
+            source = RegolithSourceRuntime(
+                system,
+                source_instance_id,
+                excavationData.raw['attributes'],
+                _module_equations(
+                    scenario_builder,
+                    source_instance_id,
+                    "ISRUExcavation",
+                ),
+            )
+            regolith_sources[source_instance_id] = source
+            logger.add(source)
         p = ISRUPlant(
             system,
             f"ISRU_Plant_{i+1}",
-            isruPlantData.raw['attributes'],
+            plant_attributes,
             equations=_module_equations(scenario_builder, instance_id, "ISRUPlant"),
         )
         p.instanceId = instance_id
@@ -422,6 +704,7 @@ def run_scenario(optionsDict):
             "plant": p,
             "buffer": simpy.Container(system, capacity=plant_input_capacity),
             "reserved_inbound_kg": 0.0,
+            "source": regolith_sources[source_instance_id],
             "distance_km": _resource_route_distance(
                 scenario_builder,
                 "Regolith",
@@ -437,11 +720,37 @@ def run_scenario(optionsDict):
         solarPowerSystemData = data_from_json("SolarPowerSystemV1.json")['SolarPowerSystem']
         solarSystem = SolarPowerSystem(system, "Solar_Power_System", solarPowerSystemData.raw['attributes'])
         logger.add(solarSystem)
-        powerManager = PowerManager(system, solarSystem)
+        powerManager = PowerManager(
+            system,
+            solarSystem,
+            generationEquations=_module_equations(
+                scenario_builder,
+                "SolarPowerSystem",
+                "SolarPowerSystem",
+            ),
+        )
         logger.add(powerManager)
+        registered_power_model_ids = set()
+
+        def register_power_consumer(consumer, instance_id, module_type):
+            model = _module_power_model(scenario_config, instance_id, module_type)
+            if model:
+                consumer = PowerModelConsumer(consumer, model)
+                model_keys = scenario_config.get("power", {}).get("module_models", {})
+                registered_power_model_ids.add(
+                    instance_id if instance_id in model_keys else module_type
+                )
+            powerManager.registerConsumer(consumer)
+            return consumer
+
         # Register ISRU plants with power manager
         for p in plants:
-            powerManager.registerConsumer(p)
+            register_power_consumer(p, p.instanceId, "ISRUPlant")
+        for source in regolith_sources.values():
+            register_power_consumer(source, source.name, "ISRUExcavation")
+    else:
+        registered_power_model_ids = set()
+        register_power_consumer = None
 
     # ---- Habitation Module (optional) -----------------------
     habitat = None
@@ -451,10 +760,15 @@ def run_scenario(optionsDict):
         habitat_power_kw = continuous_power.get("habitation")
         if habitat_power_kw is not None:
             habitat.setConstantPowerRate(float(habitat_power_kw))
+        if _module_power_model(scenario_config, "HabitationModule", "HabitationModule"):
+            habitat.setConstantPowerRate(0.0)
         for spike in scenario_config["power"]["spikes"].get("habitation", []):
             habitat.scheduleSpike(spike["time_hr"], spike["energy_kwh"])
         if powerManager:
-            powerManager.registerConsumer(habitat)
+            register_power_consumer(EquationPowerConsumer(
+                habitat,
+                _module_equations(scenario_builder, "HabitationModule", "HabitationModule"),
+            ), "HabitationModule", "HabitationModule")
         logger.add(habitat)
 
     # ---- Communication Module (optional) --------------------
@@ -465,10 +779,15 @@ def run_scenario(optionsDict):
         comms_power_kw = continuous_power.get("communications")
         if comms_power_kw is not None:
             comms.setConstantPowerRate(float(comms_power_kw))
+        if _module_power_model(scenario_config, "CommunicationModule", "CommunicationModule"):
+            comms.setConstantPowerRate(0.0)
         for spike in scenario_config["power"]["spikes"].get("communications", []):
             comms.scheduleSpike(spike["time_hr"], spike["energy_kwh"])
         if powerManager:
-            powerManager.registerConsumer(comms)
+            register_power_consumer(EquationPowerConsumer(
+                comms,
+                _module_equations(scenario_builder, "CommunicationModule", "CommunicationModule"),
+            ), "CommunicationModule", "CommunicationModule")
         logger.add(comms)
 
     # ---- Landing / Launch Zone (optional) -------------------
@@ -482,21 +801,58 @@ def run_scenario(optionsDict):
         landing_chilling_kw_per_kg = scenario_config["power"].get("landing_zone_chilling_kw_per_kg")
         if landing_chilling_kw_per_kg is not None:
             landingZone.chillingPowerPerKgLOX = float(landing_chilling_kw_per_kg)
+        if _module_power_model(scenario_config, "LaunchLandingZone", "LaunchLandingZone"):
+            landingZone.utilitiesPowerRate = 0.0
+            landingZone.chillingPowerPerKgLOX = 0.0
         for spike in scenario_config["power"]["spikes"].get("landing_zone", []):
             landingZone.scheduleSpike(spike["time_hr"], spike["energy_kwh"])
         if powerManager:
-            powerManager.registerConsumer(landingZone)
+            register_power_consumer(EquationPowerConsumer(
+                landingZone,
+                _module_equations(scenario_builder, "LaunchLandingZone", "LaunchLandingZone"),
+            ), "LaunchLandingZone", "LaunchLandingZone")
         logger.add(landingZone)
+
+    # ---- Propellant depots selected as LOX destinations -----
+    propellant_depots = {}
+    depot_instances = _scenario_instances(scenario_builder, "PropellantDepot", 0)
+    if depot_instances:
+        propellantDepotData = data_from_json("PropellantDepot.json")['PropellantDepot']
+        for instance in depot_instances:
+            depot = PropellantDepotRuntime(
+                system,
+                instance["id"],
+                propellantDepotData.raw['attributes'],
+                _module_equations(
+                    scenario_builder,
+                    instance["id"],
+                    "PropellantDepot",
+                ),
+            )
+            propellant_depots[instance["id"]] = depot
+            if powerManager:
+                register_power_consumer(depot, instance["id"], "PropellantDepot")
+            logger.add(depot)
 
     # ---- Rovers (regolith always present; LOX optional) -----
     roverData = data_from_json("RoverV1.json")['Rover']
 
     regolithCargoRovers = []
     for i in range(num_regolith_rovers):
+        instance_id = (
+            "RegolithRover"
+            if num_regolith_rovers == 1
+            else f"RegolithRover_{i+1}"
+        )
         r = LunarRover(system, name=f"Regolith Cargo Rover {i+1}", roverType="cargo",
-                       attributeDict=roverData.raw['attributes'])
+                       attributeDict=roverData.raw['attributes'],
+                       equations=_module_equations(
+                           scenario_builder, instance_id, "RegolithRover"
+                       ))
+        r.instanceId = instance_id
         r.energyPerKmPerKg = scenario_config["rovers"]["energy_kwh_per_km_per_kg"]
         r.hoursPerKm       = scenario_config["rovers"]["travel_time_hr_per_km"]
+        r.maxCapacity      = float(scenario_config["rovers"].get("max_capacity_kg", r.maxCapacity))
         logger.add(r)
         regolithCargoRovers.append(r)
 
@@ -522,10 +878,16 @@ def run_scenario(optionsDict):
     chargingStation = None
     if use_lox_rover:
         for i in range(num_lox_rovers):
+            instance_id = "LOXRover" if num_lox_rovers == 1 else f"LOXRover_{i+1}"
             r = LunarRover(system, name=f"LOX Cargo Rover {i+1}", roverType="cargo",
-                           attributeDict=roverData.raw['attributes'])
+                           attributeDict=roverData.raw['attributes'],
+                           equations=_module_equations(
+                               scenario_builder, instance_id, "LOXRover"
+                           ))
+            r.instanceId = instance_id
             r.energyPerKmPerKg = scenario_config["rovers"]["energy_kwh_per_km_per_kg"]
             r.hoursPerKm       = scenario_config["rovers"]["travel_time_hr_per_km"]
+            r.maxCapacity      = float(scenario_config["rovers"].get("max_capacity_kg", r.maxCapacity))
             logger.add(r)
             LOXCargoRovers.append(r)
 
@@ -545,6 +907,18 @@ def run_scenario(optionsDict):
                 powerManager.registerConsumer(chargingStation)
             logger.add(chargingStation)
 
+    # Any remaining Step 5 module model becomes an explicit grid consumer.
+    # This keeps power models functional even when a module has no dedicated
+    # Python class in the current ISRU engine.
+    if powerManager:
+        for model_id, model in scenario_config.get("power", {}).get("module_models", {}).items():
+            if model_id in registered_power_model_ids:
+                continue
+            consumer = StaticPowerConsumer(system, f"{model_id} Power Load")
+            powerManager.registerConsumer(PowerModelConsumer(consumer, model))
+            logger.add(consumer)
+            registered_power_model_ids.add(model_id)
+
     # ---- Haul distances / thresholds ------------------------
     regolith_haul_distance = scenario_config["routes"]["regolith_distance_km"]
     LOX_haul_distance      = scenario_config["routes"]["lox_distance_km"]
@@ -556,9 +930,33 @@ def run_scenario(optionsDict):
 
     # Regolith rovers (always active)
     for r in regolithCargoRovers:
+        assigned_routes = _resource_routes_for_rover(
+            scenario_builder, "Regolith", r.instanceId
+        )
+        rover_targets = []
+        for route in assigned_routes:
+            target = next(
+                (item for item in plant_targets if item["instance_id"] == route.get("to")),
+                None,
+            )
+            if target is None:
+                raise ValueError(
+                    f"Regolith route assigned to {r.instanceId} targets unknown plant "
+                    f"{route.get('to')!r}"
+                )
+            routed_target = dict(target)
+            if route.get("distance_km") is not None:
+                routed_target["distance_km"] = float(route["distance_km"])
+            rover_targets.append(routed_target)
+
+        if not assigned_routes and not _has_assigned_resource_routes(
+            scenario_builder, "Regolith"
+        ):
+            rover_targets = plant_targets
+
         system.process(regolithRoverController(
             system,
-            plant_targets,
+            rover_targets,
             rover_load,
             r,
             poll_dt=regolith_dispatch_poll_dt,
@@ -575,17 +973,42 @@ def run_scenario(optionsDict):
             energyCoeff=scenario_config["isru"]["lox_storage_energy_kwh_per_kg_hr"],
         ))
 
-    # LOX delivery: only when both the rover AND a landing zone destination exist
-    if use_lox_rover and use_landing_zone and LOXCargoRovers and landingZone:
-        LOXRoverStore = simpy.Store(system, capacity=len(LOXCargoRovers))
+    # LOX delivery to the destination selected in the Step 4 resource route.
+    if use_lox_rover and LOXCargoRovers and (landingZone or propellant_depots):
+        known_lox_rover_ids = {rover.instanceId for rover in LOXCargoRovers}
+        LOXRoverStore = simpy.FilterStore(system, capacity=len(LOXCargoRovers))
         for r in LOXCargoRovers:
             LOXRoverStore.items.append(r)
         for p in plants:
+            route = _resource_route_from(scenario_builder, "LOX", p.instanceId)
+            assigned_rover_id = (route or {}).get("rover_id")
+            if assigned_rover_id and assigned_rover_id not in known_lox_rover_ids:
+                raise ValueError(
+                    f"LOX route from {p.instanceId} references unknown rover "
+                    f"{assigned_rover_id!r}; available rovers: "
+                    f"{sorted(known_lox_rover_ids)}"
+                )
+            destination_id = (route or {}).get("to", "LaunchLandingZone")
+            destination_type = _base_instance_type(destination_id)
+            if destination_type == "PropellantDepot":
+                destination = propellant_depots.get(destination_id)
+                if destination is None and len(propellant_depots) == 1:
+                    destination = next(iter(propellant_depots.values()))
+            else:
+                destination = landingZone
+            if destination is None:
+                raise ValueError(
+                    f"No DES destination object exists for LOX route target {destination_id!r}"
+                )
+            route_distance = LOX_haul_distance
+            if route and route.get("distance_km") is not None:
+                route_distance = float(route["distance_km"])
             system.process(LOXDeliveryController(
                 system, p, LOXRoverStore,
-                landingZone, distance=LOX_haul_distance,
+                destination, distance=route_distance,
                 transportThreshold=transport_threshold,
                 poll_dt=scenario_config["isru"]["lox_delivery_poll_dt_hr"],
+                assignedRoverId=assigned_rover_id,
             ))
 
     # Power management (only when solar system is present)
@@ -650,6 +1073,11 @@ def run_scenario(optionsDict):
         print(f"\n{landingZone.name}:")
         print(f"  LOX Stored: {landingZone.loxStored:.2f} kg")
         print(f"  Energy Consumed: {landingZone.totalEnergyConsumed:.2f} kWh")
+
+    for depot in propellant_depots.values():
+        print(f"\n{depot.name}:")
+        print(f"  LOX Stored: {depot.loxStored:.2f} kg")
+        print(f"  Energy Consumed: {depot.totalEnergyConsumed:.2f} kWh")
 
     for r in regolithCargoRovers:
         print(f"\n{r.name}:")
@@ -735,9 +1163,17 @@ def run_scenario(optionsDict):
             "Energy_Consumed_kWh": round(sum(r.totalEnergyConsumed for r in LOXCargoRovers), 2),
         }
 
-    total_lox_delivered = landingZone.loxStored if landingZone else 0.0
+    total_lox_delivered = (
+        (landingZone.loxStored if landingZone else 0.0)
+        + sum(depot.loxStored for depot in propellant_depots.values())
+    )
     total_regolith_rover_energy = sum(r.totalEnergyConsumed for r in regolithCargoRovers)
     total_lox_rover_energy = sum(r.totalEnergyConsumed for r in LOXCargoRovers)
+    total_system_demand = (
+        sum(powerManager.totalDemandSeries)
+        if powerManager
+        else total_energy_isru + total_regolith_rover_energy + total_lox_rover_energy
+    )
 
     final_results = {
         "Sim_Metrics": {
@@ -754,6 +1190,7 @@ def run_scenario(optionsDict):
             "Total_ISRU_Energy_Consumed_kWh": round(total_energy_isru, 2),
             "Total_Regolith_Rover_Energy_kWh": round(total_regolith_rover_energy, 2),
             "Total_LOX_Rover_Energy_kWh": round(total_lox_rover_energy, 2),
+            "Total_System_Demand_kWh": round(total_system_demand, 2),
         },
         "ISRU_Plants": isru_plant_results,
         "Regolith_Cargo_Rovers": regolith_rover_results,
@@ -773,6 +1210,12 @@ def run_scenario(optionsDict):
         final_results["Power_Manager"] = {
             "Energy_Generated_Time_Array_kWh": powerManager.powerGeneratedSeries,
             "Total_Demand_Time_Array_kWh":     powerManager.totalDemandSeries,
+            "Generation_Equation_Outputs":     powerManager.lastGenerationEquationOutputs,
+            "Consumer_Equation_Outputs": {
+                consumer.name: consumer.lastEquationOutputs
+                for consumer in powerManager.consumers
+                if hasattr(consumer, "lastEquationOutputs") and consumer.lastEquationOutputs
+            },
         }
 
     if use_habitat and habitat:
@@ -792,6 +1235,16 @@ def run_scenario(optionsDict):
             "Name":                landingZone.name,
             "LOX_Stored_kg":       round(landingZone.loxStored, 2),
             "Energy_Consumed_kWh": round(landingZone.totalEnergyConsumed, 2),
+        }
+
+    if propellant_depots:
+        final_results["Propellant_Depots"] = {
+            depot.name: {
+                "LOX_Stored_kg": round(depot.loxStored, 2),
+                "Energy_Consumed_kWh": round(depot.totalEnergyConsumed, 2),
+                "Equation_Outputs": depot.lastEquationOutputs,
+            }
+            for depot in propellant_depots.values()
         }
 
     if len(LOXCargoRovers) == 1:

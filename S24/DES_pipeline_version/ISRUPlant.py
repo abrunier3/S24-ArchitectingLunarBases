@@ -96,15 +96,26 @@ class ISRUPlant:
             "E_reactor": E_reactor,
             "E_electro": E_electro,
             "E_liq": E_liq,
+            "PowerIn": processingEnergyRequired / yieldLength,
+            "EnergyConsumed": processingEnergyRequired,
+            "ProcessingTime": yieldLength,
+            "LOXOut": generatedLOX,
         })
         try:
-            equationOutputs = evaluate_equations(self.scenarioEquations, equationContext)
+            equationOutputs = evaluate_equations(
+                self.scenarioEquations,
+                equationContext,
+                effect_outputs={"LOXOut", "ProcessingTime", "EnergyConsumed", "PowerIn"},
+            )
         except ScenarioEquationError as exc:
             raise RuntimeError(f"{self.name}: invalid scenario equation: {exc}") from exc
 
         generatedLOX = equationOutputs.get("LOXOut", generatedLOX)
         yieldLength = equationOutputs.get("ProcessingTime", yieldLength)
-        processingEnergyRequired = equationOutputs.get("EnergyConsumed", processingEnergyRequired)
+        if "EnergyConsumed" in equationOutputs:
+            processingEnergyRequired = equationOutputs["EnergyConsumed"]
+        elif "PowerIn" in equationOutputs:
+            processingEnergyRequired = equationOutputs["PowerIn"] * yieldLength
         if generatedLOX < 0:
             raise RuntimeError(f"{self.name}: LOXOut cannot be negative")
         if yieldLength <= 0:

@@ -385,6 +385,47 @@ jobs:
                   if c["name"] not in seen_dedup and not seen_dedup.add(c["name"])
               ]
 
+              # Add every instance-level operational rover route selected in
+              # Step 4.2. These named paths are consumed by both the manifest
+              # builder and the Omniverse extension, so visualization follows
+              # the same assigned rover, stops, and distance as the DES.
+              scenario_logic = urban_planning.get("scenario_logic", {})
+              existing_connection_names = {
+                  connection.get("name") for connection in sysml["connections"]
+              }
+              for route in scenario_logic.get("resource_routes", []):
+                  flow = route.get("flow")
+                  source = route.get("from")
+                  destination = route.get("to")
+                  route_name = route.get("route_name") or f"{source}To{destination}_{flow}"
+                  geometry = conns.get(route_name)
+                  if not geometry:
+                      print(f"[UP] Operational route geometry missing: {route_name}")
+                      continue
+
+                  operational_connection = {
+                      "name": route_name,
+                      "type": "OperationalRoute",
+                      "flow": flow,
+                      "from": {"part": source},
+                      "to": {"part": destination},
+                      "rover_id": route.get("rover_id"),
+                      "stops": route.get("stops", []),
+                      "path": {
+                          "waypoints_m": geometry.get("waypoints_m", []),
+                          "distance_km": geometry.get(
+                              "distance_km", route.get("distance_km", 0.0)
+                          ),
+                      },
+                  }
+                  if route_name in existing_connection_names:
+                      sysml["connections"] = [
+                          connection for connection in sysml["connections"]
+                          if connection.get("name") != route_name
+                      ]
+                  sysml["connections"].append(operational_connection)
+                  existing_connection_names.add(route_name)
+
               # Store urban planning metadata at root level
               sysml["urban_planning"] = {
                   "site":      site_id,
@@ -402,7 +443,7 @@ jobs:
               # in Step 4.2. The DES consumes the same payload directly, while
               # the authoritative JSON keeps an auditable copy of destinations,
               # stops, interfaces, rover counts, and user equations.
-              sysml["scenario_logic"] = urban_planning.get("scenario_logic", {})
+              sysml["scenario_logic"] = scenario_logic
 
               with sysml_path.open("w") as f:
                   json.dump(sysml, f, indent=2)

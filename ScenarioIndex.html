@@ -1818,6 +1818,42 @@
 
 
 <div class="page">
+  <section class="section" id="scenario-entry">
+    <div class="section-head">
+      <div>
+        <div class="section-title">Mission Scenario</div>
+        <div class="mini-note">Start from the validated ISRU reference, restore a saved configuration, or define a new scenario from an empty logic model.</div>
+      </div>
+      <div id="scenarioModeBadge" style="display:none;padding:7px 10px;border:1px solid var(--accent);border-radius:8px;color:var(--accent);font-size:10px;font-weight:700;"></div>
+    </div>
+
+    <div id="scenarioEntryChoices" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;">
+      <button type="button" class="btn scenario-entry-choice" onclick="selectScenarioEntryMode('isru')"
+        style="min-height:132px;text-align:left;padding:18px;border-radius:8px;">
+        <span style="display:block;font-size:14px;font-weight:800;color:#7ee0b1;margin-bottom:8px;">ISRU Scenario</span>
+        <span style="display:block;font-size:10px;line-height:1.55;color:var(--text3);">Load the validated ISRU architecture, rover logic, equations, and DES assumptions.</span>
+      </button>
+      <button type="button" class="btn scenario-entry-choice" onclick="openSavedScenarioPicker()"
+        style="min-height:132px;text-align:left;padding:18px;border-radius:8px;">
+        <span style="display:block;font-size:14px;font-weight:800;color:#ffd166;margin-bottom:8px;">Saved Scenarios</span>
+        <span id="savedScenarioCount" style="display:block;font-size:10px;line-height:1.55;color:var(--text3);">No saved configuration.</span>
+      </button>
+      <button type="button" class="btn scenario-entry-choice" onclick="selectScenarioEntryMode('new')"
+        style="min-height:132px;text-align:left;padding:18px;border-radius:8px;">
+        <span style="display:block;font-size:14px;font-weight:800;color:#4cc9f0;margin-bottom:8px;">Build New Scenario</span>
+        <span style="display:block;font-size:10px;line-height:1.55;color:var(--text3);">Keep Steps 1–3, then build routes, equations, and simulation assumptions from zero.</span>
+      </button>
+    </div>
+
+    <div id="savedScenarioPicker" style="display:none;margin-top:12px;border:1px solid var(--border2);border-radius:8px;padding:12px;background:rgba(255,255,255,0.02);">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;">
+        <div style="font-size:11px;font-weight:700;color:var(--text2);">Saved configurations</div>
+        <button type="button" class="btn" title="Close" onclick="closeSavedScenarioPicker()" style="width:30px;height:30px;padding:0;font-size:16px;">&times;</button>
+      </div>
+      <div id="savedScenarioList" style="display:grid;gap:7px;"></div>
+    </div>
+  </section>
+
   <section class="section" id="MBSE">
       <div class="section-head">
         <div>         
@@ -2208,6 +2244,12 @@ function buildAssemblyTreeFromActiveSystems() {
       return;
     }
 
+    if (window._pendingScenarioActiveNodes) {
+      const activeSet = new Set(window._pendingScenarioActiveNodes);
+      systems.forEach(system => { system.active = activeSet.has(system.id); });
+      window._pendingScenarioActiveNodes = null;
+    }
+
     systems.forEach(sys => {
       const card = document.createElement('div');
       card.className = 'sys-card' + (sys.active ? ' active' : '');
@@ -2222,6 +2264,9 @@ function buildAssemblyTreeFromActiveSystems() {
     });
     if (typeof syncDesControlsToActiveSystems === 'function') {
       syncDesControlsToActiveSystems();
+    }
+    if (typeof renderScenarioPowerModels === 'function') {
+      renderScenarioPowerModels();
     }
     updateTopMetrics();
   }
@@ -2806,6 +2851,20 @@ iframe{
         </div>
         <div id="up42SysmlInterfacePanel" style="display:none;padding:10px;border-top:1px solid var(--border);">
           <div style="font-size:10px;color:var(--text3);font-weight:700;letter-spacing:0.08em;margin-bottom:8px;">SYSML INTERFACES</div>
+          <div style="display:grid;gap:6px;margin-bottom:10px;">
+            <button type="button" id="up42RegolithTool" class="btn" onclick="selectScenarioTool('regolith')" style="padding:7px;font-size:9px;color:#f4b942;border-color:#f4b942;">Regolith rover route</button>
+            <label style="display:grid;grid-template-columns:minmax(0,1fr) 54px;gap:6px;align-items:center;font-size:8px;color:var(--text3);">
+              Regolith rover count
+              <input id="up42RegolithRoverCount" type="number" min="0" max="20" value="1" onchange="syncScenarioRoverCounts()" style="width:54px;padding:5px;background:#07101a;color:var(--text1);border:1px solid var(--border2);border-radius:6px;">
+            </label>
+            <button type="button" id="up42LoxTool" class="btn" onclick="selectScenarioTool('lox')" style="padding:7px;font-size:9px;color:#4cc9f0;border-color:#4cc9f0;">LOX rover route</button>
+            <label style="display:grid;grid-template-columns:minmax(0,1fr) 54px;gap:6px;align-items:center;font-size:8px;color:var(--text3);">
+              LOX rover count
+              <input id="up42LoxRoverCount" type="number" min="0" max="20" value="1" onchange="syncScenarioRoverCounts()" style="width:54px;padding:5px;background:#07101a;color:var(--text1);border:1px solid var(--border2);border-radius:6px;">
+            </label>
+          </div>
+          <div style="font-size:9px;color:var(--text3);font-weight:700;letter-spacing:0.06em;margin:10px 0 6px;">MODULE EQUATIONS</div>
+          <div id="up42EquationModuleList" style="display:grid;gap:5px;margin-bottom:10px;"></div>
           <div id="up42SysmlInterfaceList" style="display:flex;flex-direction:column;gap:6px;max-height:210px;overflow-y:auto;">
             <div style="font-size:10px;color:var(--text3);line-height:1.45;">Run Step 2 graph to load interfaces.</div>
           </div>
@@ -2830,6 +2889,25 @@ iframe{
           background:rgba(0,0,0,0.7);border:1px solid var(--border2);border-radius:8px;
           padding:6px 14px;font-size:10px;color:var(--text2);pointer-events:none;white-space:nowrap;">
           Select a module on the left to begin placement
+        </div>
+
+        <div id="up42StopBuilder" style="display:none;position:absolute;top:48px;left:50%;transform:translateX(-50%);z-index:4;
+          width:min(560px,calc(100% - 28px));background:rgba(7,16,29,0.97);border:1px solid var(--accent);border-radius:8px;padding:12px;box-shadow:0 16px 36px rgba(0,0,0,0.45);">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:9px;">
+            <div>
+              <div style="font-size:11px;font-weight:800;color:var(--text1);">Optional route stops</div>
+              <div id="up42StopRouteLabel" style="font-size:9px;color:var(--text3);margin-top:3px;"></div>
+            </div>
+            <button type="button" class="btn" title="Cancel route" onclick="cancelStopRouteBuilder()" style="width:28px;height:28px;padding:0;font-size:15px;">&times;</button>
+          </div>
+          <div style="font-size:9px;color:var(--text3);line-height:1.45;margin-bottom:8px;">Select intermediate modules in traversal order. Select a chosen stop again to remove it.</div>
+          <label style="display:grid;grid-template-columns:130px minmax(0,1fr);gap:7px;align-items:center;font-size:9px;color:var(--text3);margin-bottom:8px;">
+            Assigned rover
+            <select id="up42RouteRover" style="width:100%;padding:6px;background:#07101a;color:var(--text1);border:1px solid var(--border2);border-radius:6px;"></select>
+          </label>
+          <div id="up42StopOptions" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:9px;"></div>
+          <div id="up42StopSequence" style="min-height:34px;padding:7px;border:1px dashed var(--border2);border-radius:7px;display:flex;align-items:center;flex-wrap:wrap;gap:5px;margin-bottom:9px;"></div>
+          <button type="button" class="btn btn-primary" onclick="confirmStopRouteBuilder()" style="width:100%;padding:8px;font-size:10px;">Create rover route</button>
         </div>
 
 
@@ -3529,6 +3607,13 @@ let up42Scenario = {
   moduleEquations: {},
   roverCounts: { regolith: 1, lox: 1 }
 };
+const SCENARIO_STORAGE_KEY = 'eclipse.savedScenarios.v1';
+const SCENARIO_SCHEMA_VERSION = 1;
+let currentScenarioMode = null;
+let currentScenarioId = null;
+let latestRunScenarioSnapshot = null;
+let scenarioPowerModels = {};
+let pendingStopRoute = null;
 let up42EquationEditorModule = null;
 let up42EquationEditorIndex = null;
 let up42DragWaypoint  = null;
@@ -3540,6 +3625,255 @@ let up42Panning = false, up42PanMoved = false, up42PointerDown = false, up42PanS
 let up42SiteImgCache  = {};
 let up42SyntheticTerrain = null;
 let up42ConfirmedSiteId = null;
+
+function cloneScenarioValue(value) {
+  return JSON.parse(JSON.stringify(value ?? null));
+}
+
+function getSavedScenarios() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(SCENARIO_STORAGE_KEY) || '[]');
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (error) {
+    console.warn('[SCENARIO] Unable to read saved scenarios:', error);
+    return [];
+  }
+}
+
+function writeSavedScenarios(scenarios) {
+  localStorage.setItem(SCENARIO_STORAGE_KEY, JSON.stringify(scenarios));
+  refreshSavedScenarioSummary();
+}
+
+function refreshSavedScenarioSummary() {
+  const scenarios = getSavedScenarios();
+  const count = document.getElementById('savedScenarioCount');
+  if (count) count.textContent = scenarios.length
+    ? `${scenarios.length} saved configuration${scenarios.length === 1 ? '' : 's'}.`
+    : 'No saved configuration.';
+  if (document.getElementById('savedScenarioPicker')?.style.display !== 'none') renderSavedScenarioList();
+}
+
+function setScenarioModeUI(mode, label) {
+  currentScenarioMode = mode;
+  const badge = document.getElementById('scenarioModeBadge');
+  if (badge) {
+    badge.style.display = 'block';
+    badge.textContent = label;
+  }
+  document.querySelectorAll('.scenario-entry-choice').forEach(button => {
+    button.style.borderColor = 'var(--border2)';
+  });
+}
+
+function clearScenarioBuilderState() {
+  up42ActiveModule = null;
+  up42Phase = 'place';
+  up42Placements = {};
+  up42Orientations = {};
+  up42Routes = [];
+  up42InstanceCounts = {};
+  up42ScenarioTool = null;
+  up42ScenarioPendingStart = null;
+  up42Scenario = {
+    resourceRoutes: [], powerLinks: [], comLinks: [], moduleLogic: {},
+    sysmlInterfaces: [], transportLinks: [], moduleEquations: {},
+    roverCounts: { regolith: 1, lox: 1 }
+  };
+  scenarioPowerModels = {};
+  pendingStopRoute = null;
+  up42EquationEditorModule = null;
+  up42EquationEditorIndex = null;
+  window.up42FinalPlacements = {};
+}
+
+function applyIsruScenarioPreset() {
+  clearScenarioBuilderState();
+  window._pendingScenarioActiveNodes = [
+    'HabitationModule', 'ISRUPlant', 'LaunchLandingZone', 'PropellantDepot',
+    'LOXRover', 'SolarPowerSystem', 'RegolithRover', 'ISRUExcavation'
+  ];
+  up42Scenario.moduleEquations = {
+    ISRUExcavation: [
+      'RegolithOut = RequestedRegolith',
+      'EnergyConsumed = excavationEnergyCoeff * RegolithOut'
+    ].join('\n'),
+    RegolithRover: [
+      'RegolithOut = min(RegolithIn, RoverCapacity)',
+      'TravelTime = Distance * hoursPerKm',
+      'EnergyConsumed = Distance * CargoMass * energyPerKmPerKg'
+    ].join('\n'),
+    ISRUPlant: [
+      'LOXOut = RegolithIn * extractedLOXFraction',
+      'ProcessingTime = RegolithIn / processingRate',
+      'EnergyConsumed = E_exc + E_trans + E_bene + E_reactor + E_electro + E_liq'
+    ].join('\n'),
+    LOXRover: [
+      'LOXOut = min(LOXIn, RoverCapacity)',
+      'TravelTime = Distance * hoursPerKm',
+      'EnergyConsumed = Distance * CargoMass * energyPerKmPerKg'
+    ].join('\n'),
+    PropellantDepot: 'LOXStored = LOXStored + LOXIn\nPowerIn = 0',
+    SolarPowerSystem: 'PowerOut = powerOutput',
+    HabitationModule: 'PowerIn = constantPowerRate',
+    LaunchLandingZone: 'PowerIn = utilitiesPowerRate + LOXStored * chillingPowerPerKgLox'
+  };
+  scenarioPowerModels = {
+    HabitationModule: { mode:'average', average_kw:5, points:[{time_hr:0,power_kw:5},{time_hr:60,power_kw:5}], equation:'' },
+    LaunchLandingZone: { mode:'average', average_kw:3, points:[{time_hr:0,power_kw:3},{time_hr:60,power_kw:3}], equation:'' }
+  };
+  if (systems.length) {
+    renderSystems();
+    buildAssemblyTreeFromActiveSystems();
+  }
+  setInputValueIfPresent('up42RegolithRoverCount', 1);
+  setInputValueIfPresent('up42LoxRoverCount', 1);
+  setInputValueIfPresent('desRoverCount', 1, 'desRoverCountVal');
+  setInputValueIfPresent('desLoxRoverCount', 1, 'desLoxRoverCountVal');
+  setInputValueIfPresent('desSimDuration', 60);
+  setInputValueIfPresent('desRegolithRoverLoad', 4000);
+  setInputValueIfPresent('desPlantBatch', 4000);
+  setInputValueIfPresent('desPlantInputCapacity', 20000);
+  setInputValueIfPresent('desProcessRate', 1600, 'desProcessRateVal');
+  setInputValueIfPresent('desLoxThresh', 100, 'desLoxThreshVal');
+}
+
+function selectScenarioEntryMode(mode) {
+  currentScenarioId = null;
+  if (mode === 'isru') {
+    applyIsruScenarioPreset();
+    setScenarioModeUI('isru', 'ISRU reference scenario');
+  } else {
+    clearScenarioBuilderState();
+    setInputValueIfPresent('up42RegolithRoverCount', 1);
+    setInputValueIfPresent('up42LoxRoverCount', 1);
+    setInputValueIfPresent('desRoverCount', 1, 'desRoverCountVal');
+    setInputValueIfPresent('desLoxRoverCount', 1, 'desLoxRoverCountVal');
+    setScenarioModeUI('new', 'New scenario');
+  }
+  closeSavedScenarioPicker();
+  renderUp42ModuleList();
+  updateUp42InfoCard();
+  renderScenarioPowerModels();
+  syncDesScenarioModeVisibility();
+  drawUp42();
+  document.getElementById('MBSE')?.scrollIntoView({behavior:'smooth'});
+}
+
+function collectDesFormValues() {
+  const values = {};
+  document.querySelectorAll('#des input[id], #des select[id], #des textarea[id]').forEach(input => {
+    values[input.id] = input.type === 'checkbox' ? input.checked : input.value;
+  });
+  return values;
+}
+
+function restoreDesFormValues(values) {
+  Object.entries(values || {}).forEach(([id, value]) => {
+    const input = document.getElementById(id);
+    if (!input) return;
+    if (input.type === 'checkbox') input.checked = Boolean(value);
+    else input.value = value;
+    input.dispatchEvent(new Event('input', {bubbles:true}));
+  });
+}
+
+function captureScenarioSnapshot(name = '') {
+  return {
+    schema_version: SCENARIO_SCHEMA_VERSION,
+    id: currentScenarioId || `scenario_${Date.now()}`,
+    name,
+    mode: currentScenarioMode || 'new',
+    saved_at: new Date().toISOString(),
+    site_id: upSelectedSite?.id || null,
+    active_nodes: getActiveSysmlNodes(),
+    instance_counts: cloneScenarioValue(up42InstanceCounts),
+    placements: cloneScenarioValue(up42Placements),
+    orientations: cloneScenarioValue(up42Orientations),
+    terrain_routes: cloneScenarioValue(up42Routes),
+    scenario_logic: cloneScenarioValue(up42Scenario),
+    power_models: cloneScenarioValue(scenarioPowerModels),
+    des_form: collectDesFormValues(),
+    results: cloneScenarioValue(desData),
+  };
+}
+
+function restoreScenarioSnapshot(snapshot) {
+  clearScenarioBuilderState();
+  currentScenarioId = snapshot.id || null;
+  window._pendingScenarioActiveNodes = Array.isArray(snapshot.active_nodes)
+    ? [...snapshot.active_nodes]
+    : null;
+  if (window._pendingScenarioActiveNodes && systems.length) {
+    const activeSet = new Set(window._pendingScenarioActiveNodes);
+    systems.forEach(system => { system.active = activeSet.has(system.id); });
+    window._pendingScenarioActiveNodes = null;
+    renderSystems();
+    buildAssemblyTreeFromActiveSystems();
+  }
+  upSelectedSite = UP_SITES.find(site => site.id === snapshot.site_id) || null;
+  up42ConfirmedSiteId = upSelectedSite?.id || null;
+  up42InstanceCounts = cloneScenarioValue(snapshot.instance_counts || {});
+  up42Placements = cloneScenarioValue(snapshot.placements || {});
+  up42Orientations = cloneScenarioValue(snapshot.orientations || {});
+  up42Routes = cloneScenarioValue(snapshot.terrain_routes || []);
+  up42Scenario = cloneScenarioValue(snapshot.scenario_logic || up42Scenario);
+  scenarioPowerModels = cloneScenarioValue(snapshot.power_models || {});
+  setInputValueIfPresent('up42RegolithRoverCount', up42Scenario.roverCounts?.regolith ?? 1);
+  setInputValueIfPresent('up42LoxRoverCount', up42Scenario.roverCounts?.lox ?? 1);
+  restoreDesFormValues(snapshot.des_form || {});
+  if (snapshot.results) renderDesResults(cloneScenarioValue(snapshot.results));
+  setScenarioModeUI(snapshot.mode === 'isru' ? 'isru' : 'new', snapshot.name || 'Saved scenario');
+  renderUp42ModuleList();
+  syncScenarioInterfacesFromSysML();
+  updateUp42InfoCard();
+  renderScenarioPowerModels();
+  syncDesScenarioModeVisibility();
+  drawUp42();
+  document.getElementById('MBSE')?.scrollIntoView({behavior:'smooth'});
+}
+
+function openSavedScenarioPicker() {
+  const picker = document.getElementById('savedScenarioPicker');
+  if (picker) picker.style.display = 'block';
+  renderSavedScenarioList();
+}
+
+function closeSavedScenarioPicker() {
+  const picker = document.getElementById('savedScenarioPicker');
+  if (picker) picker.style.display = 'none';
+}
+
+function renderSavedScenarioList() {
+  const list = document.getElementById('savedScenarioList');
+  if (!list) return;
+  const scenarios = getSavedScenarios();
+  if (!scenarios.length) {
+    list.innerHTML = '<div style="padding:12px;color:var(--text3);font-size:10px;text-align:center;">No scenario has been saved yet.</div>';
+    return;
+  }
+  list.innerHTML = scenarios.map(snapshot => `
+    <div style="display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:7px;align-items:center;padding:9px;border:1px solid var(--border2);border-radius:8px;">
+      <div style="min-width:0;">
+        <div style="font-size:11px;font-weight:700;color:var(--text1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(snapshot.name || 'Unnamed scenario')}</div>
+        <div style="font-size:8px;color:var(--text3);margin-top:2px;">${escapeHtml(snapshot.site_id || 'No site')} · ${new Date(snapshot.saved_at).toLocaleString()}</div>
+      </div>
+      <button type="button" class="btn btn-secondary" style="padding:6px 9px;font-size:9px;" onclick="loadSavedScenario('${jsString(snapshot.id)}')">Load</button>
+      <button type="button" class="btn" title="Delete saved scenario" style="width:30px;height:30px;padding:0;color:#ff7a8a;" onclick="deleteSavedScenario('${jsString(snapshot.id)}')">&times;</button>
+    </div>`).join('');
+}
+
+function loadSavedScenario(id) {
+  const snapshot = getSavedScenarios().find(item => item.id === id);
+  if (snapshot) restoreScenarioSnapshot(snapshot);
+  closeSavedScenarioPicker();
+}
+
+function deleteSavedScenario(id) {
+  writeSavedScenarios(getSavedScenarios().filter(item => item.id !== id));
+}
+
+window.addEventListener('load', refreshSavedScenarioSummary);
 
 // Bounding box of the polar map for this site (degrees)
 // Will be set from upSelectedSite when panel opens
@@ -3961,6 +4295,7 @@ function setUp42InstanceCount(moduleId, rawValue) {
   syncScenarioInterfacesFromSysML();
   renderUp42ModuleList();
   updateUp42InfoCard();
+  renderScenarioPowerModels();
   drawUp42();
 }
 
@@ -4844,13 +5179,19 @@ function syncScenarioRoverCounts() {
   setInputValueIfPresent('desRoverCount', Math.max(1, regolith), 'desRoverCountVal');
   setInputValueIfPresent('desLoxRoverCount', Math.max(1, lox), 'desLoxRoverCountVal');
   renderScenarioValidation();
+  renderScenarioPowerModels();
 }
 
 function selectScenarioTool(tool) {
   up42ScenarioTool = tool;
   up42ScenarioPendingStart = null;
+  cancelStopRouteBuilder();
   const labels = { regolith:'regolith rover route', lox:'LOX rover route', power:'power link', com:'communication link' };
   setPlacementPhase('logic');
+  const regolithButton = document.getElementById('up42RegolithTool');
+  const loxButton = document.getElementById('up42LoxTool');
+  if (regolithButton) regolithButton.style.background = tool === 'regolith' ? 'rgba(244,185,66,0.18)' : '';
+  if (loxButton) loxButton.style.background = tool === 'lox' ? 'rgba(76,201,240,0.18)' : '';
   setHint(`Select source module for ${labels[tool] || tool}`);
 }
 
@@ -4867,6 +5208,73 @@ function resolveStopSequence(stopText, from, to) {
     .filter(id => id && id !== from && id !== to);
 }
 
+function openStopRouteBuilder(flow, from, to) {
+  pendingStopRoute = { flow, from, to, stops: [] };
+  const builder = document.getElementById('up42StopBuilder');
+  const label = document.getElementById('up42StopRouteLabel');
+  if (builder) builder.style.display = 'block';
+  if (label) label.textContent = `${flow} · ${from} → ${to}`;
+  const roverSelect = document.getElementById('up42RouteRover');
+  if (roverSelect) {
+    const roverType = flow === 'Regolith' ? 'RegolithRover' : 'LOXRover';
+    const key = flow === 'Regolith' ? 'regolith' : 'lox';
+    const count = Math.max(1, Number(up42Scenario.roverCounts?.[key] || 1));
+    roverSelect.innerHTML = Array.from({length:count}, (_, index) => {
+      const id = count === 1 ? roverType : `${roverType}_${index + 1}`;
+      return `<option value="${escapeHtml(id)}">${escapeHtml(id)}</option>`;
+    }).join('');
+  }
+  renderStopRouteBuilder();
+}
+
+function renderStopRouteBuilder() {
+  const optionsWrap = document.getElementById('up42StopOptions');
+  const sequenceWrap = document.getElementById('up42StopSequence');
+  if (!optionsWrap || !sequenceWrap || !pendingStopRoute) return;
+  const { from, to, stops } = pendingStopRoute;
+  const options = getPlacedModuleOptions().filter(id => id !== from && id !== to);
+  optionsWrap.innerHTML = options.length ? options.map(moduleId => {
+    const order = stops.indexOf(moduleId);
+    return `<button type="button" class="btn" onclick="toggleStopRouteModule('${jsString(moduleId)}')"
+      style="padding:6px 8px;font-size:9px;${order >= 0 ? 'border-color:var(--accent);color:var(--accent);background:rgba(0,212,255,0.12);' : ''}">
+      ${order >= 0 ? `${order + 1}. ` : ''}${escapeHtml(moduleId)}
+    </button>`;
+  }).join('') : '<span style="font-size:9px;color:var(--text3);">No intermediate placed module is available.</span>';
+  const sequence = [from, ...stops, to];
+  sequenceWrap.innerHTML = sequence.map((moduleId, index) => `
+    <span style="font-size:9px;color:${index === 0 || index === sequence.length - 1 ? 'var(--text1)' : 'var(--accent)'};font-weight:700;">${escapeHtml(moduleId)}</span>
+    ${index < sequence.length - 1 ? '<span style="font-size:11px;color:var(--text3);">→</span>' : ''}
+  `).join('');
+}
+
+function toggleStopRouteModule(moduleId) {
+  if (!pendingStopRoute) return;
+  const index = pendingStopRoute.stops.indexOf(moduleId);
+  if (index >= 0) pendingStopRoute.stops.splice(index, 1);
+  else pendingStopRoute.stops.push(moduleId);
+  renderStopRouteBuilder();
+}
+
+function confirmStopRouteBuilder() {
+  if (!pendingStopRoute) return;
+  const { flow, from, to, stops } = pendingStopRoute;
+  const roverId = document.getElementById('up42RouteRover')?.value || null;
+  addScenarioResourceRoute(flow, from, to, stops, roverId);
+  pendingStopRoute = null;
+  const builder = document.getElementById('up42StopBuilder');
+  if (builder) builder.style.display = 'none';
+  renderScenarioValidation();
+  updateDesDistances();
+  setHint(`${flow} route created. Select the next source module or another tool.`);
+  drawUp42();
+}
+
+function cancelStopRouteBuilder() {
+  pendingStopRoute = null;
+  const builder = document.getElementById('up42StopBuilder');
+  if (builder) builder.style.display = 'none';
+}
+
 function createPathBetweenModules(from, to) {
   const start = up42Placements[from];
   const end = up42Placements[to];
@@ -4875,7 +5283,7 @@ function createPathBetweenModules(from, to) {
   return aStar(start, end, GRID) || straightLinePath(start, end);
 }
 
-function addScenarioResourceRoute(flow, from, to, stops = []) {
+function addScenarioResourceRoute(flow, from, to, stops = [], roverId = null) {
   const sequence = [from, ...stops, to];
   const pts = [];
   for (let i = 1; i < sequence.length; i++) {
@@ -4888,6 +5296,7 @@ function addScenarioResourceRoute(flow, from, to, stops = []) {
     id: `${flow}_${Date.now()}`,
     flow,
     rover_type: flow === 'Regolith' ? 'RegolithRover' : 'LOXRover',
+    rover_id: roverId,
     from,
     to,
     stops,
@@ -4926,12 +5335,9 @@ function handleScenarioLogicClick(moduleId) {
   }
 
   if (up42ScenarioTool === 'regolith' || up42ScenarioTool === 'lox') {
-    const options = getPlacedModuleOptions().filter(id => id !== from && id !== to).join(', ');
-    const stopText = options
-      ? prompt(`Optional stops before reaching ${to}. Type module names in order, separated by commas.\n\nAvailable stops: ${options}`, '')
-      : '';
-    const stops = resolveStopSequence(stopText || '', from, to);
-    addScenarioResourceRoute(up42ScenarioTool === 'regolith' ? 'Regolith' : 'LOX', from, to, stops);
+    openStopRouteBuilder(up42ScenarioTool === 'regolith' ? 'Regolith' : 'LOX', from, to);
+    setHint('Choose optional stops, then create the rover route.');
+    return;
   } else if (up42ScenarioTool === 'power') {
     addScenarioDirectLink('Power', from, to);
   } else if (up42ScenarioTool === 'com') {
@@ -5149,6 +5555,39 @@ function renderSysmlInterfaceList() {
         <div style="font-size:8px;color:var(--text3);line-height:1.35;margin-top:3px;">${link.from_instances.length || 0} source instance(s), ${link.to_instances.length || 0} target instance(s)</div>
       </div>`;
   }).join('');
+  renderEquationModuleList();
+}
+
+function renderEquationModuleList() {
+  const list = document.getElementById('up42EquationModuleList');
+  if (!list) return;
+  const moduleIds = systems.filter(system => system.active).map(system => system.id);
+  if (!moduleIds.length) {
+    list.innerHTML = '<div style="font-size:8px;color:var(--text3);">Run Step 2 to load active modules.</div>';
+    return;
+  }
+  list.innerHTML = moduleIds.map(moduleId => {
+    const equations = getModuleEquationList(moduleId);
+    const requirements = getModuleEquationRequirements(moduleId);
+    const outputs = new Set(equations.map(getEquationOutputName).filter(Boolean));
+    const missing = requirements.filter(req => !(req.accepted || [req.output]).some(output => outputs.has(output))).length;
+    const selected = getBaseModuleId(up42ActiveModule) === moduleId;
+    return `<button type="button" class="btn" onclick="selectEquationModule('${jsString(moduleId)}')"
+      style="display:flex;justify-content:space-between;align-items:center;gap:7px;padding:6px 7px;font-size:8px;text-align:left;${selected ? 'border-color:var(--accent);color:var(--accent);' : ''}">
+      <span style="overflow:hidden;text-overflow:ellipsis;">${escapeHtml(moduleId)}</span>
+      <span style="color:${missing ? '#ff7a8a' : '#7ee0b1'};white-space:nowrap;">${missing ? `${missing} missing` : `${equations.length} eq.`}</span>
+    </button>`;
+  }).join('');
+}
+
+function selectEquationModule(moduleId) {
+  const instances = getScenarioInstances().filter(instance => instance.type === moduleId);
+  up42ActiveModule = instances[0]?.id || moduleId;
+  up42EquationEditorModule = null;
+  up42EquationEditorIndex = null;
+  updateUp42InfoCard();
+  renderEquationModuleList();
+  setHint(`Define the flow equations for ${up42ActiveModule}.`);
 }
 
 function updateUp42PhaseSidebar() {
@@ -5197,10 +5636,10 @@ function getDefaultEquationTemplate(moduleId) {
     ].join('\n');
   }
   if (baseId === 'RegolithRover') {
-    return 'RegolithDelivered = min(RoverCapacity, RegolithAvailable)';
+    return 'RegolithOut = min(RegolithIn, RoverCapacity)';
   }
   if (baseId === 'LOXRover') {
-    return 'LOXDelivered = min(LOXStored, LOXTransportThreshold)';
+    return 'LOXOut = min(LOXIn, RoverCapacity)';
   }
   return '';
 }
@@ -5213,8 +5652,12 @@ function getEquationTokenGroups(moduleId) {
     return items.length ? items : [port.name || port.id].filter(Boolean);
   }))];
   const attrs = Object.keys(part.attributes || {});
+  const standard = [
+    'SimulationTime', 'ProcessingTime', 'TravelTime', 'PowerIn', 'PowerOut',
+    'EnergyConsumed', 'EnergyGenerated', 'Distance', 'CargoMass', 'RoverCapacity'
+  ];
   return {
-    ports,
+    ports: [...new Set([...ports, ...standard])],
     attrs,
     ops: ['=', '+', '-', '*', '/', '^', '(', ')', 'min(', 'max(']
   };
@@ -5245,7 +5688,56 @@ function getModuleEquationList(moduleId) {
   if (Object.prototype.hasOwnProperty.call(up42Scenario.moduleEquations || {}, moduleId)) {
     return splitModuleEquations(up42Scenario.moduleEquations[moduleId]);
   }
-  return splitModuleEquations(getDefaultEquationTemplate(moduleId));
+  const baseId = getBaseModuleId(moduleId);
+  if (Object.prototype.hasOwnProperty.call(up42Scenario.moduleEquations || {}, baseId)) {
+    return splitModuleEquations(up42Scenario.moduleEquations[baseId]);
+  }
+  return [];
+}
+
+function getEquationOutputName(equation) {
+  const match = String(equation || '').match(/^\s*([A-Za-z_][A-Za-z0-9_]*)\s*=/);
+  return match ? match[1] : null;
+}
+
+function getModuleEquationRequirements(moduleId) {
+  const groups = getEquationTokenGroups(moduleId);
+  const physicalPorts = groups.ports.filter(token => ![
+    'SimulationTime', 'ProcessingTime', 'TravelTime', 'EnergyConsumed',
+    'EnergyGenerated', 'Distance', 'CargoMass', 'RoverCapacity'
+  ].includes(token));
+  const resourceOutputs = physicalPorts.filter(token => /Out$/i.test(token) && !/^PowerOut$/i.test(token));
+  const resourceInputs = physicalPorts.filter(token => /In$/i.test(token) && !/^PowerIn$/i.test(token));
+  const hasResourceProcess = (resourceOutputs.length > 0 && resourceInputs.length > 0) || isRoverNode(getBaseModuleId(moduleId));
+  const hasPowerInput = physicalPorts.some(token => /^PowerIn$/i.test(token) || (/power/i.test(token) && /in/i.test(token)));
+  const hasPowerOutput = physicalPorts.some(token => /^PowerOut$/i.test(token) || (/power/i.test(token) && /out/i.test(token)));
+  const required = resourceOutputs.map(output => ({ output, accepted:[output], kind:'resource', label:`${output} resource law` }));
+  if (hasResourceProcess) {
+    required.push({
+      output: isRoverNode(getBaseModuleId(moduleId)) ? 'TravelTime' : 'ProcessingTime',
+      accepted: [isRoverNode(getBaseModuleId(moduleId)) ? 'TravelTime' : 'ProcessingTime'],
+      kind:'time',
+      label: isRoverNode(getBaseModuleId(moduleId)) ? 'Travel time law' : 'Processing time law'
+    });
+  }
+  if (hasPowerInput) required.push({ output:'PowerIn', accepted:['PowerIn','EnergyConsumed'], kind:'power', label:'Power consumption law' });
+  if (hasPowerOutput) required.push({ output:'PowerOut', accepted:['PowerOut','EnergyGenerated'], kind:'power', label:'Power generation law' });
+  if (isRoverNode(getBaseModuleId(moduleId))) required.push({ output:'EnergyConsumed', accepted:['EnergyConsumed'], kind:'power', label:'Travel energy law' });
+  return required;
+}
+
+function renderEquationRequirements(moduleId, equations) {
+  const outputs = new Set(equations.map(getEquationOutputName).filter(Boolean));
+  const requirements = getModuleEquationRequirements(moduleId);
+  if (!requirements.length) {
+    return '<div style="font-size:8px;color:var(--text3);margin-bottom:8px;">No required flow equation was inferred from this module\'s SysML ports.</div>';
+  }
+  const colors = { resource:'#4cc9f0', time:'#ffd166', power:'#ff7a8a' };
+  return `<div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px;">${requirements.map(req => {
+    const complete = (req.accepted || [req.output]).some(output => outputs.has(output));
+    const color = complete ? '#7ee0b1' : colors[req.kind];
+    return `<span title="Required output: ${escapeHtml(req.output)}" style="padding:4px 6px;border:1px solid ${color};border-radius:999px;font-size:8px;color:${color};">${complete ? 'Complete' : 'Missing'} · ${escapeHtml(req.label)}</span>`;
+  }).join('')}</div>`;
 }
 
 function setModuleEquationList(moduleId, equations) {
@@ -5281,7 +5773,8 @@ function renderModuleEquationPanel(moduleId, groups) {
       <button type="button" class="btn" title="Add equation" onclick="addModuleEquation('${safeModuleId}')"
         style="width:28px;height:28px;padding:0;border-color:var(--accent);color:var(--accent);font-size:16px;line-height:1;">+</button>
     </div>
-    <div style="font-size:9px;color:var(--text3);line-height:1.45;margin-bottom:8px;">Double-click an equation to edit it.</div>
+    <div style="font-size:9px;color:var(--text3);line-height:1.45;margin-bottom:8px;">Double-click an equation to edit it. Terminal outputs must affect a resource, processing time, or power.</div>
+    ${renderEquationRequirements(moduleId, equations)}
     ${bubbles || '<div style="padding:10px;border:1px dashed var(--border2);border-radius:8px;color:var(--text3);font-size:9px;text-align:center;">No equation defined.</div>'}
     ${editingNewEquation ? renderEquationBuilder(moduleId, groups, '', equations.length) : ''}
   `;
@@ -5337,6 +5830,7 @@ function saveModuleEquation(moduleId, equationIndex) {
   setModuleEquationList(moduleId, equations);
   up42EquationEditorIndex = null;
   updateUp42InfoCard();
+  renderEquationModuleList();
   renderScenarioValidation();
   setHint(cleaned ? `Equation saved for ${moduleId}.` : `Empty equation removed from ${moduleId}.`);
 }
@@ -5347,6 +5841,7 @@ function clearModuleEquation(moduleId) {
   const textarea = document.getElementById('up42EquationText');
   if (textarea) textarea.value = '';
   updateUp42InfoCard();
+  renderEquationModuleList();
   renderScenarioValidation();
   setHint(`Equations cleared for ${moduleId}.`);
 }
@@ -5594,6 +6089,7 @@ function buildScenarioLogicPayload() {
       id: route.id,
       flow: route.flow,
       rover_type: route.rover_type,
+      rover_id: route.rover_id || null,
       from: route.from,
       to: route.to,
       stops: route.stops || [],
@@ -5623,10 +6119,46 @@ function getScenarioValidationMessages() {
   placedIds.forEach(id => {
     const base = getBaseModuleId(id).toLowerCase();
     if (!base.includes('solar') && !base.includes('power') && !powered.has(id)) warnings.push(`${id} has no incoming power link.`);
+    const outputs = new Set(getModuleEquationList(id).map(getEquationOutputName).filter(Boolean));
+    getModuleEquationRequirements(id).forEach(requirement => {
+      if (!(requirement.accepted || [requirement.output]).some(output => outputs.has(output))) {
+        errors.push(`${id} is missing required ${requirement.kind} equation output: ${requirement.output}.`);
+      }
+    });
+  });
+  systems.filter(system => system.active && isRoverNode(system.id)).forEach(system => {
+    const outputs = new Set(getModuleEquationList(system.id).map(getEquationOutputName).filter(Boolean));
+    getModuleEquationRequirements(system.id).forEach(requirement => {
+      if (!(requirement.accepted || [requirement.output]).some(output => outputs.has(output))) {
+        errors.push(`${system.id} is missing required ${requirement.kind} equation output: ${requirement.output}.`);
+      }
+    });
   });
   if (!up42Scenario.sysmlInterfaces.length) warnings.push('No SysML interface available from the active graph.');
   if (!(up42Scenario.transportLinks || []).length) warnings.push('No rover transport link inferred from SysML connection names.');
   if (!equationModules.length) warnings.push('No module equations defined yet.');
+
+  const resourceRoutes = up42Scenario.resourceRoutes || [];
+  const validateRoverAssignments = (flow, roverType, count) => {
+    const expectedIds = Array.from({length: count}, (_, index) =>
+      count === 1 ? roverType : `${roverType}_${index + 1}`
+    );
+    const knownIds = new Set(expectedIds);
+    resourceRoutes.filter(route => route.flow === flow).forEach(route => {
+      if (!route.rover_id) errors.push(`${flow} route ${route.from} → ${route.to} has no assigned rover.`);
+      else if (!knownIds.has(route.rover_id)) errors.push(`${flow} route references unknown rover ${route.rover_id}.`);
+      if (!up42Placements[route.from] || !up42Placements[route.to]) {
+        errors.push(`${flow} route ${route.from} → ${route.to} references an unplaced module.`);
+      }
+    });
+    expectedIds.forEach(roverId => {
+      if (!resourceRoutes.some(route => route.flow === flow && route.rover_id === roverId)) {
+        errors.push(`${roverId} has no ${flow} route assignment.`);
+      }
+    });
+  };
+  validateRoverAssignments('Regolith', 'RegolithRover', Math.max(0, Number(up42Scenario.roverCounts?.regolith || 0)));
+  validateRoverAssignments('LOX', 'LOXRover', Math.max(0, Number(up42Scenario.roverCounts?.lox || 0)));
 
   return { errors, warnings };
 }
@@ -6311,6 +6843,7 @@ function buildUrbanPlanningPayload(options = {}) {
     connections[key] = {
       flow: route.flow,
       rover_type: route.rover_type,
+      rover_id: route.rover_id || null,
       stops: route.stops || [],
       waypoints_m: waypoints,
       distance_km: +distKm.toFixed(3)
@@ -6331,6 +6864,7 @@ function buildUrbanPlanningPayload(options = {}) {
     key: `${route.from}To${route.to}_${route.flow}`,
     flow: route.flow,
     rover_type: route.rover_type,
+    rover_id: route.rover_id || null,
     stops: route.stops || [],
     distance_km: +getRoutePathDistanceKm(route.pts || []).toFixed(3)
   })));
@@ -6521,7 +7055,29 @@ let up42MoonImg = null;
           <div style="font-size:9px;color:var(--text3);margin-top:2px;line-height:1.4;">Minimum LOX stored at one plant before it requests a rover from the shared LOX rover pool.</div>
         </div>
 
-        <details open style="background:rgba(255,255,255,0.03);border:1px solid var(--border2);border-radius:8px;padding:10px;grid-column:1/-1;">
+        <div style="grid-column:1/-1;padding:4px 0 6px;border-bottom:1px solid var(--border2);margin-top:2px;">
+          <div style="font-size:10px;color:var(--accent);font-weight:700;letter-spacing:0.8px;">GENERAL SIMULATION</div>
+        </div>
+        <label style="padding:8px;border:1px solid var(--border2);border-radius:7px;font-size:10px;color:var(--text2);line-height:1.4;">Simulation duration <small style="color:var(--accent);">[Global]</small>
+          <input id="desSimDuration" type="number" min="1" step="1" value="60" oninput="syncPowerModelDuration()" style="width:100%;margin-top:5px;background:#07101a;color:var(--text1);border:1px solid var(--border2);border-radius:5px;padding:6px;">
+          <span style="display:block;font-size:9px;color:var(--text3);margin-top:4px;">Time horizon used by the DES and each editable power profile.</span>
+        </label>
+        <label style="padding:8px;border:1px solid var(--border2);border-radius:7px;font-size:10px;color:var(--text2);line-height:1.4;">Rover payload capacity <small style="color:#4cc9f0;">[Rovers]</small>
+          <input id="desRoverCapacity" type="number" min="1" step="100" value="4000" style="width:100%;margin-top:5px;background:#07101a;color:var(--text1);border:1px solid var(--border2);border-radius:5px;padding:6px;">
+          <span style="display:block;font-size:9px;color:var(--text3);margin-top:4px;">Maximum resource mass carried by one rover, in kg.</span>
+        </label>
+
+        <div id="desModulePowerSection" style="grid-column:1/-1;">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:4px 0 7px;border-bottom:1px solid var(--border2);">
+            <div>
+              <div style="font-size:10px;color:var(--accent);font-weight:700;letter-spacing:0.8px;">3. MODULE POWER CONSUMPTION</div>
+              <div style="font-size:9px;color:var(--text3);margin-top:3px;">Define an average demand, a time profile, or a state-dependent equation for every active module.</div>
+            </div>
+          </div>
+          <div id="desModulePowerModels" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:8px;margin-top:8px;"></div>
+        </div>
+
+        <details id="desIsruAdvancedAssumptions" open style="background:rgba(255,255,255,0.03);border:1px solid var(--border2);border-radius:8px;padding:10px;grid-column:1/-1;">
           <summary style="font-size:10px;color:var(--accent);font-weight:700;letter-spacing:0.8px;cursor:pointer;">3. ADVANCED SIMULATION ASSUMPTIONS</summary>
 
           <div style="margin-top:12px;padding-bottom:5px;border-bottom:1px solid var(--border2);">
@@ -6530,7 +7086,7 @@ let up42MoonImg = null;
           </div>
           <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:8px;margin-top:8px;">
             <label style="padding:8px;border:1px solid var(--border2);border-radius:7px;font-size:10px;color:var(--text2);line-height:1.4;">Simulation duration <small style="color:var(--accent);">[Global]</small>
-              <input id="desSimDuration" type="number" min="1" step="1" value="60" style="width:100%;margin-top:5px;background:#07101a;color:var(--text1);border:1px solid var(--border2);border-radius:5px;padding:6px;">
+              <input id="desSimDurationLegacy" type="number" min="1" step="1" value="60" disabled style="width:100%;margin-top:5px;background:#07101a;color:var(--text1);border:1px solid var(--border2);border-radius:5px;padding:6px;">
               <span style="display:block;font-size:9px;color:var(--text3);margin-top:4px;">Mission time simulated before SimPy stops, in hours.</span>
             </label>
             <label style="padding:8px;border:1px solid var(--border2);border-radius:7px;font-size:10px;color:var(--text2);line-height:1.4;">Regolith rover load <small style="color:#f4a261;">[RegolithRover]</small>
@@ -6599,11 +7155,12 @@ let up42MoonImg = null;
 
       </div>
       <!-- Run button pinned at bottom -->
-      <div style="padding:10px 14px;border-top:1px solid var(--border);">
+      <div style="padding:10px 14px;border-top:1px solid var(--border);display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;">
         <button id="runDesBtn" class="btn btn-primary" style="width:100%;padding:10px;" onclick="triggerDesWorkflow()">
           ▶ Run DES Simulation
         </button>
-        <div id="desStatus" class="mini-note" style="margin-top:6px;text-align:center;font-size:10px;"></div>
+        <button id="saveScenarioBtn" class="btn btn-secondary" style="padding:10px 14px;" onclick="saveCurrentScenarioConfiguration()">Save Configuration</button>
+        <div id="desStatus" class="mini-note" style="grid-column:1/-1;text-align:center;font-size:10px;"></div>
       </div>
     </div>
 
@@ -6625,6 +7182,19 @@ let up42MoonImg = null;
       </div>
       <div id="desMetricsWrap" style="flex:1;overflow-y:auto;padding:12px 14px;display:flex;flex-direction:column;gap:0;">
         <div style="color:var(--text3);font-size:11px;text-align:center;margin-top:40px;">Run the simulation to see results.</div>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;background:var(--panel);border:1px solid var(--border);border-radius:12px;overflow:hidden;min-height:260px;">
+      <div style="padding:12px 14px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:10px;">
+        <div>
+          <div style="font-size:12px;font-weight:600;color:var(--text1);">Saved Scenario Comparison</div>
+          <div style="font-size:9px;color:var(--text3);margin-top:2px;">Compare resource histories and final MoEs from saved configurations.</div>
+        </div>
+        <button type="button" class="btn" onclick="renderSavedScenarioComparison()" style="padding:7px 10px;font-size:9px;">Refresh</button>
+      </div>
+      <div id="savedScenarioComparison" style="flex:1;padding:12px 14px;overflow:auto;">
+        <div style="color:var(--text3);font-size:11px;text-align:center;margin-top:40px;">Save at least two completed configurations to compare them.</div>
       </div>
     </div>
 
@@ -9513,6 +10083,174 @@ let up42MoonImg = null;
     }
   }
 
+  function getPowerModelModuleIds() {
+    const ids = getScenarioInstances()
+      .filter(instance => getBaseModuleId(instance.id) !== 'SolarPowerSystem')
+      .map(instance => instance.id);
+    systems.filter(system => system.active && isRoverNode(system.id)).forEach(system => {
+      const key = system.id.toLowerCase().includes('lox') ? 'lox' : 'regolith';
+      const count = Math.max(1, Number(up42Scenario.roverCounts?.[key] || 1));
+      for (let index = 1; index <= count; index++) ids.push(count === 1 ? system.id : `${system.id}_${index}`);
+    });
+    return [...new Set(ids)];
+  }
+
+  function inferModuleAveragePower(moduleId) {
+    const attributes = getSysmlPartData(getBaseModuleId(moduleId))?.attributes || {};
+    const candidates = Object.entries(attributes).filter(([name, value]) =>
+      /power|consumption|draw/i.test(name) && Number.isFinite(Number(value))
+    );
+    return candidates.length ? Math.max(0, Number(candidates[0][1])) : 0;
+  }
+
+  function ensurePowerModel(moduleId) {
+    const duration = Math.max(1, getNumberInputValue('desSimDuration', 60));
+    if (!scenarioPowerModels[moduleId]) {
+      const average = inferModuleAveragePower(moduleId);
+      scenarioPowerModels[moduleId] = {
+        mode: 'average',
+        average_kw: average,
+        points: [{time_hr:0, power_kw:average}, {time_hr:duration, power_kw:average}],
+        equation: ''
+      };
+    }
+    const model = scenarioPowerModels[moduleId];
+    model.points = Array.isArray(model.points) && model.points.length >= 2
+      ? model.points
+      : [{time_hr:0, power_kw:Number(model.average_kw || 0)}, {time_hr:duration, power_kw:Number(model.average_kw || 0)}];
+    model.points.sort((a, b) => a.time_hr - b.time_hr);
+    model.points[0].time_hr = 0;
+    model.points[model.points.length - 1].time_hr = duration;
+    return model;
+  }
+
+  function renderPowerProfileSvg(moduleId, model) {
+    const duration = Math.max(1, getNumberInputValue('desSimDuration', 60));
+    const values = model.points.map(point => Number(point.power_kw || 0));
+    const maxPower = Math.max(1, Number(model.average_kw || 0), ...values) * 1.2;
+    const x = time => 24 + (Math.max(0, Math.min(duration, time)) / duration) * 266;
+    const y = power => 88 - (Math.max(0, Math.min(maxPower, power)) / maxPower) * 72;
+    const polyline = model.points.map(point => `${x(point.time_hr).toFixed(1)},${y(point.power_kw).toFixed(1)}`).join(' ');
+    return `<svg viewBox="0 0 300 108" style="display:block;width:100%;height:126px;background:#07101a;border:1px solid var(--border2);border-radius:7px;touch-action:none;">
+      <line x1="24" y1="88" x2="290" y2="88" stroke="rgba(255,255,255,0.22)"/>
+      <line x1="24" y1="16" x2="24" y2="88" stroke="rgba(255,255,255,0.22)"/>
+      <text x="24" y="102" fill="rgba(255,255,255,0.45)" font-size="7">0 hr</text>
+      <text x="270" y="102" fill="rgba(255,255,255,0.45)" font-size="7">${duration} hr</text>
+      <text x="27" y="12" fill="rgba(255,255,255,0.45)" font-size="7">${maxPower.toFixed(1)} kW</text>
+      <polyline points="${polyline}" fill="none" stroke="#4cc9f0" stroke-width="2.5" stroke-linejoin="round"/>
+      ${model.points.map((point, index) => `<circle cx="${x(point.time_hr)}" cy="${y(point.power_kw)}" r="5" fill="${index === 0 || index === model.points.length - 1 ? '#ffd166' : '#4cc9f0'}" stroke="#07101a" stroke-width="2" style="cursor:move;" onpointerdown="startPowerProfileDrag(event,'${jsString(moduleId)}',${index},${maxPower})"/>`).join('')}
+    </svg>`;
+  }
+
+  function renderScenarioPowerModels() {
+    const wrap = document.getElementById('desModulePowerModels');
+    if (!wrap) return;
+    const moduleIds = getPowerModelModuleIds();
+    if (!moduleIds.length) {
+      wrap.innerHTML = '<div style="padding:12px;color:var(--text3);font-size:10px;text-align:center;">Run Step 2 to load active modules.</div>';
+      return;
+    }
+    wrap.innerHTML = moduleIds.map(moduleId => {
+      const model = ensurePowerModel(moduleId);
+      const tokens = getEquationTokenGroups(moduleId);
+      const modeButton = (mode, label) => `<button type="button" class="btn" onclick="setPowerModelMode('${jsString(moduleId)}','${mode}')" style="padding:5px 7px;font-size:8px;${model.mode === mode ? 'border-color:var(--accent);color:var(--accent);background:rgba(0,212,255,0.10);' : ''}">${label}</button>`;
+      return `<div style="padding:10px;border:1px solid var(--border2);border-radius:8px;background:rgba(255,255,255,0.02);min-width:0;">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px;">
+          <div style="font-size:10px;font-weight:800;color:${getModuleColor(moduleId)};overflow:hidden;text-overflow:ellipsis;">${escapeHtml(moduleId)}</div>
+          <div style="display:flex;gap:4px;">${modeButton('average','Average')}${modeButton('profile','Profile')}${modeButton('equation','Equation')}</div>
+        </div>
+        ${model.mode === 'average' ? `<label style="font-size:9px;color:var(--text3);">Average consumption (kW)<input type="number" min="0" step="0.1" value="${Number(model.average_kw || 0)}" oninput="setPowerModelAverage('${jsString(moduleId)}',this.value)" style="width:100%;margin-top:5px;padding:7px;background:#07101a;color:var(--text1);border:1px solid var(--border2);border-radius:6px;"></label>` : ''}
+        ${model.mode === 'profile' ? `${renderPowerProfileSvg(moduleId, model)}<div style="display:flex;gap:5px;margin-top:6px;"><button type="button" class="btn" title="Add profile point" onclick="addPowerProfilePoint('${jsString(moduleId)}')" style="width:28px;height:28px;padding:0;font-size:16px;">+</button><button type="button" class="btn" title="Remove last intermediate point" onclick="removePowerProfilePoint('${jsString(moduleId)}')" style="width:28px;height:28px;padding:0;font-size:16px;">−</button><span style="font-size:8px;color:var(--text3);align-self:center;">Drag points to shape the demand.</span></div>` : ''}
+        ${model.mode === 'equation' ? `<textarea spellcheck="false" oninput="setPowerModelEquation('${jsString(moduleId)}',this.value)" style="width:100%;min-height:58px;padding:7px;background:#07101a;color:var(--text1);border:1px solid var(--border2);border-radius:6px;font:9px monospace;">${escapeHtml(model.equation || '')}</textarea><div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;">${[...new Set(['PowerIn','SimulationTime',...tokens.ports,...tokens.attrs])].slice(0,24).map(token => `<button type="button" class="btn" onclick="appendPowerModelToken('${jsString(moduleId)}','${jsString(token)}')" style="padding:3px 5px;font-size:7px;">${escapeHtml(token)}</button>`).join('')}</div>` : ''}
+      </div>`;
+    }).join('');
+  }
+
+  function setPowerModelMode(moduleId, mode) {
+    ensurePowerModel(moduleId).mode = mode;
+    renderScenarioPowerModels();
+  }
+
+  function setPowerModelAverage(moduleId, value) {
+    const model = ensurePowerModel(moduleId);
+    model.average_kw = Math.max(0, Number(value) || 0);
+  }
+
+  function setPowerModelEquation(moduleId, value) {
+    ensurePowerModel(moduleId).equation = String(value || '');
+  }
+
+  function appendPowerModelToken(moduleId, token) {
+    const model = ensurePowerModel(moduleId);
+    model.equation = `${model.equation || ''}${model.equation ? ' ' : ''}${token}`;
+    renderScenarioPowerModels();
+  }
+
+  function addPowerProfilePoint(moduleId) {
+    const model = ensurePowerModel(moduleId);
+    const duration = Math.max(1, getNumberInputValue('desSimDuration', 60));
+    const widest = model.points.slice(1).map((point, index) => ({
+      index, width: point.time_hr - model.points[index].time_hr
+    })).sort((a, b) => b.width - a.width)[0];
+    const left = model.points[widest?.index || 0];
+    const right = model.points[(widest?.index || 0) + 1];
+    model.points.push({time_hr:(left.time_hr + right.time_hr) / 2, power_kw:(left.power_kw + right.power_kw) / 2});
+    model.points.sort((a, b) => a.time_hr - b.time_hr);
+    model.points[model.points.length - 1].time_hr = duration;
+    renderScenarioPowerModels();
+  }
+
+  function removePowerProfilePoint(moduleId) {
+    const model = ensurePowerModel(moduleId);
+    if (model.points.length > 2) model.points.splice(model.points.length - 2, 1);
+    renderScenarioPowerModels();
+  }
+
+  function startPowerProfileDrag(event, moduleId, pointIndex, maxPower) {
+    event.preventDefault();
+    const svg = event.currentTarget.ownerSVGElement;
+    const model = ensurePowerModel(moduleId);
+    const duration = Math.max(1, getNumberInputValue('desSimDuration', 60));
+    const move = moveEvent => {
+      const rect = svg.getBoundingClientRect();
+      const px = (moveEvent.clientX - rect.left) / rect.width * 300;
+      const py = (moveEvent.clientY - rect.top) / rect.height * 108;
+      const point = model.points[pointIndex];
+      if (pointIndex > 0 && pointIndex < model.points.length - 1) {
+        const previous = model.points[pointIndex - 1].time_hr + 0.1;
+        const next = model.points[pointIndex + 1].time_hr - 0.1;
+        point.time_hr = Math.max(previous, Math.min(next, (px - 24) / 266 * duration));
+      }
+      point.power_kw = Math.max(0, Math.min(maxPower, (88 - py) / 72 * maxPower));
+      renderScenarioPowerModels();
+    };
+    const stop = () => {
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerup', stop);
+    };
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', stop, {once:true});
+  }
+
+  function syncPowerModelDuration() {
+    const duration = Math.max(1, getNumberInputValue('desSimDuration', 60));
+    const legacy = document.getElementById('desSimDurationLegacy');
+    if (legacy) legacy.value = duration;
+    Object.values(scenarioPowerModels).forEach(model => {
+      if (model.points?.length) model.points[model.points.length - 1].time_hr = duration;
+    });
+    renderScenarioPowerModels();
+  }
+
+  function syncDesScenarioModeVisibility() {
+    const isIsru = currentScenarioMode === 'isru';
+    ['desControlProcessRate', 'desControlLoxThresh', 'desIsruAdvancedAssumptions'].forEach(id => {
+      const element = document.getElementById(id);
+      if (element) element.style.display = isIsru ? '' : 'none';
+    });
+    renderScenarioPowerModels();
+  }
+
   function getDesSliderValues() {
     return {
       Num_Regolith_Rovers: document.getElementById('desRoverCount').value,
@@ -9534,6 +10272,11 @@ let up42MoonImg = null;
   }
 
   function buildDesScenarioConfig() {
+    const isIsruPreset = currentScenarioMode === 'isru';
+    const roverCapacity = getNumberInputValue('desRoverCapacity', 4000);
+    const regolithRoverCount = Math.max(1, Number(up42Scenario.roverCounts?.regolith || 1));
+    const loxRoverCount = Math.max(0, Number(up42Scenario.roverCounts?.lox || 0));
+    const plantCount = Math.max(1, getScenarioInstances().filter(instance => instance.type === 'ISRUPlant').length || 1);
     const spike = (timeId, energyId, fallbackTime, fallbackEnergy) => {
       const energy = getNumberInputValue(energyId, fallbackEnergy);
       if (energy <= 0) return [];
@@ -9547,35 +10290,51 @@ let up42MoonImg = null;
       simulation: {
         duration_hr: getNumberInputValue('desSimDuration', 60),
       },
+      rovers: {
+        regolith: { count: regolithRoverCount },
+        lox: { count: loxRoverCount },
+        max_capacity_kg: roverCapacity,
+      },
       regolith: {
-        rover_load_kg: getNumberInputValue('desRegolithRoverLoad', 4000),
-        plant_batch_kg: getNumberInputValue('desPlantBatch', 4000),
-        plant_input_capacity_kg: getNumberInputValue('desPlantInputCapacity', 20000),
+        rover_load_kg: isIsruPreset ? getNumberInputValue('desRegolithRoverLoad', 4000) : roverCapacity,
+        plant_batch_kg: isIsruPreset ? getNumberInputValue('desPlantBatch', 4000) : roverCapacity,
+        plant_input_capacity_kg: isIsruPreset
+          ? getNumberInputValue('desPlantInputCapacity', 20000)
+          : roverCapacity * Math.max(1, regolithRoverCount),
         dispatch_policy: 'least_fill_ratio',
         dispatch_poll_dt_hr: 0.1,
       },
       isru: {
+        plant_count: plantCount,
+        lox_transport_threshold_kg: isIsruPreset
+          ? getNumberInputValue('desLoxThresh', 100)
+          : roverCapacity,
         lox_delivery_poll_dt_hr: getNumberInputValue('desLoxPollDt', 1),
-        lox_storage_energy_kwh_per_kg_hr: getNumberInputValue('desLoxStorageCoeff', 0.31),
+        lox_storage_energy_kwh_per_kg_hr: isIsruPreset
+          ? getNumberInputValue('desLoxStorageCoeff', 0.31)
+          : 0,
         lox_storage_energy_dt_hr: 1,
       },
       power: {
         management_dt_hr: getNumberInputValue('desPowerDt', 1),
         continuous_load_kw: {
-          habitation: getNumberInputValue('desHabContinuousPower', 5),
-          landing_zone_utilities: getNumberInputValue('desLzUtilitiesPower', 3),
+          habitation: isIsruPreset ? getNumberInputValue('desHabContinuousPower', 5) : null,
+          landing_zone_utilities: isIsruPreset ? getNumberInputValue('desLzUtilitiesPower', 3) : null,
         },
-        landing_zone_chilling_kw_per_kg: getNumberInputValue('desLzChillingCoeff', 0.31),
+        landing_zone_chilling_kw_per_kg: isIsruPreset
+          ? getNumberInputValue('desLzChillingCoeff', 0.31)
+          : null,
         spikes: {
-          habitation: spike('desHabSpikeTime', 'desHabSpikeEnergy', 10, 20),
+          habitation: isIsruPreset ? spike('desHabSpikeTime', 'desHabSpikeEnergy', 10, 20) : [],
           communications: [],
-          landing_zone: spike('desLzSpikeTime', 'desLzSpikeEnergy', 25, 50),
+          landing_zone: isIsruPreset ? spike('desLzSpikeTime', 'desLzSpikeEnergy', 25, 50) : [],
         },
         charging_station: {
           enabled_when_lox_rover_active: false,
           charging_power_kw: 20,
           efficiency: 0.85,
         },
+        module_models: cloneScenarioValue(scenarioPowerModels),
       },
       scenario_builder: buildScenarioLogicPayload(),
     };
@@ -9620,9 +10379,126 @@ let up42MoonImg = null;
     return overrides;
   }
 
+  function getPowerModelValidationErrors() {
+    const errors = [];
+    getPowerModelModuleIds().forEach(moduleId => {
+      const model = ensurePowerModel(moduleId);
+      if (model.mode === 'equation' && !/^\s*(PowerIn|EnergyConsumed)\s*=/m.test(model.equation || '')) {
+        errors.push(`${moduleId}: power equation must assign PowerIn or EnergyConsumed.`);
+      }
+      if (model.mode === 'profile' && (!Array.isArray(model.points) || model.points.length < 2)) {
+        errors.push(`${moduleId}: power profile requires at least two points.`);
+      }
+    });
+    return errors;
+  }
+
+  function saveCurrentScenarioConfiguration() {
+    const defaultName = currentScenarioId
+      ? (getSavedScenarios().find(item => item.id === currentScenarioId)?.name || 'Scenario')
+      : `${currentScenarioMode === 'isru' ? 'ISRU' : 'Mission'} ${new Date().toLocaleDateString()}`;
+    const name = prompt('Configuration name:', defaultName);
+    if (!name?.trim()) return;
+    const snapshot = captureScenarioSnapshot(name.trim());
+    if (latestRunScenarioSnapshot && desData) snapshot.results = cloneScenarioValue(desData);
+    const scenarios = getSavedScenarios();
+    const existingIndex = scenarios.findIndex(item => item.id === snapshot.id);
+    if (existingIndex >= 0) scenarios[existingIndex] = snapshot;
+    else scenarios.push(snapshot);
+    currentScenarioId = snapshot.id;
+    writeSavedScenarios(scenarios);
+    renderSavedScenarioComparison();
+    setDesStatus(`Saved configuration: ${snapshot.name}`, '#7ee0b1');
+  }
+
+  function getScenarioResultMetrics(snapshot) {
+    const results = snapshot?.results?.results || snapshot?.results || {};
+    const fleet = results.ISRU_Plants?.Fleet_Totals || {};
+    const moes = results.MoEs || {};
+    const landing = results.Landing_Zone || {};
+    const depots = results.Propellant_Depots || {};
+    const depotLox = Object.values(depots).reduce((sum, depot) => sum + Number(depot.LOX_Stored_kg || 0), 0);
+    const roverEnergy = Object.values(results.Regolith_Cargo_Rovers || {}).reduce((sum, rover) =>
+      sum + Number(rover?.Energy_Consumed_kWh || 0), 0
+    );
+    return {
+      lox_kg: Number(fleet.Total_LOX_Production_kg || 0),
+      delivered_lox_kg: Number(landing.LOX_Stored_kg || 0) + depotLox,
+      energy_kwh: Number(
+        moes.Total_System_Demand_kWh
+        ?? (Number(fleet.Energy_Consumed_kWh || 0) + roverEnergy)
+      ),
+      duration_hr: Number(results.Sim_Metrics?.Simulation_Duration_hr || snapshot?.des_form?.desSimDuration || 0),
+    };
+  }
+
+  function getScenarioResourceSeries(snapshot) {
+    const log = snapshot?.results?.log || {};
+    return Object.keys(log).map(Number).sort((a, b) => a - b).map(time => {
+      const snap = log[String(time)] || log[time] || {};
+      let lox = 0;
+      let regolith = 0;
+      Object.values(snap).forEach(attrs => {
+        lox += Number(attrs.LOX_Stored ?? attrs.LOX_Stored_kg ?? 0);
+        regolith += Number(attrs.regolith_recieved ?? attrs.regolith_received ?? 0);
+      });
+      return {time, lox, regolith};
+    });
+  }
+
+  function renderSavedScenarioComparison() {
+    const wrap = document.getElementById('savedScenarioComparison');
+    if (!wrap) return;
+    const scenarios = getSavedScenarios().filter(snapshot => snapshot.results);
+    if (scenarios.length < 2) {
+      wrap.innerHTML = '<div style="color:var(--text3);font-size:11px;text-align:center;margin-top:40px;">Save at least two completed configurations to compare them.</div>';
+      return;
+    }
+    const colors = ['#4cc9f0','#ffd166','#7ee0b1','#ff7a8a','#a78bfa','#f4a261'];
+    const allSeries = scenarios.map(getScenarioResourceSeries);
+    const maxTime = Math.max(1, ...allSeries.flatMap(series => series.map(point => point.time)));
+    const maxLox = Math.max(1, ...allSeries.flatMap(series => series.map(point => point.lox)));
+    const maxRegolith = Math.max(1, ...allSeries.flatMap(series => series.map(point => point.regolith)));
+    const pathFor = (series, key, maxValue) => series.map((point, index) => {
+      const x = 38 + point.time / maxTime * 442;
+      const y = 145 - point[key] / maxValue * 116;
+      return `${index ? 'L' : 'M'} ${x.toFixed(1)} ${y.toFixed(1)}`;
+    }).join(' ');
+    const rows = scenarios.map((snapshot, index) => {
+      const metric = getScenarioResultMetrics(snapshot);
+      return `<tr><td style="padding:7px;color:${colors[index % colors.length]};font-weight:700;">${escapeHtml(snapshot.name)}</td><td style="padding:7px;text-align:right;">${metric.lox_kg.toFixed(1)} kg</td><td style="padding:7px;text-align:right;">${metric.delivered_lox_kg.toFixed(1)} kg</td><td style="padding:7px;text-align:right;">${metric.energy_kwh.toFixed(1)} kWh</td><td style="padding:7px;text-align:right;">${metric.duration_hr.toFixed(1)} hr</td></tr>`;
+    }).join('');
+    const resourceChart = (title, key, maxValue) => `<div>
+      <div style="font-size:9px;color:var(--text3);margin-bottom:5px;">${title}</div>
+      <svg viewBox="0 0 500 165" style="width:100%;height:220px;background:#07101a;border:1px solid var(--border2);border-radius:8px;">
+        <line x1="38" y1="145" x2="480" y2="145" stroke="rgba(255,255,255,0.25)"/><line x1="38" y1="29" x2="38" y2="145" stroke="rgba(255,255,255,0.25)"/>
+        ${allSeries.map((series, index) => `<path d="${pathFor(series,key,maxValue)}" fill="none" stroke="${colors[index % colors.length]}" stroke-width="2.5"/>`).join('')}
+        <text x="38" y="159" fill="rgba(255,255,255,0.5)" font-size="8">0 hr</text><text x="452" y="159" fill="rgba(255,255,255,0.5)" font-size="8">${maxTime} hr</text><text x="41" y="24" fill="rgba(255,255,255,0.5)" font-size="8">${maxValue.toFixed(1)} kg</text>
+      </svg>
+    </div>`;
+    wrap.innerHTML = `<div style="display:grid;grid-template-columns:repeat(2,minmax(380px,1fr));gap:12px;align-items:start;">
+      ${resourceChart('Stored LOX over simulation time', 'lox', maxLox)}
+      ${resourceChart('Regolith processed over simulation time', 'regolith', maxRegolith)}
+      <div style="grid-column:1/-1;overflow:auto;"><table style="width:100%;border-collapse:collapse;font-size:9px;color:var(--text2);"><thead><tr style="border-bottom:1px solid var(--border2);"><th style="padding:7px;text-align:left;">Scenario</th><th style="padding:7px;text-align:right;">LOX produced</th><th style="padding:7px;text-align:right;">LOX delivered</th><th style="padding:7px;text-align:right;">Energy</th><th style="padding:7px;text-align:right;">Duration</th></tr></thead><tbody>${rows}</tbody></table></div>
+    </div>`;
+  }
+
   async function triggerDesWorkflow() {
     const btn = document.getElementById('runDesBtn');
     const activeNodes = getDesActiveNodes();
+
+    if (!currentScenarioMode) {
+      setDesStatus('Select ISRU Scenario, Saved Scenarios, or Build New Scenario first.', '#ff7a8a');
+      document.getElementById('scenario-entry')?.scrollIntoView({behavior:'smooth'});
+      return;
+    }
+    const scenarioValidation = getScenarioValidationMessages();
+    const powerErrors = getPowerModelValidationErrors();
+    if (scenarioValidation.errors.length || powerErrors.length) {
+      const errors = [...scenarioValidation.errors, ...powerErrors];
+      setDesStatus(`Cannot run: ${errors[0]}${errors.length > 1 ? ` (+${errors.length - 1} more)` : ''}`, '#ff7a8a');
+      return;
+    }
 
     let token = sessionStorage.getItem('gh_pat');
     if (!token) {
@@ -9655,6 +10531,8 @@ let up42MoonImg = null;
     console.log('[DES DISPATCH] urban_planning size:', urbanPlanning ? JSON.stringify(urbanPlanning).length : 0, 'bytes');
     console.log('[DES DISPATCH] scenario config:', scenarioConfig);
     console.log('[DES DISPATCH] CAD axis overrides:', cadAxisOverrides);
+    latestRunScenarioSnapshot = captureScenarioSnapshot('Last run');
+    latestRunScenarioSnapshot.results = null;
 
     try {
       const res = await fetch(
@@ -9790,6 +10668,7 @@ let up42MoonImg = null;
 
   function renderDesResults(data) {
     desData = data;
+    if (latestRunScenarioSnapshot) latestRunScenarioSnapshot.results = cloneScenarioValue(data);
 
     if (data.status === 'error') {
       document.getElementById('desMetricsWrap').innerHTML =
@@ -10093,4 +10972,11 @@ let up42MoonImg = null;
 
 
     </section>
+<script>
+window.addEventListener('load', () => {
+  refreshSavedScenarioSummary();
+  renderSavedScenarioComparison();
+  syncDesScenarioModeVisibility();
+});
+</script>
 </html>

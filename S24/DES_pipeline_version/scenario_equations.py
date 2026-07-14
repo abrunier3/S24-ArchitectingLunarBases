@@ -59,6 +59,24 @@ def parse_equations(equations):
     return parsed
 
 
+def validate_effect_outputs(equations, effect_outputs):
+    """Reject terminal equation outputs that no DES process consumes."""
+    parsed = parse_equations(equations)
+    allowed = set(effect_outputs or ())
+    unsupported = []
+    for index, (output_name, _, line_number) in enumerate(parsed):
+        referenced_later = any(
+            any(isinstance(node, ast.Name) and node.id == output_name for node in ast.walk(expression))
+            for _, expression, _ in parsed[index + 1:]
+        )
+        if not referenced_later and output_name not in allowed:
+            unsupported.append(f"{output_name} (line {line_number})")
+    if unsupported:
+        raise ScenarioEquationError(
+            "Equation output has no DES effect: " + ", ".join(unsupported)
+        )
+
+
 def _evaluate_node(node, variables):
     if isinstance(node, ast.Constant):
         if isinstance(node.value, bool) or not isinstance(node.value, (int, float)):
@@ -85,7 +103,9 @@ def _evaluate_node(node, variables):
     raise ScenarioEquationError(f"Unsupported equation syntax: {type(node).__name__}")
 
 
-def evaluate_equations(equations, context):
+def evaluate_equations(equations, context, effect_outputs=None):
+    if effect_outputs is not None:
+        validate_effect_outputs(equations, effect_outputs)
     variables = dict(context or {})
     outputs = {}
     for output_name, expression, line_number in parse_equations(equations):

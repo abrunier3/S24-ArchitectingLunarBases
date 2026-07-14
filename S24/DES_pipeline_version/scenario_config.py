@@ -31,6 +31,7 @@ DEFAULT_SCENARIO_CONFIG = {
         },
         "energy_kwh_per_km_per_kg": 0.00034,
         "travel_time_hr_per_km": 5.0,
+        "max_capacity_kg": 4000.0,
     },
     "routes": {
         "use_sysml_distances": True,
@@ -62,6 +63,7 @@ DEFAULT_SCENARIO_CONFIG = {
             "charging_power_kw": 20.0,
             "efficiency": 0.85,
         },
+        "module_models": {},
     },
 }
 
@@ -207,9 +209,11 @@ def load_scenario_config(options=None):
     else:
         config = _deep_merge(config, _load_json_file(DEFAULT_CONFIG_PATH))
 
-    inline_config = options.get("scenario_config") or options.get("Scenario_Config")
-    config = _deep_merge(config, _parse_inline_config(inline_config))
     config = _apply_legacy_options(config, options)
+    inline_config = options.get("scenario_config") or options.get("Scenario_Config")
+    # The structured scenario builder is authoritative. Legacy sliders remain
+    # a compatibility layer only for values not supplied by the new UI.
+    config = _deep_merge(config, _parse_inline_config(inline_config))
 
     if config.get("routes", {}).get("use_sysml_distances", True):
         sysml_path = options.get("sysml_json_path") or options.get("SysML_JSON_Path") or DEFAULT_SYSML_JSON_PATH
