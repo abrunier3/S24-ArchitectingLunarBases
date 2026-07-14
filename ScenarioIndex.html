@@ -5208,7 +5208,10 @@ function getDefaultEquationTemplate(moduleId) {
 function getEquationTokenGroups(moduleId) {
   const baseId = getBaseModuleId(moduleId);
   const part = getSysmlPartData(baseId) || {};
-  const ports = (Array.isArray(part.ports) ? part.ports : []).map(port => port.name || port.id).filter(Boolean);
+  const ports = [...new Set((Array.isArray(part.ports) ? part.ports : []).flatMap(port => {
+    const items = Array.isArray(port.items) ? port.items.filter(Boolean) : [];
+    return items.length ? items : [port.name || port.id].filter(Boolean);
+  }))];
   const attrs = Object.keys(part.attributes || {});
   return {
     ports,
@@ -5587,6 +5590,15 @@ function buildScenarioLogicPayload() {
     rover_counts: {...up42Scenario.roverCounts},
     sysml_interfaces: up42Scenario.sysmlInterfaces,
     transport_links: up42Scenario.transportLinks,
+    resource_routes: (up42Scenario.resourceRoutes || []).map(route => ({
+      id: route.id,
+      flow: route.flow,
+      rover_type: route.rover_type,
+      from: route.from,
+      to: route.to,
+      stops: route.stops || [],
+      distance_km: +getRoutePathDistanceKm(route.pts || []).toFixed(3)
+    })),
     module_equations: {...up42Scenario.moduleEquations}
   };
 }
@@ -6419,7 +6431,7 @@ let up42MoonImg = null;
           </div>
           <input id="desRoverCount" type="range" min="1" max="10" step="1" value="1" style="width:100%;"
             oninput="document.getElementById('desRoverCountVal').textContent=this.value">
-          <div style="font-size:9px;color:var(--text3);margin-top:3px;line-height:1.4;">Shared fleet: every rover delivers to the common regolith buffer used by all ISRU plants.</div>
+          <div style="font-size:9px;color:var(--text3);margin-top:3px;line-height:1.4;">Shared fleet: each available rover is dispatched to the eligible ISRU plant with the lowest input-storage fill ratio.</div>
           </div>
         </div>
 
@@ -6442,7 +6454,7 @@ let up42MoonImg = null;
             <span id="desPlantCountVal" style="font-size:15px;font-weight:700;color:var(--accent);">1</span>
           </div>
           <input id="desPlantCount" type="hidden" value="1">
-          <div style="font-size:9px;color:var(--text3);margin-top:2px;line-height:1.4;">Number of parallel processing plants drawing regolith from the same shared input buffer.</div>
+          <div style="font-size:9px;color:var(--text3);margin-top:2px;line-height:1.4;">Number of parallel processing plants. Each instance owns an independent regolith input storage.</div>
           <div style="font-size:8px;color:#7ee0b1;margin-top:5px;">Defined by placed instances in Step 4.2</div>
           </div>
         </div>
@@ -6521,13 +6533,17 @@ let up42MoonImg = null;
               <input id="desSimDuration" type="number" min="1" step="1" value="60" style="width:100%;margin-top:5px;background:#07101a;color:var(--text1);border:1px solid var(--border2);border-radius:5px;padding:6px;">
               <span style="display:block;font-size:9px;color:var(--text3);margin-top:4px;">Mission time simulated before SimPy stops, in hours.</span>
             </label>
-            <label style="padding:8px;border:1px solid var(--border2);border-radius:7px;font-size:10px;color:var(--text2);line-height:1.4;">Rover load / plant batch <small style="color:#f4a261;">[Regolith flow]</small>
-              <input id="desRegolithBatch" type="number" min="1" step="100" value="4000" style="width:100%;margin-top:5px;background:#07101a;color:var(--text1);border:1px solid var(--border2);border-radius:5px;padding:6px;">
-              <span style="display:block;font-size:9px;color:var(--text3);margin-top:4px;">One rover carries this mass per trip. A plant waits until the same mass is available, then processes it as one cycle.</span>
+            <label style="padding:8px;border:1px solid var(--border2);border-radius:7px;font-size:10px;color:var(--text2);line-height:1.4;">Regolith rover load <small style="color:#f4a261;">[RegolithRover]</small>
+              <input id="desRegolithRoverLoad" type="number" min="1" step="100" value="4000" style="width:100%;margin-top:5px;background:#07101a;color:var(--text1);border:1px solid var(--border2);border-radius:5px;padding:6px;">
+              <span style="display:block;font-size:9px;color:var(--text3);margin-top:4px;">Regolith mass carried and unloaded by one rover during one delivery trip, in kg.</span>
             </label>
-            <label style="padding:8px;border:1px solid var(--border2);border-radius:7px;font-size:10px;color:var(--text2);line-height:1.4;">Total regolith input storage <small style="color:#f4a261;">[Shared plant input]</small>
-              <input id="desRegolithBufferCapacity" type="number" min="1" step="1000" value="20000" style="width:100%;margin-top:5px;background:#07101a;color:var(--text1);border:1px solid var(--border2);border-radius:5px;padding:6px;">
-              <span style="display:block;font-size:9px;color:var(--text3);margin-top:4px;">Maximum regolith mass that can wait between rover unloading and plant processing, shared by every ISRU plant.</span>
+            <label style="padding:8px;border:1px solid var(--border2);border-radius:7px;font-size:10px;color:var(--text2);line-height:1.4;">ISRU processing batch <small style="color:#ff7a8a;">[ISRUPlant]</small>
+              <input id="desPlantBatch" type="number" min="1" step="100" value="4000" style="width:100%;margin-top:5px;background:#07101a;color:var(--text1);border:1px solid var(--border2);border-radius:5px;padding:6px;">
+              <span style="display:block;font-size:9px;color:var(--text3);margin-top:4px;">Regolith mass withdrawn from one plant's input storage and processed during one production cycle, in kg.</span>
+            </label>
+            <label style="padding:8px;border:1px solid var(--border2);border-radius:7px;font-size:10px;color:var(--text2);line-height:1.4;">Input storage per plant <small style="color:#ff7a8a;">[ISRUPlant]</small>
+              <input id="desPlantInputCapacity" type="number" min="1" step="1000" value="20000" style="width:100%;margin-top:5px;background:#07101a;color:var(--text1);border:1px solid var(--border2);border-radius:5px;padding:6px;">
+              <span style="display:block;font-size:9px;color:var(--text3);margin-top:4px;">Maximum regolith inventory waiting at each plant. Rovers are dynamically dispatched toward the least-filled eligible plant.</span>
             </label>
             <label style="padding:8px;border:1px solid var(--border2);border-radius:7px;font-size:10px;color:var(--text2);line-height:1.4;">LOX pickup check interval <small style="color:#4cc9f0;">[ISRUPlant]</small>
               <input id="desLoxPollDt" type="number" min="0.1" step="0.1" value="1" style="width:100%;margin-top:5px;background:#07101a;color:var(--text1);border:1px solid var(--border2);border-radius:5px;padding:6px;">
@@ -6555,6 +6571,10 @@ let up42MoonImg = null;
               <input id="desPowerDt" type="number" min="0.1" step="0.1" value="1" style="width:100%;margin-top:5px;background:#07101a;color:var(--text1);border:1px solid var(--border2);border-radius:5px;padding:6px;">
               <span style="display:block;font-size:9px;color:var(--text3);margin-top:4px;">Time between power balance and battery updates, in hours.</span>
             </label>
+            <div style="padding:8px;border:1px solid var(--border2);border-radius:7px;">
+              <div style="font-size:10px;color:var(--text2);">ISRU power behavior <small style="color:#ff7a8a;">[ISRUPlant]</small></div>
+              <div style="font-size:9px;color:var(--text3);margin-top:5px;line-height:1.45;">Processing demand is computed by the plant's <code>EnergyConsumed</code> equation, or by the physical baseline model when no override is defined. LOX storage demand uses the coefficient above. Both are sent to the power manager.</div>
+            </div>
             <div style="padding:8px;border:1px solid var(--border2);border-radius:7px;grid-column:span 2;">
               <div style="font-size:10px;color:var(--text2);">Habitation power behavior <small style="color:#7ee0b1;">[HabitationModule]</small></div>
               <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:5px;">
@@ -9528,8 +9548,11 @@ let up42MoonImg = null;
         duration_hr: getNumberInputValue('desSimDuration', 60),
       },
       regolith: {
-        batch_kg: getNumberInputValue('desRegolithBatch', 4000),
-        buffer_capacity_kg: getNumberInputValue('desRegolithBufferCapacity', 20000),
+        rover_load_kg: getNumberInputValue('desRegolithRoverLoad', 4000),
+        plant_batch_kg: getNumberInputValue('desPlantBatch', 4000),
+        plant_input_capacity_kg: getNumberInputValue('desPlantInputCapacity', 20000),
+        dispatch_policy: 'least_fill_ratio',
+        dispatch_poll_dt_hr: 0.1,
       },
       isru: {
         lox_delivery_poll_dt_hr: getNumberInputValue('desLoxPollDt', 1),

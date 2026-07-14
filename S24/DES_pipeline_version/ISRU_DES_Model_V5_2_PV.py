@@ -50,14 +50,42 @@ def rover(system, regolithBuffer, batchSize, travelTime):
         yield regolithBuffer.put(batchSize)
         print(f"[{system.now:.2f} hr] Rover delivered {batchSize} kg regolith")
 
-def regolithRoverController(system, regolithBuffer, batchSize, distance, rover: LunarRover):
-    """Continuously delivers regolith to the plant"""
+def _least_filled_regolith_target(targets, rover_load):
+    eligible = [
+        target for target in targets
+        if target["buffer"].capacity - target["buffer"].level - target["reserved_inbound_kg"] >= rover_load
+    ]
+    if not eligible:
+        return None
+    return min(
+        eligible,
+        key=lambda target: (
+            (target["buffer"].level + target["reserved_inbound_kg"]) / target["buffer"].capacity,
+            target["instance_id"],
+        ),
+    )
+
+
+def regolithRoverController(system, plant_targets, rover_load, rover: LunarRover, poll_dt=0.1):
+    """Dispatch a shared rover to the least-filled eligible ISRU plant."""
     while True:
-        rover.loadCargo(batchSize)
-        yield system.process(rover.travel(distance))
-        rover.unloadCargo()
-        yield regolithBuffer.put(batchSize)
-        print(f"[{system.now:.2f} hr] Rover delivered {batchSize} kg regolith")
+        target = _least_filled_regolith_target(plant_targets, rover_load)
+        if target is None:
+            yield system.timeout(poll_dt)
+            continue
+
+        target["reserved_inbound_kg"] += rover_load
+        try:
+            rover.loadCargo(rover_load)
+            yield system.process(rover.travel(target["distance_km"]))
+            delivered = rover.unloadCargo()
+            yield target["buffer"].put(delivered)
+            print(
+                f"[{system.now:.2f} hr] {rover.name} delivered {delivered:.2f} kg regolith "
+                f"to {target['instance_id']} (input inventory: {target['buffer'].level:.2f} kg)"
+            )
+        finally:
+            target["reserved_inbound_kg"] -= rover_load
 
 # -------------------------------------------------
 # Plant Controller
@@ -67,6 +95,42 @@ def plantController(system, plant, regolithBuffer, batchSize):
     while True:
         yield regolithBuffer.get(batchSize)
         yield system.process(plant.processRegolith(system, batchSize))
+
+
+def _scenario_instances(scenario_builder, module_type, fallback_count):
+    instances = [
+        instance for instance in scenario_builder.get("instances", [])
+        if instance.get("type") == module_type and instance.get("placed", True)
+    ]
+    if instances:
+        return instances
+    return [
+        {
+            "id": module_type if fallback_count == 1 else f"{module_type}_{index + 1}",
+            "type": module_type,
+        }
+        for index in range(fallback_count)
+    ]
+
+
+def _module_equations(scenario_builder, instance_id, module_type):
+    equations = scenario_builder.get("module_equations", {})
+    return equations.get(instance_id, equations.get(module_type, ""))
+
+
+def _resource_route_distance(scenario_builder, flow, target_id, fallback):
+    routes = [
+        route for route in scenario_builder.get("resource_routes", [])
+        if str(route.get("flow", "")).lower() == flow.lower()
+    ]
+    direct = next((route for route in routes if route.get("to") == target_id), None)
+    route = direct or (routes[0] if len(routes) == 1 else None)
+    if not route:
+        return fallback
+    try:
+        return float(route.get("distance_km", fallback))
+    except (TypeError, ValueError):
+        return fallback
 
 
 # -------------------------------------------------
@@ -81,7 +145,7 @@ def LOXStorageEnergy(system, plant, dt=1.0, energyCoeff=0.31):
         yield system.timeout(dt)
 
         storageEnergy = energyCoeff * plant.LOXStored * dt
-        plant.totalEnergyConsumed += storageEnergy
+        plant.recordEnergyDemand(storageEnergy)
 
 def LOXDeliveryController(system, plant: ISRUPlant, roverStore: simpy.Store,
                           landingZone: LandingLaunchZone,
@@ -303,34 +367,68 @@ def run_scenario(optionsDict):
 
     # Experiment data -----------------------------------------
     experiment = "ISRU Processing Plant – Active Nodes: " + ", ".join(sorted(active_nodes))
-    roverBatch = scenario_config["regolith"]["batch_kg"]
+    scenario_builder = scenario_config.get("scenario_builder", {})
+    regolith_config = scenario_config["regolith"]
+    rover_load = float(regolith_config.get(
+        "rover_load_kg",
+        regolith_config.get("batch_kg", 4000.0),
+    ))
+    plant_batch = float(regolith_config.get(
+        "plant_batch_kg",
+        regolith_config.get("batch_kg", rover_load),
+    ))
+    plant_input_capacity = float(regolith_config.get(
+        "plant_input_capacity_kg",
+        regolith_config.get("buffer_capacity_kg", 20000.0),
+    ))
+    regolith_dispatch_poll_dt = float(regolith_config.get("dispatch_poll_dt_hr", 0.1))
     simDuration = scenario_config["simulation"]["duration_hr"]
 
     num_regolith_rovers = scenario_config["rovers"]["regolith"]["count"]
     num_lox_rovers      = scenario_config["rovers"]["lox"]["count"]
     num_isru_plants     = scenario_config["isru"]["plant_count"]
     continuous_power    = scenario_config["power"].get("continuous_load_kw", {})
+    if num_regolith_rovers < 1:
+        raise ValueError("At least one regolith rover is required by the current ISRU process")
 
     # Model ---------------------------------------------------
     system = simpy.Environment()
-
-    regolith_buffer_capacity = (
-        scenario_config["regolith"].get("buffer_capacity_kg")
-        or scenario_config["regolith"]["buffer_capacity_per_rover_kg"] * num_regolith_rovers
-    )
-    regolithBuffer = simpy.Container(system, capacity=regolith_buffer_capacity)
 
     logger = LoggingManager(system, time_step=1.0)
     logger.setup()
 
     # ---- ISRU Plants (always present — enforced above) ------
     isruPlantData = data_from_json("ISRUV2.json")['ISRUPlant']
+    plant_instances = _scenario_instances(scenario_builder, "ISRUPlant", num_isru_plants)
+    num_isru_plants = len(plant_instances)
+    if num_isru_plants < 1:
+        raise ValueError("At least one ISRU plant is required by the current ISRU process")
     plants = []
-    for i in range(num_isru_plants):
-        p = ISRUPlant(system, f"ISRU_Plant_{i+1}", isruPlantData.raw['attributes'])
+    plant_targets = []
+    for i, instance in enumerate(plant_instances):
+        instance_id = instance["id"]
+        p = ISRUPlant(
+            system,
+            f"ISRU_Plant_{i+1}",
+            isruPlantData.raw['attributes'],
+            equations=_module_equations(scenario_builder, instance_id, "ISRUPlant"),
+        )
+        p.instanceId = instance_id
         p.processingRate = scenario_config["isru"]["processing_rate_kg_hr"]
         logger.add(p)
         plants.append(p)
+        plant_targets.append({
+            "instance_id": instance_id,
+            "plant": p,
+            "buffer": simpy.Container(system, capacity=plant_input_capacity),
+            "reserved_inbound_kg": 0.0,
+            "distance_km": _resource_route_distance(
+                scenario_builder,
+                "Regolith",
+                instance_id,
+                scenario_config["routes"]["regolith_distance_km"],
+            ),
+        })
 
     # ---- Solar Power System (optional) ----------------------
     solarSystem  = None
@@ -402,6 +500,24 @@ def run_scenario(optionsDict):
         logger.add(r)
         regolithCargoRovers.append(r)
 
+    if rover_load <= 0 or plant_batch <= 0 or plant_input_capacity <= 0:
+        raise ValueError("Regolith rover load, plant batch, and plant input capacity must be positive")
+    if any(rover_load > rover.maxCapacity for rover in regolithCargoRovers):
+        raise ValueError(
+            f"Regolith rover load ({rover_load} kg) exceeds rover capacity "
+            f"({regolithCargoRovers[0].maxCapacity} kg)"
+        )
+    if plant_batch > plant_input_capacity:
+        raise ValueError(
+            f"Plant batch ({plant_batch} kg) exceeds each plant input storage "
+            f"capacity ({plant_input_capacity} kg)"
+        )
+    if rover_load > plant_input_capacity:
+        raise ValueError(
+            f"Regolith rover load ({rover_load} kg) exceeds each plant input storage "
+            f"capacity ({plant_input_capacity} kg)"
+        )
+
     LOXCargoRovers = []
     chargingStation = None
     if use_lox_rover:
@@ -440,12 +556,18 @@ def run_scenario(optionsDict):
 
     # Regolith rovers (always active)
     for r in regolithCargoRovers:
-        system.process(regolithRoverController(system, regolithBuffer, roverBatch,
-                                               regolith_haul_distance, r))
+        system.process(regolithRoverController(
+            system,
+            plant_targets,
+            rover_load,
+            r,
+            poll_dt=regolith_dispatch_poll_dt,
+        ))
 
     # ISRU plant controllers + LOX storage energy accounting
-    for p in plants:
-        system.process(plantController(system, p, regolithBuffer, roverBatch))
+    for target in plant_targets:
+        p = target["plant"]
+        system.process(plantController(system, p, target["buffer"], plant_batch))
         system.process(LOXStorageEnergy(
             system,
             p,
@@ -559,8 +681,14 @@ def run_scenario(optionsDict):
     # Build results dict — only include sections for active nodes
     # =========================================================
     isru_plant_results = {}
-    for p in plants:
+    for target in plant_targets:
+        p = target["plant"]
         isru_plant_results[p.name] = {
+            "Scenario_Instance":        target["instance_id"],
+            "Regolith_Input_Stored_kg": round(target["buffer"].level, 2),
+            "Regolith_Route_km":        round(target["distance_km"], 3),
+            "Scenario_Equations":       p.scenarioEquations,
+            "Equation_Outputs":         p.lastEquationOutputs,
             "LOX_Stored_kg":           round(p.LOXStored, 2),
             "Energy_Consumed_kWh":     round(p.totalEnergyConsumed, 2),
             "Total_Operational_Hours": round(p.processingUptime, 2),
@@ -764,7 +892,14 @@ def main():
     logger.add(LOXCargoRover)
 
     # Start processes
-    system.process(regolithRoverController(system, regolithBuffer, roverBatch, 1, regolithCargoRover))
+    plant_targets = [{
+        "instance_id": "ISRUPlant",
+        "plant": plant,
+        "buffer": regolithBuffer,
+        "reserved_inbound_kg": 0.0,
+        "distance_km": 1.0,
+    }]
+    system.process(regolithRoverController(system, plant_targets, roverBatch, regolithCargoRover))
     system.process(plantController(system, plant, regolithBuffer, roverBatch))
     system.process(LOXStorageEnergy(system, plant, dt=1.0))
     LOXRoverStore = simpy.Store(system, capacity=1)

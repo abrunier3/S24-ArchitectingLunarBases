@@ -394,6 +394,15 @@ jobs:
               }
               if urban_planning.get("map_frame_m"):
                   sysml["urban_planning"]["map_frame_m"] = urban_planning["map_frame_m"]
+              sysml["urban_planning"]["module_instances"] = modules
+              sysml["urban_planning"]["routes"] = mst_edges
+              sysml["urban_planning"]["route_geometry"] = conns
+
+              # Preserve the instance-level operational architecture selected
+              # in Step 4.2. The DES consumes the same payload directly, while
+              # the authoritative JSON keeps an auditable copy of destinations,
+              # stops, interfaces, rover counts, and user equations.
+              sysml["scenario_logic"] = urban_planning.get("scenario_logic", {})
 
               with sysml_path.open("w") as f:
                   json.dump(sysml, f, indent=2)

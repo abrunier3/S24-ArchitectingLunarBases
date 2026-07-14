@@ -8,9 +8,11 @@ DEFAULT_SCENARIO_CONFIG = {
         "duration_hr": 60.0,
     },
     "regolith": {
-        "batch_kg": 4000.0,
-        "buffer_capacity_kg": 20000.0,
-        "buffer_capacity_per_rover_kg": 20000.0,
+        "rover_load_kg": 4000.0,
+        "plant_batch_kg": 4000.0,
+        "plant_input_capacity_kg": 20000.0,
+        "dispatch_policy": "least_fill_ratio",
+        "dispatch_poll_dt_hr": 0.1,
     },
     "isru": {
         "plant_count": 1,
