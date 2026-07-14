@@ -3530,6 +3530,7 @@ let up42Scenario = {
   roverCounts: { regolith: 1, lox: 1 }
 };
 let up42EquationEditorModule = null;
+let up42EquationEditorIndex = null;
 let up42DragWaypoint  = null;
 let up42DragState     = null;
 let up42HeatmapImgs   = {};
@@ -4779,8 +4780,6 @@ function updateUp42InfoCard() {
   const criteria = MODULE_CRITERIA[baseId] || '—';
   const sz       = getModuleSize(up42ActiveModule);
 
-  const savedEquations = up42Scenario.moduleEquations?.[up42ActiveModule] || '';
-  const showEquationEditor = up42Phase === 'logic' && up42EquationEditorModule === up42ActiveModule;
   const equationTokens = getEquationTokenGroups(up42ActiveModule);
 
   card.innerHTML = `
@@ -4815,12 +4814,7 @@ function updateUp42InfoCard() {
     </div>`}
     ${up42Phase === 'logic' ? `
     <div style="background:rgba(0,212,255,0.06);border:1px solid rgba(0,212,255,0.22);border-radius:8px;padding:10px;margin-bottom:10px;">
-      <div style="font-size:10px;color:var(--accent);font-weight:700;margin-bottom:6px;">MODULE EQUATIONS</div>
-      <div style="font-size:9px;color:var(--text3);line-height:1.45;margin-bottom:8px;">Double-click this module on the map to open the equation builder.</div>
-      ${showEquationEditor ? renderEquationBuilder(up42ActiveModule, equationTokens, savedEquations) : `
-        <pre style="margin:0;white-space:pre-wrap;font-size:9px;color:var(--text2);font-family:monospace;">${savedEquations ? escapeHtml(savedEquations) : 'No equation defined yet.'}</pre>
-        <button class="btn" style="width:100%;padding:7px;margin-top:8px;font-size:10px;" onclick="openModuleEquationEditor('${up42ActiveModule}')">Edit equations</button>
-      `}
+      ${renderModuleEquationPanel(up42ActiveModule, equationTokens)}
     </div>` : ''}
     <div style="margin-top:10px;font-size:9px;color:var(--text3);line-height:1.5;">
       ★ Heatmap: computed from current terrain model
@@ -5237,17 +5231,69 @@ function renderTokenButtons(label, values, color) {
     </div>`;
 }
 
-function renderEquationBuilder(moduleId, groups, savedEquations) {
-  const initial = savedEquations || getDefaultEquationTemplate(moduleId);
+function splitModuleEquations(value) {
+  return String(value || '')
+    .split(/\r?\n/)
+    .map(equation => equation.trim())
+    .filter(Boolean);
+}
+
+function getModuleEquationList(moduleId) {
+  if (Object.prototype.hasOwnProperty.call(up42Scenario.moduleEquations || {}, moduleId)) {
+    return splitModuleEquations(up42Scenario.moduleEquations[moduleId]);
+  }
+  return splitModuleEquations(getDefaultEquationTemplate(moduleId));
+}
+
+function setModuleEquationList(moduleId, equations) {
+  up42Scenario.moduleEquations[moduleId] = equations
+    .map(equation => String(equation || '').trim())
+    .filter(Boolean)
+    .join('\n');
+}
+
+function renderModuleEquationPanel(moduleId, groups) {
+  const equations = getModuleEquationList(moduleId);
+  const editorOpen = up42EquationEditorModule === moduleId && Number.isInteger(up42EquationEditorIndex);
+  const editingNewEquation = editorOpen && up42EquationEditorIndex === equations.length;
+  const safeModuleId = jsString(moduleId);
+
+  const bubbles = equations.map((equation, index) => `
+    <div style="margin-bottom:7px;">
+      <div ondblclick="event.preventDefault();event.stopPropagation();editModuleEquation('${safeModuleId}',${index})"
+        title="Double-click to edit this equation"
+        style="display:flex;align-items:flex-start;gap:7px;background:#07101a;border:1px solid ${editorOpen && up42EquationEditorIndex === index ? 'var(--accent)' : 'rgba(76,201,240,0.42)'};border-radius:8px;padding:8px;cursor:pointer;">
+        <code style="flex:1;min-width:0;white-space:normal;overflow-wrap:anywhere;color:var(--text1);font-size:9px;line-height:1.45;">${escapeHtml(equation)}</code>
+        <button type="button" class="btn" title="Delete equation"
+          onclick="event.preventDefault();event.stopPropagation();removeModuleEquation('${safeModuleId}',${index})"
+          style="flex:0 0 24px;width:24px;height:24px;padding:0;border-color:rgba(255,122,138,0.65);color:#ff7a8a;font-size:15px;line-height:1;">-</button>
+      </div>
+      ${editorOpen && up42EquationEditorIndex === index ? renderEquationBuilder(moduleId, groups, equation, index) : ''}
+    </div>
+  `).join('');
+
+  return `
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px;">
+      <div style="font-size:10px;color:var(--accent);font-weight:700;">MODULE EQUATIONS</div>
+      <button type="button" class="btn" title="Add equation" onclick="addModuleEquation('${safeModuleId}')"
+        style="width:28px;height:28px;padding:0;border-color:var(--accent);color:var(--accent);font-size:16px;line-height:1;">+</button>
+    </div>
+    <div style="font-size:9px;color:var(--text3);line-height:1.45;margin-bottom:8px;">Double-click an equation to edit it.</div>
+    ${bubbles || '<div style="padding:10px;border:1px dashed var(--border2);border-radius:8px;color:var(--text3);font-size:9px;text-align:center;">No equation defined.</div>'}
+    ${editingNewEquation ? renderEquationBuilder(moduleId, groups, '', equations.length) : ''}
+  `;
+}
+
+function renderEquationBuilder(moduleId, groups, equation, equationIndex) {
   return `
     <textarea id="up42EquationText" spellcheck="false"
-      style="width:100%;min-height:96px;resize:vertical;background:#07101a;color:var(--text1);border:1px solid var(--border2);border-radius:8px;padding:8px;font-size:10px;font-family:monospace;line-height:1.45;">${escapeHtml(initial)}</textarea>
+      style="width:100%;min-height:72px;resize:vertical;margin-top:6px;background:#07101a;color:var(--text1);border:1px solid var(--accent);border-radius:8px;padding:8px;font-size:10px;font-family:monospace;line-height:1.45;">${escapeHtml(equation)}</textarea>
     ${renderTokenButtons('Ports', groups.ports, '#4cc9f0')}
     ${renderTokenButtons('Attributes', groups.attrs.slice(0, 24), '#ffd166')}
     ${renderTokenButtons('Operators', groups.ops, '#00ff9d')}
     <div style="display:flex;gap:6px;margin-top:10px;">
-      <button type="button" class="btn btn-primary" style="flex:1;padding:7px;font-size:10px;" onclick="saveModuleEquation('${moduleId}')">Save</button>
-      <button type="button" class="btn" style="padding:7px;font-size:10px;" onclick="clearModuleEquation('${moduleId}')">Clear</button>
+      <button type="button" class="btn btn-primary" style="flex:1;padding:7px;font-size:10px;" onclick="saveModuleEquation('${jsString(moduleId)}',${equationIndex})">Save equation</button>
+      <button type="button" class="btn" style="padding:7px;font-size:10px;" onclick="cancelModuleEquationEdit('${jsString(moduleId)}')">Cancel</button>
     </div>`;
 }
 
@@ -5267,30 +5313,76 @@ function appendEquationToken(token) {
   textarea.setSelectionRange(cursor, cursor);
 }
 
-function saveModuleEquation(moduleId) {
+function saveModuleEquation(moduleId, equationIndex) {
   const textarea = document.getElementById('up42EquationText');
-  const cleaned = (textarea?.value || '').trim();
-  if (cleaned) up42Scenario.moduleEquations[moduleId] = cleaned;
-  else delete up42Scenario.moduleEquations[moduleId];
-  up42EquationEditorModule = null;
+  const cleaned = (textarea?.value || '').replace(/\s*\r?\n\s*/g, ' ').trim();
+  const equations = getModuleEquationList(moduleId);
+  if (cleaned) {
+    if (equationIndex >= equations.length) equations.push(cleaned);
+    else equations[equationIndex] = cleaned;
+  } else if (equationIndex < equations.length) {
+    equations.splice(equationIndex, 1);
+  }
+  setModuleEquationList(moduleId, equations);
+  up42EquationEditorIndex = null;
   updateUp42InfoCard();
   renderScenarioValidation();
-  setHint(cleaned ? `Equations saved for ${moduleId}.` : `Equations cleared for ${moduleId}.`);
+  setHint(cleaned ? `Equation saved for ${moduleId}.` : `Empty equation removed from ${moduleId}.`);
 }
 
 function clearModuleEquation(moduleId) {
-  delete up42Scenario.moduleEquations[moduleId];
+  up42Scenario.moduleEquations[moduleId] = '';
+  up42EquationEditorIndex = null;
   const textarea = document.getElementById('up42EquationText');
   if (textarea) textarea.value = '';
+  updateUp42InfoCard();
   renderScenarioValidation();
   setHint(`Equations cleared for ${moduleId}.`);
+}
+
+function editModuleEquation(moduleId, equationIndex) {
+  up42ActiveModule = moduleId;
+  up42EquationEditorModule = moduleId;
+  up42EquationEditorIndex = equationIndex;
+  updateUp42InfoCard();
+  requestAnimationFrame(() => document.getElementById('up42EquationText')?.focus());
+  setHint(`Editing equation ${equationIndex + 1} for ${moduleId}.`);
+}
+
+function addModuleEquation(moduleId) {
+  up42ActiveModule = moduleId;
+  up42EquationEditorModule = moduleId;
+  up42EquationEditorIndex = getModuleEquationList(moduleId).length;
+  updateUp42InfoCard();
+  requestAnimationFrame(() => document.getElementById('up42EquationText')?.focus());
+  setHint(`Adding an equation for ${moduleId}.`);
+}
+
+function removeModuleEquation(moduleId, equationIndex) {
+  const equations = getModuleEquationList(moduleId);
+  if (equationIndex < 0 || equationIndex >= equations.length) return;
+  equations.splice(equationIndex, 1);
+  setModuleEquationList(moduleId, equations);
+  up42EquationEditorModule = moduleId;
+  up42EquationEditorIndex = null;
+  updateUp42InfoCard();
+  renderScenarioValidation();
+  setHint(`Equation removed from ${moduleId}.`);
+}
+
+function cancelModuleEquationEdit(moduleId) {
+  up42EquationEditorModule = moduleId;
+  up42EquationEditorIndex = null;
+  updateUp42InfoCard();
+  setHint(`Equation editing cancelled for ${moduleId}.`);
 }
 
 function openModuleEquationEditor(moduleId) {
   up42ActiveModule = moduleId;
   up42EquationEditorModule = moduleId;
+  up42EquationEditorIndex = null;
   updateUp42InfoCard();
-  setHint(`Editing equations for ${moduleId}. Click ports/attributes to build expressions.`);
+  setHint(`Equations shown for ${moduleId}. Double-click one to edit it.`);
 }
 
 function getDirectedRoutePoints(route, fromId) {
@@ -5500,7 +5592,9 @@ function getScenarioValidationMessages() {
     .filter(link => String(link.flow || '').toLowerCase().includes('power'))
     .flatMap(link => link.to_instances || []));
   const powerSources = placedIds.filter(id => getBaseModuleId(id).toLowerCase().includes('solar') || getBaseModuleId(id).toLowerCase().includes('power'));
-  const equationModules = Object.keys(up42Scenario.moduleEquations || {});
+  const equationModules = Object.entries(up42Scenario.moduleEquations || {})
+    .filter(([, equations]) => splitModuleEquations(equations).length)
+    .map(([moduleId]) => moduleId);
   const warnings = [];
   const errors = [];
 
@@ -5531,7 +5625,7 @@ function renderScenarioValidation() {
         Terrain routes: <b style="color:var(--text1);">${up42Routes.length}</b><br>
         SysML interfaces: <b style="color:var(--text1);">${up42Scenario.sysmlInterfaces.length}</b><br>
         Rover transport links: <b style="color:var(--text1);">${(up42Scenario.transportLinks || []).length}</b><br>
-        Equation blocks: <b style="color:var(--text1);">${Object.keys(up42Scenario.moduleEquations || {}).length}</b>
+        Modules with equations: <b style="color:var(--text1);">${Object.values(up42Scenario.moduleEquations || {}).filter(equations => splitModuleEquations(equations).length).length}</b>
       </div>
     </div>
     ${errors.length ? `<div style="font-size:10px;color:#ff7a8a;line-height:1.5;margin-bottom:8px;">${errors.map(e => `• ${e}`).join('<br>')}</div>` : ''}
