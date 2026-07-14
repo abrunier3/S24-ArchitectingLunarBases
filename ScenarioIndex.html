@@ -1131,7 +1131,7 @@
 
     <section class="intro-header" id="top">
       <div class="intro-cta">
-        <button class="intro-btn" onclick="document.getElementById('activation').scrollIntoView({behavior:'smooth'})">Start building your mission now</button>
+        <button class="intro-btn" onclick="document.getElementById('scenario-entry').scrollIntoView({behavior:'smooth'})">Start building your mission now</button>
       </div>
     </section>
 
@@ -1828,7 +1828,7 @@
     </div>
 
     <div id="scenarioEntryChoices" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;">
-      <button type="button" class="btn scenario-entry-choice" onclick="selectScenarioEntryMode('isru')"
+      <button type="button" class="btn scenario-entry-choice" onclick="openScenarioNameDialog('isru')"
         style="min-height:132px;text-align:left;padding:18px;border-radius:8px;">
         <span style="display:block;font-size:14px;font-weight:800;color:#7ee0b1;margin-bottom:8px;">ISRU Scenario</span>
         <span style="display:block;font-size:10px;line-height:1.55;color:var(--text3);">Load the validated ISRU architecture, rover logic, equations, and DES assumptions.</span>
@@ -1838,7 +1838,7 @@
         <span style="display:block;font-size:14px;font-weight:800;color:#ffd166;margin-bottom:8px;">Saved Scenarios</span>
         <span id="savedScenarioCount" style="display:block;font-size:10px;line-height:1.55;color:var(--text3);">No saved configuration.</span>
       </button>
-      <button type="button" class="btn scenario-entry-choice" onclick="selectScenarioEntryMode('new')"
+      <button type="button" class="btn scenario-entry-choice" onclick="openScenarioNameDialog('new')"
         style="min-height:132px;text-align:left;padding:18px;border-radius:8px;">
         <span style="display:block;font-size:14px;font-weight:800;color:#4cc9f0;margin-bottom:8px;">Build New Scenario</span>
         <span style="display:block;font-size:10px;line-height:1.55;color:var(--text3);">Keep Steps 1–3, then build routes, equations, and simulation assumptions from zero.</span>
@@ -1851,6 +1851,25 @@
         <button type="button" class="btn" title="Close" onclick="closeSavedScenarioPicker()" style="width:30px;height:30px;padding:0;font-size:16px;">&times;</button>
       </div>
       <div id="savedScenarioList" style="display:grid;gap:7px;"></div>
+    </div>
+
+    <div id="scenarioNameDialog" role="dialog" aria-modal="true" aria-labelledby="scenarioNameDialogTitle"
+      style="display:none;position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,0.72);align-items:center;justify-content:center;padding:18px;">
+      <div style="width:min(520px,100%);background:#0d1420;border:1px solid var(--border2);border-radius:8px;padding:20px;box-shadow:0 24px 80px rgba(0,0,0,0.5);">
+        <div id="scenarioNameDialogTitle" style="font-size:16px;font-weight:800;color:var(--text1);">Name the mission scenario</div>
+        <div style="font-size:10px;line-height:1.55;color:var(--text3);margin-top:7px;">This name becomes the shared identifier for the configuration and its authoritative SysML model.</div>
+        <label style="display:block;margin-top:16px;font-size:10px;font-weight:700;color:var(--text2);">Scenario name
+          <input id="scenarioNameInput" type="text" maxlength="64" autocomplete="off" placeholder="Water_Extraction_Mission"
+            oninput="updateScenarioNamePreview()" onkeydown="if(event.key==='Enter'){event.preventDefault();confirmScenarioName();}"
+            style="width:100%;margin-top:6px;background:#07101a;color:var(--text1);border:1px solid var(--border2);border-radius:6px;padding:10px;">
+        </label>
+        <div id="scenarioNamePreview" style="margin-top:10px;padding:10px;border:1px solid var(--border);border-radius:6px;color:var(--text3);font-size:9px;line-height:1.65;"></div>
+        <div id="scenarioNameError" style="display:none;margin-top:9px;color:#ff7a8a;font-size:10px;"></div>
+        <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px;">
+          <button type="button" class="btn" onclick="closeScenarioNameDialog()" style="padding:8px 12px;">Cancel</button>
+          <button id="confirmScenarioNameBtn" type="button" class="btn btn-primary" onclick="confirmScenarioName()" style="padding:8px 12px;">Create Scenario</button>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -3612,6 +3631,11 @@ const SCENARIO_STORAGE_KEY = 'eclipse.savedScenarios.v1';
 const SCENARIO_SCHEMA_VERSION = 1;
 let currentScenarioMode = null;
 let currentScenarioId = null;
+let currentScenarioName = null;
+let currentScenarioSlug = null;
+let currentSysmlFile = 'clean_database/sysml/ECLIPSE_Project.sysml';
+let pendingScenarioEntryMode = null;
+let repositoryScenarioCache = [];
 let latestRunScenarioSnapshot = null;
 let scenarioPowerModels = {};
 let pendingStopRoute = null;
@@ -3631,6 +3655,114 @@ function cloneScenarioValue(value) {
   return JSON.parse(JSON.stringify(value ?? null));
 }
 
+function normalizeScenarioFileStem(value) {
+  const normalized = String(value || '')
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^A-Za-z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '')
+    .replace(/_+/g, '_');
+  if (!normalized) return '';
+  return /^[A-Za-z]/.test(normalized) ? normalized.slice(0, 64) : `Scenario_${normalized}`.slice(0, 64);
+}
+
+function scenarioSysmlPath(slug = currentScenarioSlug) {
+  return slug
+    ? `clean_database/sysml/${slug}.sysml`
+    : 'clean_database/sysml/ECLIPSE_Project.sysml';
+}
+
+function scenarioConfigPath(slug = currentScenarioSlug) {
+  return slug ? `clean_database/scenarios/${slug}.json` : null;
+}
+
+function setScenarioIdentity(name, slug = normalizeScenarioFileStem(name)) {
+  currentScenarioName = slug;
+  currentScenarioSlug = slug;
+  currentScenarioId = slug;
+  currentSysmlFile = scenarioSysmlPath(slug);
+}
+
+function openScenarioNameDialog(mode) {
+  pendingScenarioEntryMode = mode;
+  const dialog = document.getElementById('scenarioNameDialog');
+  const input = document.getElementById('scenarioNameInput');
+  const error = document.getElementById('scenarioNameError');
+  if (input) input.value = mode === 'isru' ? 'ISRU_Mission' : '';
+  if (error) {
+    error.style.display = 'none';
+    error.textContent = '';
+  }
+  if (dialog) dialog.style.display = 'flex';
+  updateScenarioNamePreview();
+  setTimeout(() => input?.focus(), 0);
+}
+
+function closeScenarioNameDialog() {
+  const dialog = document.getElementById('scenarioNameDialog');
+  if (dialog) dialog.style.display = 'none';
+  pendingScenarioEntryMode = null;
+}
+
+function updateScenarioNamePreview() {
+  const raw = document.getElementById('scenarioNameInput')?.value || '';
+  const slug = normalizeScenarioFileStem(raw) || 'Scenario_Name';
+  const preview = document.getElementById('scenarioNamePreview');
+  if (preview) preview.innerHTML = `
+    <div><b style="color:var(--text2);">Scenario identifier:</b> ${escapeHtml(slug)}</div>
+    <div><b style="color:var(--text2);">SysML:</b> clean_database/sysml/${escapeHtml(slug)}.sysml</div>
+    <div><b style="color:var(--text2);">Configuration:</b> clean_database/scenarios/${escapeHtml(slug)}.json</div>`;
+}
+
+async function confirmScenarioName() {
+  const mode = pendingScenarioEntryMode;
+  const input = document.getElementById('scenarioNameInput');
+  const error = document.getElementById('scenarioNameError');
+  const button = document.getElementById('confirmScenarioNameBtn');
+  const slug = normalizeScenarioFileStem(input?.value);
+  if (!mode || !slug) {
+    if (error) {
+      error.textContent = 'Enter a scenario name containing at least one letter or number.';
+      error.style.display = 'block';
+    }
+    return;
+  }
+
+  let token = sessionStorage.getItem('gh_pat');
+  if (!token) {
+    token = prompt('Enter your GitHub Personal Access Token (classic):\n(stored in memory for this session only)');
+    if (!token) return;
+    sessionStorage.setItem('gh_pat', token);
+  }
+
+  button.disabled = true;
+  button.textContent = 'Creating...';
+  if (error) error.style.display = 'none';
+  try {
+    const repositorySnapshot = await initializeScenarioRepositoryFiles({mode, slug, token});
+    setScenarioIdentity(slug, slug);
+    selectScenarioEntryMode(mode, true);
+    if (mode !== 'isru') {
+      window._pendingScenarioActiveNodes = [...(repositorySnapshot.active_nodes || [])];
+    }
+    const initialSnapshot = captureScenarioSnapshot(slug);
+    await persistScenarioSnapshotToGitHub(initialSnapshot, token);
+    const localScenarios = getSavedScenarios().filter(item => item.id !== slug);
+    localScenarios.push(initialSnapshot);
+    writeSavedScenarios(localScenarios);
+    closeScenarioNameDialog();
+  } catch (createError) {
+    console.error('[SCENARIO CREATE]', createError);
+    if (error) {
+      error.textContent = createError.message || 'Unable to create the scenario files on GitHub.';
+      error.style.display = 'block';
+    }
+  } finally {
+    button.disabled = false;
+    button.textContent = 'Create Scenario';
+  }
+}
+
 function getSavedScenarios() {
   try {
     const parsed = JSON.parse(localStorage.getItem(SCENARIO_STORAGE_KEY) || '[]');
@@ -3641,13 +3773,20 @@ function getSavedScenarios() {
   }
 }
 
+function getAvailableScenarios() {
+  const merged = new Map();
+  repositoryScenarioCache.forEach(snapshot => merged.set(snapshot.id || snapshot.scenario_slug, snapshot));
+  getSavedScenarios().forEach(snapshot => merged.set(snapshot.id || snapshot.scenario_slug, snapshot));
+  return [...merged.values()].filter(Boolean);
+}
+
 function writeSavedScenarios(scenarios) {
   localStorage.setItem(SCENARIO_STORAGE_KEY, JSON.stringify(scenarios));
   refreshSavedScenarioSummary();
 }
 
 function refreshSavedScenarioSummary() {
-  const scenarios = getSavedScenarios();
+  const scenarios = getAvailableScenarios();
   const count = document.getElementById('savedScenarioCount');
   if (count) count.textContent = scenarios.length
     ? `${scenarios.length} saved configuration${scenarios.length === 1 ? '' : 's'}.`
@@ -3739,8 +3878,19 @@ function applyIsruScenarioPreset() {
   setInputValueIfPresent('desLoxThresh', 100, 'desLoxThreshVal');
 }
 
-function selectScenarioEntryMode(mode) {
-  currentScenarioId = null;
+function selectScenarioEntryMode(mode, preserveIdentity = false) {
+  if (!preserveIdentity) {
+    currentScenarioId = null;
+    currentScenarioName = null;
+    currentScenarioSlug = null;
+    currentSysmlFile = 'clean_database/sysml/ECLIPSE_Project.sysml';
+  }
+  systems.splice(0, systems.length);
+  sysmlPartsCache = {};
+  window._lastGraphData = null;
+  window._currentGraphData = null;
+  renderSystems();
+  buildAssemblyTreeFromActiveSystems();
   if (mode === 'isru') {
     applyIsruScenarioPreset();
     setScenarioModeUI('isru', 'ISRU reference scenario');
@@ -3780,10 +3930,13 @@ function restoreDesFormValues(values) {
 }
 
 function captureScenarioSnapshot(name = '') {
+  const resolvedName = currentScenarioName || normalizeScenarioFileStem(name) || 'Scenario';
   return {
     schema_version: SCENARIO_SCHEMA_VERSION,
-    id: currentScenarioId || `scenario_${Date.now()}`,
-    name,
+    id: currentScenarioId || currentScenarioSlug || `scenario_${Date.now()}`,
+    name: resolvedName,
+    scenario_slug: currentScenarioSlug || normalizeScenarioFileStem(resolvedName),
+    sysml_file: currentSysmlFile || scenarioSysmlPath(currentScenarioSlug),
     mode: currentScenarioMode || 'new',
     saved_at: new Date().toISOString(),
     site_id: upSelectedSite?.id || null,
@@ -3801,16 +3954,30 @@ function captureScenarioSnapshot(name = '') {
 
 function restoreScenarioSnapshot(snapshot) {
   clearScenarioBuilderState();
-  currentScenarioId = snapshot.id || null;
+  const restoredSlug = snapshot.scenario_slug || normalizeScenarioFileStem(snapshot.name || snapshot.id);
+  currentScenarioId = snapshot.id || restoredSlug || null;
+  currentScenarioName = snapshot.name || restoredSlug || null;
+  currentScenarioSlug = restoredSlug || null;
+  currentSysmlFile = snapshot.sysml_file || scenarioSysmlPath(restoredSlug);
   window._pendingScenarioActiveNodes = Array.isArray(snapshot.active_nodes)
     ? [...snapshot.active_nodes]
     : null;
   if (window._pendingScenarioActiveNodes && systems.length) {
     const activeSet = new Set(window._pendingScenarioActiveNodes);
-    systems.forEach(system => { system.active = activeSet.has(system.id); });
-    window._pendingScenarioActiveNodes = null;
-    renderSystems();
-    buildAssemblyTreeFromActiveSystems();
+    const matchingNodes = systems.filter(system => activeSet.has(system.id));
+    if (matchingNodes.length) {
+      systems.forEach(system => { system.active = activeSet.has(system.id); });
+      window._pendingScenarioActiveNodes = null;
+      renderSystems();
+      buildAssemblyTreeFromActiveSystems();
+    } else {
+      systems.splice(0, systems.length);
+      sysmlPartsCache = {};
+      window._lastGraphData = null;
+      window._currentGraphData = null;
+      renderSystems();
+      buildAssemblyTreeFromActiveSystems();
+    }
   }
   upSelectedSite = UP_SITES.find(site => site.id === snapshot.site_id) || null;
   up42ConfirmedSiteId = upSelectedSite?.id || null;
@@ -3834,9 +4001,11 @@ function restoreScenarioSnapshot(snapshot) {
   document.getElementById('MBSE')?.scrollIntoView({behavior:'smooth'});
 }
 
-function openSavedScenarioPicker() {
+async function openSavedScenarioPicker() {
   const picker = document.getElementById('savedScenarioPicker');
   if (picker) picker.style.display = 'block';
+  renderSavedScenarioList();
+  await fetchRepositoryScenarios();
   renderSavedScenarioList();
 }
 
@@ -3848,7 +4017,7 @@ function closeSavedScenarioPicker() {
 function renderSavedScenarioList() {
   const list = document.getElementById('savedScenarioList');
   if (!list) return;
-  const scenarios = getSavedScenarios();
+  const scenarios = getAvailableScenarios();
   if (!scenarios.length) {
     list.innerHTML = '<div style="padding:12px;color:var(--text3);font-size:10px;text-align:center;">No scenario has been saved yet.</div>';
     return;
@@ -3865,7 +4034,7 @@ function renderSavedScenarioList() {
 }
 
 function loadSavedScenario(id) {
-  const snapshot = getSavedScenarios().find(item => item.id === id);
+  const snapshot = getAvailableScenarios().find(item => (item.id || item.scenario_slug) === id);
   if (snapshot) restoreScenarioSnapshot(snapshot);
   closeSavedScenarioPicker();
 }
@@ -7668,6 +7837,184 @@ let up42MoonImg = null;
   // step 2 connectivity graph generation
   const GH_GRAPH_PIPELINE_WORKFLOW = window.S24_GRAPH_PIPELINE_WORKFLOW || "run_graph.yml";
 
+  function githubHeaders(token, includeJson = false) {
+    return {
+      ...(token ? {'Authorization': `Bearer ${token}`} : {}),
+      'Accept': 'application/vnd.github+json',
+      ...(includeJson ? {'Content-Type': 'application/json'} : {}),
+    };
+  }
+
+  function utf8ToBase64(text) {
+    const bytes = new TextEncoder().encode(String(text));
+    let binary = '';
+    const chunk = 0x8000;
+    for (let index = 0; index < bytes.length; index += chunk) {
+      binary += String.fromCharCode(...bytes.subarray(index, index + chunk));
+    }
+    return btoa(binary);
+  }
+
+  function githubContentToText(meta) {
+    const binary = atob(String(meta?.content || '').replace(/\n/g, ''));
+    const bytes = Uint8Array.from(binary, character => character.charCodeAt(0));
+    return new TextDecoder().decode(bytes);
+  }
+
+  async function getGithubContent(path, token = sessionStorage.getItem('gh_pat')) {
+    const response = await fetch(
+      `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${path}?ref=${encodeURIComponent(GH_REF)}&ts=${Date.now()}`,
+      {headers: githubHeaders(token), cache: 'no-store'}
+    );
+    if (response.status === 404) return null;
+    if (!response.ok) {
+      const detail = await response.json().catch(() => ({}));
+      throw new Error(`GitHub ${response.status}: ${detail.message || `cannot read ${path}`}`);
+    }
+    return response.json();
+  }
+
+  async function putGithubText(path, text, message, token, {allowOverwrite = true} = {}) {
+    const existing = await getGithubContent(path, token);
+    if (existing && !allowOverwrite) {
+      throw new Error(`Scenario already exists: ${path}`);
+    }
+    const body = {
+      message,
+      content: utf8ToBase64(text),
+      branch: GH_REF,
+      ...(existing?.sha ? {sha: existing.sha} : {}),
+    };
+    const response = await fetch(
+      `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${path}`,
+      {
+        method: 'PUT',
+        headers: githubHeaders(token, true),
+        body: JSON.stringify(body),
+      }
+    );
+    if (!response.ok) {
+      const detail = await response.json().catch(() => ({}));
+      throw new Error(`GitHub ${response.status}: ${detail.message || `cannot write ${path}`}`);
+    }
+    return response.json();
+  }
+
+  async function initializeScenarioRepositoryFiles({mode, slug, token}) {
+    const sysmlPath = scenarioSysmlPath(slug);
+    const configPath = scenarioConfigPath(slug);
+    const [existingSysml, existingConfig] = await Promise.all([
+      getGithubContent(sysmlPath, token),
+      getGithubContent(configPath, token),
+    ]);
+    if (existingConfig) {
+      throw new Error(`The scenario identifier ${slug} already exists. Load it from Saved Scenarios or choose another name.`);
+    }
+
+    const templatePath = 'clean_database/sysml/ECLIPSE_Project.sysml';
+    const template = existingSysml ? null : await getGithubContent(templatePath, token);
+    if (!existingSysml && !template?.content) throw new Error(`Unable to read the SysML template ${templatePath}.`);
+
+    const templateActiveNodes = [
+      'HabitationModule', 'ISRUPlant', 'LaunchLandingZone', 'PropellantDepot',
+      'LOXRover', 'SolarPowerSystem', 'RegolithRover', 'ISRUExcavation'
+    ];
+    const activeNodes = existingSysml ? [] : templateActiveNodes;
+    const initialSnapshot = {
+      schema_version: SCENARIO_SCHEMA_VERSION,
+      id: slug,
+      name: slug,
+      scenario_slug: slug,
+      mode,
+      sysml_file: sysmlPath,
+      template_sysml: templatePath,
+      created_at: new Date().toISOString(),
+      saved_at: new Date().toISOString(),
+      active_nodes: activeNodes,
+      instance_counts: {},
+      placements: {},
+      orientations: {},
+      terrain_routes: [],
+      scenario_logic: {
+        resourceRoutes: [], powerLinks: [], comLinks: [], moduleLogic: {},
+        sysmlInterfaces: [], transportLinks: [], moduleEquations: {}, roverCounts: {}
+      },
+      power_models: {},
+      des_form: {},
+      results: null,
+    };
+
+    if (!existingSysml) {
+      await putGithubText(
+        sysmlPath,
+        githubContentToText(template),
+        `feat: create ${slug} SysML scenario [skip ci]`,
+        token,
+        {allowOverwrite: false}
+      );
+    }
+    await putGithubText(
+      configPath,
+      JSON.stringify(initialSnapshot, null, 2),
+      `feat: create ${slug} scenario configuration [skip ci]`,
+      token,
+      {allowOverwrite: false}
+    );
+    repositoryScenarioCache = [...repositoryScenarioCache.filter(item => item.id !== slug), initialSnapshot];
+    refreshSavedScenarioSummary();
+    return initialSnapshot;
+  }
+
+  async function persistScenarioSnapshotToGitHub(snapshot, token = sessionStorage.getItem('gh_pat')) {
+    if (!token) throw new Error('A GitHub token is required to save the scenario.');
+    const slug = snapshot.scenario_slug || normalizeScenarioFileStem(snapshot.name);
+    if (!slug) throw new Error('The scenario has no valid repository identifier.');
+    snapshot.id = slug;
+    snapshot.name = slug;
+    snapshot.scenario_slug = slug;
+    snapshot.sysml_file = snapshot.sysml_file || scenarioSysmlPath(slug);
+    await putGithubText(
+      scenarioConfigPath(slug),
+      JSON.stringify(snapshot, null, 2),
+      `chore: save ${slug} scenario configuration [skip ci]`,
+      token
+    );
+    repositoryScenarioCache = [...repositoryScenarioCache.filter(item => item.id !== slug), cloneScenarioValue(snapshot)];
+  }
+
+  async function fetchRepositoryScenarios() {
+    try {
+      const token = sessionStorage.getItem('gh_pat');
+      const entries = await getGithubContent('clean_database/scenarios', token);
+      if (!Array.isArray(entries)) return [];
+      const scenarios = await Promise.all(entries
+        .filter(entry => entry.type === 'file' && entry.name.toLowerCase().endsWith('.json'))
+        .map(async entry => {
+          const meta = await getGithubContent(entry.path, token);
+          try {
+            const snapshot = JSON.parse(githubContentToText(meta));
+            snapshot.scenario_slug ||= entry.name.replace(/\.json$/i, '');
+            snapshot.id ||= snapshot.scenario_slug;
+            snapshot.name ||= snapshot.scenario_slug;
+            snapshot.sysml_file ||= scenarioSysmlPath(snapshot.scenario_slug);
+            snapshot.saved_at ||= snapshot.created_at || new Date(0).toISOString();
+            return snapshot;
+          } catch (error) {
+            console.warn(`[SCENARIO] Invalid repository configuration ${entry.path}:`, error);
+            return null;
+          }
+        }));
+      repositoryScenarioCache = scenarios.filter(Boolean);
+      refreshSavedScenarioSummary();
+      return repositoryScenarioCache;
+    } catch (error) {
+      console.warn('[SCENARIO] Unable to load repository scenarios:', error);
+      return [];
+    }
+  }
+
+  window.addEventListener('load', () => fetchRepositoryScenarios());
+
   function getSelectedSysmlNames() {
     if (systems.length > 0) {
       return systems.filter(s => s.active).map(s => s.id);
@@ -7689,7 +8036,15 @@ let up42MoonImg = null;
 
   async function triggerGraphWorkflow() {
     const btn = document.getElementById('runGraphBtn');
-    const activeSysmlNames = getSelectedSysmlNames();
+    const pendingNodes = Array.isArray(window._pendingScenarioActiveNodes)
+      ? window._pendingScenarioActiveNodes
+      : [];
+    const activeSysmlNames = pendingNodes.length ? [...pendingNodes] : getSelectedSysmlNames();
+    if (!currentScenarioSlug || !currentSysmlFile) {
+      setGraphStatus('Choose or load a mission scenario before parsing SysML.', '#ff7a8a');
+      document.getElementById('scenario-entry')?.scrollIntoView({behavior:'smooth'});
+      return;
+    }
     if (systems.length > 0 && activeSysmlNames.length === 0) {
       setGraphStatus('No active nodes. Toggle at least one module on.', '#ff7a8a');
       return;
@@ -7707,10 +8062,14 @@ let up42MoonImg = null;
     btn.disabled = true;
     setGraphStatus('Dispatching SysML parse + connectivity graph workflow...', 'var(--text2)');
 
-    const payload = { ref: GH_REF };
-    if (activeSysmlNames.length > 0) {
-      payload.inputs = { active_nodes: JSON.stringify(activeSysmlNames) };
-    }
+    const payload = {
+      ref: GH_REF,
+      inputs: {
+        active_nodes: JSON.stringify(activeSysmlNames),
+        scenario_name: currentScenarioSlug,
+        sysml_file: currentSysmlFile,
+      }
+    };
 
     console.log('[DEBUG] Sending active_nodes to run_graph workflow:', activeSysmlNames.length ? activeSysmlNames : '[all nodes]');
 
@@ -7775,7 +8134,10 @@ let up42MoonImg = null;
 
   async function fetchGraphResult(runTimestamp) {
     const token = sessionStorage.getItem('gh_pat');
-    const url = `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/outputs/graph.json?ref=${encodeURIComponent(GH_REF)}&ts=${Date.now()}`;
+    const graphPath = currentScenarioSlug
+      ? `outputs/scenarios/${currentScenarioSlug}/graph.json`
+      : 'outputs/graph.json';
+    const url = `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${graphPath}?ref=${encodeURIComponent(GH_REF)}&ts=${Date.now()}`;
 
     try {
       const res = await fetch(url, {
@@ -7790,6 +8152,11 @@ let up42MoonImg = null;
       const meta = await res.json();
       const text = atob(meta.content.replace(/\n/g, ''));
       const data = JSON.parse(text);
+
+      if (currentScenarioSlug && data.scenario_slug && data.scenario_slug !== currentScenarioSlug) {
+        console.log('[POLL] result belongs to another scenario - still waiting...');
+        return false;
+      }
 
       const writtenAt = data.written_at ? new Date(data.written_at).getTime() : 0;
       console.log('[POLL] returned nodes:', [...(data.active_nodes || [])].sort().join(','));
@@ -7809,7 +8176,9 @@ let up42MoonImg = null;
   }
 
   function applyGraphResult(data) {
+    if (data.scenario_slug && currentScenarioSlug && data.scenario_slug !== currentScenarioSlug) return;
     sysmlPartsCache = data.parts || {};
+    window._pendingScenarioActiveNodes = null;
     syncSystemsFromGraphData(data);
     const graphNodes = getGraphActiveNodeList(data);
     const resolvedConnections = normalizeSysmlConnections(data.connections || [], graphNodes);
@@ -7849,6 +8218,11 @@ let up42MoonImg = null;
     renderLiveGraph(visibleGraphData);
     if (data.parts) populateStep3(visibleGraphData);
     renderSystems();
+    buildAssemblyTreeFromActiveSystems();
+    renderUp42ModuleList();
+    syncScenarioInterfacesFromSysML();
+    updateUp42InfoCard();
+    drawUp42();
     console.log('[GRAPH RESULT]', data);
   }
 
@@ -9589,7 +9963,10 @@ let up42MoonImg = null;
     if (!token) return false;
 
     const asset = buildAssetJson(moduleName, cadFile);
-    const path = `clean_database/json/ECLIPSE_Project/assets/${moduleName}.json`;
+    const scenarioAssetRoot = currentScenarioSlug
+      ? `clean_database/json/${currentScenarioSlug}/assets`
+      : 'clean_database/json/ECLIPSE_Project/assets';
+    const path = `${scenarioAssetRoot}/${moduleName}.json`;
     const content = btoa(unescape(encodeURIComponent(JSON.stringify(asset, null, 2))));
 
     let sha = null;
@@ -10085,6 +10462,9 @@ let up42MoonImg = null;
   }
 
   function getActiveSysmlNodes() {
+    if (Array.isArray(window._pendingScenarioActiveNodes) && window._pendingScenarioActiveNodes.length) {
+      return [...window._pendingScenarioActiveNodes];
+    }
     if (systems.length > 0) {
       return systems.filter(s => s.active).map(s => s.id);
     }
@@ -10466,6 +10846,14 @@ let up42MoonImg = null;
         mode: isIsruPreset ? 'isru' : 'generic',
         schema_version: 1,
       },
+      scenario: {
+        name: currentScenarioName,
+        slug: currentScenarioSlug,
+        sysml_file: currentSysmlFile,
+        json_asset_root: currentScenarioSlug
+          ? `clean_database/json/${currentScenarioSlug}/assets`
+          : 'clean_database/json/ECLIPSE_Project/assets',
+      },
       simulation: {
         duration_hr: getNumberInputValue('desSimDuration', 60),
       },
@@ -10572,13 +10960,22 @@ let up42MoonImg = null;
     return errors;
   }
 
-  function saveCurrentScenarioConfiguration() {
-    const defaultName = currentScenarioId
-      ? (getSavedScenarios().find(item => item.id === currentScenarioId)?.name || 'Scenario')
-      : `${currentScenarioMode === 'isru' ? 'ISRU' : 'Mission'} ${new Date().toLocaleDateString()}`;
-    const name = prompt('Configuration name:', defaultName);
-    if (!name?.trim()) return;
-    const snapshot = captureScenarioSnapshot(name.trim());
+  async function saveCurrentScenarioConfiguration() {
+    if (!currentScenarioSlug || !currentScenarioName) {
+      setDesStatus('Choose a named scenario before saving the configuration.', '#ff7a8a');
+      document.getElementById('scenario-entry')?.scrollIntoView({behavior:'smooth'});
+      return;
+    }
+    let token = sessionStorage.getItem('gh_pat');
+    if (!token) {
+      token = prompt('Enter your GitHub Personal Access Token (classic):');
+      if (!token) return;
+      sessionStorage.setItem('gh_pat', token);
+    }
+    const button = document.getElementById('saveScenarioBtn');
+    button.disabled = true;
+    button.textContent = 'Saving...';
+    const snapshot = captureScenarioSnapshot(currentScenarioName);
     if (latestRunScenarioSnapshot && desData) snapshot.results = cloneScenarioValue(desData);
     const scenarios = getSavedScenarios();
     const existingIndex = scenarios.findIndex(item => item.id === snapshot.id);
@@ -10586,8 +10983,17 @@ let up42MoonImg = null;
     else scenarios.push(snapshot);
     currentScenarioId = snapshot.id;
     writeSavedScenarios(scenarios);
-    renderSavedScenarioComparison();
-    setDesStatus(`Saved configuration: ${snapshot.name}`, '#7ee0b1');
+    try {
+      await persistScenarioSnapshotToGitHub(snapshot, token);
+      renderSavedScenarioComparison();
+      setDesStatus(`Saved ${snapshot.name}.json with linked SysML ${snapshot.scenario_slug}.sysml`, '#7ee0b1');
+    } catch (error) {
+      console.error('[SCENARIO SAVE]', error);
+      setDesStatus(`Saved locally, but GitHub persistence failed: ${error.message}`, '#ff7a8a');
+    } finally {
+      button.disabled = false;
+      button.textContent = 'Save Configuration';
+    }
   }
 
   function getScenarioResultMetrics(snapshot) {
@@ -10687,6 +11093,10 @@ let up42MoonImg = null;
       document.getElementById('scenario-entry')?.scrollIntoView({behavior:'smooth'});
       return;
     }
+    if (!currentScenarioSlug || !currentSysmlFile) {
+      setDesStatus('The active scenario has no linked SysML model. Reload it from Mission Scenario.', '#ff7a8a');
+      return;
+    }
     const scenarioValidation = getScenarioValidationMessages();
     const powerErrors = getPowerModelValidationErrors();
     if (scenarioValidation.errors.length || powerErrors.length) {
@@ -10711,6 +11121,9 @@ let up42MoonImg = null;
     const urbanPlanning = buildUrbanPlanningPayload();
     const cadAxisOverrides = getCadAxisOverrides();
     const inputs = {
+      scenario_name: currentScenarioName || currentScenarioSlug,
+      scenario_slug: currentScenarioSlug,
+      sysml_file: currentSysmlFile,
       active_nodes: JSON.stringify(activeNodes),
       slider_values: JSON.stringify(sliderValues),
       scenario_config: JSON.stringify(scenarioConfig),
@@ -10837,8 +11250,11 @@ let up42MoonImg = null;
 
   async function loadDesResults(token) {
     try {
+      const resultsPath = currentScenarioSlug
+        ? `outputs/scenarios/${currentScenarioSlug}/des_results.json`
+        : 'outputs/des_results.json';
       const res = await fetch(
-        `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/outputs/des_results.json?ref=${encodeURIComponent(GH_REF)}&ts=${Date.now()}`,
+        `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${resultsPath}?ref=${encodeURIComponent(GH_REF)}&ts=${Date.now()}`,
         {
           headers: {
             'Authorization': `Bearer ${token}`,

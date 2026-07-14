@@ -7,6 +7,14 @@ on:
         description: 'Optional JSON array of active node names, e.g. ["SolarPowerSystem","Rover"]'
         required: false
         default: '[]'
+      scenario_name:
+        description: 'Repository-safe scenario identifier shared by SysML and configuration files'
+        required: false
+        default: 'ECLIPSE_Project'
+      sysml_file:
+        description: 'Scenario SysML path in the repository'
+        required: false
+        default: 'clean_database/sysml/ECLIPSE_Project.sysml'
 
 concurrency:
   group: run-graph-${{ github.ref }}
@@ -42,6 +50,8 @@ jobs:
       - name: Run SysML parse + connectivity graph
         env:
           ACTIVE_NODES_JSON: ${{ github.event.inputs.active_nodes || '[]' }}
+          SCENARIO_NAME: ${{ github.event.inputs.scenario_name || 'ECLIPSE_Project' }}
+          SYSML_FILE: ${{ github.event.inputs.sysml_file || 'clean_database/sysml/ECLIPSE_Project.sysml' }}
         run: |
           mkdir -p outputs
           python - <<'EOF'
@@ -58,8 +68,20 @@ jobs:
           if not active_nodes:
               active_nodes = None
 
+          scenario_name = os.environ.get("SCENARIO_NAME", "ECLIPSE_Project").strip()
+          sysml_file = os.environ.get(
+              "SYSML_FILE", "clean_database/sysml/ECLIPSE_Project.sysml"
+          ).strip()
+          if not scenario_name or any(ch not in "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_" for ch in scenario_name):
+              raise ValueError(f"Invalid scenario identifier: {scenario_name!r}")
+          expected_sysml = Path("clean_database/sysml") / f"{scenario_name}.sysml"
+          if Path(sysml_file) != expected_sysml:
+              raise ValueError(
+                  f"SysML/config naming mismatch: expected {expected_sysml}, got {sysml_file}"
+              )
+
           result = run_sysml_to_json_pipeline(
-              sysml_file="clean_database/sysml/ECLIPSE_Project.sysml",
+              sysml_file=sysml_file,
               verbose=0,
           )
 
@@ -93,6 +115,9 @@ jobs:
           graph_nodes = graph["active_nodes"]["list"]
           graph_output = {
               "written_at": int(time.time() * 1000),
+              "scenario_name": scenario_name,
+              "scenario_slug": scenario_name,
+              "sysml_file": sysml_file,
               "active_nodes": graph_nodes,
               "active_nodes_count": graph["active_nodes"]["count"],
               "connections": graph["connections"],
@@ -112,18 +137,23 @@ jobs:
               }
           }
 
-          output_path = Path("outputs/graph.json")
+          output_path = Path("outputs/scenarios") / scenario_name / "graph.json"
+          output_path.parent.mkdir(parents=True, exist_ok=True)
           output_path.write_text(json.dumps(graph_output, indent=2))
+          compatibility_path = Path("outputs/graph.json")
+          compatibility_path.write_text(json.dumps(graph_output, indent=2))
           print(f"\n[OK] graph.json written -> {output_path} ({len(graph['connections'])} connections)")
           EOF
 
       - name: Commit parsed JSON + graph output
         env:
           BRANCH_NAME: ${{ github.ref_name }}
+          SCENARIO_NAME: ${{ github.event.inputs.scenario_name || 'ECLIPSE_Project' }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add outputs/graph.json clean_database/json/ECLIPSE_Project/
+          git add outputs/graph.json "outputs/scenarios/${SCENARIO_NAME}/graph.json"
+          git add "clean_database/json/${SCENARIO_NAME}/"
 
           if git diff --staged --quiet; then
             echo "No generated changes to commit."

@@ -125,6 +125,9 @@ class ScenarioBlueprint:
 
 def compile_scenario(options, asset_root=ASSET_ROOT):
     config = load_scenario_config(options)
+    configured_asset_root = config.get("scenario", {}).get("json_asset_root")
+    if configured_asset_root and Path(asset_root) == ASSET_ROOT:
+        asset_root = Path(configured_asset_root)
     builder = config.get("scenario_builder", {})
     raw_instances = [
         instance for instance in builder.get("instances", [])
@@ -294,7 +297,7 @@ def validate_generic_scenario(options, raise_error=True, asset_root=ASSET_ROOT):
         )
         for resource in module.outgoing_resources:
             required = f"{resource}Out"
-            if required not in outputs:
+            if module.role != "storage" and required not in outputs:
                 messages.append(
                     f"[ERROR] {module.instance_id} must define {required} for its outgoing route."
                 )

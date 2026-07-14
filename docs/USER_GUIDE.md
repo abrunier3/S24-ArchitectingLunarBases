@@ -14,13 +14,14 @@ The pipeline connects four main steps:
 The main user-facing files are:
 
 ```text
-JennIndex.html
-clean_database/sysml/ECLIPSE_Project.sysml
-clean_database/json/ECLIPSE_Project/ECLIPSE_Project.json
+ScenarioIndex.html
+clean_database/sysml/<Scenario_Name>.sysml
+clean_database/scenarios/<Scenario_Name>.json
+clean_database/json/<Scenario_Name>/<Scenario_Name>.json
 clean_database/usd/scenes/scene.usda
 clean_database/scenes/waypoints.usda
-outputs/graph.json
-outputs/des_results.json
+outputs/scenarios/<Scenario_Name>/graph.json
+outputs/scenarios/<Scenario_Name>/des_results.json
 extensions/lsp1.pipeline/data/manifest.json
 ```
 
@@ -38,7 +39,7 @@ For the browser interface, the token is entered when prompted and stored only in
 
 ## 3. Branch Consistency
 
-The browser interface dispatches workflows on the branch defined by `GH_REF` in `JennIndex.html`.
+The browser interface dispatches workflows on the branch defined by `GH_REF` in `ScenarioIndex.html`.
 
 The Omniverse extension pull button currently pulls the branch hardcoded in:
 
@@ -61,10 +62,19 @@ Before public release, set the branch back to the branch used by the deployed in
 Open the latest interface:
 
 ```text
-https://abrunier3.github.io/S24-ArchitectingLunarBases/JennIndex.html
+https://abrunier3.github.io/S24-ArchitectingLunarBases/ScenarioIndex.html
 ```
 
-If you are testing a non-deployed branch, open the local `JennIndex.html` file or deploy GitHub Pages from that branch.
+If you are testing a non-deployed branch, open the local `ScenarioIndex.html` file or deploy GitHub Pages from that branch.
+
+### Mission Scenario
+
+Click `Start building your mission now` to open the scenario selector. Choose
+the ISRU reference, a saved scenario, or `Build New Scenario`. For a new ISRU or
+generic scenario, enter its name immediately. The normalized name becomes the
+common stem of its configuration and SysML file, and both are preserved on
+GitHub. Saved scenarios are loaded from the browser cache and from
+`clean_database/scenarios/` in the repository.
 
 ### Step 1 - Build Requirements
 
@@ -82,9 +92,9 @@ This triggers:
 
 The workflow:
 
-- parses `clean_database/sysml/ECLIPSE_Project.sysml`;
-- updates `clean_database/json/ECLIPSE_Project/`;
-- writes `outputs/graph.json`;
+- parses `clean_database/sysml/<Scenario_Name>.sysml`;
+- updates `clean_database/json/<Scenario_Name>/`;
+- writes `outputs/scenarios/<Scenario_Name>/graph.json`;
 - commits the generated files back to the selected branch.
 
 After the graph loads, activate or deactivate the modules you want to keep in the mission scenario.
@@ -143,11 +153,11 @@ This triggers:
 
 The workflow:
 
-- reads active nodes from the interface or `outputs/graph.json`;
+- reads active nodes from the interface or the active scenario graph;
 - runs the historical ISRU engine for the ISRU preset;
 - compiles Step 4 instances, routes, and equations into generic SimPy processes for a new scenario;
-- writes `outputs/des_results.json`;
-- updates `clean_database/json/ECLIPSE_Project/ECLIPSE_Project.json` with urban planning data;
+- writes `outputs/scenarios/<Scenario_Name>/des_results.json`;
+- updates `clean_database/json/<Scenario_Name>/<Scenario_Name>.json` with urban planning data;
 - regenerates `clean_database/usd/scenes/scene.usda`;
 - regenerates `clean_database/scenes/waypoints.usda`;
 - rebuilds `extensions/lsp1.pipeline/data/manifest.json`;
@@ -203,7 +213,7 @@ In the `LSP1 Pipeline` window:
 clean_database/usd/scenes/scene.usda
 clean_database/scenes/waypoints.usda
 clean_database/scenes/Lunar_surface_v4.usdc
-outputs/des_results.json
+outputs/scenarios/<Scenario_Name>/des_results.json
 extensions/lsp1.pipeline/data/manifest.json
 ```
 
@@ -224,8 +234,8 @@ The extension also applies terrain projection data from the manifest:
 The following files are generated but intentionally kept because the interface and Omniverse consume them:
 
 ```text
-outputs/graph.json
-outputs/des_results.json
+outputs/scenarios/<Scenario_Name>/graph.json
+outputs/scenarios/<Scenario_Name>/des_results.json
 outputs/cad_previews/
 clean_database/usd/scenes/scene.usda
 clean_database/scenes/waypoints.usda
@@ -238,7 +248,7 @@ Do not delete these files during normal use.
 
 ### The Interface Runs The Wrong Branch
 
-Check `GH_REF` in `JennIndex.html`.
+Check `GH_REF` in `ScenarioIndex.html`.
 
 If it points to the wrong branch, workflows will dispatch to the wrong branch and generated outputs will not match what Omniverse pulls.
 
@@ -258,7 +268,7 @@ Check that these files exist locally:
 ```text
 clean_database/usd/scenes/scene.usda
 clean_database/scenes/waypoints.usda
-outputs/des_results.json
+outputs/scenarios/<Scenario_Name>/des_results.json
 extensions/lsp1.pipeline/data/manifest.json
 ```
 

@@ -3,6 +3,18 @@ name: Step 4 — Run DES Simulation
 on:
   workflow_dispatch:
     inputs:
+      scenario_name:
+        description: 'Scenario display identifier'
+        required: false
+        default: 'ECLIPSE_Project'
+      scenario_slug:
+        description: 'Repository-safe scenario identifier'
+        required: false
+        default: 'ECLIPSE_Project'
+      sysml_file:
+        description: 'Scenario SysML path in the repository'
+        required: false
+        default: 'clean_database/sysml/ECLIPSE_Project.sysml'
       active_nodes:
         description: 'JSON array of DES active nodes'
         required: true
@@ -90,6 +102,9 @@ jobs:
 
       - name: Run DES simulation
         env:
+          SCENARIO_NAME:              ${{ github.event.inputs.scenario_name || 'ECLIPSE_Project' }}
+          SCENARIO_SLUG:              ${{ github.event.inputs.scenario_slug || 'ECLIPSE_Project' }}
+          SYSML_FILE:                 ${{ github.event.inputs.sysml_file || 'clean_database/sysml/ECLIPSE_Project.sysml' }}
           ACTIVE_NODES:               ${{ github.event.inputs.active_nodes }}
           SLIDER_VALUES_JSON:         ${{ github.event.inputs.slider_values }}
           SCENARIO_CONFIG_JSON:       ${{ github.event.inputs.scenario_config }}
@@ -108,25 +123,47 @@ jobs:
           mkdir -p outputs
           python - <<'EOF'
           import json, os, time, sys
+          from pathlib import Path
           sys.path.insert(0, '.')
+
+          scenario_name = os.environ.get("SCENARIO_NAME", "ECLIPSE_Project").strip()
+          scenario_slug = os.environ.get("SCENARIO_SLUG", scenario_name).strip()
+          sysml_file = Path(os.environ.get(
+              "SYSML_FILE", "clean_database/sysml/ECLIPSE_Project.sysml"
+          ).strip())
+          if not scenario_slug or any(ch not in "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_" for ch in scenario_slug):
+              raise ValueError(f"Invalid scenario identifier: {scenario_slug!r}")
+          expected_sysml = Path("clean_database/sysml") / f"{scenario_slug}.sysml"
+          if sysml_file != expected_sysml:
+              raise ValueError(
+                  f"SysML/config naming mismatch: expected {expected_sysml}, got {sysml_file}"
+              )
+          scenario_json_dir = Path("clean_database/json") / scenario_slug
+          scenario_assets_dir = scenario_json_dir / "assets"
+          scenario_json_path = scenario_json_dir / f"{scenario_slug}.json"
+          scenario_output_dir = Path("outputs/scenarios") / scenario_slug
+          scenario_output_dir.mkdir(parents=True, exist_ok=True)
 
           sysml_active_nodes = json.loads(os.environ['ACTIVE_NODES'])
           if not sysml_active_nodes:
               try:
-                  with open("outputs/graph.json") as f:
+                  with (scenario_output_dir / "graph.json").open() as f:
                       graph_data = json.load(f)
                   sysml_active_nodes = graph_data.get("active_nodes") or []
-                  print(f"[DES] Loaded {len(sysml_active_nodes)} active node(s) from outputs/graph.json.")
+                  print(f"[DES] Loaded {len(sysml_active_nodes)} active node(s) from {scenario_output_dir / 'graph.json'}.")
               except FileNotFoundError:
-                  print("[DES] No active_nodes input and no outputs/graph.json found.")
+                  print(f"[DES] No active_nodes input and no graph found for {scenario_slug}.")
 
           def normalize_name(value):
               return "".join(ch for ch in str(value or "").lower() if ch.isalnum())
 
           def load_sysml_part(node_name):
-              from pathlib import Path
-
-              for assets_dir in Path("clean_database/json").glob("*/assets"):
+              asset_dirs = [scenario_assets_dir]
+              asset_dirs.extend(
+                  path for path in Path("clean_database/json").glob("*/assets")
+                  if path != scenario_assets_dir
+              )
+              for assets_dir in asset_dirs:
                   asset_path = assets_dir / f"{node_name}.json"
                   if asset_path.exists():
                       with asset_path.open() as f:
@@ -201,6 +238,7 @@ jobs:
           slider_value_dict = {
               "active_nodes":               active_nodes,
               "sysml_active_nodes":         sysml_active_nodes,
+              "sysml_json_path":            str(scenario_json_path),
               "Num_Regolith_Rovers":        slider_number("Num_Regolith_Rovers", "NUM_REGOLITH_ROVERS", int),
               "Num_LOX_Rovers":             slider_number("Num_LOX_Rovers", "NUM_LOX_ROVERS", int),
               "Num_ISRU_Plants":            slider_number("Num_ISRU_Plants", "NUM_ISRU_PLANTS", int),
@@ -219,9 +257,7 @@ jobs:
           })
 
           def normalize_des_asset_attributes():
-              from pathlib import Path
-
-              asset_dirs = list(Path("clean_database/json").glob("*/assets"))
+              asset_dirs = [scenario_assets_dir] if scenario_assets_dir.exists() else []
               if not asset_dirs:
                   print("[DES] Asset normalization skipped: no clean_database/json/*/assets directory found.")
                   return
@@ -257,11 +293,9 @@ jobs:
 
           # ── Update SysML JSON with urban planning data ─────────────────────
           def update_sysml_with_urban_planning(urban_planning):
-              from pathlib import Path
-
-              sysml_path = Path("clean_database/json/ECLIPSE_Project/ECLIPSE_Project.json")
+              sysml_path = scenario_json_path
               if not sysml_path.exists():
-                  print("[UP] ECLIPSE_Project.json not found — skipping SysML update.")
+                  print(f"[UP] {sysml_path} not found — skipping SysML update.")
                   return
 
               with sysml_path.open() as f:
@@ -515,19 +549,32 @@ jobs:
                   "log": sim_log,
               }
 
+          result["scenario_name"] = scenario_name
+          result["scenario_slug"] = scenario_slug
+          result["sysml_file"] = str(sysml_file)
           with open('outputs/des_results.json', 'w') as f:
               json.dump(result, f, indent=2)
+          with (scenario_output_dir / 'des_results.json').open('w') as f:
+              json.dump(result, f, indent=2)
 
-          print(f"[DES] Done — outputs/des_results.json written")
+          print(f"[DES] Done — {scenario_output_dir / 'des_results.json'} written")
           EOF
 
       - name: Run USD Scene Generation (Steps 3, 5, 6)
         env:
+          SCENARIO_SLUG: ${{ github.event.inputs.scenario_slug || 'ECLIPSE_Project' }}
+          SYSML_FILE: ${{ github.event.inputs.sysml_file || 'clean_database/sysml/ECLIPSE_Project.sysml' }}
           CAD_AXIS_OVERRIDES_JSON: ${{ github.event.inputs.cad_axis_overrides }}
         run: |
           python - <<'EOF'
           import sys, os, json
           from pathlib import Path
+
+          scenario_slug = os.environ.get("SCENARIO_SLUG", "ECLIPSE_Project").strip()
+          sysml_path = Path(os.environ.get("SYSML_FILE", "clean_database/sysml/ECLIPSE_Project.sysml"))
+          scenario_json_dir = Path("clean_database/json") / scenario_slug
+          assets_dir = scenario_json_dir / "assets"
+          scenario_json_path = scenario_json_dir / f"{scenario_slug}.json"
 
           def normalize_axis(value, allowed, fallback):
               axis = str(value or fallback).strip().upper()
@@ -547,7 +594,6 @@ jobs:
                   print("[USD] No CAD axis overrides provided.")
                   return
 
-              assets_dir = Path("clean_database/json/ECLIPSE_Project/assets")
               applied = 0
               for module_name, values in overrides.items():
                   if not isinstance(values, dict):
@@ -594,8 +640,8 @@ jobs:
               from S24.sysml.cad_metadata_updater import update_cad_metadata_from_previews
 
               updated_cad_metadata = update_cad_metadata_from_previews(
-                  sysml_path=Path("clean_database/sysml/ECLIPSE_Project.sysml"),
-                  assets_dir=Path("clean_database/json/ECLIPSE_Project/assets"),
+                  sysml_path=sysml_path,
+                  assets_dir=assets_dir,
                   previews_dir=Path("outputs/cad_previews"),
                   repo_root=Path(".").resolve(),
               )
@@ -608,10 +654,10 @@ jobs:
               from S24.usd.model_submission import build_submission_manifest
 
               all_asset_paths = sorted(
-                  Path("clean_database/json/ECLIPSE_Project/assets").glob("*.json"),
+                  assets_dir.glob("*.json"),
                   key=lambda p: p.name.lower(),
               )
-              eclipse_path = Path("clean_database/json/ECLIPSE_Project/ECLIPSE_Project.json")
+              eclipse_path = scenario_json_path
               active_part_names = set()
               if eclipse_path.exists():
                   with eclipse_path.open() as f:
@@ -649,7 +695,7 @@ jobs:
 
           # ── Inject positions/rotations from ECLIPSE_Project.json ──────────
           try:
-              eclipse_path = Path("clean_database/json/ECLIPSE_Project/ECLIPSE_Project.json")
+              eclipse_path = scenario_json_path
               if eclipse_path.exists():
                   with eclipse_path.open() as f:
                       eclipse = json.load(f)
@@ -670,7 +716,7 @@ jobs:
                           if "scale" in transforms[name]:
                               part["scale"] = transforms[name]["scale"]
                           injected += 1
-                  print(f"[USD] Injected positions for {injected} part(s) from ECLIPSE_Project.json")
+              print(f"[USD] Injected positions for {injected} part(s) from {scenario_json_path.name}")
           except Exception as e:
               print(f"[USD] Position injection failed: {e}")
 
@@ -698,7 +744,7 @@ jobs:
               waypoints_dir = Path("clean_database/scenes")
               waypoints_dir.mkdir(parents=True, exist_ok=True)
 
-              json_path = "clean_database/json/ECLIPSE_Project/ECLIPSE_Project.json"
+              json_path = str(scenario_json_path)
               waypoints_path = str(waypoints_dir / "waypoints.usda")
 
               connections_usda = write_connections_usda(
@@ -718,6 +764,9 @@ jobs:
           echo "[OMNI] Manifest build complete."
 
       - name: Commit results
+        env:
+          SCENARIO_SLUG: ${{ github.event.inputs.scenario_slug || 'ECLIPSE_Project' }}
+          SYSML_FILE: ${{ github.event.inputs.sysml_file || 'clean_database/sysml/ECLIPSE_Project.sysml' }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
@@ -725,9 +774,10 @@ jobs:
           git pull --rebase origin "${GITHUB_REF_NAME}"
           echo "$STASHED" | grep -q "No local changes" || git stash pop
           git add outputs/des_results.json
-          git add clean_database/sysml/ECLIPSE_Project.sysml || true
-          git add clean_database/json/ECLIPSE_Project/ECLIPSE_Project.json
-          git add clean_database/json/ECLIPSE_Project/assets/*.json || true
+          git add "outputs/scenarios/${SCENARIO_SLUG}/des_results.json"
+          git add "${SYSML_FILE}" || true
+          git add "clean_database/json/${SCENARIO_SLUG}/${SCENARIO_SLUG}.json"
+          git add "clean_database/json/${SCENARIO_SLUG}/assets/"*.json || true
           git add clean_database/usd/scenes/scene.usda || true
           git add clean_database/scenes/waypoints.usda || true
           git add extensions/lsp1.pipeline/data/manifest.json || true
