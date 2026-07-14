@@ -309,6 +309,7 @@ def run_scenario(optionsDict):
     num_regolith_rovers = scenario_config["rovers"]["regolith"]["count"]
     num_lox_rovers      = scenario_config["rovers"]["lox"]["count"]
     num_isru_plants     = scenario_config["isru"]["plant_count"]
+    continuous_power    = scenario_config["power"].get("continuous_load_kw", {})
 
     # Model ---------------------------------------------------
     system = simpy.Environment()
@@ -349,6 +350,9 @@ def run_scenario(optionsDict):
     if use_habitat:
         habitationModuleData = data_from_json("HabitationModuleV1.json")['HabitationModule']
         habitat = HabitationModule(system, "Habitat-1", habitationModuleData.raw['attributes'])
+        habitat_power_kw = continuous_power.get("habitation")
+        if habitat_power_kw is not None:
+            habitat.setConstantPowerRate(float(habitat_power_kw))
         for spike in scenario_config["power"]["spikes"].get("habitation", []):
             habitat.scheduleSpike(spike["time_hr"], spike["energy_kwh"])
         if powerManager:
@@ -360,6 +364,9 @@ def run_scenario(optionsDict):
     if use_comms:
         communicationModuleData = data_from_json("CommunicationModuleV1.json")['CommunicationModule']
         comms = CommunicationModule(system, "CommArray-1", communicationModuleData.raw['attributes'])
+        comms_power_kw = continuous_power.get("communications")
+        if comms_power_kw is not None:
+            comms.setConstantPowerRate(float(comms_power_kw))
         for spike in scenario_config["power"]["spikes"].get("communications", []):
             comms.scheduleSpike(spike["time_hr"], spike["energy_kwh"])
         if powerManager:
@@ -371,6 +378,12 @@ def run_scenario(optionsDict):
     if use_landing_zone:
         landingZoneData = data_from_json("LaunchLandingZoneV1.json")['LaunchLandingZone']
         landingZone = LandingLaunchZone(system, "LZ-Alpha", attributeDict=landingZoneData.raw['attributes'])
+        landing_utilities_kw = continuous_power.get("landing_zone_utilities")
+        if landing_utilities_kw is not None:
+            landingZone.utilitiesPowerRate = float(landing_utilities_kw)
+        landing_chilling_kw_per_kg = scenario_config["power"].get("landing_zone_chilling_kw_per_kg")
+        if landing_chilling_kw_per_kg is not None:
+            landingZone.chillingPowerPerKgLOX = float(landing_chilling_kw_per_kg)
         for spike in scenario_config["power"]["spikes"].get("landing_zone", []):
             landingZone.scheduleSpike(spike["time_hr"], spike["energy_kwh"])
         if powerManager:

@@ -9,6 +9,7 @@ DEFAULT_SCENARIO_CONFIG = {
     },
     "regolith": {
         "batch_kg": 4000.0,
+        "buffer_capacity_kg": 20000.0,
         "buffer_capacity_per_rover_kg": 20000.0,
     },
     "isru": {
@@ -37,6 +38,12 @@ DEFAULT_SCENARIO_CONFIG = {
     },
     "power": {
         "management_dt_hr": 1.0,
+        "continuous_load_kw": {
+            "habitation": None,
+            "communications": None,
+            "landing_zone_utilities": None,
+        },
+        "landing_zone_chilling_kw_per_kg": None,
         "spikes": {
             "habitation": [
                 {"time_hr": 10.0, "energy_kwh": 20.0}
@@ -49,7 +56,7 @@ DEFAULT_SCENARIO_CONFIG = {
             ],
         },
         "charging_station": {
-            "enabled_when_lox_rover_active": True,
+            "enabled_when_lox_rover_active": False,
             "charging_power_kw": 20.0,
             "efficiency": 0.85,
         },
