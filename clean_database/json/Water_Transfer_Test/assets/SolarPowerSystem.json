@@ -1,0 +1,54 @@
+{
+  "type": "Part",
+  "id": "urn:S24_PIPELINE:part:SolarPowerSystem:001",
+  "name": "SolarPowerSystem",
+  "dimensions": {
+    "size_m": {
+      "length": 12.0,
+      "width": 10.0,
+      "height": 2.0
+    },
+    "metersPerUnit": 1,
+    "upAxis": "Z"
+  },
+  "transform": {
+    "position_m": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "rotation_deg": [
+      0.0,
+      0.0,
+      0.0
+    ]
+  },
+  "attributes": {
+    "powerOutput": 50.0,
+    "batteryCapacity": 100.0,
+    "batteryCharge": 100.0
+  },
+  "metadata": {},
+  "materialRef": null,
+  "ports": [
+    {
+      "name": "Solar_WaterExtractorPowerOut",
+      "direction": [
+        "out"
+      ],
+      "items": [
+        "PowerOut"
+      ]
+    },
+    {
+      "name": "Solar_WaterTankPowerOut",
+      "direction": [
+        "out"
+      ],
+      "items": [
+        "PowerOut"
+      ]
+    }
+  ],
+  "parent": "WaterTransferMission"
+}

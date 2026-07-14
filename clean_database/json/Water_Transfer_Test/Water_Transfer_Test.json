@@ -1,15 +1,234 @@
 {
-  "written_at": 1784072291690,
-  "scenario_name": "Water_Transfer_Test",
-  "scenario_slug": "Water_Transfer_Test",
-  "sysml_file": "clean_database/sysml/Water_Transfer_Test.sysml",
-  "active_nodes": [
-    "WaterExtractor",
-    "WaterRover",
-    "WaterTank",
-    "SolarPowerSystem"
+  "metadata": {
+    "package": "Water_Transfer_Test",
+    "num_parts": 5,
+    "num_connections": 4,
+    "validation_errors": []
+  },
+  "parts": [
+    {
+      "type": "Part",
+      "id": "urn:S24_PIPELINE:part:WaterTransferMission:001",
+      "name": "WaterTransferMission",
+      "dimensions": {},
+      "transform": {},
+      "attributes": {},
+      "metadata": {},
+      "materialRef": null,
+      "ports": [],
+      "children": [
+        "WaterExtractor",
+        "WaterRover",
+        "WaterTank",
+        "SolarPowerSystem"
+      ]
+    },
+    {
+      "type": "Part",
+      "id": "urn:S24_PIPELINE:part:WaterExtractor:001",
+      "name": "WaterExtractor",
+      "dimensions": {
+        "size_m": {
+          "length": 8.0,
+          "width": 6.0,
+          "height": 4.0
+        },
+        "metersPerUnit": 1,
+        "upAxis": "Z"
+      },
+      "transform": {
+        "position_m": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_deg": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "attributes": {
+        "productionRate": 20.0
+      },
+      "metadata": {},
+      "materialRef": null,
+      "ports": [
+        {
+          "name": "WaterExtractor_WaterPortOut",
+          "direction": [
+            "out"
+          ],
+          "items": [
+            "WaterOut"
+          ]
+        },
+        {
+          "name": "WaterExtractor_PowerPortIn",
+          "direction": [
+            "in"
+          ],
+          "items": [
+            "PowerIn"
+          ]
+        }
+      ],
+      "parent": "WaterTransferMission"
+    },
+    {
+      "type": "Part",
+      "id": "urn:S24_PIPELINE:part:WaterRover:001",
+      "name": "WaterRover",
+      "dimensions": {
+        "size_m": {
+          "length": 4.0,
+          "width": 2.5,
+          "height": 2.0
+        },
+        "metersPerUnit": 1,
+        "upAxis": "Z"
+      },
+      "transform": {
+        "position_m": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_deg": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "attributes": {
+        "maxCapacity": 10.0,
+        "hoursPerKm": 0.5,
+        "energyPerKmPerKg": 0.01
+      },
+      "metadata": {},
+      "materialRef": null,
+      "ports": [
+        {
+          "name": "WaterRover_WaterPortInOut",
+          "direction": [
+            "in",
+            "out"
+          ],
+          "items": [
+            "WaterIn",
+            "WaterOut"
+          ]
+        }
+      ],
+      "parent": "WaterTransferMission"
+    },
+    {
+      "type": "Part",
+      "id": "urn:S24_PIPELINE:part:WaterTank:001",
+      "name": "WaterTank",
+      "dimensions": {
+        "size_m": {
+          "length": 5.0,
+          "width": 5.0,
+          "height": 5.0
+        },
+        "metersPerUnit": 1,
+        "upAxis": "Z"
+      },
+      "transform": {
+        "position_m": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_deg": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "attributes": {
+        "storageCapacity": 500.0
+      },
+      "metadata": {},
+      "materialRef": null,
+      "ports": [
+        {
+          "name": "WaterTank_WaterPortIn",
+          "direction": [
+            "in"
+          ],
+          "items": [
+            "WaterIn"
+          ]
+        },
+        {
+          "name": "WaterTank_PowerPortIn",
+          "direction": [
+            "in"
+          ],
+          "items": [
+            "PowerIn"
+          ]
+        }
+      ],
+      "parent": "WaterTransferMission"
+    },
+    {
+      "type": "Part",
+      "id": "urn:S24_PIPELINE:part:SolarPowerSystem:001",
+      "name": "SolarPowerSystem",
+      "dimensions": {
+        "size_m": {
+          "length": 12.0,
+          "width": 10.0,
+          "height": 2.0
+        },
+        "metersPerUnit": 1,
+        "upAxis": "Z"
+      },
+      "transform": {
+        "position_m": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_deg": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "attributes": {
+        "powerOutput": 50.0,
+        "batteryCapacity": 100.0,
+        "batteryCharge": 100.0
+      },
+      "metadata": {},
+      "materialRef": null,
+      "ports": [
+        {
+          "name": "Solar_WaterExtractorPowerOut",
+          "direction": [
+            "out"
+          ],
+          "items": [
+            "PowerOut"
+          ]
+        },
+        {
+          "name": "Solar_WaterTankPowerOut",
+          "direction": [
+            "out"
+          ],
+          "items": [
+            "PowerOut"
+          ]
+        }
+      ],
+      "parent": "WaterTransferMission"
+    }
   ],
-  "active_nodes_count": 4,
   "connections": [
     {
       "name": "ExtractorToWaterRover",
@@ -63,204 +282,5 @@
         "port": "WaterTank_PowerPortIn"
       }
     }
-  ],
-  "parts": {
-    "WaterExtractor": {
-      "id": "urn:S24_PIPELINE:part:WaterExtractor:001",
-      "type": "Part",
-      "dimensions": {
-        "size_m": {
-          "length": 8.0,
-          "width": 6.0,
-          "height": 4.0
-        },
-        "metersPerUnit": 1,
-        "upAxis": "Z"
-      },
-      "transform": {
-        "position_m": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "rotation_deg": [
-          0.0,
-          0.0,
-          0.0
-        ]
-      },
-      "attributes": {
-        "productionRate": 20.0
-      },
-      "materialRef": null,
-      "ports": [
-        {
-          "name": "WaterExtractor_WaterPortOut",
-          "direction": [
-            "out"
-          ],
-          "items": [
-            "WaterOut"
-          ]
-        },
-        {
-          "name": "WaterExtractor_PowerPortIn",
-          "direction": [
-            "in"
-          ],
-          "items": [
-            "PowerIn"
-          ]
-        }
-      ],
-      "metadata": {}
-    },
-    "WaterRover": {
-      "id": "urn:S24_PIPELINE:part:WaterRover:001",
-      "type": "Part",
-      "dimensions": {
-        "size_m": {
-          "length": 4.0,
-          "width": 2.5,
-          "height": 2.0
-        },
-        "metersPerUnit": 1,
-        "upAxis": "Z"
-      },
-      "transform": {
-        "position_m": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "rotation_deg": [
-          0.0,
-          0.0,
-          0.0
-        ]
-      },
-      "attributes": {
-        "maxCapacity": 10.0,
-        "hoursPerKm": 0.5,
-        "energyPerKmPerKg": 0.01
-      },
-      "materialRef": null,
-      "ports": [
-        {
-          "name": "WaterRover_WaterPortInOut",
-          "direction": [
-            "in",
-            "out"
-          ],
-          "items": [
-            "WaterIn",
-            "WaterOut"
-          ]
-        }
-      ],
-      "metadata": {}
-    },
-    "WaterTank": {
-      "id": "urn:S24_PIPELINE:part:WaterTank:001",
-      "type": "Part",
-      "dimensions": {
-        "size_m": {
-          "length": 5.0,
-          "width": 5.0,
-          "height": 5.0
-        },
-        "metersPerUnit": 1,
-        "upAxis": "Z"
-      },
-      "transform": {
-        "position_m": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "rotation_deg": [
-          0.0,
-          0.0,
-          0.0
-        ]
-      },
-      "attributes": {
-        "storageCapacity": 500.0
-      },
-      "materialRef": null,
-      "ports": [
-        {
-          "name": "WaterTank_WaterPortIn",
-          "direction": [
-            "in"
-          ],
-          "items": [
-            "WaterIn"
-          ]
-        },
-        {
-          "name": "WaterTank_PowerPortIn",
-          "direction": [
-            "in"
-          ],
-          "items": [
-            "PowerIn"
-          ]
-        }
-      ],
-      "metadata": {}
-    },
-    "SolarPowerSystem": {
-      "id": "urn:S24_PIPELINE:part:SolarPowerSystem:001",
-      "type": "Part",
-      "dimensions": {
-        "size_m": {
-          "length": 12.0,
-          "width": 10.0,
-          "height": 2.0
-        },
-        "metersPerUnit": 1,
-        "upAxis": "Z"
-      },
-      "transform": {
-        "position_m": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "rotation_deg": [
-          0.0,
-          0.0,
-          0.0
-        ]
-      },
-      "attributes": {
-        "powerOutput": 50.0,
-        "batteryCapacity": 100.0,
-        "batteryCharge": 100.0
-      },
-      "materialRef": null,
-      "ports": [
-        {
-          "name": "Solar_WaterExtractorPowerOut",
-          "direction": [
-            "out"
-          ],
-          "items": [
-            "PowerOut"
-          ]
-        },
-        {
-          "name": "Solar_WaterTankPowerOut",
-          "direction": [
-            "out"
-          ],
-          "items": [
-            "PowerOut"
-          ]
-        }
-      ],
-      "metadata": {}
-    }
-  }
+  ]
 }
