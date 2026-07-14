@@ -38,14 +38,14 @@
       },
       "transform": {
         "position_m": [
-          0.0,
-          0.0,
-          0.0
+          -1249.96,
+          -501.89,
+          0
         ],
         "rotation_deg": [
-          0.0,
-          0.0,
-          0.0
+          0,
+          0,
+          0
         ]
       },
       "attributes": {
@@ -137,14 +137,14 @@
       },
       "transform": {
         "position_m": [
-          0.0,
-          0.0,
-          0.0
+          172.81,
+          -168.79,
+          0
         ],
         "rotation_deg": [
-          0.0,
-          0.0,
-          0.0
+          0,
+          0,
+          0
         ]
       },
       "attributes": {
@@ -189,14 +189,14 @@
       },
       "transform": {
         "position_m": [
-          0.0,
-          0.0,
-          0.0
+          -711.33,
+          876.1,
+          0
         ],
         "rotation_deg": [
-          0.0,
-          0.0,
-          0.0
+          0,
+          0,
+          0
         ]
       },
       "attributes": {
@@ -281,6 +281,301 @@
         "part": "WaterTank",
         "port": "WaterTank_PowerPortIn"
       }
+    },
+    {
+      "name": "WaterExtractorToWaterTank_Water",
+      "type": "OperationalRoute",
+      "flow": "Water",
+      "from": {
+        "part": "WaterExtractor"
+      },
+      "to": {
+        "part": "WaterTank"
+      },
+      "rover_id": "WaterRover",
+      "stops": [],
+      "path": {
+        "waypoints_m": [
+          [
+            -2077.73,
+            152.72,
+            0
+          ],
+          [
+            -952.46,
+            72.34,
+            0
+          ],
+          [
+            172.81,
+            -168.79,
+            0
+          ]
+        ],
+        "distance_km": 2.279
+      }
     }
-  ]
+  ],
+  "urban_planning": {
+    "site": "MMA",
+    "site_name": "Malapert Massif",
+    "site_lat": -85.9,
+    "site_lon": -0.5,
+    "map_frame_m": {
+      "center_m": [
+        0,
+        0,
+        0
+      ],
+      "x_min": -2242.5,
+      "x_max": 2242.5,
+      "y_min": -2242.5,
+      "y_max": 2242.5,
+      "width_m": 4485,
+      "height_m": 4485,
+      "meters_per_pixel": 5,
+      "frame_px": {
+        "x": 0,
+        "y": 273,
+        "size": 897
+      }
+    },
+    "module_instances": {
+      "WaterExtractor": {
+        "type": "WaterExtractor",
+        "position_m": [
+          -1249.96,
+          -501.89,
+          0
+        ],
+        "rotation_deg": [
+          0,
+          0,
+          0
+        ]
+      },
+      "WaterTank": {
+        "type": "WaterTank",
+        "position_m": [
+          172.81,
+          -168.79,
+          0
+        ],
+        "rotation_deg": [
+          0,
+          0,
+          0
+        ]
+      },
+      "SolarPowerSystem": {
+        "type": "SolarPowerSystem",
+        "position_m": [
+          -711.33,
+          876.1,
+          0
+        ],
+        "rotation_deg": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    "routes": [
+      {
+        "from": "WaterExtractor",
+        "to": "WaterTank",
+        "key": "WaterExtractorToWaterTank",
+        "flow": "Structural",
+        "distance_km": 1.509
+      },
+      {
+        "from": "WaterTank",
+        "to": "SolarPowerSystem",
+        "key": "WaterTankToSolarPowerSystem",
+        "flow": "Power",
+        "distance_km": 1.366
+      },
+      {
+        "from": "WaterExtractor",
+        "to": "WaterTank",
+        "key": "WaterExtractorToWaterTank_Water",
+        "flow": "Water",
+        "rover_type": "WaterRover",
+        "rover_id": "WaterRover",
+        "stops": [],
+        "distance_km": 2.279
+      }
+    ],
+    "route_geometry": {
+      "WaterExtractorToWaterTank": {
+        "flow": "Structural",
+        "waypoints_m": [
+          [
+            -1273.97,
+            -482.26,
+            0
+          ],
+          [
+            -906.24,
+            -397.86,
+            0
+          ],
+          [
+            -538.52,
+            -313.47,
+            0
+          ],
+          [
+            -170.8,
+            -229.07,
+            0
+          ],
+          [
+            196.92,
+            -144.68,
+            0
+          ]
+        ],
+        "distance_km": 1.509
+      },
+      "WaterTankToSolarPowerSystem": {
+        "flow": "Power",
+        "waypoints_m": [
+          [
+            196.92,
+            -144.68,
+            0
+          ],
+          [
+            -105.83,
+            195.58,
+            0
+          ],
+          [
+            -408.58,
+            535.84,
+            0
+          ],
+          [
+            -711.33,
+            876.1,
+            0
+          ]
+        ],
+        "distance_km": 1.366
+      },
+      "WaterExtractorToWaterTank_Water": {
+        "flow": "Water",
+        "rover_type": "WaterRover",
+        "rover_id": "WaterRover",
+        "stops": [],
+        "waypoints_m": [
+          [
+            -2077.73,
+            152.72,
+            0
+          ],
+          [
+            -952.46,
+            72.34,
+            0
+          ],
+          [
+            172.81,
+            -168.79,
+            0
+          ]
+        ],
+        "distance_km": 2.279
+      }
+    }
+  },
+  "scenario_logic": {
+    "scenario_mode": "new",
+    "instances": [
+      {
+        "id": "WaterExtractor",
+        "type": "WaterExtractor",
+        "placed": true,
+        "position_canvas": {
+          "cx": 198.50748380209586,
+          "cy": 821.877530143116
+        },
+        "orientation_deg": 0
+      },
+      {
+        "id": "WaterTank",
+        "type": "WaterTank",
+        "placed": true,
+        "position_canvas": {
+          "cx": 483.06182795698925,
+          "cy": 755.258064516129
+        },
+        "orientation_deg": 0
+      },
+      {
+        "id": "SolarPowerSystem",
+        "type": "SolarPowerSystem",
+        "placed": true,
+        "position_canvas": {
+          "cx": 306.2338709677419,
+          "cy": 546.2795698924731
+        },
+        "orientation_deg": 0
+      }
+    ],
+    "rover_counts": {
+      "water": 1
+    },
+    "sysml_interfaces": [
+      {
+        "id": "sysml_interface_1",
+        "from_type": "SolarPowerSystem",
+        "to_type": "WaterExtractor",
+        "flow": "Power",
+        "from_port": "Solar_WaterExtractorPowerOut",
+        "to_port": "WaterExtractor_PowerPortIn",
+        "from_instances": [
+          "SolarPowerSystem"
+        ],
+        "to_instances": [
+          "WaterExtractor"
+        ]
+      },
+      {
+        "id": "sysml_interface_2",
+        "from_type": "SolarPowerSystem",
+        "to_type": "WaterTank",
+        "flow": "Power",
+        "from_port": "Solar_WaterTankPowerOut",
+        "to_port": "WaterTank_PowerPortIn",
+        "from_instances": [
+          "SolarPowerSystem"
+        ],
+        "to_instances": [
+          "WaterTank"
+        ]
+      }
+    ],
+    "transport_links": [],
+    "resource_routes": [
+      {
+        "id": "water_transfer",
+        "flow": "Water",
+        "rover_type": "WaterRover",
+        "rover_id": "WaterRover",
+        "from": "WaterExtractor",
+        "to": "WaterTank",
+        "stops": [],
+        "distance_km": 2.279
+      }
+    ],
+    "module_equations": {
+      "WaterExtractor": "WaterOut = min(RequestedWater, productionRate)\nProcessingTime = WaterOut / productionRate\nEnergyConsumed = WaterOut * 0.05\nPowerIn = 1\nPowerOut = 0",
+      "WaterRover": "WaterOut = min(WaterIn, RoverCapacity)\nTravelTime = Distance * hoursPerKm\nEnergyConsumed = Distance * CargoMass * energyPerKmPerKg\nPowerOut = 0",
+      "WaterTank": "WaterStored = WaterStored + WaterIn\nPowerIn = 0\nPowerOut = 0",
+      "SolarPowerSystem": "PowerOut = powerOutput\nPowerIn = 0"
+    }
+  }
 }
