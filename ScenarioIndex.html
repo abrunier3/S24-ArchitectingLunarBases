@@ -5287,6 +5287,7 @@ function renderModuleEquationPanel(moduleId, groups) {
 function renderEquationBuilder(moduleId, groups, equation, equationIndex) {
   return `
     <textarea id="up42EquationText" spellcheck="false"
+      onkeydown="handleEquationEditorKeydown(event,'${jsString(moduleId)}',${equationIndex})"
       style="width:100%;min-height:72px;resize:vertical;margin-top:6px;background:#07101a;color:var(--text1);border:1px solid var(--accent);border-radius:8px;padding:8px;font-size:10px;font-family:monospace;line-height:1.45;">${escapeHtml(equation)}</textarea>
     ${renderTokenButtons('Ports', groups.ports, '#4cc9f0')}
     ${renderTokenButtons('Attributes', groups.attrs.slice(0, 24), '#ffd166')}
@@ -5295,6 +5296,13 @@ function renderEquationBuilder(moduleId, groups, equation, equationIndex) {
       <button type="button" class="btn btn-primary" style="flex:1;padding:7px;font-size:10px;" onclick="saveModuleEquation('${jsString(moduleId)}',${equationIndex})">Save equation</button>
       <button type="button" class="btn" style="padding:7px;font-size:10px;" onclick="cancelModuleEquationEdit('${jsString(moduleId)}')">Cancel</button>
     </div>`;
+}
+
+function handleEquationEditorKeydown(event, moduleId, equationIndex) {
+  if (event.key !== 'Enter' || event.shiftKey) return;
+  event.preventDefault();
+  event.stopPropagation();
+  saveModuleEquation(moduleId, equationIndex);
 }
 
 function appendEquationToken(token) {
@@ -6393,144 +6401,201 @@ let up42MoonImg = null;
     <div style="display:flex;flex-direction:column;background:var(--panel);border:1px solid var(--border);border-radius:12px;overflow:hidden;">
       <!-- Header always visible -->
       <div style="padding:12px 14px;border-bottom:1px solid var(--border);">
-        <div style="font-size:12px;font-weight:600;color:var(--text1);margin-bottom:2px;">Parameter Controls</div>
-        <div style="font-size:10px;color:var(--text3);">Stakeholder changes the assumptions here.</div>
+        <div style="font-size:12px;font-weight:600;color:var(--text1);margin-bottom:3px;">DES Configuration</div>
+        <div style="font-size:10px;color:var(--text3);line-height:1.45;">Configure the numerical assumptions used by the current ISRU discrete-event model. Module placement, routes, interfaces, and equations are defined in Step 4.2.</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:9px;">
+          <span style="font-size:9px;padding:4px 7px;border-radius:5px;background:rgba(76,201,240,0.1);border:1px solid rgba(76,201,240,0.35);color:#4cc9f0;">Step 4.2: architecture and routes</span>
+          <span style="font-size:9px;padding:4px 7px;border-radius:5px;background:rgba(255,209,102,0.1);border:1px solid rgba(255,209,102,0.35);color:#ffd166;">Step 5: DES assumptions</span>
+          <span style="font-size:9px;padding:4px 7px;border-radius:5px;background:rgba(126,224,177,0.1);border:1px solid rgba(126,224,177,0.35);color:#7ee0b1;">SysML: physical attributes</span>
+        </div>
+        <div style="margin-top:9px;padding:8px 10px;border-radius:7px;background:rgba(255,209,102,0.07);border-left:3px solid #ffd166;font-size:9px;color:var(--text2);line-height:1.45;">
+          <b style="color:#ffd166;">Current engine scope:</b> Step 4 equations are transmitted and recorded, but the SimPy engine still executes its predefined ISRU process functions. Equation evaluation is not active yet.
+        </div>
       </div>
       <!-- Scrollable sliders -->
       <div style="padding:12px 14px;display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;align-items:start;">
 
+        <div style="grid-column:1/-1;padding-bottom:6px;border-bottom:1px solid var(--border2);">
+          <div style="font-size:10px;color:var(--accent);font-weight:700;letter-spacing:0.8px;">1. SCENARIO ARCHITECTURE</div>
+          <div style="font-size:9px;color:var(--text3);margin-top:3px;">Asset multiplicity and route lengths. Counts are initialized from Step 4.2 and should remain consistent with placed instances.</div>
+        </div>
+
         <div id="desControlRoverCount">
-          <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
-            <span style="font-size:11px;color:var(--text2);"># of regolith rovers</span>
-            <span id="desRoverCountVal" style="font-size:11px;font-weight:600;color:var(--accent);">1</span>
+          <div style="height:100%;padding:9px 10px;background:rgba(255,255,255,0.025);border:1px solid var(--border2);border-radius:8px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+            <span style="font-size:11px;color:var(--text2);">Regolith rover count <small style="color:#f4a261;">[RegolithRover]</small></span>
+            <span id="desRoverCountVal" style="font-size:15px;font-weight:700;color:var(--accent);">1</span>
           </div>
-          <input id="desRoverCount" type="range" min="1" max="10" step="1" value="1" style="width:100%;"
-            oninput="document.getElementById('desRoverCountVal').textContent=this.value">
-          <div style="font-size:9px;color:var(--text3);margin-top:2px;line-height:1.4;">Parallel haul capacity to regolith loop.</div>
+          <input id="desRoverCount" type="hidden" value="1">
+          <div style="font-size:9px;color:var(--text3);margin-top:2px;line-height:1.4;">Number of rovers that repeatedly deliver one regolith batch to the shared plant input buffer.</div>
+          <div style="font-size:8px;color:#7ee0b1;margin-top:5px;">Defined in Step 4.2 scenario logic</div>
+          </div>
         </div>
 
         <div id="desControlLoxRoverCount">
-          <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
-            <span style="font-size:11px;color:var(--text2);"># of LOX rovers</span>
-            <span id="desLoxRoverCountVal" style="font-size:11px;font-weight:600;color:var(--accent);">1</span>
+          <div style="height:100%;padding:9px 10px;background:rgba(255,255,255,0.025);border:1px solid var(--border2);border-radius:8px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+            <span style="font-size:11px;color:var(--text2);">LOX rover count <small style="color:#4cc9f0;">[LOXRover]</small></span>
+            <span id="desLoxRoverCountVal" style="font-size:15px;font-weight:700;color:var(--accent);">1</span>
           </div>
-          <input id="desLoxRoverCount" type="range" min="1" max="10" step="1" value="1" style="width:100%;"
-            oninput="document.getElementById('desLoxRoverCountVal').textContent=this.value">
-          <div style="font-size:9px;color:var(--text3);margin-top:2px;line-height:1.4;">Parallel haul capacity to LOX transport loop.</div>
+          <input id="desLoxRoverCount" type="hidden" value="1">
+          <div style="font-size:9px;color:var(--text3);margin-top:2px;line-height:1.4;">Number of rovers available in the shared pool used for LOX pickup and delivery.</div>
+          <div style="font-size:8px;color:#7ee0b1;margin-top:5px;">Defined in Step 4.2 scenario logic</div>
+          </div>
         </div>
 
         <div id="desControlPlantCount">
-          <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
-            <span style="font-size:11px;color:var(--text2);"># of ISRU plants</span>
-            <span id="desPlantCountVal" style="font-size:11px;font-weight:600;color:var(--accent);">1</span>
+          <div style="height:100%;padding:9px 10px;background:rgba(255,255,255,0.025);border:1px solid var(--border2);border-radius:8px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+            <span style="font-size:11px;color:var(--text2);">ISRU plant count <small style="color:#ff7a8a;">[ISRUPlant]</small></span>
+            <span id="desPlantCountVal" style="font-size:15px;font-weight:700;color:var(--accent);">1</span>
           </div>
-          <input id="desPlantCount" type="range" min="1" max="6" step="1" value="1" style="width:100%;"
-            oninput="document.getElementById('desPlantCountVal').textContent=this.value">
-          <div style="font-size:9px;color:var(--text3);margin-top:2px;line-height:1.4;">Parallel processing units, shared infrastructure.</div>
+          <input id="desPlantCount" type="hidden" value="1">
+          <div style="font-size:9px;color:var(--text3);margin-top:2px;line-height:1.4;">Number of parallel processing plants drawing regolith from the same shared input buffer.</div>
+          <div style="font-size:8px;color:#7ee0b1;margin-top:5px;">Defined by placed instances in Step 4.2</div>
+          </div>
         </div>
 
         <!-- Distances from Urban Planning (read-only, set by Step 4.2) -->
         <div style="background:rgba(0,212,255,0.06);border:1px solid rgba(0,212,255,0.2);border-radius:8px;padding:10px;">
           <div style="font-size:10px;color:var(--accent);font-weight:600;margin-bottom:8px;letter-spacing:1px;">FROM URBAN PLANNING</div>
           <div id="desControlRegDist" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-            <span style="font-size:11px;color:var(--text2);">Regolith haul distance</span>
+            <span style="font-size:11px;color:var(--text2);">Regolith route <small style="color:#f4a261;">[Excavation → Plant]</small></span>
             <span id="desRegDistVal" style="font-size:12px;font-weight:700;color:var(--accent);">—</span>
           </div>
           <div id="desControlLoxDist" style="display:flex;justify-content:space-between;align-items:center;">
-            <span style="font-size:11px;color:var(--text2);">LOX haul distance</span>
+            <span style="font-size:11px;color:var(--text2);">LOX route <small style="color:#4cc9f0;">[Plant → Destination]</small></span>
             <span id="desLoxDistVal" style="font-size:12px;font-weight:700;color:var(--accent);">—</span>
           </div>
-          <div style="font-size:9px;color:var(--text3);margin-top:6px;">Set in Step 4.2 — Scenario Creation</div>
+          <div style="font-size:9px;color:var(--text3);margin-top:6px;line-height:1.4;">Read-only path lengths calculated from the routes created in Step 4.2.</div>
           <!-- Hidden inputs keep the values for workflow dispatch -->
           <input id="desRegDist" type="hidden" value="1">
           <input id="desLoxDist" type="hidden" value="1">
         </div>
 
+        <div style="grid-column:1/-1;padding:4px 0 6px;border-bottom:1px solid var(--border2);margin-top:2px;">
+          <div style="font-size:10px;color:var(--accent);font-weight:700;letter-spacing:0.8px;">2. TRANSPORT AND PRODUCTION</div>
+          <div style="font-size:9px;color:var(--text3);margin-top:3px;">Operating coefficients controlling rover cycles, ISRU throughput, and LOX dispatch.</div>
+        </div>
+
         <div id="desControlRoverEnergy">
           <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
-            <span style="font-size:11px;color:var(--text2);">Rover energy (kWh/km/kg)</span>
+            <span style="font-size:11px;color:var(--text2);">Energy coefficient <small style="color:#4cc9f0;">[Both rover types]</small></span>
             <span id="desRoverEnergyVal" style="font-size:11px;font-weight:600;color:var(--accent);">0.00034</span>
           </div>
           <input id="desRoverEnergy" type="range" min="0.0001" max="0.001" step="0.00005" value="0.00034" style="width:100%;"
             oninput="document.getElementById('desRoverEnergyVal').textContent=Number(this.value).toFixed(5)">
-          <div style="font-size:9px;color:var(--text3);margin-top:2px;line-height:1.4;">Primary driver for regolith availability.</div>
+          <div style="font-size:9px;color:var(--text3);margin-top:2px;line-height:1.4;">Energy consumed per kilometer and kilogram transported: energy = coefficient × distance × payload.</div>
         </div>
 
         <div id="desControlRoverTravel">
           <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
-            <span style="font-size:11px;color:var(--text2);">Rover travel time</span>
+            <span style="font-size:11px;color:var(--text2);">Travel time coefficient <small style="color:#4cc9f0;">[Both rover types]</small></span>
             <span id="desRoverTravelVal" style="font-size:11px;font-weight:600;color:var(--accent);">5 hr/km</span>
           </div>
           <input id="desRoverTravel" type="range" min="1" max="10" step="1" value="5" style="width:100%;"
             oninput="document.getElementById('desRoverTravelVal').textContent=this.value+' hr/km'">
-          <div style="font-size:9px;color:var(--text3);margin-top:2px;line-height:1.4;">Longer travel delays delivery cadence.</div>
+          <div style="font-size:9px;color:var(--text3);margin-top:2px;line-height:1.4;">Hours required per kilometer. Multiplied by the selected route length for each trip.</div>
         </div>
 
         <div id="desControlProcessRate">
           <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
-            <span style="font-size:11px;color:var(--text2);">ISRU processing rate</span>
+            <span style="font-size:11px;color:var(--text2);">Processing rate <small style="color:#ff7a8a;">[ISRUPlant]</small></span>
             <span id="desProcessRateVal" style="font-size:11px;font-weight:600;color:var(--accent);">1600 kg/hr</span>
           </div>
           <input id="desProcessRate" type="range" min="800" max="3200" step="100" value="1600" style="width:100%;"
             oninput="document.getElementById('desProcessRateVal').textContent=this.value+' kg/hr'">
-          <div style="font-size:9px;color:var(--text3);margin-top:2px;line-height:1.4;">Higher rate increases LOX output.</div>
+          <div style="font-size:9px;color:var(--text3);margin-top:2px;line-height:1.4;">Regolith mass processed per plant per hour; determines the duration of each processing batch.</div>
         </div>
 
         <div id="desControlLoxThresh">
           <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
-            <span style="font-size:11px;color:var(--text2);">LOX transport threshold</span>
+            <span style="font-size:11px;color:var(--text2);">Pickup threshold <small style="color:#ff7a8a;">[ISRUPlant → LOXRover]</small></span>
             <span id="desLoxThreshVal" style="font-size:11px;font-weight:600;color:var(--accent);">100 kg</span>
           </div>
           <input id="desLoxThresh" type="range" min="25" max="500" step="25" value="100" style="width:100%;"
             oninput="document.getElementById('desLoxThreshVal').textContent=this.value+' kg'">
-          <div style="font-size:9px;color:var(--text3);margin-top:2px;line-height:1.4;">Triggers LOX rover pickup.</div>
+          <div style="font-size:9px;color:var(--text3);margin-top:2px;line-height:1.4;">Minimum LOX stored at one plant before it requests a rover from the shared LOX rover pool.</div>
         </div>
 
         <details open style="background:rgba(255,255,255,0.03);border:1px solid var(--border2);border-radius:8px;padding:10px;grid-column:1/-1;">
-          <summary style="font-size:10px;color:var(--accent);font-weight:700;letter-spacing:0.8px;cursor:pointer;">ADVANCED SCENARIO ASSUMPTIONS</summary>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;">
-            <label style="font-size:10px;color:var(--text3);line-height:1.4;">Duration hr
-              <input id="desSimDuration" type="number" min="1" step="1" value="60" style="width:100%;margin-top:3px;">
+          <summary style="font-size:10px;color:var(--accent);font-weight:700;letter-spacing:0.8px;cursor:pointer;">3. ADVANCED SIMULATION ASSUMPTIONS</summary>
+
+          <div style="margin-top:12px;padding-bottom:5px;border-bottom:1px solid var(--border2);">
+            <div style="font-size:10px;color:var(--text2);font-weight:700;">Simulation and material flow</div>
+            <div style="font-size:9px;color:var(--text3);margin-top:2px;">Global run horizon and the discrete quantities exchanged between rovers and plants.</div>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:8px;margin-top:8px;">
+            <label style="padding:8px;border:1px solid var(--border2);border-radius:7px;font-size:10px;color:var(--text2);line-height:1.4;">Simulation duration <small style="color:var(--accent);">[Global]</small>
+              <input id="desSimDuration" type="number" min="1" step="1" value="60" style="width:100%;margin-top:5px;background:#07101a;color:var(--text1);border:1px solid var(--border2);border-radius:5px;padding:6px;">
+              <span style="display:block;font-size:9px;color:var(--text3);margin-top:4px;">Mission time simulated before SimPy stops, in hours.</span>
             </label>
-            <label style="font-size:10px;color:var(--text3);line-height:1.4;">Regolith batch kg
-              <input id="desRegolithBatch" type="number" min="1" step="100" value="4000" style="width:100%;margin-top:3px;">
+            <label style="padding:8px;border:1px solid var(--border2);border-radius:7px;font-size:10px;color:var(--text2);line-height:1.4;">Regolith batch <small style="color:#f4a261;">[RegolithRover + ISRUPlant]</small>
+              <input id="desRegolithBatch" type="number" min="1" step="100" value="4000" style="width:100%;margin-top:5px;background:#07101a;color:var(--text1);border:1px solid var(--border2);border-radius:5px;padding:6px;">
+              <span style="display:block;font-size:9px;color:var(--text3);margin-top:4px;">Mass delivered by one rover cycle and withdrawn by one plant processing cycle, in kg.</span>
             </label>
-            <label style="font-size:10px;color:var(--text3);line-height:1.4;">Buffer/rover kg
-              <input id="desRegolithBufferPerRover" type="number" min="1" step="1000" value="20000" style="width:100%;margin-top:3px;">
+            <label style="padding:8px;border:1px solid var(--border2);border-radius:7px;font-size:10px;color:var(--text2);line-height:1.4;">Regolith buffer per rover <small style="color:#f4a261;">[Shared plant input]</small>
+              <input id="desRegolithBufferPerRover" type="number" min="1" step="1000" value="20000" style="width:100%;margin-top:5px;background:#07101a;color:var(--text1);border:1px solid var(--border2);border-radius:5px;padding:6px;">
+              <span style="display:block;font-size:9px;color:var(--text3);margin-top:4px;">Shared buffer capacity equals this value multiplied by the regolith rover count, in kg.</span>
             </label>
-            <label style="font-size:10px;color:var(--text3);line-height:1.4;">LOX check dt hr
-              <input id="desLoxPollDt" type="number" min="0.1" step="0.1" value="1" style="width:100%;margin-top:3px;">
+            <label style="padding:8px;border:1px solid var(--border2);border-radius:7px;font-size:10px;color:var(--text2);line-height:1.4;">LOX pickup check interval <small style="color:#4cc9f0;">[ISRUPlant]</small>
+              <input id="desLoxPollDt" type="number" min="0.1" step="0.1" value="1" style="width:100%;margin-top:5px;background:#07101a;color:var(--text1);border:1px solid var(--border2);border-radius:5px;padding:6px;">
+              <span style="display:block;font-size:9px;color:var(--text3);margin-top:4px;">Time between checks of each plant's LOX inventory against the pickup threshold, in hours.</span>
             </label>
-            <label style="font-size:10px;color:var(--text3);line-height:1.4;">LOX storage kWh/kg/hr
-              <input id="desLoxStorageCoeff" type="number" min="0" step="0.01" value="0.31" style="width:100%;margin-top:3px;">
+          </div>
+
+          <div style="margin-top:14px;padding-bottom:5px;border-bottom:1px solid var(--border2);">
+            <div style="font-size:10px;color:var(--text2);font-weight:700;">LOX storage</div>
+            <div style="font-size:9px;color:var(--text3);margin-top:2px;">Energy accounting while produced LOX remains stored at an ISRU plant.</div>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:8px;margin-top:8px;">
+            <label style="padding:8px;border:1px solid var(--border2);border-radius:7px;font-size:10px;color:var(--text2);line-height:1.4;">Storage energy coefficient <small style="color:#ff7a8a;">[ISRUPlant]</small>
+              <input id="desLoxStorageCoeff" type="number" min="0" step="0.01" value="0.31" style="width:100%;margin-top:5px;background:#07101a;color:var(--text1);border:1px solid var(--border2);border-radius:5px;padding:6px;">
+              <span style="display:block;font-size:9px;color:var(--text3);margin-top:4px;">Energy consumed per kilogram of stored LOX per hour, in kWh/kg/hr.</span>
             </label>
-            <label style="font-size:10px;color:var(--text3);line-height:1.4;">Power dt hr
-              <input id="desPowerDt" type="number" min="0.1" step="0.1" value="1" style="width:100%;margin-top:3px;">
+          </div>
+
+          <div style="margin-top:14px;padding-bottom:5px;border-bottom:1px solid var(--border2);">
+            <div style="font-size:10px;color:var(--text2);font-weight:700;">Power events and rover charging</div>
+            <div style="font-size:9px;color:var(--text3);margin-top:2px;">Power-manager update rate, scheduled one-time loads, and charging-station performance. Set a spike energy to 0 to disable that event.</div>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:8px;margin-top:8px;">
+            <label style="padding:8px;border:1px solid var(--border2);border-radius:7px;font-size:10px;color:var(--text2);line-height:1.4;">Power management interval <small style="color:#ffd166;">[SolarPowerSystem]</small>
+              <input id="desPowerDt" type="number" min="0.1" step="0.1" value="1" style="width:100%;margin-top:5px;background:#07101a;color:var(--text1);border:1px solid var(--border2);border-radius:5px;padding:6px;">
+              <span style="display:block;font-size:9px;color:var(--text3);margin-top:4px;">Time between power balance and battery updates, in hours.</span>
             </label>
-            <label style="font-size:10px;color:var(--text3);line-height:1.4;">Hab spike kWh
-              <input id="desHabSpikeEnergy" type="number" min="0" step="1" value="20" style="width:100%;margin-top:3px;">
-            </label>
-            <label style="font-size:10px;color:var(--text3);line-height:1.4;">Hab spike hr
-              <input id="desHabSpikeTime" type="number" min="0" step="1" value="10" style="width:100%;margin-top:3px;">
-            </label>
-            <label style="font-size:10px;color:var(--text3);line-height:1.4;">Comms spike kWh
-              <input id="desCommsSpikeEnergy" type="number" min="0" step="1" value="10" style="width:100%;margin-top:3px;">
-            </label>
-            <label style="font-size:10px;color:var(--text3);line-height:1.4;">Comms spike hr
-              <input id="desCommsSpikeTime" type="number" min="0" step="1" value="15" style="width:100%;margin-top:3px;">
-            </label>
-            <label style="font-size:10px;color:var(--text3);line-height:1.4;">LZ spike kWh
-              <input id="desLzSpikeEnergy" type="number" min="0" step="1" value="50" style="width:100%;margin-top:3px;">
-            </label>
-            <label style="font-size:10px;color:var(--text3);line-height:1.4;">LZ spike hr
-              <input id="desLzSpikeTime" type="number" min="0" step="1" value="25" style="width:100%;margin-top:3px;">
-            </label>
-            <label style="font-size:10px;color:var(--text3);line-height:1.4;">Charge power kW
-              <input id="desChargePower" type="number" min="0" step="1" value="20" style="width:100%;margin-top:3px;">
-            </label>
-            <label style="font-size:10px;color:var(--text3);line-height:1.4;">Charge efficiency
-              <input id="desChargeEfficiency" type="number" min="0" max="1" step="0.01" value="0.85" style="width:100%;margin-top:3px;">
-            </label>
+            <div style="padding:8px;border:1px solid var(--border2);border-radius:7px;">
+              <div style="font-size:10px;color:var(--text2);">Habitation power spike <small style="color:#7ee0b1;">[HabitationModule]</small></div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:5px;">
+                <label style="font-size:9px;color:var(--text3);">Energy (kWh)<input id="desHabSpikeEnergy" type="number" min="0" step="1" value="20" style="width:100%;margin-top:3px;background:#07101a;color:var(--text1);border:1px solid var(--border2);border-radius:5px;padding:6px;"></label>
+                <label style="font-size:9px;color:var(--text3);">Time (hr)<input id="desHabSpikeTime" type="number" min="0" step="1" value="10" style="width:100%;margin-top:3px;background:#07101a;color:var(--text1);border:1px solid var(--border2);border-radius:5px;padding:6px;"></label>
+              </div>
+              <div style="font-size:9px;color:var(--text3);margin-top:4px;">One-time habitat demand applied at the specified mission time.</div>
+            </div>
+            <div style="padding:8px;border:1px solid var(--border2);border-radius:7px;">
+              <div style="font-size:10px;color:var(--text2);">Communications power spike <small style="color:#7ee0b1;">[CommunicationModule]</small></div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:5px;">
+                <label style="font-size:9px;color:var(--text3);">Energy (kWh)<input id="desCommsSpikeEnergy" type="number" min="0" step="1" value="10" style="width:100%;margin-top:3px;background:#07101a;color:var(--text1);border:1px solid var(--border2);border-radius:5px;padding:6px;"></label>
+                <label style="font-size:9px;color:var(--text3);">Time (hr)<input id="desCommsSpikeTime" type="number" min="0" step="1" value="15" style="width:100%;margin-top:3px;background:#07101a;color:var(--text1);border:1px solid var(--border2);border-radius:5px;padding:6px;"></label>
+              </div>
+              <div style="font-size:9px;color:var(--text3);margin-top:4px;">Used only when the communications module is active in the DES.</div>
+            </div>
+            <div style="padding:8px;border:1px solid var(--border2);border-radius:7px;">
+              <div style="font-size:10px;color:var(--text2);">Landing-zone power spike <small style="color:#7ee0b1;">[LaunchLandingZone]</small></div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:5px;">
+                <label style="font-size:9px;color:var(--text3);">Energy (kWh)<input id="desLzSpikeEnergy" type="number" min="0" step="1" value="50" style="width:100%;margin-top:3px;background:#07101a;color:var(--text1);border:1px solid var(--border2);border-radius:5px;padding:6px;"></label>
+                <label style="font-size:9px;color:var(--text3);">Time (hr)<input id="desLzSpikeTime" type="number" min="0" step="1" value="25" style="width:100%;margin-top:3px;background:#07101a;color:var(--text1);border:1px solid var(--border2);border-radius:5px;padding:6px;"></label>
+              </div>
+              <div style="font-size:9px;color:var(--text3);margin-top:4px;">One-time landing-zone demand applied at the specified mission time.</div>
+            </div>
+            <div style="padding:8px;border:1px solid var(--border2);border-radius:7px;">
+              <div style="font-size:10px;color:var(--text2);">Rover charging station <small style="color:#4cc9f0;">[Rovers + Power]</small></div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:5px;">
+                <label style="font-size:9px;color:var(--text3);">Power (kW)<input id="desChargePower" type="number" min="0" step="1" value="20" style="width:100%;margin-top:3px;background:#07101a;color:var(--text1);border:1px solid var(--border2);border-radius:5px;padding:6px;"></label>
+                <label style="font-size:9px;color:var(--text3);">Efficiency (0-1)<input id="desChargeEfficiency" type="number" min="0.01" max="1" step="0.01" value="0.85" style="width:100%;margin-top:3px;background:#07101a;color:var(--text1);border:1px solid var(--border2);border-radius:5px;padding:6px;"></label>
+              </div>
+              <div style="font-size:9px;color:var(--text3);margin-top:4px;">Charging rate and conversion efficiency; station is created when LOX rovers are active.</div>
+            </div>
           </div>
         </details>
 
