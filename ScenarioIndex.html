@@ -5305,6 +5305,32 @@ function addScenarioResourceRoute(flow, from, to, stops = [], roverId = null) {
   });
 }
 
+function ensureIsruPresetResourceRoutes() {
+  if (currentScenarioMode !== 'isru') return;
+  const routeSpecs = [
+    { flow:'Regolith', roverType:'RegolithRover', count:Math.max(1, Number(up42Scenario.roverCounts?.regolith || 1)) },
+    { flow:'LOX', roverType:'LOXRover', count:Math.max(1, Number(up42Scenario.roverCounts?.lox || 1)) }
+  ];
+
+  routeSpecs.forEach(spec => {
+    const candidates = (up42Scenario.transportLinks || [])
+      .filter(link => String(link.flow || '').toLowerCase() === spec.flow.toLowerCase())
+      .flatMap(link => (link.from_instances || []).flatMap(from =>
+        (link.to_instances || []).map(to => ({ from, to }))
+      ));
+    if (!candidates.length) return;
+
+    for (let index = 0; index < spec.count; index++) {
+      const roverId = spec.count === 1 ? spec.roverType : `${spec.roverType}_${index + 1}`;
+      if ((up42Scenario.resourceRoutes || []).some(route =>
+        route.flow === spec.flow && route.rover_id === roverId
+      )) continue;
+      const candidate = candidates[index % candidates.length];
+      addScenarioResourceRoute(spec.flow, candidate.from, candidate.to, [], roverId);
+    }
+  });
+}
+
 function addScenarioDirectLink(kind, from, to) {
   const target = kind === 'Power' ? up42Scenario.powerLinks : up42Scenario.comLinks;
   target.push({
@@ -5523,6 +5549,7 @@ function syncScenarioInterfacesFromSysML() {
       to_instances: getPlacedInstancesForBase(conn.toName)
     }));
   up42Scenario.transportLinks = buildTransportLinksFromConnections(connections, fixedTypes);
+  ensureScenarioPowerBoundaryEquations();
 
   renderSysmlInterfaceList();
   return up42Scenario.sysmlInterfaces;
@@ -5700,17 +5727,33 @@ function getEquationOutputName(equation) {
   return match ? match[1] : null;
 }
 
+function isPowerGeneratorModule(moduleId) {
+  return getBaseModuleId(moduleId).toLowerCase().includes('power');
+}
+
+function ensureScenarioPowerBoundaryEquations() {
+  systems.filter(system => system.active).forEach(system => {
+    const moduleId = system.id;
+    const equations = getModuleEquationList(moduleId);
+    const outputs = new Set(equations.map(getEquationOutputName).filter(Boolean));
+    const boundaryOutput = isPowerGeneratorModule(moduleId) ? 'PowerIn' : 'PowerOut';
+    if (outputs.has(boundaryOutput)) return;
+    equations.push(`${boundaryOutput} = 0`);
+    setModuleEquationList(moduleId, equations);
+  });
+}
+
 function getModuleEquationRequirements(moduleId) {
-  const groups = getEquationTokenGroups(moduleId);
-  const physicalPorts = groups.ports.filter(token => ![
-    'SimulationTime', 'ProcessingTime', 'TravelTime', 'EnergyConsumed',
-    'EnergyGenerated', 'Distance', 'CargoMass', 'RoverCapacity'
-  ].includes(token));
+  const baseId = getBaseModuleId(moduleId);
+  const part = getSysmlPartData(baseId) || {};
+  const physicalPorts = [...new Set((Array.isArray(part.ports) ? part.ports : []).flatMap(port => {
+    const items = Array.isArray(port.items) ? port.items.filter(Boolean) : [];
+    return items.length ? items : [port.name || port.id].filter(Boolean);
+  }))];
   const resourceOutputs = physicalPorts.filter(token => /Out$/i.test(token) && !/^PowerOut$/i.test(token));
   const resourceInputs = physicalPorts.filter(token => /In$/i.test(token) && !/^PowerIn$/i.test(token));
-  const hasResourceProcess = (resourceOutputs.length > 0 && resourceInputs.length > 0) || isRoverNode(getBaseModuleId(moduleId));
-  const hasPowerInput = physicalPorts.some(token => /^PowerIn$/i.test(token) || (/power/i.test(token) && /in/i.test(token)));
-  const hasPowerOutput = physicalPorts.some(token => /^PowerOut$/i.test(token) || (/power/i.test(token) && /out/i.test(token)));
+  const hasResourceProcess = (resourceOutputs.length > 0 && resourceInputs.length > 0) || isRoverNode(baseId);
+  const powerGenerator = isPowerGeneratorModule(baseId);
   const required = resourceOutputs.map(output => ({ output, accepted:[output], kind:'resource', label:`${output} resource law` }));
   if (hasResourceProcess) {
     required.push({
@@ -5720,9 +5763,12 @@ function getModuleEquationRequirements(moduleId) {
       label: isRoverNode(getBaseModuleId(moduleId)) ? 'Travel time law' : 'Processing time law'
     });
   }
-  if (hasPowerInput) required.push({ output:'PowerIn', accepted:['PowerIn','EnergyConsumed'], kind:'power', label:'Power consumption law' });
-  if (hasPowerOutput) required.push({ output:'PowerOut', accepted:['PowerOut','EnergyGenerated'], kind:'power', label:'Power generation law' });
-  if (isRoverNode(getBaseModuleId(moduleId))) required.push({ output:'EnergyConsumed', accepted:['EnergyConsumed'], kind:'power', label:'Travel energy law' });
+  if (powerGenerator) {
+    required.push({ output:'PowerOut', accepted:['PowerOut','EnergyGenerated'], kind:'power', label:'Power generation law' });
+  } else {
+    required.push({ output:'PowerIn', accepted:['PowerIn','EnergyConsumed'], kind:'power', label:'Power consumption law' });
+  }
+  if (isRoverNode(baseId)) required.push({ output:'EnergyConsumed', accepted:['EnergyConsumed'], kind:'power', label:'Travel energy law' });
   return required;
 }
 
@@ -6044,6 +6090,15 @@ function drawScenarioLinks() {
     });
   });
 
+  const explicitRoutes = up42Scenario.resourceRoutes || [];
+  const explicitRouteKeys = new Set(explicitRoutes.map(route =>
+    `${String(route.flow || '').toLowerCase()}:${route.from}:${route.to}`
+  ));
+  explicitRoutes.forEach(route => {
+    const path = route.pts?.length ? route.pts : getVisualPath(route.from, route.to);
+    queueDrawing(path, getFlowColor(route.flow), 2.8, 2);
+  });
+
   const transports = up42Scenario.transportLinks?.length
     ? up42Scenario.transportLinks
     : [];
@@ -6051,6 +6106,7 @@ function drawScenarioLinks() {
     const color = getFlowColor(link.flow);
     (link.from_instances || []).forEach(from => {
       (link.to_instances || []).forEach(to => {
+        if (explicitRouteKeys.has(`${String(link.flow || '').toLowerCase()}:${from}:${to}`)) return;
         const path = getVisualPath(from, to);
         queueDrawing(path, color, 2.8, 1);
       });
@@ -6313,6 +6369,8 @@ function plotBestPaths() {
   });
 
   renderRouteStats();
+  syncScenarioInterfacesFromSysML();
+  ensureIsruPresetResourceRoutes();
   updateDesDistances();
   setHint('Drag yellow waypoints to adjust routes.');
   drawUp42();
