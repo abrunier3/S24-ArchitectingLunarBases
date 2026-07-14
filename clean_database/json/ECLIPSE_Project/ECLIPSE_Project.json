@@ -65,14 +65,14 @@
       },
       "transform": {
         "position_m": [
-          0.0,
-          0.0,
-          0.0
+          -269.69,
+          432.94,
+          0
         ],
         "rotation_deg": [
-          0.0,
-          0.0,
-          0.0
+          0,
+          0,
+          0
         ]
       },
       "attributes": {
@@ -216,14 +216,14 @@
       },
       "transform": {
         "position_m": [
-          0.0,
-          0.0,
-          0.0
+          -1740.06,
+          -638.44,
+          0
         ],
         "rotation_deg": [
-          0.0,
-          0.0,
-          0.0
+          0,
+          0,
+          0
         ]
       },
       "attributes": {
@@ -284,14 +284,14 @@
       },
       "transform": {
         "position_m": [
-          0.0,
-          5.0,
-          0.0
+          927.29,
+          -424.16,
+          0
         ],
         "rotation_deg": [
-          0.0,
-          0.0,
-          0.0
+          0,
+          0,
+          0
         ]
       },
       "attributes": {
@@ -424,14 +424,14 @@
       },
       "transform": {
         "position_m": [
-          0.0,
-          0.0,
-          0.0
+          1104.63,
+          1193.98,
+          0
         ],
         "rotation_deg": [
-          0.0,
-          0.0,
-          0.0
+          0,
+          0,
+          0
         ]
       },
       "attributes": {
@@ -604,14 +604,14 @@
       },
       "transform": {
         "position_m": [
-          0.0,
-          5.0,
-          0.0
+          -2143.74,
+          1558.29,
+          0
         ],
         "rotation_deg": [
-          0.0,
-          0.0,
-          0.0
+          0,
+          0,
+          0
         ]
       },
       "attributes": {
@@ -661,7 +661,7 @@
   ],
   "connections": [
     {
-      "name": "ISRUPlantToRover",
+      "name": "ISRUPlantToLaunchLandingZone",
       "type": "LOXMovement",
       "flow": "LOX",
       "from": {
@@ -674,7 +674,7 @@
       }
     },
     {
-      "name": "RoverToPropellantDepot",
+      "name": "ISRUPlantToPropellantDepot",
       "type": "LOXMovement",
       "flow": "LOX",
       "from": {
@@ -684,6 +684,76 @@
       "to": {
         "part": "PropellantDepot",
         "port": "Propellant_LOXPortIn"
+      },
+      "path": {
+        "waypoints_m": [
+          [
+            938.33,
+            -426.82,
+            0
+          ],
+          [
+            640.23,
+            -213.41,
+            0
+          ],
+          [
+            342.13,
+            0,
+            0
+          ],
+          [
+            44.04,
+            213.41,
+            0
+          ],
+          [
+            -254.06,
+            426.82,
+            0
+          ],
+          [
+            -583.32,
+            403.79,
+            0
+          ],
+          [
+            -912.58,
+            380.75,
+            0
+          ],
+          [
+            -1241.84,
+            357.72,
+            0
+          ],
+          [
+            -1571.1,
+            334.68,
+            0
+          ],
+          [
+            -1900.37,
+            311.65,
+            0
+          ],
+          [
+            -1843.91,
+            -9.03,
+            0
+          ],
+          [
+            -1787.45,
+            -329.71,
+            0
+          ],
+          [
+            -1730.99,
+            -650.39,
+            0
+          ]
+        ],
+        "distance_km": 4.093
       }
     },
     {
@@ -739,7 +809,7 @@
       }
     },
     {
-      "name": "ISRUExcavationToRegolithRover",
+      "name": "ISRUExcavationToISRUPlant",
       "type": "RegolithMovement",
       "flow": "Regolith",
       "from": {
@@ -749,19 +819,6 @@
       "to": {
         "part": "RegolithRover",
         "port": "RegolithRover_RegolithPortInOut"
-      }
-    },
-    {
-      "name": "RegolithRoverToISRUPlant",
-      "type": "RegolithMovement",
-      "flow": "Regolith",
-      "from": {
-        "part": "RegolithRover",
-        "port": "RegolithRover_RegolithPortInOut"
-      },
-      "to": {
-        "part": "ISRUPlant",
-        "port": "ISRU_RegolithPortIn"
       }
     },
     {
@@ -777,5 +834,30 @@
         "port": "Excavation_PowerPortIn"
       }
     }
-  ]
+  ],
+  "urban_planning": {
+    "site": "MMA",
+    "site_name": "Malapert Massif",
+    "site_lat": -85.9,
+    "site_lon": -0.5,
+    "map_frame_m": {
+      "center_m": [
+        0,
+        0,
+        0
+      ],
+      "x_min": -2242.5,
+      "x_max": 2242.5,
+      "y_min": -2242.5,
+      "y_max": 2242.5,
+      "width_m": 4485,
+      "height_m": 4485,
+      "meters_per_pixel": 5,
+      "frame_px": {
+        "x": 0,
+        "y": 486.5,
+        "size": 897
+      }
+    }
+  }
 }
