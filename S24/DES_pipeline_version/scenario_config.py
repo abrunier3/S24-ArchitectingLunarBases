@@ -4,6 +4,10 @@ from pathlib import Path
 
 
 DEFAULT_SCENARIO_CONFIG = {
+    "engine": {
+        "mode": "isru",
+        "schema_version": 1,
+    },
     "simulation": {
         "duration_hr": 60.0,
     },

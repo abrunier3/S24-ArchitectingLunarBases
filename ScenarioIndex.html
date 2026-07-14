@@ -2862,6 +2862,7 @@ iframe{
               LOX rover count
               <input id="up42LoxRoverCount" type="number" min="0" max="20" value="1" onchange="syncScenarioRoverCounts()" style="width:54px;padding:5px;background:#07101a;color:var(--text1);border:1px solid var(--border2);border-radius:6px;">
             </label>
+            <div id="up42DynamicRoverTools" style="display:grid;gap:6px;"></div>
           </div>
           <div style="font-size:9px;color:var(--text3);font-weight:700;letter-spacing:0.06em;margin:10px 0 6px;">MODULE EQUATIONS</div>
           <div id="up42EquationModuleList" style="display:grid;gap:5px;margin-bottom:10px;"></div>
@@ -5172,10 +5173,63 @@ function setInputValueIfPresent(inputId, value, labelId = null) {
   if (label) label.textContent = String(value);
 }
 
+function getRoverFlowDefinitions() {
+  const definitions = [];
+  systems.filter(system => system.active && isRoverNode(system.id)).forEach(system => {
+    const part = getSysmlPartData(system.id) || {};
+    const items = (part.ports || []).flatMap(port => port.items || []);
+    const flows = [...new Set(items.map(item => {
+      const match = String(item || '').match(/^(.+?)(?:In|Out)$/i);
+      return match ? match[1] : null;
+    }).filter(flow => flow && flow.toLowerCase() !== 'power'))];
+    flows.forEach(flow => definitions.push({
+      flow,
+      roverType: system.id,
+      key: flow.toLowerCase(),
+    }));
+  });
+  return definitions;
+}
+
+function getRoverFlowDefinition(flow) {
+  return getRoverFlowDefinitions().find(definition =>
+    definition.flow.toLowerCase() === String(flow || '').toLowerCase()
+  ) || {
+    flow,
+    roverType: `${flow}Rover`,
+    key: String(flow || '').toLowerCase(),
+  };
+}
+
+function renderDynamicRoverTools() {
+  const wrap = document.getElementById('up42DynamicRoverTools');
+  if (!wrap) return;
+  const definitions = getRoverFlowDefinitions().filter(definition =>
+    !['regolith', 'lox'].includes(definition.key)
+  );
+  wrap.innerHTML = definitions.map(definition => {
+    const count = Math.max(0, Number(up42Scenario.roverCounts?.[definition.key] ?? 1));
+    return `
+      <button type="button" class="btn" data-resource-tool="${escapeHtml(definition.flow)}"
+        onclick="selectScenarioTool('resource:${jsString(definition.flow)}')"
+        style="padding:7px;font-size:9px;color:#8bffce;border-color:#8bffce;">${escapeHtml(definition.flow)} rover route</button>
+      <label style="display:grid;grid-template-columns:minmax(0,1fr) 54px;gap:6px;align-items:center;font-size:8px;color:var(--text3);">
+        ${escapeHtml(definition.roverType)} count
+        <input type="number" min="0" max="20" value="${count}" data-rover-flow="${escapeHtml(definition.flow)}"
+          onchange="syncScenarioRoverCounts()" style="width:54px;padding:5px;background:#07101a;color:var(--text1);border:1px solid var(--border2);border-radius:6px;">
+      </label>`;
+  }).join('');
+}
+
 function syncScenarioRoverCounts() {
   const regolith = Math.max(0, parseInt(document.getElementById('up42RegolithRoverCount')?.value || 0, 10));
   const lox = Math.max(0, parseInt(document.getElementById('up42LoxRoverCount')?.value || 0, 10));
-  up42Scenario.roverCounts = { regolith, lox };
+  const counts = { ...(up42Scenario.roverCounts || {}), regolith, lox };
+  document.querySelectorAll('[data-rover-flow]').forEach(input => {
+    const key = String(input.dataset.roverFlow || '').toLowerCase();
+    if (key) counts[key] = Math.max(0, parseInt(input.value || 0, 10));
+  });
+  up42Scenario.roverCounts = counts;
   setInputValueIfPresent('desRoverCount', Math.max(1, regolith), 'desRoverCountVal');
   setInputValueIfPresent('desLoxRoverCount', Math.max(1, lox), 'desLoxRoverCountVal');
   renderScenarioValidation();
@@ -5186,13 +5240,17 @@ function selectScenarioTool(tool) {
   up42ScenarioTool = tool;
   up42ScenarioPendingStart = null;
   cancelStopRouteBuilder();
+  const genericFlow = tool.startsWith('resource:') ? tool.slice('resource:'.length) : null;
   const labels = { regolith:'regolith rover route', lox:'LOX rover route', power:'power link', com:'communication link' };
   setPlacementPhase('logic');
   const regolithButton = document.getElementById('up42RegolithTool');
   const loxButton = document.getElementById('up42LoxTool');
   if (regolithButton) regolithButton.style.background = tool === 'regolith' ? 'rgba(244,185,66,0.18)' : '';
   if (loxButton) loxButton.style.background = tool === 'lox' ? 'rgba(76,201,240,0.18)' : '';
-  setHint(`Select source module for ${labels[tool] || tool}`);
+  document.querySelectorAll('[data-resource-tool]').forEach(button => {
+    button.style.background = button.dataset.resourceTool === genericFlow ? 'rgba(139,255,206,0.15)' : '';
+  });
+  setHint(`Select source module for ${genericFlow ? `${genericFlow} rover route` : (labels[tool] || tool)}`);
 }
 
 function getPlacedModuleOptions() {
@@ -5216,8 +5274,9 @@ function openStopRouteBuilder(flow, from, to) {
   if (label) label.textContent = `${flow} · ${from} → ${to}`;
   const roverSelect = document.getElementById('up42RouteRover');
   if (roverSelect) {
-    const roverType = flow === 'Regolith' ? 'RegolithRover' : 'LOXRover';
-    const key = flow === 'Regolith' ? 'regolith' : 'lox';
+    const definition = getRoverFlowDefinition(flow);
+    const roverType = definition.roverType;
+    const key = definition.key;
     const count = Math.max(1, Number(up42Scenario.roverCounts?.[key] || 1));
     roverSelect.innerHTML = Array.from({length:count}, (_, index) => {
       const id = count === 1 ? roverType : `${roverType}_${index + 1}`;
@@ -5293,9 +5352,9 @@ function addScenarioResourceRoute(flow, from, to, stops = [], roverId = null, pr
     else pts.push(...segment);
   }
   up42Scenario.resourceRoutes.push({
-    id: `${flow}_${Date.now()}`,
+    id: `${flow}_${from}_${to}_${Date.now()}`,
     flow,
-    rover_type: flow === 'Regolith' ? 'RegolithRover' : 'LOXRover',
+    rover_type: getRoverFlowDefinition(flow).roverType,
     rover_id: roverId,
     preset_generated: !!presetGenerated,
     from,
@@ -5304,6 +5363,22 @@ function addScenarioResourceRoute(flow, from, to, stops = [], roverId = null, pr
     pts,
     distance_km: +getRoutePathDistanceKm(pts).toFixed(3)
   });
+}
+
+function getIsruPresetRouteCandidates(flow) {
+  const plantIds = getPlacedInstancesForBase('ISRUPlant');
+  if (flow === 'Regolith') {
+    const excavationIds = getPlacedInstancesForBase('ISRUExcavation');
+    return excavationIds.flatMap(from => plantIds.map(to => ({ from, to })));
+  }
+  if (flow === 'LOX') {
+    const depotIds = getPlacedInstancesForBase('PropellantDepot');
+    const destinationIds = depotIds.length
+      ? depotIds
+      : getPlacedInstancesForBase('LaunchLandingZone');
+    return plantIds.flatMap(from => destinationIds.map(to => ({ from, to })));
+  }
+  return [];
 }
 
 function ensureIsruPresetResourceRoutes() {
@@ -5319,12 +5394,19 @@ function ensureIsruPresetResourceRoutes() {
 
   routeSpecs.forEach(spec => {
     const candidateMap = new Map();
-    (up42Scenario.transportLinks || [])
-      .filter(link => String(link.flow || '').toLowerCase() === spec.flow.toLowerCase())
-      .flatMap(link => (link.from_instances || []).flatMap(from =>
-        (link.to_instances || []).map(to => ({ from, to }))
-      ))
-      .forEach(candidate => candidateMap.set(`${candidate.from}:${candidate.to}`, candidate));
+    const presetCandidates = getIsruPresetRouteCandidates(spec.flow);
+    if (presetCandidates.length) {
+      presetCandidates.forEach(candidate =>
+        candidateMap.set(`${candidate.from}:${candidate.to}`, candidate)
+      );
+    } else {
+      (up42Scenario.transportLinks || [])
+        .filter(link => String(link.flow || '').toLowerCase() === spec.flow.toLowerCase())
+        .flatMap(link => (link.from_instances || []).flatMap(from =>
+          (link.to_instances || []).map(to => ({ from, to }))
+        ))
+        .forEach(candidate => candidateMap.set(`${candidate.from}:${candidate.to}`, candidate));
+    }
     const candidates = [...candidateMap.values()];
     if (!candidates.length) return;
 
@@ -5373,8 +5455,11 @@ function handleScenarioLogicClick(moduleId) {
     return;
   }
 
-  if (up42ScenarioTool === 'regolith' || up42ScenarioTool === 'lox') {
-    openStopRouteBuilder(up42ScenarioTool === 'regolith' ? 'Regolith' : 'LOX', from, to);
+  if (up42ScenarioTool === 'regolith' || up42ScenarioTool === 'lox' || up42ScenarioTool?.startsWith('resource:')) {
+    const flow = up42ScenarioTool === 'regolith'
+      ? 'Regolith'
+      : (up42ScenarioTool === 'lox' ? 'LOX' : up42ScenarioTool.slice('resource:'.length));
+    openStopRouteBuilder(flow, from, to);
     setHint('Choose optional stops, then create the rover route.');
     return;
   } else if (up42ScenarioTool === 'power') {
@@ -5571,6 +5656,7 @@ function syncScenarioInterfacesFromSysML() {
 function renderSysmlInterfaceList() {
   const list = document.getElementById('up42SysmlInterfaceList');
   if (!list) return;
+  renderDynamicRoverTools();
   const interfaces = up42Scenario.sysmlInterfaces || [];
   const transports = up42Scenario.transportLinks || [];
   const rows = [
@@ -6144,6 +6230,7 @@ function drawScenarioLinks() {
 function buildScenarioLogicPayload() {
   syncScenarioInterfacesFromSysML();
   return {
+    scenario_mode: currentScenarioMode || 'new',
     instances: getScenarioInstances().map(inst => ({
       id: inst.id,
       type: inst.type,
@@ -6226,8 +6313,13 @@ function getScenarioValidationMessages() {
       }
     });
   };
-  validateRoverAssignments('Regolith', 'RegolithRover', Math.max(0, Number(up42Scenario.roverCounts?.regolith || 0)));
-  validateRoverAssignments('LOX', 'LOXRover', Math.max(0, Number(up42Scenario.roverCounts?.lox || 0)));
+  getRoverFlowDefinitions().forEach(definition => {
+    validateRoverAssignments(
+      definition.flow,
+      definition.roverType,
+      Math.max(0, Number(up42Scenario.roverCounts?.[definition.key] || 0))
+    );
+  });
 
   return { errors, warnings };
 }
@@ -6278,9 +6370,12 @@ function setPlacementPhase(phase) {
   if (phase==='routes') setHint('Drag waypoints to adjust routes');
   else if (phase==='logic') {
     syncScenarioInterfacesFromSysML();
+    ensureIsruPresetResourceRoutes();
     setHint('SysML interfaces are shown. Double-click modules to define equations.');
   }
   else if (phase==='validate') {
+    syncScenarioInterfacesFromSysML();
+    ensureIsruPresetResourceRoutes();
     setHint('Review scenario validation before running DES');
     renderScenarioValidation();
   } else setHint('Click on map to place selected module');
@@ -6534,19 +6629,27 @@ function drawRoutes() {
     const colA = getModuleColor(route.from) || '#ffd166';
     const colB = getModuleColor(route.to)   || '#ffd166';
 
-    // Gradient line from module A color to module B color
-    const grad = up42Ctx.createLinearGradient(path[0].x, path[0].y, path[path.length-1].x, path[path.length-1].y);
-    grad.addColorStop(0, colA);
-    grad.addColorStop(1, colB);
+    const routeEditing = up42Phase === 'routes';
+    let routeStroke = 'rgba(255,255,255,0.18)';
+    if (routeEditing) {
+      const grad = up42Ctx.createLinearGradient(path[0].x, path[0].y, path[path.length-1].x, path[path.length-1].y);
+      grad.addColorStop(0, colA);
+      grad.addColorStop(1, colB);
+      routeStroke = grad;
+    }
 
     up42Ctx.beginPath();
     up42Ctx.moveTo(path[0].x, path[0].y);
     path.slice(1).forEach(pt => up42Ctx.lineTo(pt.x, pt.y));
-    up42Ctx.strokeStyle = grad;
-    up42Ctx.lineWidth   = 2.5;
-    up42Ctx.setLineDash([6,4]);
+    up42Ctx.strokeStyle = routeStroke;
+    up42Ctx.lineWidth   = routeEditing ? 2.5 : 1.25;
+    if (routeEditing) up42Ctx.setLineDash([6,4]);
     up42Ctx.stroke();
     up42Ctx.setLineDash([]);
+
+    // In scenario-logic views, this is only a neutral physical-network
+    // underlay. Colored arrows are the actual resource assignments.
+    if (!routeEditing) return;
 
     // Route label at midpoint
     const mid = path[Math.floor(path.length/2)];
@@ -10159,7 +10262,8 @@ let up42MoonImg = null;
       .filter(instance => getBaseModuleId(instance.id) !== 'SolarPowerSystem')
       .map(instance => instance.id);
     systems.filter(system => system.active && isRoverNode(system.id)).forEach(system => {
-      const key = system.id.toLowerCase().includes('lox') ? 'lox' : 'regolith';
+      const definition = getRoverFlowDefinitions().find(item => item.roverType === system.id);
+      const key = definition?.key || system.id.toLowerCase();
       const count = Math.max(1, Number(up42Scenario.roverCounts?.[key] || 1));
       for (let index = 1; index <= count; index++) ids.push(count === 1 ? system.id : `${system.id}_${index}`);
     });
@@ -10358,6 +10462,10 @@ let up42MoonImg = null;
     };
 
     return {
+      engine: {
+        mode: isIsruPreset ? 'isru' : 'generic',
+        schema_version: 1,
+      },
       simulation: {
         duration_hr: getNumberInputValue('desSimDuration', 60),
       },
@@ -10484,6 +10592,15 @@ let up42MoonImg = null;
 
   function getScenarioResultMetrics(snapshot) {
     const results = snapshot?.results?.results || snapshot?.results || {};
+    if (results.Engine === 'GenericScenario') {
+      const moes = results.MoEs || {};
+      return {
+        lox_kg: Number(moes.Total_Resource_Transported || 0),
+        delivered_lox_kg: Number(moes.Total_Resource_Delivered_To_Terminals || 0),
+        energy_kwh: Number(moes.Total_System_Demand_kWh || 0),
+        duration_hr: Number(results.Sim_Metrics?.Simulation_Duration_hr || snapshot?.des_form?.desSimDuration || 0),
+      };
+    }
     const fleet = results.ISRU_Plants?.Fleet_Totals || {};
     const moes = results.MoEs || {};
     const landing = results.Landing_Zone || {};
@@ -10505,11 +10622,18 @@ let up42MoonImg = null;
 
   function getScenarioResourceSeries(snapshot) {
     const log = snapshot?.results?.log || {};
+    const results = snapshot?.results?.results || snapshot?.results || {};
+    const generic = results.Engine === 'GenericScenario';
     return Object.keys(log).map(Number).sort((a, b) => a - b).map(time => {
       const snap = log[String(time)] || log[time] || {};
       let lox = 0;
       let regolith = 0;
       Object.values(snap).forEach(attrs => {
+        if (generic) {
+          lox += Object.values(attrs.Inventory || {}).reduce((sum, value) => sum + Number(value || 0), 0);
+          regolith += Object.values(attrs.Delivered || {}).reduce((sum, value) => sum + Number(value || 0), 0);
+          return;
+        }
         lox += Number(attrs.LOX_Stored ?? attrs.LOX_Stored_kg ?? 0);
         regolith += Number(attrs.regolith_recieved ?? attrs.regolith_received ?? 0);
       });
@@ -10548,9 +10672,9 @@ let up42MoonImg = null;
       </svg>
     </div>`;
     wrap.innerHTML = `<div style="display:grid;grid-template-columns:repeat(2,minmax(380px,1fr));gap:12px;align-items:start;">
-      ${resourceChart('Stored LOX over simulation time', 'lox', maxLox)}
-      ${resourceChart('Regolith processed over simulation time', 'regolith', maxRegolith)}
-      <div style="grid-column:1/-1;overflow:auto;"><table style="width:100%;border-collapse:collapse;font-size:9px;color:var(--text2);"><thead><tr style="border-bottom:1px solid var(--border2);"><th style="padding:7px;text-align:left;">Scenario</th><th style="padding:7px;text-align:right;">LOX produced</th><th style="padding:7px;text-align:right;">LOX delivered</th><th style="padding:7px;text-align:right;">Energy</th><th style="padding:7px;text-align:right;">Duration</th></tr></thead><tbody>${rows}</tbody></table></div>
+      ${resourceChart('Total resource inventory over simulation time', 'lox', maxLox)}
+      ${resourceChart('Cumulative transported resources', 'regolith', maxRegolith)}
+      <div style="grid-column:1/-1;overflow:auto;"><table style="width:100%;border-collapse:collapse;font-size:9px;color:var(--text2);"><thead><tr style="border-bottom:1px solid var(--border2);"><th style="padding:7px;text-align:left;">Scenario</th><th style="padding:7px;text-align:right;">Resource transported</th><th style="padding:7px;text-align:right;">Terminal delivery</th><th style="padding:7px;text-align:right;">Energy</th><th style="padding:7px;text-align:right;">Duration</th></tr></thead><tbody>${rows}</tbody></table></div>
     </div>`;
   }
 
@@ -10764,21 +10888,22 @@ let up42MoonImg = null;
     if (data.log) {
       desLogTimes = Object.keys(data.log).map(Number).sort((a, b) => a - b);
       const maxT = desLogTimes[desLogTimes.length - 1] || 60;
+      const finalTime = Math.round(maxT * 1000) / 1000;
 
       const slider = document.getElementById('desTimeSlider');
       if (slider) {
-        slider.max = Math.max(DES_FINAL_TIME_HR, Math.round(maxT));
-        slider.value = DES_FINAL_TIME_HR;
+        slider.max = finalTime;
+        slider.value = finalTime;
       }
 
       const label = document.getElementById('desTimeLabel');
-      if (label) label.textContent = `t = ${DES_FINAL_TIME_HR} hr`;
+      if (label) label.textContent = `t = ${finalTime} hr`;
 
       const sliderPanel = document.getElementById('desTimeSliderPanel');
       if (sliderPanel) sliderPanel.style.display = 'flex';
 
-      renderDesGraph(data.log, DES_FINAL_TIME_HR);
-      renderDesMetrics(data.log, DES_FINAL_TIME_HR, data.results);
+      renderDesGraph(data.log, finalTime);
+      renderDesMetrics(data.log, finalTime, data.results);
     } else {
       renderFinalMetrics(data.results);
     }
@@ -10788,6 +10913,7 @@ let up42MoonImg = null;
     document.getElementById('desTimeLabel').textContent = `t = ${t} hr`;
     if (!desData?.log) return;
     renderDesGraph(desData.log, Number(t));
+    renderDesMetrics(desData.log, Number(t), desData.results);
   }
 
   function getLogAtTime(log, t) {
@@ -10825,7 +10951,63 @@ let up42MoonImg = null;
     return { ...prev, snap: log[prev.key] || {} };
   }
 
+  function formatGenericResourceValues(values, suffix = '') {
+    const entries = Object.entries(values || {}).filter(([, value]) => Number(value) !== 0);
+    if (!entries.length) return '0';
+    return entries.map(([resource, value]) =>
+      `${resource}: ${Number(value).toFixed(1)}${suffix}`
+    ).join(' | ');
+  }
+
+  function renderGenericDesMetrics(log, t, results) {
+    const currentEntry = getLogEntryAtTime(log, t);
+    const snap = currentEntry?.snap || {};
+    const stored = {};
+    const terminalStored = {};
+    const transported = {};
+    let cycles = 0;
+    let distance = 0;
+
+    Object.values(snap).forEach(item => {
+      if (!item || typeof item !== 'object') return;
+      Object.entries(item.Inventory || {}).forEach(([resource, amount]) => {
+        stored[resource] = (stored[resource] || 0) + Number(amount || 0);
+        if (item.Role === 'storage') {
+          terminalStored[resource] = (terminalStored[resource] || 0) + Number(amount || 0);
+        }
+      });
+      Object.entries(item.Delivered || {}).forEach(([resource, amount]) => {
+        transported[resource] = (transported[resource] || 0) + Number(amount || 0);
+      });
+      cycles += Number(item.Cycles || 0);
+      distance += Number(item.Distance_Traveled_km || 0);
+    });
+
+    const power = snap.Power_Manager || results?.Power || {};
+    const metrics = [
+      { label:'Terminal Resource Inventory', value:formatGenericResourceValues(terminalStored, ' kg'), sub:'Resources stored at terminal modules', color:'#7ee0b1' },
+      { label:'Total Resource Inventory', value:formatGenericResourceValues(stored, ' kg'), sub:'Includes intermediate module inventories', color:'#4cc9f0' },
+      { label:'Resource Transported', value:formatGenericResourceValues(transported, ' kg'), sub:'Cumulative mass moved across all route legs', color:'#ffd166' },
+      { label:'Processing Cycles', value:String(cycles), sub:`Completed by t = ${Number(t).toFixed(1)} hr`, color:'#a78bfa' },
+      { label:'Transport Distance', value:`${distance.toFixed(2)} km`, sub:'Includes loaded and empty return travel', color:'#f4a261' },
+      { label:'Power Balance', value:`${Number(power.Total_Demand_kWh || 0).toFixed(1)} kWh`, sub:`Generated ${Number(power.Total_Generated_kWh || 0).toFixed(1)} kWh | Unserved ${Number(power.Unserved_Energy_kWh || 0).toFixed(1)} kWh`, color:Number(power.Unserved_Energy_kWh || 0) > 0 ? '#ff7a8a' : '#7ee0b1' },
+    ];
+
+    const wrap = document.getElementById('desMetricsWrap');
+    if (!wrap) return;
+    wrap.innerHTML = metrics.map(metric => `
+      <div style="border-bottom:1px solid var(--border);padding-bottom:10px;">
+        <div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">${metric.label}</div>
+        <div style="font-size:16px;font-weight:700;color:${metric.color};line-height:1.25;overflow-wrap:anywhere;">${metric.value}</div>
+        <div style="font-size:9px;color:var(--text3);margin-top:4px;">${metric.sub}</div>
+      </div>`).join('');
+  }
+
   function renderDesMetrics(log, t, results) {
+    if (results?.Engine === 'GenericScenario') {
+      renderGenericDesMetrics(log, t, results);
+      return;
+    }
     const currentEntry = getLogEntryAtTime(log, t);
     const snap = currentEntry?.snap || {};
     const wrap = document.getElementById('desMetricsWrap');
@@ -10997,6 +11179,31 @@ let up42MoonImg = null;
   function renderFinalMetrics(r) {
     const wrap = document.getElementById('desMetricsWrap');
     if (!wrap || !r) return;
+
+    if (r.Engine === 'GenericScenario') {
+      const flows = r.Resource_Flows || {};
+      const transported = Object.fromEntries(Object.entries(flows).map(([flow, values]) => [
+        flow, Number(values.Transported || 0)
+      ]));
+      const terminal = Object.fromEntries(Object.entries(flows).map(([flow, values]) => [
+        flow, Number(values.Delivered_To_Terminal || 0)
+      ]));
+      const moes = r.MoEs || {};
+      const cards = [
+        {label:'Terminal Resource Delivery', value:formatGenericResourceValues(terminal, ' kg'), color:'#7ee0b1'},
+        {label:'Resource Transported', value:formatGenericResourceValues(transported, ' kg'), color:'#4cc9f0'},
+        {label:'System Demand', value:`${Number(moes.Total_System_Demand_kWh || 0).toFixed(1)} kWh`, color:'#ffd166'},
+        {label:'Energy Generated', value:`${Number(moes.Total_Energy_Generated_kWh || 0).toFixed(1)} kWh`, color:'#a78bfa'},
+        {label:'Unserved Energy', value:`${Number(moes.Unserved_Energy_kWh || 0).toFixed(1)} kWh`, color:Number(moes.Unserved_Energy_kWh || 0) > 0 ? '#ff7a8a' : '#7ee0b1'},
+        {label:'Simulation Duration', value:`${Number(r.Sim_Metrics?.Simulation_Duration_hr || 0).toFixed(1)} hr`, color:'var(--text2)'},
+      ];
+      wrap.innerHTML = cards.map(card => `
+        <div style="background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:14px;">
+          <div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:5px;">${card.label}</div>
+          <div style="font-size:17px;font-weight:700;color:${card.color};overflow-wrap:anywhere;">${card.value}</div>
+        </div>`).join('');
+      return;
+    }
 
     const ft = r.ISRU_Plants?.Fleet_Totals;
     const sol = r.Solar_Power_System;

@@ -116,12 +116,16 @@ The workflow:
 
 ### Step 4 - Urban Planning
 
-Use the map to place modules and generate routes.
+Choose the scenario mode, then use the map to place modules and generate routes.
 
 Important behavior:
 
 - fixed modules are placed on the map;
+- the number of fixed module instances is selected before placement;
 - rovers are mobile actors and are not manually placed like static modules;
+- resource-route tools and rover fleets are inferred from active rover ports;
+- module equations define resource output, processing time, storage, and event energy;
+- SysML power interfaces constrain which consumers are supplied;
 - route distances are passed to the DES sliders;
 - module positions, orientations, site information, and route waypoints are sent to the DES workflow through the `urban_planning` input.
 
@@ -140,8 +144,8 @@ This triggers:
 The workflow:
 
 - reads active nodes from the interface or `outputs/graph.json`;
-- maps SysML nodes to the active DES engine nodes;
-- runs the DES simulation;
+- runs the historical ISRU engine for the ISRU preset;
+- compiles Step 4 instances, routes, and equations into generic SimPy processes for a new scenario;
 - writes `outputs/des_results.json`;
 - updates `clean_database/json/ECLIPSE_Project/ECLIPSE_Project.json` with urban planning data;
 - regenerates `clean_database/usd/scenes/scene.usda`;

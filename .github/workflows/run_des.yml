@@ -172,8 +172,22 @@ jobs:
 
               return sorted(engine_nodes)
 
-          active_nodes = infer_des_engine_nodes(sysml_active_nodes)
+          scenario_config_raw = os.environ.get("SCENARIO_CONFIG_JSON", "{}").strip() or "{}"
+          try:
+              scenario_config_payload = json.loads(scenario_config_raw)
+          except json.JSONDecodeError as exc:
+              raise ValueError(f"Invalid scenario_config JSON: {exc}") from exc
+          engine_mode = str(
+              (scenario_config_payload.get("engine") or {}).get("mode", "isru")
+          ).strip().lower()
+
+          active_nodes = (
+              list(sysml_active_nodes)
+              if engine_mode == "generic"
+              else infer_des_engine_nodes(sysml_active_nodes)
+          )
           print(f"[DES] SysML active nodes: {sysml_active_nodes}")
+          print(f"[DES] Engine mode: {engine_mode}")
           print(f"[DES] DES engine active nodes: {active_nodes}")
 
           slider_values = json.loads(os.environ.get("SLIDER_VALUES_JSON") or "{}")
@@ -197,7 +211,6 @@ jobs:
               "ISRU_Plant_Processing_Rate": slider_number("ISRU_Plant_Processing_Rate", "ISRU_PLANT_PROCESSING_RATE"),
               "LOX_Transport_Threshold":    slider_number("LOX_Transport_Threshold", "LOX_TRANSPORT_THRESHOLD"),
           }
-          scenario_config_raw = os.environ.get("SCENARIO_CONFIG_JSON", "{}").strip() or "{}"
           if scenario_config_raw != "{}":
               slider_value_dict["scenario_config"] = scenario_config_raw
           slider_value_dict.update({
@@ -464,10 +477,10 @@ jobs:
               print("[UP] No urban_planning data — skipping SysML update.")
 
           # ── Run DES ────────────────────────────────────────────────────────
-          from S24.DES_pipeline_version.ISRU_DES_Model_V5_2_PV import run_scenario, check_scenario_validity
+          from S24.DES_pipeline_version.scenario_runner import run_scenario, check_scenario_validity
 
           print("[DES] Checking scenario validity...")
-          messages = check_scenario_validity(active_nodes, raiseError=False)
+          messages = check_scenario_validity(slider_value_dict, raiseError=False)
           errors   = [m for m in messages if m.startswith('[ERROR]')]
           warnings = [m for m in messages if m.startswith('[WARNING]') or m.startswith('[INFO]')]
 
