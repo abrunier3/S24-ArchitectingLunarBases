@@ -5283,7 +5283,7 @@ function createPathBetweenModules(from, to) {
   return aStar(start, end, GRID) || straightLinePath(start, end);
 }
 
-function addScenarioResourceRoute(flow, from, to, stops = [], roverId = null) {
+function addScenarioResourceRoute(flow, from, to, stops = [], roverId = null, presetGenerated = false) {
   const sequence = [from, ...stops, to];
   const pts = [];
   for (let i = 1; i < sequence.length; i++) {
@@ -5297,6 +5297,7 @@ function addScenarioResourceRoute(flow, from, to, stops = [], roverId = null) {
     flow,
     rover_type: flow === 'Regolith' ? 'RegolithRover' : 'LOXRover',
     rover_id: roverId,
+    preset_generated: !!presetGenerated,
     from,
     to,
     stops,
@@ -5307,26 +5308,38 @@ function addScenarioResourceRoute(flow, from, to, stops = [], roverId = null) {
 
 function ensureIsruPresetResourceRoutes() {
   if (currentScenarioMode !== 'isru') return;
+  // Rebuild preset routes after each terrain-network calculation so moved,
+  // added, or removed plant instances cannot leave stale paths behind.
+  up42Scenario.resourceRoutes = (up42Scenario.resourceRoutes || [])
+    .filter(route => !route.preset_generated);
   const routeSpecs = [
     { flow:'Regolith', roverType:'RegolithRover', count:Math.max(1, Number(up42Scenario.roverCounts?.regolith || 1)) },
     { flow:'LOX', roverType:'LOXRover', count:Math.max(1, Number(up42Scenario.roverCounts?.lox || 1)) }
   ];
 
   routeSpecs.forEach(spec => {
-    const candidates = (up42Scenario.transportLinks || [])
+    const candidateMap = new Map();
+    (up42Scenario.transportLinks || [])
       .filter(link => String(link.flow || '').toLowerCase() === spec.flow.toLowerCase())
       .flatMap(link => (link.from_instances || []).flatMap(from =>
         (link.to_instances || []).map(to => ({ from, to }))
-      ));
+      ))
+      .forEach(candidate => candidateMap.set(`${candidate.from}:${candidate.to}`, candidate));
+    const candidates = [...candidateMap.values()];
     if (!candidates.length) return;
 
-    for (let index = 0; index < spec.count; index++) {
-      const roverId = spec.count === 1 ? spec.roverType : `${spec.roverType}_${index + 1}`;
-      if ((up42Scenario.resourceRoutes || []).some(route =>
-        route.flow === spec.flow && route.rover_id === roverId
-      )) continue;
+    const assignmentCount = Math.max(spec.count, candidates.length);
+    for (let index = 0; index < assignmentCount; index++) {
+      const roverIndex = index % spec.count;
+      const roverId = spec.count === 1 ? spec.roverType : `${spec.roverType}_${roverIndex + 1}`;
       const candidate = candidates[index % candidates.length];
-      addScenarioResourceRoute(spec.flow, candidate.from, candidate.to, [], roverId);
+      if ((up42Scenario.resourceRoutes || []).some(route =>
+        route.flow === spec.flow &&
+        route.rover_id === roverId &&
+        route.from === candidate.from &&
+        route.to === candidate.to
+      )) continue;
+      addScenarioResourceRoute(spec.flow, candidate.from, candidate.to, [], roverId, true);
     }
   });
 }
