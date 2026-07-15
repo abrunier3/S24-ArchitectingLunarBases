@@ -7,88 +7,55 @@
 
 def Xform "World"
 {
-    def Xform "SolarPowerSystem"
+    def Xform "CargoRelayMission"
     {
-        custom string attributes = "{'powerOutput': 50.0, 'batteryCapacity': 100.0, 'batteryCharge': 100.0}"
-        custom string dimensions = "{'size_m': {'length': 12.0, 'width': 10.0, 'height': 2.0}, 'metersPerUnit': 1, 'upAxis': 'Z'}"
-        custom string part:name = "SolarPowerSystem"
+        custom string part:name = "CargoRelayMission"
         float3 xformOp:rotateXYZ = (0, 0, 0)
         float3 xformOp:scale = (1, 1, 1)
-        double3 xformOp:translate = (-711.33, 876.1, 0)
-        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
-
-        def Xform "Geometry"
-        {
-            custom string cad:authoredXformOps = "/scene:xformOp:translate,xformOp:rotateXYZ,xformOp:scale; /scene/Meshes:xformOp:scale; /scene/Meshes/Sketchfab_model:xformOp:transform,xformOp:translate,xformOp:rotateXYZ,xformOp:scale; /scene/Meshes/Sketchfab_model/SolarPanels_fbx:xformOp:transform; /scene/Meshes/Sketchfab_model/SolarPanels_fbx/RootNode:xformOp:transform; /scene/Meshes/Sketchfab_model/SolarPanels_fbx/RootNode/SolarPanels:xformOp:transform; /scene/Meshes/Sketchfab_model/SolarPanels_fbx/RootNode/SolarPanels/SolarPanel:xformOp:transform; /scene/Meshes/Sketchfab_model/SolarPanels_fbx/RootNode/SolarPanels/SolarPanel/SolarPanel_Foundation:xformOp:transform; /scene/Meshes/Sketchfab_model/SolarPanels_fbx/RootNode/SolarPanels/SolarPanel/SolarPanel_Foundation/SolarPanel_Foundation_Placeable_0:xformOp:transform; /scene/Meshes/Sketchfab_model/SolarPanels_fbx/RootNode/SolarPanels/SolarPanel/SolarPanel_Body:xformOp:transform; /scene/Meshes/Sketchfab_model/SolarPanels_fbx/RootNode/SolarPanels/SolarPanel/SolarPanel_Body/SolarPanel_Body_Placeable_0:xformOp:transform; /scene/Meshes/Sketchfab_model/SolarPanels_fbx/RootNode/SolarPanels/SolarPanel/SolarPanel_Body/SolarPanel_Panel:xformOp:transform; /scene/Meshes/Sketchfab_model/SolarPanels_fbx/RootNode/SolarPanels/SolarPanel/SolarPanel_Body/SolarPanel_Panel/SolarPanel_Panel_Placeable_0:xformOp:transform; /scene/Meshes/Sketchfab_model/SolarPanels_fbx/RootNode/SolarPanels/SolarPanelTowerComplex:xformOp:transform; /scene/Meshes/Sketchfab_model/SolarPanels_fbx/RootNode/SolarPanels/SolarPanelTowerComplex/SolarPanelTowerComplex_Neck:xformOp:transform; /scene/Meshes/Sketchfab_model/SolarPanels_fbx/RootNode/SolarPanels/SolarPanelTowerComplex/SolarPanelTowerComplex_Neck/SolarPanelTowerComplex_Neck_Placeable_0:xformOp:transform; /scene/Meshes/Sketchfab_model/SolarPanels_fbx/RootNode/SolarPanels/SolarPanelTowerComplex/SolarPanelTowerComplex_Neck/SolarPanelTowerComplex_UpperNeck:xformOp:transform; /scene/Meshes/Sketchfab_model/SolarPanels_fbx/RootNode/SolarPanels/SolarPanelTowerComplex/SolarPanelTowerComplex_Neck/SolarPanelTowerComplex_UpperNeck/SolarPanelTowerComplex_UpperNeck_Placeable_0:xformOp:transform; /scene/Meshes/Sketchfab_model/SolarPanels_fbx/RootNode/SolarPanels/SolarPanelTowerComplex/SolarPanelTowerComplex_Neck/SolarPanelTowerComplex_UpperNeck/SolarPanelTowerComplex_Head:xformOp:transform; /scene/Meshes/Sketchfab_model/SolarPanels_fbx/RootNode/SolarPanels/SolarPanelTowerComplex/SolarPanelTowerComplex_Neck/SolarPanelTowerComplex_UpperNeck/SolarPanelTowerComplex_Head/SolarPanelTowerComplex_Head_Placeable_0:xformOp:transform"
-            custom double2 cad:bboxCenterXYOffset = (-0.17446777533909863, 0.0052181557451234095)
-            custom double3 cad:bboxMax = (0.43212258043276713, 0.33821891331375387, 0.2999999178081787)
-            custom double3 cad:bboxMin = (-0.4844629124652441, -0.3366534666072426, -7.892902622366902e-8)
-            custom double3 cad:bboxSize = (0.9165854928980113, 0.6748723799209965, 0.2999999967372049)
-            custom double3 cad:fitScale = (6.666666739173225, 6.666666739173225, 6.666666739173225)
-            custom double3 cad:fittedBboxSize = (6.110570019111868, 4.499149248405984, 2)
-            custom double3 cad:groundingTranslate = (0.17446777533909863, -0.0052181557451234095, 5.261935138806656e-7)
-            custom bool cad:hasAuthoredXforms = 1
-            custom double cad:metersPerUnit = 1
-            custom string cad:normalizationMode = "preserve_authored_xforms_sysml_size_uniform_bbox_fit_xy_interchangeable_centered_ground_aligned"
-            custom double3 cad:orientedBboxSize = (0.9165854928980113, 0.6748723799209965, 0.2999999967372049)
-            custom string cad:scaleMode = "sysml_size_m_uniform_bbox_fit_xy_interchangeable"
-            custom string cad:sourceUpAxis = "Y"
-            custom double3 cad:targetSizeM = (12, 10, 2)
-            custom double3 cad:unitScale = (1, 1, 1)
-            custom string cad:userSourceFrontAxis = ""
-            custom string cad:userSourceUpAxis = ""
-            float3 xformOp:rotateXYZ = (0, 0, 0)
-            float3 xformOp:scale = (6.6666665, 6.6666665, 6.6666665)
-            double3 xformOp:translate = (0.17446777533909863, -0.0052181557451234095, 5.261935138806656e-7)
-            uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
-
-            def Xform "Model" (
-                prepend references = @../../cad_models/SolarPowerSystem/solar_panels.usdc@
-            )
-            {
-            }
-        }
-    }
-
-    def Xform "WaterExtractor"
-    {
-        custom string attributes = "{'productionRate': 20.0}"
-        custom string dimensions = "{'size_m': {'length': 8.0, 'width': 6.0, 'height': 4.0}, 'metersPerUnit': 1, 'upAxis': 'Z'}"
-        custom string part:name = "WaterExtractor"
-        float3 xformOp:rotateXYZ = (0, 0, 0)
-        float3 xformOp:scale = (1, 1, 1)
-        double3 xformOp:translate = (-1249.96, -501.89, 0)
+        double3 xformOp:translate = (0, 0, 0)
         uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
     }
 
-    def Xform "WaterRover"
+    def Xform "CargoRover"
     {
-        custom string attributes = "{'maxCapacity': 10.0, 'hoursPerKm': 0.5, 'energyPerKmPerKg': 0.01}"
+        custom string attributes = "{'maxCapacity': 8.0, 'hoursPerKm': 0.75, 'energyPerKmPerKg': 0.008}"
         custom string dimensions = "{'size_m': {'length': 4.0, 'width': 2.5, 'height': 2.0}, 'metersPerUnit': 1, 'upAxis': 'Z'}"
-        custom string part:name = "WaterRover"
+        custom string part:name = "CargoRover"
         float3 xformOp:rotateXYZ = (0, 0, 0)
         float3 xformOp:scale = (1, 1, 1)
         double3 xformOp:translate = (0, 0, 0)
         uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
     }
 
-    def Xform "WaterTank"
+    def Xform "CargoSource"
     {
-        custom string attributes = "{'storageCapacity': 500.0}"
-        custom string dimensions = "{'size_m': {'length': 5.0, 'width': 5.0, 'height': 5.0}, 'metersPerUnit': 1, 'upAxis': 'Z'}"
-        custom string part:name = "WaterTank"
+        custom string attributes = "{'supplyRate': 12.0}"
+        custom string dimensions = "{'size_m': {'length': 6.0, 'width': 6.0, 'height': 4.0}, 'metersPerUnit': 1, 'upAxis': 'Z'}"
+        custom string part:name = "CargoSource"
         float3 xformOp:rotateXYZ = (0, 0, 0)
         float3 xformOp:scale = (1, 1, 1)
-        double3 xformOp:translate = (172.81, -168.79, 0)
+        double3 xformOp:translate = (-1764.26, -501.6, 0)
         uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
     }
 
-    def Xform "WaterTransferMission"
+    def Xform "ForwardDepot"
     {
-        custom string part:name = "WaterTransferMission"
+        custom string attributes = "{'storageCapacity': 100.0}"
+        custom string dimensions = "{'size_m': {'length': 5.0, 'width': 5.0, 'height': 3.0}, 'metersPerUnit': 1, 'upAxis': 'Z'}"
+        custom string part:name = "ForwardDepot"
         float3 xformOp:rotateXYZ = (0, 0, 0)
         float3 xformOp:scale = (1, 1, 1)
-        double3 xformOp:translate = (0, 0, 0)
+        double3 xformOp:translate = (-791.71, 393.84, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+    }
+
+    def Xform "HabitatConsumer"
+    {
+        custom string dimensions = "{'size_m': {'length': 10.0, 'width': 8.0, 'height': 5.0}, 'metersPerUnit': 1, 'upAxis': 'Z'}"
+        custom string part:name = "HabitatConsumer"
+        float3 xformOp:rotateXYZ = (0, 0, 0)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (896.2, -249.17, 0)
         uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
     }
 }
