@@ -3,11 +3,10 @@
   "id": "ISRU_Mission_TEST",
   "name": "ISRU_Mission_TEST",
   "scenario_slug": "ISRU_Mission_TEST",
-  "mode": "isru",
   "sysml_file": "clean_database/sysml/ISRU_Mission_TEST.sysml",
-  "template_sysml": "clean_database/sysml/ECLIPSE_Project.sysml",
-  "created_at": "2026-07-15T14:33:29.596Z",
-  "saved_at": "2026-07-15T14:33:29.596Z",
+  "mode": "isru",
+  "saved_at": "2026-07-15T14:33:31.681Z",
+  "site_id": "MMA",
   "active_nodes": [
     "HabitationModule",
     "ISRUPlant",
@@ -29,10 +28,80 @@
     "moduleLogic": {},
     "sysmlInterfaces": [],
     "transportLinks": [],
-    "moduleEquations": {},
-    "roverCounts": {}
+    "moduleEquations": {
+      "ISRUExcavation": "RegolithOut = RequestedRegolith\nEnergyConsumed = excavationEnergyCoeff * RegolithOut",
+      "RegolithRover": "RegolithOut = min(RegolithIn, RoverCapacity)\nTravelTime = Distance * hoursPerKm\nEnergyConsumed = Distance * CargoMass * energyPerKmPerKg",
+      "ISRUPlant": "LOXOut = RegolithIn * extractedLOXFraction\nProcessingTime = RegolithIn / processingRate\nEnergyConsumed = E_exc + E_trans + E_bene + E_reactor + E_electro + E_liq",
+      "LOXRover": "LOXOut = min(LOXIn, RoverCapacity)\nTravelTime = Distance * hoursPerKm\nEnergyConsumed = Distance * CargoMass * energyPerKmPerKg",
+      "PropellantDepot": "LOXStored = LOXStored + LOXIn\nPowerIn = 0",
+      "SolarPowerSystem": "PowerOut = powerOutput",
+      "HabitationModule": "PowerIn = constantPowerRate",
+      "LaunchLandingZone": "PowerIn = utilitiesPowerRate + LOXStored * chillingPowerPerKgLox"
+    },
+    "roverCounts": {
+      "regolith": 1,
+      "lox": 1
+    }
   },
-  "power_models": {},
-  "des_form": {},
+  "power_models": {
+    "HabitationModule": {
+      "mode": "average",
+      "average_kw": 5,
+      "points": [
+        {
+          "time_hr": 0,
+          "power_kw": 5
+        },
+        {
+          "time_hr": 60,
+          "power_kw": 5
+        }
+      ],
+      "equation": ""
+    },
+    "LaunchLandingZone": {
+      "mode": "average",
+      "average_kw": 3,
+      "points": [
+        {
+          "time_hr": 0,
+          "power_kw": 3
+        },
+        {
+          "time_hr": 60,
+          "power_kw": 3
+        }
+      ],
+      "equation": ""
+    }
+  },
+  "des_form": {
+    "desTimeSlider": "0",
+    "desRoverCount": "1",
+    "desLoxRoverCount": "1",
+    "desPlantCount": "2",
+    "desRegDist": "3.39",
+    "desLoxDist": "3.29",
+    "desRoverEnergy": "0.00035",
+    "desRoverTravel": "5",
+    "desProcessRate": "1600",
+    "desLoxThresh": "100",
+    "desSimDuration": "60",
+    "desRoverCapacity": "4000",
+    "desSimDurationLegacy": "60",
+    "desRegolithRoverLoad": "4000",
+    "desPlantBatch": "4000",
+    "desPlantInputCapacity": "20000",
+    "desLoxPollDt": "1",
+    "desLoxStorageCoeff": "0.31",
+    "desPowerDt": "1",
+    "desHabContinuousPower": "5",
+    "desHabSpikeEnergy": "20",
+    "desHabSpikeTime": "10",
+    "desLzUtilitiesPower": "3",
+    "desLzChillingCoeff": "0.31",
+    "desLzSpikeEnergy": "50",
+    "desLzSpikeTime": "25"
+  },
   "results": null
 }
