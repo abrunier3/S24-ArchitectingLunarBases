@@ -31,6 +31,16 @@ class DesTimeSeriesUiTests(unittest.TestCase):
         self.assertIn("request_id:", workflow)
         self.assertIn('result["request_id"] = request_id', workflow)
 
+    def test_structured_config_reads_visible_des_controls(self):
+        html = INDEX_PATH.read_text()
+
+        self.assertIn("const sliderValues = getDesSliderValues();", html)
+        self.assertIn("Number(sliderValues.Num_Regolith_Rovers", html)
+        self.assertIn("Number(sliderValues.Num_LOX_Rovers", html)
+        self.assertIn("energy_kwh_per_km_per_kg: Number(sliderValues.Rover_Energy_Consumption)", html)
+        self.assertIn("travel_time_hr_per_km: Number(sliderValues.Rover_Travel_Time)", html)
+        self.assertIn("processing_rate_kg_hr: Number(sliderValues.ISRU_Plant_Processing_Rate)", html)
+
 
 if __name__ == "__main__":
     unittest.main()

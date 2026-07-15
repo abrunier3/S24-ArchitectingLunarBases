@@ -4,10 +4,34 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from S24.DES_pipeline_version.ISRU_DES_Model_V5_2_PV import run_scenario
+from S24.DES_pipeline_version.ISRU_DES_Model_V5_2_PV import (
+    _resource_routes_for_rover,
+    run_scenario,
+)
 
 
 class IsruRuntimeTests(unittest.TestCase):
+    def test_base_rover_route_applies_to_every_fleet_instance(self):
+        builder = {
+            "resource_routes": [
+                {
+                    "flow": "Regolith",
+                    "rover_id": "RegolithRover",
+                    "from": "ISRUExcavation",
+                    "to": "ISRUPlant",
+                }
+            ]
+        }
+
+        self.assertEqual(
+            len(_resource_routes_for_rover(builder, "Regolith", "RegolithRover_1")),
+            1,
+        )
+        self.assertEqual(
+            len(_resource_routes_for_rover(builder, "Regolith", "RegolithRover_3")),
+            1,
+        )
+
     def test_neutral_source_power_boundary_runs_in_isru_controller(self):
         options = {
             "active_nodes": ["ISRUPlant", "RegolithRover"],

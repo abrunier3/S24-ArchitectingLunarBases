@@ -336,7 +336,11 @@ def _resource_routes_for_rover(scenario_builder, flow, rover_id):
         route for route in scenario_builder.get("resource_routes", [])
         if str(route.get("flow", "")).lower() == flow.lower()
     ]
-    assigned = [route for route in routes if route.get("rover_id") == rover_id]
+    rover_type = _base_instance_type(rover_id)
+    assigned = [
+        route for route in routes
+        if route.get("rover_id") in {rover_id, rover_type}
+    ]
     if assigned:
         return assigned
     return [route for route in routes if not route.get("rover_id")]
@@ -982,6 +986,13 @@ def run_scenario(optionsDict):
         for p in plants:
             route = _resource_route_from(scenario_builder, "LOX", p.instanceId)
             assigned_rover_id = (route or {}).get("rover_id")
+            if (
+                assigned_rover_id == "LOXRover"
+                and "LOXRover" not in known_lox_rover_ids
+            ):
+                # A route assigned to the base rover type is shared by the
+                # whole fleet. Suffixed ids still select one explicit rover.
+                assigned_rover_id = None
             if assigned_rover_id and assigned_rover_id not in known_lox_rover_ids:
                 raise ValueError(
                     f"LOX route from {p.instanceId} references unknown rover "

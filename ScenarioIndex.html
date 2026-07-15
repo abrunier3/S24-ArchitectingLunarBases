@@ -10871,9 +10871,10 @@ let up42MoonImg = null;
 
   function buildDesScenarioConfig() {
     const isIsruPreset = currentScenarioMode === 'isru';
+    const sliderValues = getDesSliderValues();
     const roverCapacity = getNumberInputValue('desRoverCapacity', 4000);
-    const regolithRoverCount = Math.max(1, Number(up42Scenario.roverCounts?.regolith || 1));
-    const loxRoverCount = Math.max(0, Number(up42Scenario.roverCounts?.lox || 0));
+    const regolithRoverCount = Math.max(1, Number(sliderValues.Num_Regolith_Rovers || 1));
+    const loxRoverCount = Math.max(0, Number(sliderValues.Num_LOX_Rovers || 0));
     const plantCount = Math.max(1, getScenarioInstances().filter(instance => instance.type === 'ISRUPlant').length || 1);
     return {
       engine: {
@@ -10894,6 +10895,8 @@ let up42MoonImg = null;
       rovers: {
         regolith: { count: regolithRoverCount },
         lox: { count: loxRoverCount },
+        energy_kwh_per_km_per_kg: Number(sliderValues.Rover_Energy_Consumption),
+        travel_time_hr_per_km: Number(sliderValues.Rover_Travel_Time),
         max_capacity_kg: roverCapacity,
       },
       regolith: {
@@ -10907,8 +10910,9 @@ let up42MoonImg = null;
       },
       isru: {
         plant_count: plantCount,
+        processing_rate_kg_hr: Number(sliderValues.ISRU_Plant_Processing_Rate),
         lox_transport_threshold_kg: isIsruPreset
-          ? getNumberInputValue('desLoxThresh', 100)
+          ? Number(sliderValues.LOX_Transport_Threshold)
           : roverCapacity,
         lox_delivery_poll_dt_hr: getNumberInputValue('desLoxPollDt', 1),
         lox_storage_energy_kwh_per_kg_hr: isIsruPreset
