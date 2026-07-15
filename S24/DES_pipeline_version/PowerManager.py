@@ -149,6 +149,12 @@ class EquationPowerConsumer:
         before_total = getattr(self.consumer, "totalEnergyConsumed", None)
         baseline_energy = self.consumer.getCurrentPowerDemand(dt)
         context = _numeric_state(self.consumer)
+        context["chillingPowerPerKgLox"] = float(
+            context.get(
+                "chillingPowerPerKgLox",
+                context.get("chillingPowerPerKgLOX", 0.0),
+            )
+        )
         context.update({
             "SimulationTime": float(self.consumer.system.now),
             "dt": float(dt),
@@ -214,6 +220,7 @@ class PowerManager:
             generation_context.update({
                 "SimulationTime": float(self.system.now),
                 "dt": float(dt),
+                "powerOutput": float(self.solarSystem.currentPowerOutput),
                 "PowerOut": energyGenerated / dt if dt else 0.0,
                 "EnergyGenerated": energyGenerated,
             })

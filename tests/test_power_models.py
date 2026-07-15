@@ -1,6 +1,8 @@
 import unittest
 
-from S24.DES_pipeline_version.PowerManager import PowerModelConsumer
+import simpy
+
+from S24.DES_pipeline_version.PowerManager import PowerManager, PowerModelConsumer
 
 
 class _System:
@@ -43,6 +45,38 @@ class PowerModelTests(unittest.TestCase):
         })
 
         self.assertAlmostEqual(model.getCurrentPowerDemand(1.0), 6.1)
+
+    def test_generation_equation_can_use_sysml_power_output_name(self):
+        class Solar:
+            def __init__(self, system):
+                self.system = system
+                self.currentPowerOutput = 100.0
+                self.totalEnergyGenerated = 0.0
+                self.batteryCharge = 0.0
+
+            def generatePower(self, duration):
+                energy = self.currentPowerOutput * duration
+                self.totalEnergyGenerated += energy
+                return energy
+
+            def chargeBattery(self, energy):
+                self.batteryCharge += energy
+                return energy
+
+            def dischargeBattery(self, energy):
+                raise AssertionError("Battery discharge should not be required")
+
+        system = simpy.Environment()
+        solar = Solar(system)
+        manager = PowerManager(
+            system,
+            solar,
+            generationEquations="PowerOut = powerOutput",
+        )
+        system.process(manager.managePower(dt=1.0))
+        system.run(until=1.1)
+
+        self.assertEqual(manager.latestEnergyProduction, 100.0)
 
 
 if __name__ == "__main__":
