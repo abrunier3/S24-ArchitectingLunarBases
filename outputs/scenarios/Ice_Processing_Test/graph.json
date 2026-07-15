@@ -1,0 +1,74 @@
+{
+  "written_at": 1784134483339,
+  "scenario_name": "Ice_Processing_Test",
+  "scenario_slug": "Ice_Processing_Test",
+  "sysml_file": "clean_database/sysml/Ice_Processing_Test.sysml",
+  "active_nodes": [
+    "SolarPowerSystem"
+  ],
+  "active_nodes_count": 1,
+  "connections": [],
+  "parts": {
+    "SolarPowerSystem": {
+      "id": "urn:S24_PIPELINE:part:SolarPowerSystem:001",
+      "type": "Part",
+      "dimensions": {
+        "size_m": {
+          "length": 12.0,
+          "width": 10.0,
+          "height": 2.0
+        },
+        "metersPerUnit": 1,
+        "upAxis": "Z"
+      },
+      "transform": {
+        "position_m": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_deg": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "attributes": {
+        "powerOutput": 100.0,
+        "batteryCapacity": 200.0,
+        "batteryCharge": 200.0
+      },
+      "materialRef": null,
+      "ports": [
+        {
+          "name": "Solar_ExtractorPowerOut",
+          "direction": [
+            "out"
+          ],
+          "items": [
+            "PowerOut"
+          ]
+        },
+        {
+          "name": "Solar_ProcessorPowerOut",
+          "direction": [
+            "out"
+          ],
+          "items": [
+            "PowerOut"
+          ]
+        },
+        {
+          "name": "Solar_TankPowerOut",
+          "direction": [
+            "out"
+          ],
+          "items": [
+            "PowerOut"
+          ]
+        }
+      ],
+      "metadata": {}
+    }
+  }
+}
