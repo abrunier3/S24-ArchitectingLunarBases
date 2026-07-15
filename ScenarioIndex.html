@@ -2882,6 +2882,20 @@ iframe{
               <input id="up42LoxRoverCount" type="number" min="0" max="20" value="1" onchange="syncScenarioRoverCounts()" style="width:54px;padding:5px;background:#07101a;color:var(--text1);border:1px solid var(--border2);border-radius:6px;">
             </label>
             <div id="up42DynamicRoverTools" style="display:grid;gap:6px;"></div>
+            <div id="up42StopBuilder" style="display:none;margin-top:3px;padding:8px;background:rgba(0,212,255,0.05);border:1px solid var(--border2);border-radius:7px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;margin-bottom:6px;">
+                <div id="up42StopRouteLabel" style="font-size:9px;font-weight:800;color:var(--text1);"></div>
+                <button type="button" class="btn" title="Cancel route" onclick="cancelStopRouteBuilder()" style="width:24px;height:24px;padding:0;font-size:13px;">&times;</button>
+              </div>
+              <div style="font-size:8px;color:var(--text3);line-height:1.4;margin-bottom:6px;">Select modules in traversal order. The first is the origin, the last is the destination, and the others are stops.</div>
+              <div id="up42StopOptions" style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:7px;"></div>
+              <div id="up42StopSequence" style="min-height:30px;padding:6px;border:1px dashed var(--border2);border-radius:6px;display:flex;align-items:center;flex-wrap:wrap;gap:4px;margin-bottom:7px;"></div>
+              <label style="display:grid;grid-template-columns:70px minmax(0,1fr);gap:5px;align-items:center;font-size:8px;color:var(--text3);margin-bottom:7px;">
+                Rover
+                <select id="up42RouteRover" style="width:100%;padding:5px;background:#07101a;color:var(--text1);border:1px solid var(--border2);border-radius:6px;"></select>
+              </label>
+              <button id="up42CreateRouteBtn" type="button" class="btn btn-primary" onclick="confirmStopRouteBuilder()" style="width:100%;padding:7px;font-size:9px;">Create rover route</button>
+            </div>
           </div>
           <div style="font-size:9px;color:var(--text3);font-weight:700;letter-spacing:0.06em;margin:10px 0 6px;">MODULE EQUATIONS</div>
           <div id="up42EquationModuleList" style="display:grid;gap:5px;margin-bottom:10px;"></div>
@@ -2901,7 +2915,7 @@ iframe{
       </div>
 
       <!-- CENTER: Map canvas -->
-      <div style="position:relative;background:#0c1119;border:1px solid var(--border);border-radius:12px;overflow:hidden;width:100%;min-height:560px;height:100%;align-self:stretch;">
+      <div style="position:relative;background:#0c1119;border:1px solid var(--border);border-radius:12px;overflow:hidden;width:100%;height:560px;align-self:start;">
         <canvas id="up42Canvas" style="width:100%;height:100%;display:block;cursor:crosshair;touch-action:none;"></canvas>
 
         <!-- Overlay instructions -->
@@ -2910,26 +2924,6 @@ iframe{
           padding:6px 14px;font-size:10px;color:var(--text2);pointer-events:none;white-space:nowrap;">
           Select a module on the left to begin placement
         </div>
-
-        <div id="up42StopBuilder" style="display:none;position:absolute;top:48px;left:50%;transform:translateX(-50%);z-index:4;
-          width:min(560px,calc(100% - 28px));background:rgba(7,16,29,0.97);border:1px solid var(--accent);border-radius:8px;padding:12px;box-shadow:0 16px 36px rgba(0,0,0,0.45);">
-          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:9px;">
-            <div>
-              <div style="font-size:11px;font-weight:800;color:var(--text1);">Optional route stops</div>
-              <div id="up42StopRouteLabel" style="font-size:9px;color:var(--text3);margin-top:3px;"></div>
-            </div>
-            <button type="button" class="btn" title="Cancel route" onclick="cancelStopRouteBuilder()" style="width:28px;height:28px;padding:0;font-size:15px;">&times;</button>
-          </div>
-          <div style="font-size:9px;color:var(--text3);line-height:1.45;margin-bottom:8px;">Select intermediate modules in traversal order. Select a chosen stop again to remove it.</div>
-          <label style="display:grid;grid-template-columns:130px minmax(0,1fr);gap:7px;align-items:center;font-size:9px;color:var(--text3);margin-bottom:8px;">
-            Assigned rover
-            <select id="up42RouteRover" style="width:100%;padding:6px;background:#07101a;color:var(--text1);border:1px solid var(--border2);border-radius:6px;"></select>
-          </label>
-          <div id="up42StopOptions" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:9px;"></div>
-          <div id="up42StopSequence" style="min-height:34px;padding:7px;border:1px dashed var(--border2);border-radius:7px;display:flex;align-items:center;flex-wrap:wrap;gap:5px;margin-bottom:9px;"></div>
-          <button type="button" class="btn btn-primary" onclick="confirmStopRouteBuilder()" style="width:100%;padding:8px;font-size:10px;">Create rover route</button>
-        </div>
-
 
         <!-- Phase 2 button + overlay toggle -->
         <div style="position:absolute;bottom:8px;right:12px;display:flex;gap:6px;">
@@ -3629,6 +3623,7 @@ let up42Scenario = {
 };
 const SCENARIO_STORAGE_KEY = 'eclipse.savedScenarios.v1';
 const SCENARIO_SCHEMA_VERSION = 1;
+const ISRU_PRESET_PATH = 'clean_database/scenarios/presets/ISRU.json';
 let currentScenarioMode = null;
 let currentScenarioId = null;
 let currentScenarioName = null;
@@ -3741,7 +3736,7 @@ async function confirmScenarioName() {
   try {
     const repositorySnapshot = await initializeScenarioRepositoryFiles({mode, slug, token});
     setScenarioIdentity(slug, slug);
-    selectScenarioEntryMode(mode, true);
+    await selectScenarioEntryMode(mode, true, repositorySnapshot);
     if (mode !== 'isru') {
       window._pendingScenarioActiveNodes = [...(repositorySnapshot.active_nodes || [])];
     }
@@ -3827,58 +3822,30 @@ function clearScenarioBuilderState() {
   window.up42FinalPlacements = {};
 }
 
-function applyIsruScenarioPreset() {
+function applyIsruScenarioPreset(preset) {
+  if (!preset || preset.mode !== 'isru') {
+    throw new Error('The ISRU preset is missing or invalid.');
+  }
   clearScenarioBuilderState();
-  window._pendingScenarioActiveNodes = [
-    'HabitationModule', 'ISRUPlant', 'LaunchLandingZone', 'PropellantDepot',
-    'LOXRover', 'SolarPowerSystem', 'RegolithRover', 'ISRUExcavation'
-  ];
-  up42Scenario.moduleEquations = {
-    ISRUExcavation: [
-      'RegolithOut = RequestedRegolith',
-      'EnergyConsumed = excavationEnergyCoeff * RegolithOut'
-    ].join('\n'),
-    RegolithRover: [
-      'RegolithOut = min(RegolithIn, RoverCapacity)',
-      'TravelTime = Distance * hoursPerKm',
-      'EnergyConsumed = Distance * CargoMass * energyPerKmPerKg'
-    ].join('\n'),
-    ISRUPlant: [
-      'LOXOut = RegolithIn * extractedLOXFraction',
-      'ProcessingTime = RegolithIn / processingRate',
-      'EnergyConsumed = E_exc + E_trans + E_bene + E_reactor + E_electro + E_liq'
-    ].join('\n'),
-    LOXRover: [
-      'LOXOut = min(LOXIn, RoverCapacity)',
-      'TravelTime = Distance * hoursPerKm',
-      'EnergyConsumed = Distance * CargoMass * energyPerKmPerKg'
-    ].join('\n'),
-    PropellantDepot: 'LOXStored = LOXStored + LOXIn\nPowerIn = 0',
-    SolarPowerSystem: 'PowerOut = powerOutput',
-    HabitationModule: 'PowerIn = constantPowerRate',
-    LaunchLandingZone: 'PowerIn = utilitiesPowerRate + LOXStored * chillingPowerPerKgLox'
+  window._pendingScenarioActiveNodes = cloneScenarioValue(preset.active_nodes || []);
+  up42InstanceCounts = cloneScenarioValue(preset.instance_counts || {});
+  up42Scenario = {
+    resourceRoutes: [], powerLinks: [], comLinks: [], moduleLogic: {},
+    sysmlInterfaces: [], transportLinks: [], moduleEquations: {},
+    roverCounts: {regolith: 1, lox: 1},
+    ...cloneScenarioValue(preset.scenario_logic || {})
   };
-  scenarioPowerModels = {
-    HabitationModule: { mode:'average', average_kw:5, points:[{time_hr:0,power_kw:5},{time_hr:60,power_kw:5}], equation:'' },
-    LaunchLandingZone: { mode:'average', average_kw:3, points:[{time_hr:0,power_kw:3},{time_hr:60,power_kw:3}], equation:'' }
-  };
+  scenarioPowerModels = cloneScenarioValue(preset.power_models || {});
+  restoreDesFormValues(preset.des_form || {});
   if (systems.length) {
     renderSystems();
     buildAssemblyTreeFromActiveSystems();
   }
-  setInputValueIfPresent('up42RegolithRoverCount', 1);
-  setInputValueIfPresent('up42LoxRoverCount', 1);
-  setInputValueIfPresent('desRoverCount', 1, 'desRoverCountVal');
-  setInputValueIfPresent('desLoxRoverCount', 1, 'desLoxRoverCountVal');
-  setInputValueIfPresent('desSimDuration', 60);
-  setInputValueIfPresent('desRegolithRoverLoad', 4000);
-  setInputValueIfPresent('desPlantBatch', 4000);
-  setInputValueIfPresent('desPlantInputCapacity', 20000);
-  setInputValueIfPresent('desProcessRate', 1600, 'desProcessRateVal');
-  setInputValueIfPresent('desLoxThresh', 100, 'desLoxThreshVal');
+  setInputValueIfPresent('up42RegolithRoverCount', up42Scenario.roverCounts?.regolith ?? 1);
+  setInputValueIfPresent('up42LoxRoverCount', up42Scenario.roverCounts?.lox ?? 1);
 }
 
-function selectScenarioEntryMode(mode, preserveIdentity = false) {
+async function selectScenarioEntryMode(mode, preserveIdentity = false, preset = null) {
   if (!preserveIdentity) {
     currentScenarioId = null;
     currentScenarioName = null;
@@ -3892,8 +3859,9 @@ function selectScenarioEntryMode(mode, preserveIdentity = false) {
   renderSystems();
   buildAssemblyTreeFromActiveSystems();
   if (mode === 'isru') {
-    applyIsruScenarioPreset();
-    setScenarioModeUI('isru', 'ISRU reference scenario');
+    const resolvedPreset = preset || await loadScenarioPreset(ISRU_PRESET_PATH);
+    applyIsruScenarioPreset(resolvedPreset);
+    setScenarioModeUI('isru', resolvedPreset.display_name || 'ISRU reference scenario');
   } else {
     clearScenarioBuilderState();
     setInputValueIfPresent('up42RegolithRoverCount', 1);
@@ -5419,7 +5387,13 @@ function selectScenarioTool(tool) {
   document.querySelectorAll('[data-resource-tool]').forEach(button => {
     button.style.background = button.dataset.resourceTool === genericFlow ? 'rgba(139,255,206,0.15)' : '';
   });
-  setHint(`Select source module for ${genericFlow ? `${genericFlow} rover route` : (labels[tool] || tool)}`);
+  if (tool === 'regolith' || tool === 'lox' || genericFlow) {
+    const flow = tool === 'regolith' ? 'Regolith' : (tool === 'lox' ? 'LOX' : genericFlow);
+    openRouteSequenceBuilder(flow);
+    setHint(`Build the ${flow} rover route from the ordered module list on the left.`);
+  } else {
+    setHint(`Select source module for ${labels[tool] || tool}`);
+  }
 }
 
 function getPlacedModuleOptions() {
@@ -5435,12 +5409,12 @@ function resolveStopSequence(stopText, from, to) {
     .filter(id => id && id !== from && id !== to);
 }
 
-function openStopRouteBuilder(flow, from, to) {
-  pendingStopRoute = { flow, from, to, stops: [] };
+function openRouteSequenceBuilder(flow) {
+  pendingStopRoute = { flow, sequence: [] };
   const builder = document.getElementById('up42StopBuilder');
   const label = document.getElementById('up42StopRouteLabel');
   if (builder) builder.style.display = 'block';
-  if (label) label.textContent = `${flow} · ${from} → ${to}`;
+  if (label) label.textContent = `${flow} route sequence`;
   const roverSelect = document.getElementById('up42RouteRover');
   if (roverSelect) {
     const definition = getRoverFlowDefinition(flow);
@@ -5455,37 +5429,53 @@ function openStopRouteBuilder(flow, from, to) {
   renderStopRouteBuilder();
 }
 
+function openStopRouteBuilder(flow, from, to) {
+  openRouteSequenceBuilder(flow);
+  pendingStopRoute.sequence = [from, to];
+  renderStopRouteBuilder();
+}
+
 function renderStopRouteBuilder() {
   const optionsWrap = document.getElementById('up42StopOptions');
   const sequenceWrap = document.getElementById('up42StopSequence');
   if (!optionsWrap || !sequenceWrap || !pendingStopRoute) return;
-  const { from, to, stops } = pendingStopRoute;
-  const options = getPlacedModuleOptions().filter(id => id !== from && id !== to);
+  const sequence = pendingStopRoute.sequence || [];
+  const options = getPlacedModuleOptions();
   optionsWrap.innerHTML = options.length ? options.map(moduleId => {
-    const order = stops.indexOf(moduleId);
+    const order = sequence.indexOf(moduleId);
     return `<button type="button" class="btn" onclick="toggleStopRouteModule('${jsString(moduleId)}')"
       style="padding:6px 8px;font-size:9px;${order >= 0 ? 'border-color:var(--accent);color:var(--accent);background:rgba(0,212,255,0.12);' : ''}">
       ${order >= 0 ? `${order + 1}. ` : ''}${escapeHtml(moduleId)}
     </button>`;
-  }).join('') : '<span style="font-size:9px;color:var(--text3);">No intermediate placed module is available.</span>';
-  const sequence = [from, ...stops, to];
-  sequenceWrap.innerHTML = sequence.map((moduleId, index) => `
-    <span style="font-size:9px;color:${index === 0 || index === sequence.length - 1 ? 'var(--text1)' : 'var(--accent)'};font-weight:700;">${escapeHtml(moduleId)}</span>
+  }).join('') : '<span style="font-size:9px;color:var(--text3);">Place modules before defining a route.</span>';
+  sequenceWrap.innerHTML = sequence.length ? sequence.map((moduleId, index) => `
+    <span style="font-size:9px;color:${index === 0 || index === sequence.length - 1 ? 'var(--text1)' : 'var(--accent)'};font-weight:700;">${index + 1}. ${escapeHtml(moduleId)}</span>
     ${index < sequence.length - 1 ? '<span style="font-size:11px;color:var(--text3);">→</span>' : ''}
-  `).join('');
+  `).join('') : '<span style="font-size:8px;color:var(--text3);">Select at least an origin and a destination.</span>';
+  const createButton = document.getElementById('up42CreateRouteBtn');
+  if (createButton) createButton.disabled = sequence.length < 2;
 }
 
 function toggleStopRouteModule(moduleId) {
   if (!pendingStopRoute) return;
-  const index = pendingStopRoute.stops.indexOf(moduleId);
-  if (index >= 0) pendingStopRoute.stops.splice(index, 1);
-  else pendingStopRoute.stops.push(moduleId);
+  const sequence = pendingStopRoute.sequence || (pendingStopRoute.sequence = []);
+  const index = sequence.indexOf(moduleId);
+  if (index >= 0) sequence.splice(index, 1);
+  else sequence.push(moduleId);
   renderStopRouteBuilder();
 }
 
 function confirmStopRouteBuilder() {
   if (!pendingStopRoute) return;
-  const { flow, from, to, stops } = pendingStopRoute;
+  const { flow } = pendingStopRoute;
+  const sequence = pendingStopRoute.sequence || [];
+  if (sequence.length < 2) {
+    setHint('Select at least an origin and a destination.');
+    return;
+  }
+  const from = sequence[0];
+  const to = sequence[sequence.length - 1];
+  const stops = sequence.slice(1, -1);
   const roverId = document.getElementById('up42RouteRover')?.value || null;
   addScenarioResourceRoute(flow, from, to, stops, roverId);
   pendingStopRoute = null;
@@ -6326,9 +6316,23 @@ function drawScenarioLinks() {
     return [a, b].sort().join('|');
   };
 
-  const queueDrawing = (path, color, width, priority = 0) => {
+  const flowLaneOffset = flow => {
+    const normalized = String(flow || '').toLowerCase();
+    if (normalized === 'regolith') return -4.5;
+    if (normalized === 'lox') return 4.5;
+    if (normalized === 'power') return 0;
+    let hash = 0;
+    for (const char of normalized) hash = (hash * 31 + char.charCodeAt(0)) >>> 0;
+    return normalized ? ((hash % 3) - 1) * 4.5 : 0;
+  };
+
+  const queueDrawing = (path, color, width, priority = 0, flow = '') => {
     if (!path || path.length < 2) return;
-    routeDrawings.push({ path, color, width, priority, signature: pathSignature(path) });
+    routeDrawings.push({
+      path, color, width, priority, flow,
+      laneOffset: flowLaneOffset(flow),
+      signature: pathSignature(path)
+    });
   };
 
   const getVisualPath = (from, to) => {
@@ -6353,7 +6357,7 @@ function drawScenarioLinks() {
         const a = up42Placements[from];
         const b = up42Placements[to];
         if (!a || !b) return;
-        queueDrawing([{x:a.cx, y:a.cy}, {x:b.cx, y:b.cy}], color, 2.8, 0);
+        queueDrawing([{x:a.cx, y:a.cy}, {x:b.cx, y:b.cy}], color, 2.8, 0, link.flow);
       });
     });
   });
@@ -6364,7 +6368,7 @@ function drawScenarioLinks() {
   ));
   explicitRoutes.forEach(route => {
     const path = route.pts?.length ? route.pts : getVisualPath(route.from, route.to);
-    queueDrawing(path, getFlowColor(route.flow), 2.8, 2);
+    queueDrawing(path, getFlowColor(route.flow), 2.8, 2, route.flow);
   });
 
   const transports = up42Scenario.transportLinks?.length
@@ -6376,7 +6380,7 @@ function drawScenarioLinks() {
       (link.to_instances || []).forEach(to => {
         if (explicitRouteKeys.has(`${String(link.flow || '').toLowerCase()}:${from}:${to}`)) return;
         const path = getVisualPath(from, to);
-        queueDrawing(path, color, 2.8, 1);
+        queueDrawing(path, color, 2.8, 1, link.flow);
       });
     });
   });
@@ -6390,7 +6394,8 @@ function drawScenarioLinks() {
     group.sort((a, b) => a.priority - b.priority);
     const count = group.length;
     group.forEach((item, idx) => {
-      const offset = count > 1 ? (idx - (count - 1) / 2) * 9 : 0;
+      const duplicateOffset = count > 1 ? (idx - (count - 1) / 2) * 5 : 0;
+      const offset = item.laneOffset + duplicateOffset;
       drawPath(offsetPath(item.path, offset), item.color, false, item.width, true);
     });
   });
@@ -7363,7 +7368,7 @@ let up42MoonImg = null;
             <span style="font-size:11px;color:var(--text2);">Energy coefficient <small style="color:#4cc9f0;">[Both rover types]</small></span>
             <span id="desRoverEnergyVal" style="font-size:11px;font-weight:600;color:var(--accent);">0.00034</span>
           </div>
-          <input id="desRoverEnergy" type="range" min="0.0001" max="0.001" step="0.00005" value="0.00034" style="width:100%;"
+          <input id="desRoverEnergy" type="range" min="0.0001" max="0.001" step="0.00001" value="0.00034" style="width:100%;"
             oninput="document.getElementById('desRoverEnergyVal').textContent=Number(this.value).toFixed(5)">
           <div style="font-size:9px;color:var(--text3);margin-top:2px;line-height:1.4;">Energy consumed per kilometer and kilogram transported: energy = coefficient × distance × payload.</div>
         </div>
@@ -7462,8 +7467,8 @@ let up42MoonImg = null;
           </div>
 
           <div style="margin-top:14px;padding-bottom:5px;border-bottom:1px solid var(--border2);">
-            <div style="font-size:10px;color:var(--text2);font-weight:700;">Power consumption</div>
-            <div style="font-size:9px;color:var(--text3);margin-top:2px;">Continuous demand is applied at every power-manager update. A spike is an additional one-time energy demand; set its energy to 0 to disable it.</div>
+            <div style="font-size:10px;color:var(--text2);font-weight:700;">Power management</div>
+            <div style="font-size:9px;color:var(--text3);margin-top:2px;">Module demand profiles, equations, and one-time spikes are configured once in Module Power Consumption above.</div>
           </div>
           <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:8px;margin-top:8px;">
             <label style="padding:8px;border:1px solid var(--border2);border-radius:7px;font-size:10px;color:var(--text2);line-height:1.4;">Power management interval <small style="color:#ffd166;">[SolarPowerSystem]</small>
@@ -7473,25 +7478,6 @@ let up42MoonImg = null;
             <div style="padding:8px;border:1px solid var(--border2);border-radius:7px;">
               <div style="font-size:10px;color:var(--text2);">ISRU power behavior <small style="color:#ff7a8a;">[ISRUPlant]</small></div>
               <div style="font-size:9px;color:var(--text3);margin-top:5px;line-height:1.45;">Processing demand is computed by the plant's <code>EnergyConsumed</code> equation, or by the physical baseline model when no override is defined. LOX storage demand uses the coefficient above. Both are sent to the power manager.</div>
-            </div>
-            <div style="padding:8px;border:1px solid var(--border2);border-radius:7px;grid-column:span 2;">
-              <div style="font-size:10px;color:var(--text2);">Habitation power behavior <small style="color:#7ee0b1;">[HabitationModule]</small></div>
-              <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:5px;">
-                <label style="font-size:9px;color:var(--text3);">Continuous power (kW)<input id="desHabContinuousPower" type="number" min="0" step="0.1" value="5" oninput="this.dataset.userEdited='1'" style="width:100%;margin-top:3px;background:#07101a;color:var(--text1);border:1px solid var(--border2);border-radius:5px;padding:6px;"></label>
-                <label style="font-size:9px;color:var(--text3);">Spike energy (kWh)<input id="desHabSpikeEnergy" type="number" min="0" step="1" value="20" style="width:100%;margin-top:3px;background:#07101a;color:var(--text1);border:1px solid var(--border2);border-radius:5px;padding:6px;"></label>
-                <label style="font-size:9px;color:var(--text3);">Spike time (hr)<input id="desHabSpikeTime" type="number" min="0" step="1" value="10" style="width:100%;margin-top:3px;background:#07101a;color:var(--text1);border:1px solid var(--border2);border-radius:5px;padding:6px;"></label>
-              </div>
-              <div style="font-size:9px;color:var(--text3);margin-top:4px;">The continuous load comes from the SysML attribute by default. The spike is added once at the selected mission time.</div>
-            </div>
-            <div style="padding:8px;border:1px solid var(--border2);border-radius:7px;grid-column:span 2;">
-              <div style="font-size:10px;color:var(--text2);">Landing-zone power behavior <small style="color:#7ee0b1;">[LaunchLandingZone]</small></div>
-              <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:5px;">
-                <label style="font-size:9px;color:var(--text3);">Utilities (kW)<input id="desLzUtilitiesPower" type="number" min="0" step="0.1" value="3" oninput="this.dataset.userEdited='1'" style="width:100%;margin-top:3px;background:#07101a;color:var(--text1);border:1px solid var(--border2);border-radius:5px;padding:6px;"></label>
-                <label style="font-size:9px;color:var(--text3);">LOX chilling (kW/kg)<input id="desLzChillingCoeff" type="number" min="0" step="0.01" value="0.31" oninput="this.dataset.userEdited='1'" style="width:100%;margin-top:3px;background:#07101a;color:var(--text1);border:1px solid var(--border2);border-radius:5px;padding:6px;"></label>
-                <label style="font-size:9px;color:var(--text3);">Spike energy (kWh)<input id="desLzSpikeEnergy" type="number" min="0" step="1" value="50" style="width:100%;margin-top:3px;background:#07101a;color:var(--text1);border:1px solid var(--border2);border-radius:5px;padding:6px;"></label>
-                <label style="font-size:9px;color:var(--text3);">Spike time (hr)<input id="desLzSpikeTime" type="number" min="0" step="1" value="25" style="width:100%;margin-top:3px;background:#07101a;color:var(--text1);border:1px solid var(--border2);border-radius:5px;padding:6px;"></label>
-              </div>
-              <div style="font-size:9px;color:var(--text3);margin-top:4px;">Continuous demand = utilities + chilling coefficient × LOX stored. The spike is added once.</div>
             </div>
           </div>
         </details>
@@ -7900,6 +7886,16 @@ let up42MoonImg = null;
     return response.json();
   }
 
+  async function loadScenarioPreset(path, token = sessionStorage.getItem('gh_pat')) {
+    const presetFile = await getGithubContent(path, token);
+    if (!presetFile?.content) throw new Error(`Unable to read scenario preset ${path}.`);
+    try {
+      return JSON.parse(githubContentToText(presetFile));
+    } catch (error) {
+      throw new Error(`Scenario preset ${path} is not valid JSON: ${error.message}`);
+    }
+  }
+
   async function initializeScenarioRepositoryFiles({mode, slug, token}) {
     const sysmlPath = scenarioSysmlPath(slug);
     const configPath = scenarioConfigPath(slug);
@@ -7911,7 +7907,8 @@ let up42MoonImg = null;
       throw new Error(`The scenario identifier ${slug} already exists. Load it from Saved Scenarios or choose another name.`);
     }
 
-    const templatePath = 'clean_database/sysml/ECLIPSE_Project.sysml';
+    const preset = mode === 'isru' ? await loadScenarioPreset(ISRU_PRESET_PATH, token) : null;
+    const templatePath = preset?.template_sysml || 'clean_database/sysml/ECLIPSE_Project.sysml';
     const template = existingSysml ? null : await getGithubContent(templatePath, token);
     if (!existingSysml && !template?.content) throw new Error(`Unable to read the SysML template ${templatePath}.`);
 
@@ -7919,7 +7916,9 @@ let up42MoonImg = null;
       'HabitationModule', 'ISRUPlant', 'LaunchLandingZone', 'PropellantDepot',
       'LOXRover', 'SolarPowerSystem', 'RegolithRover', 'ISRUExcavation'
     ];
-    const activeNodes = existingSysml ? [] : templateActiveNodes;
+    const activeNodes = preset
+      ? cloneScenarioValue(preset.active_nodes || [])
+      : (existingSysml ? [] : templateActiveNodes);
     const initialSnapshot = {
       schema_version: SCENARIO_SCHEMA_VERSION,
       id: slug,
@@ -7931,16 +7930,16 @@ let up42MoonImg = null;
       created_at: new Date().toISOString(),
       saved_at: new Date().toISOString(),
       active_nodes: activeNodes,
-      instance_counts: {},
+      instance_counts: cloneScenarioValue(preset?.instance_counts || {}),
       placements: {},
       orientations: {},
       terrain_routes: [],
-      scenario_logic: {
+      scenario_logic: cloneScenarioValue(preset?.scenario_logic || {
         resourceRoutes: [], powerLinks: [], comLinks: [], moduleLogic: {},
         sysmlInterfaces: [], transportLinks: [], moduleEquations: {}, roverCounts: {}
-      },
-      power_models: {},
-      des_form: {},
+      }),
+      power_models: cloneScenarioValue(preset?.power_models || {}),
+      des_form: cloneScenarioValue(preset?.des_form || {}),
       results: null,
     };
 
@@ -10584,18 +10583,7 @@ let up42MoonImg = null;
   }
 
   function syncDesPowerDefaultsFromSysML() {
-    setDesDefaultUnlessEdited(
-      'desHabContinuousPower',
-      getSysmlNumericAttribute('HabitationModule', 'constantPowerRate', 5)
-    );
-    setDesDefaultUnlessEdited(
-      'desLzUtilitiesPower',
-      getSysmlNumericAttribute('LaunchLandingZone', 'utilitiesPowerRate', 3)
-    );
-    setDesDefaultUnlessEdited(
-      'desLzChillingCoeff',
-      getSysmlNumericAttribute('LaunchLandingZone', 'chillingPowerPerKgLox', 0.31)
-    );
+    renderScenarioPowerModels();
   }
 
   function initDesNodes() {
@@ -10676,6 +10664,8 @@ let up42MoonImg = null;
     model.points.sort((a, b) => a.time_hr - b.time_hr);
     model.points[0].time_hr = 0;
     model.points[model.points.length - 1].time_hr = duration;
+    model.spike_energy_kwh = Math.max(0, Number(model.spike_energy_kwh || 0));
+    model.spike_time_hr = Math.max(0, Math.min(duration, Number(model.spike_time_hr || 0)));
     return model;
   }
 
@@ -10686,15 +10676,27 @@ let up42MoonImg = null;
     const x = time => 24 + (Math.max(0, Math.min(duration, time)) / duration) * 266;
     const y = power => 88 - (Math.max(0, Math.min(maxPower, power)) / maxPower) * 72;
     const polyline = model.points.map(point => `${x(point.time_hr).toFixed(1)},${y(point.power_kw).toFixed(1)}`).join(' ');
+    const xTicks = [0, 0.25, 0.5, 0.75, 1];
+    const yTicks = [0, 0.5, 1];
     return `<svg viewBox="0 0 300 108" style="display:block;width:100%;height:126px;background:#07101a;border:1px solid var(--border2);border-radius:7px;touch-action:none;">
-      <line x1="24" y1="88" x2="290" y2="88" stroke="rgba(255,255,255,0.22)"/>
-      <line x1="24" y1="16" x2="24" y2="88" stroke="rgba(255,255,255,0.22)"/>
-      <text x="24" y="102" fill="rgba(255,255,255,0.45)" font-size="7">0 hr</text>
-      <text x="270" y="102" fill="rgba(255,255,255,0.45)" font-size="7">${duration} hr</text>
-      <text x="27" y="12" fill="rgba(255,255,255,0.45)" font-size="7">${maxPower.toFixed(1)} kW</text>
-      <polyline points="${polyline}" fill="none" stroke="#4cc9f0" stroke-width="2.5" stroke-linejoin="round"/>
-      ${model.points.map((point, index) => `<circle cx="${x(point.time_hr)}" cy="${y(point.power_kw)}" r="5" fill="${index === 0 || index === model.points.length - 1 ? '#ffd166' : '#4cc9f0'}" stroke="#07101a" stroke-width="2" style="cursor:move;" onpointerdown="startPowerProfileDrag(event,'${jsString(moduleId)}',${index},${maxPower})"/>`).join('')}
+      ${xTicks.map(fraction => `<line x1="${x(duration * fraction)}" y1="16" x2="${x(duration * fraction)}" y2="88" stroke="rgba(255,255,255,0.08)"/><text x="${x(duration * fraction)}" y="102" text-anchor="middle" fill="rgba(255,255,255,0.45)" font-size="6">${(duration * fraction).toFixed(fraction === 0 || fraction === 1 ? 0 : 1)}h</text>`).join('')}
+      ${yTicks.map(fraction => `<line x1="24" y1="${y(maxPower * fraction)}" x2="290" y2="${y(maxPower * fraction)}" stroke="rgba(255,255,255,0.08)"/><text x="22" y="${y(maxPower * fraction) + 2}" text-anchor="end" fill="rgba(255,255,255,0.45)" font-size="6">${(maxPower * fraction).toFixed(1)}</text>`).join('')}
+      <polyline data-power-profile-line points="${polyline}" fill="none" stroke="#4cc9f0" stroke-width="2.5" stroke-linejoin="round"/>
+      ${model.points.map((point, index) => `<circle data-power-profile-index="${index}" cx="${x(point.time_hr)}" cy="${y(point.power_kw)}" r="5" fill="${index === 0 || index === model.points.length - 1 ? '#ffd166' : '#4cc9f0'}" stroke="#07101a" stroke-width="2" style="cursor:move;" onpointerdown="startPowerProfileDrag(event,'${jsString(moduleId)}',${index},${maxPower})"/>`).join('')}
     </svg>`;
+  }
+
+  function renderPowerProfileTable(moduleId, model) {
+    return `<div style="display:grid;grid-template-columns:36px minmax(0,1fr) minmax(0,1fr);gap:4px;align-items:center;margin-top:6px;font-size:7px;color:var(--text3);">
+      <span>Point</span><span>Time (hr)</span><span>Power (kW)</span>
+      ${model.points.map((point, index) => `
+        <span style="color:var(--text2);">${index + 1}</span>
+        <input type="number" min="0" step="0.1" value="${Number(point.time_hr).toFixed(2)}" ${index === 0 || index === model.points.length - 1 ? 'disabled' : ''}
+          onchange="setPowerProfilePointValue('${jsString(moduleId)}',${index},'time_hr',this.value)" style="width:100%;padding:4px;background:#07101a;color:var(--text1);border:1px solid var(--border2);border-radius:4px;font-size:8px;">
+        <input type="number" min="0" step="0.1" value="${Number(point.power_kw).toFixed(2)}"
+          onchange="setPowerProfilePointValue('${jsString(moduleId)}',${index},'power_kw',this.value)" style="width:100%;padding:4px;background:#07101a;color:var(--text1);border:1px solid var(--border2);border-radius:4px;font-size:8px;">
+      `).join('')}
+    </div>`;
   }
 
   function renderScenarioPowerModels() {
@@ -10715,8 +10717,12 @@ let up42MoonImg = null;
           <div style="display:flex;gap:4px;">${modeButton('average','Average')}${modeButton('profile','Profile')}${modeButton('equation','Equation')}</div>
         </div>
         ${model.mode === 'average' ? `<label style="font-size:9px;color:var(--text3);">Average consumption (kW)<input type="number" min="0" step="0.1" value="${Number(model.average_kw || 0)}" oninput="setPowerModelAverage('${jsString(moduleId)}',this.value)" style="width:100%;margin-top:5px;padding:7px;background:#07101a;color:var(--text1);border:1px solid var(--border2);border-radius:6px;"></label>` : ''}
-        ${model.mode === 'profile' ? `${renderPowerProfileSvg(moduleId, model)}<div style="display:flex;gap:5px;margin-top:6px;"><button type="button" class="btn" title="Add profile point" onclick="addPowerProfilePoint('${jsString(moduleId)}')" style="width:28px;height:28px;padding:0;font-size:16px;">+</button><button type="button" class="btn" title="Remove last intermediate point" onclick="removePowerProfilePoint('${jsString(moduleId)}')" style="width:28px;height:28px;padding:0;font-size:16px;">−</button><span style="font-size:8px;color:var(--text3);align-self:center;">Drag points to shape the demand.</span></div>` : ''}
-        ${model.mode === 'equation' ? `<textarea spellcheck="false" oninput="setPowerModelEquation('${jsString(moduleId)}',this.value)" style="width:100%;min-height:58px;padding:7px;background:#07101a;color:var(--text1);border:1px solid var(--border2);border-radius:6px;font:9px monospace;">${escapeHtml(model.equation || '')}</textarea><div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;">${[...new Set(['PowerIn','SimulationTime',...tokens.ports,...tokens.attrs])].slice(0,24).map(token => `<button type="button" class="btn" onclick="appendPowerModelToken('${jsString(moduleId)}','${jsString(token)}')" style="padding:3px 5px;font-size:7px;">${escapeHtml(token)}</button>`).join('')}</div>` : ''}
+        ${model.mode === 'profile' ? `${renderPowerProfileSvg(moduleId, model)}${renderPowerProfileTable(moduleId, model)}<div style="display:flex;gap:5px;margin-top:6px;"><button type="button" class="btn" title="Add profile point" onclick="addPowerProfilePoint('${jsString(moduleId)}')" style="width:28px;height:28px;padding:0;font-size:16px;">+</button><button type="button" class="btn" title="Remove last intermediate point" onclick="removePowerProfilePoint('${jsString(moduleId)}')" style="width:28px;height:28px;padding:0;font-size:16px;">−</button><span style="font-size:8px;color:var(--text3);align-self:center;">Drag points or enter exact values.</span></div>` : ''}
+        ${model.mode === 'equation' ? `<textarea spellcheck="false" oninput="setPowerModelEquation('${jsString(moduleId)}',this.value)" style="width:100%;min-height:58px;padding:7px;background:#07101a;color:var(--text1);border:1px solid var(--border2);border-radius:6px;font:9px monospace;">${escapeHtml(model.equation || '')}</textarea><div style="font-size:8px;color:var(--text3);line-height:1.4;margin-top:4px;">Evaluated at every power-management step. Assign <code>PowerIn</code> in kW or <code>EnergyConsumed</code> in kWh.</div><div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;">${[...new Set(['PowerIn','EnergyConsumed','SimulationTime','dt',...tokens.ports,...tokens.attrs])].slice(0,24).map(token => `<button type="button" class="btn" onclick="appendPowerModelToken('${jsString(moduleId)}','${jsString(token)}')" style="padding:3px 5px;font-size:7px;">${escapeHtml(token)}</button>`).join('')}</div>` : ''}
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px;padding-top:7px;border-top:1px solid var(--border2);">
+          <label style="font-size:8px;color:var(--text3);">One-time spike (kWh)<input type="number" min="0" step="1" value="${Number(model.spike_energy_kwh || 0)}" onchange="setPowerModelSpike('${jsString(moduleId)}','energy',this.value)" style="width:100%;margin-top:3px;padding:5px;background:#07101a;color:var(--text1);border:1px solid var(--border2);border-radius:5px;"></label>
+          <label style="font-size:8px;color:var(--text3);">Spike time (hr)<input type="number" min="0" max="${getNumberInputValue('desSimDuration', 60)}" step="0.1" value="${Number(model.spike_time_hr || 0)}" onchange="setPowerModelSpike('${jsString(moduleId)}','time',this.value)" style="width:100%;margin-top:3px;padding:5px;background:#07101a;color:var(--text1);border:1px solid var(--border2);border-radius:5px;"></label>
+        </div>
       </div>`;
     }).join('');
   }
@@ -10733,6 +10739,13 @@ let up42MoonImg = null;
 
   function setPowerModelEquation(moduleId, value) {
     ensurePowerModel(moduleId).equation = String(value || '');
+  }
+
+  function setPowerModelSpike(moduleId, field, value) {
+    const model = ensurePowerModel(moduleId);
+    const duration = Math.max(1, getNumberInputValue('desSimDuration', 60));
+    if (field === 'energy') model.spike_energy_kwh = Math.max(0, Number(value) || 0);
+    else model.spike_time_hr = Math.max(0, Math.min(duration, Number(value) || 0));
   }
 
   function appendPowerModelToken(moduleId, token) {
@@ -10761,6 +10774,20 @@ let up42MoonImg = null;
     renderScenarioPowerModels();
   }
 
+  function setPowerProfilePointValue(moduleId, pointIndex, field, value) {
+    const model = ensurePowerModel(moduleId);
+    const point = model.points[pointIndex];
+    if (!point) return;
+    if (field === 'time_hr' && pointIndex > 0 && pointIndex < model.points.length - 1) {
+      const previous = model.points[pointIndex - 1].time_hr + 0.1;
+      const next = model.points[pointIndex + 1].time_hr - 0.1;
+      point.time_hr = Math.max(previous, Math.min(next, Number(value) || 0));
+    } else if (field === 'power_kw') {
+      point.power_kw = Math.max(0, Number(value) || 0);
+    }
+    renderScenarioPowerModels();
+  }
+
   function startPowerProfileDrag(event, moduleId, pointIndex, maxPower) {
     event.preventDefault();
     const svg = event.currentTarget.ownerSVGElement;
@@ -10777,11 +10804,22 @@ let up42MoonImg = null;
         point.time_hr = Math.max(previous, Math.min(next, (px - 24) / 266 * duration));
       }
       point.power_kw = Math.max(0, Math.min(maxPower, (88 - py) / 72 * maxPower));
-      renderScenarioPowerModels();
+      const x = time => 24 + (Math.max(0, Math.min(duration, time)) / duration) * 266;
+      const y = power => 88 - (Math.max(0, Math.min(maxPower, power)) / maxPower) * 72;
+      const line = svg.querySelector('[data-power-profile-line]');
+      if (line) line.setAttribute('points', model.points.map(item => `${x(item.time_hr).toFixed(1)},${y(item.power_kw).toFixed(1)}`).join(' '));
+      svg.querySelectorAll('[data-power-profile-index]').forEach(circle => {
+        const index = Number(circle.getAttribute('data-power-profile-index'));
+        const item = model.points[index];
+        if (!item) return;
+        circle.setAttribute('cx', x(item.time_hr));
+        circle.setAttribute('cy', y(item.power_kw));
+      });
     };
     const stop = () => {
       window.removeEventListener('pointermove', move);
       window.removeEventListener('pointerup', stop);
+      renderScenarioPowerModels();
     };
     window.addEventListener('pointermove', move);
     window.addEventListener('pointerup', stop, {once:true});
@@ -10832,15 +10870,6 @@ let up42MoonImg = null;
     const regolithRoverCount = Math.max(1, Number(up42Scenario.roverCounts?.regolith || 1));
     const loxRoverCount = Math.max(0, Number(up42Scenario.roverCounts?.lox || 0));
     const plantCount = Math.max(1, getScenarioInstances().filter(instance => instance.type === 'ISRUPlant').length || 1);
-    const spike = (timeId, energyId, fallbackTime, fallbackEnergy) => {
-      const energy = getNumberInputValue(energyId, fallbackEnergy);
-      if (energy <= 0) return [];
-      return [{
-        time_hr: getNumberInputValue(timeId, fallbackTime),
-        energy_kwh: energy,
-      }];
-    };
-
     return {
       engine: {
         mode: isIsruPreset ? 'isru' : 'generic',
@@ -10885,16 +10914,15 @@ let up42MoonImg = null;
       power: {
         management_dt_hr: getNumberInputValue('desPowerDt', 1),
         continuous_load_kw: {
-          habitation: isIsruPreset ? getNumberInputValue('desHabContinuousPower', 5) : null,
-          landing_zone_utilities: isIsruPreset ? getNumberInputValue('desLzUtilitiesPower', 3) : null,
+          habitation: null,
+          communications: null,
+          landing_zone_utilities: null,
         },
-        landing_zone_chilling_kw_per_kg: isIsruPreset
-          ? getNumberInputValue('desLzChillingCoeff', 0.31)
-          : null,
+        landing_zone_chilling_kw_per_kg: null,
         spikes: {
-          habitation: isIsruPreset ? spike('desHabSpikeTime', 'desHabSpikeEnergy', 10, 20) : [],
+          habitation: [],
           communications: [],
-          landing_zone: isIsruPreset ? spike('desLzSpikeTime', 'desLzSpikeEnergy', 25, 50) : [],
+          landing_zone: [],
         },
         charging_station: {
           enabled_when_lox_rover_active: false,

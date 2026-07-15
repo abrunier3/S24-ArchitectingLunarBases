@@ -90,12 +90,18 @@ def validate_effect_outputs(equations, effect_outputs):
     parsed = parse_equations(equations)
     allowed = set(effect_outputs or ())
     unsupported = []
-    for index, (output_name, _, line_number) in enumerate(parsed):
+    for index, (output_name, expression, line_number) in enumerate(parsed):
         referenced_later = any(
             any(isinstance(node, ast.Name) and node.id == output_name for node in ast.walk(expression))
             for _, expression, _ in parsed[index + 1:]
         )
-        if not referenced_later and output_name not in allowed:
+        neutral_power_boundary = (
+            output_name in {"PowerIn", "PowerOut"}
+            and isinstance(expression, ast.Constant)
+            and not isinstance(expression.value, bool)
+            and expression.value == 0
+        )
+        if not referenced_later and output_name not in allowed and not neutral_power_boundary:
             unsupported.append(f"{output_name} (line {line_number})")
     if unsupported:
         raise ScenarioEquationError(

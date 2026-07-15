@@ -76,6 +76,11 @@ common stem of its configuration and SysML file, and both are preserved on
 GitHub. Saved scenarios are loaded from the browser cache and from
 `clean_database/scenarios/` in the repository.
 
+The ISRU reference is defined in
+`clean_database/scenarios/presets/ISRU.json`. Selecting `ISRU Scenario`
+reloads this complete preset, including active modules, instance counts,
+equations, rover fleets, power models, and DES assumptions.
+
 ### Step 1 - Build Requirements
 
 Use this section to inspect or define the high-level system requirements. These requirements contextualize the mission architecture but do not by themselves run the pipeline.
@@ -134,6 +139,8 @@ Important behavior:
 - the number of fixed module instances is selected before placement;
 - rovers are mobile actors and are not manually placed like static modules;
 - resource-route tools and rover fleets are inferred from active rover ports;
+- rover routes are built from the ordered module buttons: select the origin,
+  any intermediate stops, then the destination and assigned rover;
 - module equations define resource output, processing time, storage, and event energy;
 - SysML power interfaces constrain which consumers are supplied;
 - route distances are passed to the DES sliders;
@@ -144,6 +151,13 @@ Confirm the placement before running DES.
 ### Step 5 - DES Simulation
 
 Adjust the DES parameters, then click `Run DES Simulation`.
+
+For each active module, select one power-demand mode: a constant average, a
+piecewise-linear time profile, or an equation. Profiles can be edited by
+dragging their points or entering exact time and power values in the table.
+Optional one-time spikes are configured in the same module panel. Power
+equations are evaluated at every power-management interval and must assign
+either `PowerIn` in kW or `EnergyConsumed` in kWh.
 
 This triggers:
 

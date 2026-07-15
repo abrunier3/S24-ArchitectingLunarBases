@@ -59,6 +59,7 @@ class PowerModelConsumer:
         self.name = consumer.name
         self.lastEquationOutputs = {}
         self.latestBackgroundDemand = 0.0
+        self.spikeDelivered = False
 
     def _profile_power(self, time_hr):
         points = sorted(
@@ -90,6 +91,9 @@ class PowerModelConsumer:
 
         if mode == "equation":
             context = _numeric_state_chain(self.consumer)
+            context["LOXStored"] = float(
+                context.get("LOXStored", context.get("loxStored", 0.0))
+            )
             context.update({
                 "SimulationTime": simulation_time,
                 "dt": float(dt),
@@ -110,9 +114,21 @@ class PowerModelConsumer:
             return self._profile_power(simulation_time) * dt
         return float(self.model.get("average_kw", 0.0)) * dt
 
+    def _spike_energy(self):
+        energy = float(self.model.get("spike_energy_kwh", 0.0) or 0.0)
+        trigger_time = float(self.model.get("spike_time_hr", 0.0) or 0.0)
+        system = getattr(self.consumer, "system", None)
+        if system is None and hasattr(self.consumer, "consumer"):
+            system = getattr(self.consumer.consumer, "system", None)
+        simulation_time = float(getattr(system, "now", 0.0))
+        if energy > 0 and not self.spikeDelivered and simulation_time >= trigger_time:
+            self.spikeDelivered = True
+            return energy
+        return 0.0
+
     def getCurrentPowerDemand(self, dt):
         event_demand = self.consumer.getCurrentPowerDemand(dt)
-        background_demand = self._background_energy(dt)
+        background_demand = self._background_energy(dt) + self._spike_energy()
         if background_demand < 0:
             raise RuntimeError(f"{self.name}: background power demand cannot be negative")
         self.latestBackgroundDemand = background_demand
