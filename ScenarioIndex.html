@@ -7512,6 +7512,11 @@ let up42MoonImg = null;
       <div id="desMetricsWrap" style="flex:1;overflow-y:auto;padding:12px 14px;display:flex;flex-direction:column;gap:0;">
         <div style="color:var(--text3);font-size:11px;text-align:center;margin-top:40px;">Run the simulation to see results.</div>
       </div>
+      <div id="desTimeSeriesSection" style="display:none;border-top:1px solid var(--border);padding:12px 14px;">
+        <div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:3px;">Mission Time Histories</div>
+        <div style="font-size:9px;color:var(--text3);margin-bottom:10px;">Full-duration DES trends. The vertical marker follows the selected simulation time.</div>
+        <div id="desTimeSeriesWrap" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(360px,1fr));gap:10px;"></div>
+      </div>
     </div>
 
     <div style="display:flex;flex-direction:column;background:var(--panel);border:1px solid var(--border);border-radius:12px;overflow:hidden;min-height:260px;">
@@ -11348,8 +11353,10 @@ let up42MoonImg = null;
 
       renderDesGraph(data.log, finalTime);
       renderDesMetrics(data.log, finalTime, data.results);
+      renderDesTimeSeries(data.log, data.results, finalTime);
     } else {
       renderFinalMetrics(data.results);
+      renderDesTimeSeries(null, data.results, null);
     }
   }
 
@@ -11358,6 +11365,7 @@ let up42MoonImg = null;
     if (!desData?.log) return;
     renderDesGraph(desData.log, Number(t));
     renderDesMetrics(desData.log, Number(t), desData.results);
+    renderDesTimeSeries(desData.log, desData.results, Number(t));
   }
 
   function getLogAtTime(log, t) {
@@ -11393,6 +11401,194 @@ let up42MoonImg = null;
 
     const prev = entries[idx - 1];
     return { ...prev, snap: log[prev.key] || {} };
+  }
+
+  function getDesChartScenarioConfig(results) {
+    if (results?.Scenario_Config && typeof results.Scenario_Config === 'object') {
+      return results.Scenario_Config;
+    }
+    const raw = desData?.inputs?.scenario_config;
+    if (raw && typeof raw === 'object') return raw;
+    if (typeof raw === 'string') {
+      try { return JSON.parse(raw); } catch (error) { return {}; }
+    }
+    return {};
+  }
+
+  function renderDesLineChart({title, subtitle, unit, series, maxTime, cursorTime}) {
+    const visible = (series || []).map(item => ({
+      ...item,
+      points: (item.points || []).filter(point =>
+        Number.isFinite(Number(point[0])) && Number.isFinite(Number(point[1]))
+      )
+    })).filter(item => item.points.length);
+    if (!visible.length) return '';
+
+    const W = 620;
+    const H = 230;
+    const plot = {left:54, right:604, top:24, bottom:188};
+    const allValues = visible.flatMap(item => item.points.map(point => Number(point[1])));
+    const maxValue = Math.max(1, ...allValues) * 1.08;
+    const duration = Math.max(1, Number(maxTime) || 1);
+    const x = time => plot.left + Math.max(0, Math.min(duration, Number(time))) / duration * (plot.right - plot.left);
+    const y = value => plot.bottom - Math.max(0, Math.min(maxValue, Number(value))) / maxValue * (plot.bottom - plot.top);
+    const path = points => points.map((point, index) =>
+      `${index ? 'L' : 'M'} ${x(point[0]).toFixed(2)} ${y(point[1]).toFixed(2)}`
+    ).join(' ');
+    const xTicks = [0, 0.25, 0.5, 0.75, 1];
+    const yTicks = [0, 0.25, 0.5, 0.75, 1];
+    const cursorX = Number.isFinite(Number(cursorTime)) ? x(cursorTime) : null;
+
+    return `<div style="min-width:0;border:1px solid var(--border2);border-radius:8px;background:#07101a;padding:9px;">
+      <div style="font-size:10px;font-weight:700;color:var(--text1);">${escapeHtml(title)}</div>
+      <div style="font-size:8px;color:var(--text3);margin:2px 0 6px;">${escapeHtml(subtitle || '')}</div>
+      <svg viewBox="0 0 ${W} ${H}" style="display:block;width:100%;height:230px;overflow:visible;">
+        ${yTicks.map(fraction => `<line x1="${plot.left}" y1="${y(maxValue * fraction)}" x2="${plot.right}" y2="${y(maxValue * fraction)}" stroke="rgba(255,255,255,0.08)"/><text x="${plot.left - 7}" y="${y(maxValue * fraction) + 3}" text-anchor="end" fill="rgba(255,255,255,0.48)" font-size="8">${(maxValue * fraction).toFixed(maxValue < 10 ? 1 : 0)}</text>`).join('')}
+        ${xTicks.map(fraction => `<line x1="${x(duration * fraction)}" y1="${plot.top}" x2="${x(duration * fraction)}" y2="${plot.bottom}" stroke="rgba(255,255,255,0.06)"/><text x="${x(duration * fraction)}" y="${plot.bottom + 16}" text-anchor="middle" fill="rgba(255,255,255,0.48)" font-size="8">${(duration * fraction).toFixed(0)} h</text>`).join('')}
+        <text x="12" y="${(plot.top + plot.bottom) / 2}" transform="rotate(-90 12 ${(plot.top + plot.bottom) / 2})" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-size="8">${escapeHtml(unit)}</text>
+        ${visible.map(item => `<path d="${path(item.points)}" fill="none" stroke="${item.color}" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" ${item.dashed ? 'stroke-dasharray="7 5"' : ''}/>`).join('')}
+        ${cursorX === null ? '' : `<line x1="${cursorX}" y1="${plot.top}" x2="${cursorX}" y2="${plot.bottom}" stroke="#ffffff" stroke-width="1.4" stroke-dasharray="3 4" opacity="0.75"/><text x="${Math.min(plot.right - 18, cursorX + 4)}" y="${plot.top + 10}" fill="#ffffff" font-size="8">${Number(cursorTime).toFixed(1)} h</text>`}
+      </svg>
+      <div style="display:flex;flex-wrap:wrap;gap:5px 12px;margin-top:-4px;">
+        ${visible.map(item => {
+          const latest = Number(item.points[item.points.length - 1][1]);
+          return `<span style="font-size:8px;color:var(--text3);"><i style="display:inline-block;width:14px;height:3px;background:${item.color};margin-right:4px;vertical-align:middle;"></i>${escapeHtml(item.name)} <b style="color:var(--text2);">${latest.toFixed(latest < 10 ? 1 : 0)} ${escapeHtml(unit)}</b></span>`;
+        }).join('')}
+      </div>
+    </div>`;
+  }
+
+  function renderDesTimeSeries(log, results, cursorTime) {
+    const section = document.getElementById('desTimeSeriesSection');
+    const wrap = document.getElementById('desTimeSeriesWrap');
+    if (!section || !wrap) return;
+    const entries = getLogEntries(log);
+    if (!entries.length) {
+      section.style.display = 'none';
+      wrap.innerHTML = '';
+      return;
+    }
+
+    const colors = ['#4cc9f0','#7ee0b1','#ffd166','#ff7a8a','#a78bfa','#f4a261','#65d6ad','#ff9f6e'];
+    const maxTime = entries[entries.length - 1].num;
+    const snapshots = entries.map(entry => ({time:entry.num, snap:log[entry.key] || {}}));
+    const charts = [];
+    const isGeneric = results?.Engine === 'GenericScenario';
+
+    if (isGeneric) {
+      const resources = new Set();
+      snapshots.forEach(({snap}) => Object.values(snap).forEach(item => {
+        Object.keys(item?.Inventory || {}).forEach(resource => resources.add(resource));
+        Object.keys(item?.Delivered || {}).forEach(resource => resources.add(resource));
+      }));
+      const resourceSeries = [];
+      [...resources].forEach((resource, index) => {
+        resourceSeries.push({
+          name:`${resource} inventory`, color:colors[index % colors.length],
+          points:snapshots.map(({time,snap}) => [time, Object.values(snap).reduce((sum,item) => sum + Number(item?.Inventory?.[resource] || 0), 0)])
+        });
+        resourceSeries.push({
+          name:`${resource} delivered`, color:colors[(index + 3) % colors.length], dashed:true,
+          points:snapshots.map(({time,snap}) => [time, Object.values(snap).reduce((sum,item) => sum + Number(item?.Delivered?.[resource] || 0), 0)])
+        });
+      });
+      if (resourceSeries.length) charts.push(renderDesLineChart({title:'Resource flow',subtitle:'Total inventory and cumulative rover delivery by resource.',unit:'kg',series:resourceSeries,maxTime,cursorTime}));
+    } else {
+      const resourceSeries = [
+        {name:'LOX produced', color:'#7ee0b1', points:[]},
+        {name:'LOX at plants', color:'#4cc9f0', points:[]},
+        {name:'LOX at destinations', color:'#a78bfa', points:[]},
+        {name:'Regolith received', color:'#f4b942', points:[]},
+      ];
+      snapshots.forEach(({time,snap}) => {
+        const items = Object.values(snap).filter(item => item && typeof item === 'object');
+        const plants = items.filter(item => item.processingRate !== undefined);
+        const destinations = items.filter(item => item.LOX_Stored !== undefined && item.processingRate === undefined);
+        resourceSeries[0].points.push([time, plants.reduce((sum,item) => sum + Number(item.total_LOX_production || 0), 0)]);
+        resourceSeries[1].points.push([time, plants.reduce((sum,item) => sum + Number(item.LOX_Stored || 0), 0)]);
+        resourceSeries[2].points.push([time, destinations.reduce((sum,item) => sum + Number(item.LOX_Stored || 0), 0)]);
+        resourceSeries[3].points.push([time, plants.reduce((sum,item) => sum + Number(item.regolith_recieved || 0), 0)]);
+      });
+      charts.push(renderDesLineChart({title:'ISRU material flow',subtitle:'Cumulative production and inventories throughout the logistics chain.',unit:'kg',series:resourceSeries,maxTime,cursorTime}));
+    }
+
+    const config = getDesChartScenarioConfig(results);
+    const powerDt = Math.max(0.0001, Number(config?.power?.management_dt_hr || 1));
+    const powerSeries = [
+      {name:'Generated power', color:'#ffd166', points:[]},
+      {name:'Demand power', color:'#ff7a8a', points:[]},
+    ];
+    const cumulativeSeries = [
+      {name:'Generated energy', color:'#ffd166', points:[]},
+      {name:'Consumed energy', color:'#4cc9f0', points:[]},
+    ];
+    let generatedCumulative = 0;
+    let demandCumulative = 0;
+    const resultPower = results?.Power_Manager || {};
+    const resultGenerated = resultPower.Energy_Generated_Time_Array_kWh || [];
+    const resultDemand = resultPower.Total_Demand_Time_Array_kWh || [];
+    if (!isGeneric && (resultGenerated.length || resultDemand.length)) {
+      const count = Math.max(resultGenerated.length, resultDemand.length);
+      for (let index = 0; index < count; index++) {
+        const time = Math.min(maxTime, (index + 1) * powerDt);
+        const generatedStep = Number(resultGenerated[index] || 0);
+        const demandStep = Number(resultDemand[index] || 0);
+        generatedCumulative += generatedStep;
+        demandCumulative += demandStep;
+        powerSeries[0].points.push([time, generatedStep / powerDt]);
+        powerSeries[1].points.push([time, demandStep / powerDt]);
+        cumulativeSeries[0].points.push([time, generatedCumulative]);
+        cumulativeSeries[1].points.push([time, demandCumulative]);
+      }
+    } else snapshots.forEach(({time,snap}) => {
+      const power = snap.Power_Manager || {};
+      let generatedStep = Number(power.current_energy_production || 0);
+      let demandStep = Number(power.current_energy_demand || 0);
+      if (isGeneric) {
+        const generatedHistory = power.Energy_Generated_Time_Array_kWh || [];
+        const demandHistory = power.Total_Demand_Time_Array_kWh || [];
+        generatedStep = Number(generatedHistory[generatedHistory.length - 1]?.[1] || 0);
+        demandStep = Number(demandHistory[demandHistory.length - 1]?.[1] || 0);
+        generatedCumulative = Number(power.Total_Generated_kWh || 0);
+        demandCumulative = Number(power.Total_Demand_kWh || 0);
+      } else {
+        generatedCumulative += generatedStep;
+        demandCumulative += demandStep;
+      }
+      powerSeries[0].points.push([time, generatedStep / powerDt]);
+      powerSeries[1].points.push([time, demandStep / powerDt]);
+      cumulativeSeries[0].points.push([time, generatedCumulative]);
+      cumulativeSeries[1].points.push([time, demandCumulative]);
+    });
+    charts.push(renderDesLineChart({title:'Power balance',subtitle:`Generated and requested power; DES power-management interval = ${powerDt} h.`,unit:'kW',series:powerSeries,maxTime,cursorTime}));
+    charts.push(renderDesLineChart({title:'Cumulative energy',subtitle:'Integrated generated energy and total system demand.',unit:'kWh',series:cumulativeSeries,maxTime,cursorTime}));
+
+    const roverNames = new Set();
+    snapshots.forEach(({snap}) => Object.entries(snap).forEach(([name,item]) => {
+      if (item?.rover_type !== undefined || item?.Role === 'transporter') roverNames.add(name);
+    }));
+    const roverList = [...roverNames];
+    const batterySeries = roverList.map((name,index) => ({
+      name, color:colors[index % colors.length],
+      points:snapshots.map(({time,snap}) => {
+        const rover = snap[name] || {};
+        const capacity = Number(rover.battery_capacity || 0);
+        return [time, capacity > 0 ? Number(rover.battery_charge || 0) / capacity * 100 : NaN];
+      })
+    }));
+    const distanceSeries = roverList.map((name,index) => ({
+      name, color:colors[index % colors.length],
+      points:snapshots.map(({time,snap}) => [time, Number(snap[name]?.total_distance_traveled ?? snap[name]?.Distance_Traveled_km ?? 0)])
+    }));
+    if (batterySeries.some(item => item.points.some(point => Number.isFinite(point[1])))) {
+      charts.push(renderDesLineChart({title:'Rover battery state',subtitle:'State of charge for each simulated rover.',unit:'%',series:batterySeries,maxTime,cursorTime}));
+    }
+    if (distanceSeries.length) {
+      charts.push(renderDesLineChart({title:'Rover transport activity',subtitle:'Cumulative loaded and return distance traveled by each rover.',unit:'km',series:distanceSeries,maxTime,cursorTime}));
+    }
+
+    section.style.display = 'block';
+    wrap.innerHTML = charts.filter(Boolean).join('');
   }
 
   function formatGenericResourceValues(values, suffix = '') {

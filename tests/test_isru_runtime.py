@@ -83,10 +83,12 @@ class IsruRuntimeTests(unittest.TestCase):
                 os.chdir(temp_dir)
                 run_scenario(options)
                 results_written = Path("lunar_spaceport_results.json").exists()
+                log = json.loads(Path("lunar_spaceport_log.json").read_text())
         finally:
             os.chdir(previous_cwd)
 
         self.assertTrue(results_written)
+        self.assertEqual(max(map(float, log)), 60.0)
 
 
 if __name__ == "__main__":

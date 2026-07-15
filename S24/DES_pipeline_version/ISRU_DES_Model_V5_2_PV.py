@@ -1269,6 +1269,7 @@ def run_scenario(optionsDict):
     with open('lunar_spaceport_results.json', 'w') as f:
         json.dump(final_results, f, indent=4)
 
+    logger.log()
     logger.saveToJSON()
 
 
@@ -1481,6 +1482,7 @@ def main():
     with open('lunar_spaceport_results.json', 'w') as f:
         json.dump(final_results, f, indent=4)
     
+    logger.log()
     logger.saveToJSON()
     
 if __name__ == "__main__":
