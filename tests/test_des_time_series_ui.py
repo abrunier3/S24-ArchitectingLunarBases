@@ -19,6 +19,18 @@ class DesTimeSeriesUiTests(unittest.TestCase):
         self.assertIn("Rover battery state", html)
         self.assertIn("Rover transport activity", html)
 
+    def test_des_runs_are_correlated_and_stale_results_are_cleared(self):
+        html = INDEX_PATH.read_text()
+
+        self.assertIn("function resetDesResultsForRun", html)
+        self.assertIn("request_id: requestId", html)
+        self.assertIn("data.request_id !== requestId", html)
+        self.assertIn("Ignoring stale results", html)
+
+        workflow = (ROOT / ".github" / "workflows" / "run_des.yml").read_text()
+        self.assertIn("request_id:", workflow)
+        self.assertIn('result["request_id"] = request_id', workflow)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -1,8 +1,13 @@
 name: Step 4 — Run DES Simulation
+run-name: DES — ${{ github.event.inputs.scenario_slug || 'ECLIPSE_Project' }} — ${{ github.event.inputs.request_id || 'manual' }}
 
 on:
   workflow_dispatch:
     inputs:
+      request_id:
+        description: 'Unique UI request identifier used to correlate results'
+        required: false
+        default: 'manual'
       scenario_name:
         description: 'Scenario display identifier'
         required: false
@@ -104,6 +109,7 @@ jobs:
         env:
           SCENARIO_NAME:              ${{ github.event.inputs.scenario_name || 'ECLIPSE_Project' }}
           SCENARIO_SLUG:              ${{ github.event.inputs.scenario_slug || 'ECLIPSE_Project' }}
+          DES_REQUEST_ID:             ${{ github.event.inputs.request_id || 'manual' }}
           SYSML_FILE:                 ${{ github.event.inputs.sysml_file || 'clean_database/sysml/ECLIPSE_Project.sysml' }}
           ACTIVE_NODES:               ${{ github.event.inputs.active_nodes }}
           SLIDER_VALUES_JSON:         ${{ github.event.inputs.slider_values }}
@@ -128,6 +134,7 @@ jobs:
 
           scenario_name = os.environ.get("SCENARIO_NAME", "ECLIPSE_Project").strip()
           scenario_slug = os.environ.get("SCENARIO_SLUG", scenario_name).strip()
+          request_id = os.environ.get("DES_REQUEST_ID", "manual").strip() or "manual"
           sysml_file = Path(os.environ.get(
               "SYSML_FILE", "clean_database/sysml/ECLIPSE_Project.sysml"
           ).strip())
@@ -551,6 +558,7 @@ jobs:
 
           result["scenario_name"] = scenario_name
           result["scenario_slug"] = scenario_slug
+          result["request_id"] = request_id
           result["sysml_file"] = str(sysml_file)
           with open('outputs/des_results.json', 'w') as f:
               json.dump(result, f, indent=2)

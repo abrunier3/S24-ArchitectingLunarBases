@@ -11117,6 +11117,26 @@ let up42MoonImg = null;
     </div>`;
   }
 
+  function resetDesResultsForRun() {
+    desData = null;
+    desLogTimes = [];
+    const metrics = document.getElementById('desMetricsWrap');
+    if (metrics) {
+      metrics.innerHTML = '<div style="color:var(--text3);font-size:11px;text-align:center;margin-top:40px;">Simulation running. New results will appear here when the workflow completes.</div>';
+    }
+    const timeSeriesSection = document.getElementById('desTimeSeriesSection');
+    const timeSeriesWrap = document.getElementById('desTimeSeriesWrap');
+    if (timeSeriesSection) timeSeriesSection.style.display = 'none';
+    if (timeSeriesWrap) timeSeriesWrap.innerHTML = '';
+    const sliderPanel = document.getElementById('desTimeSliderPanel');
+    if (sliderPanel) sliderPanel.style.display = 'none';
+    const warnings = document.getElementById('desWarningsWrap');
+    if (warnings) {
+      warnings.style.display = 'none';
+      warnings.innerHTML = '';
+    }
+  }
+
   async function triggerDesWorkflow() {
     const btn = document.getElementById('runDesBtn');
     const activeNodes = getDesActiveNodes();
@@ -11147,13 +11167,17 @@ let up42MoonImg = null;
 
     btn.disabled = true;
     btn.textContent = 'Submitting...';
+    resetDesResultsForRun();
     setDesStatus('Dispatching to GitHub Actions...', 'var(--text2)');
 
+    const requestId = `${currentScenarioSlug}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const dispatchedAt = Date.now();
     const sliderValues = getDesSliderValues();
     const scenarioConfig = buildDesScenarioConfig();
     const urbanPlanning = buildUrbanPlanningPayload();
     const cadAxisOverrides = getCadAxisOverrides();
     const inputs = {
+      request_id: requestId,
       scenario_name: currentScenarioName || currentScenarioSlug,
       scenario_slug: currentScenarioSlug,
       sysml_file: currentSysmlFile,
@@ -11194,26 +11218,8 @@ let up42MoonImg = null;
 
       if (res.status === 204) {
         btn.textContent = 'Running...';
-        setDesStatus('Workflow triggered. Polling for results...', '#7ee0b1');
-
-        await new Promise(r => setTimeout(r, window.UI_POLL.runLookupMs));
-
-        let runId = null;
-        try {
-          const runsRes = await fetch(
-            `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/actions/workflows/run_des.yml/runs?branch=${encodeURIComponent(GH_REF)}&per_page=1&ts=${Date.now()}`,
-            {
-              headers: {
-                'Authorization': `Bearer ${token}`,
-                'Accept': 'application/vnd.github+json'
-              },
-              cache: 'no-store'
-            }
-          );
-          if (runsRes.ok) runId = (await runsRes.json()).workflow_runs?.[0]?.id;
-        } catch (e) {}
-
-        pollDesResults(runId, token);
+        setDesStatus('Workflow triggered. Waiting for this DES run...', '#7ee0b1');
+        pollDesResults(null, token, {requestId, dispatchedAt});
       } else {
         const errBody = await res.text();
         console.log('[DES DISPATCH] error body:', errBody);
@@ -11230,8 +11236,9 @@ let up42MoonImg = null;
     }
   }
 
-  function pollDesResults(runId, token) {
+  function pollDesResults(runId, token, {requestId, dispatchedAt}) {
     let attempts = 0;
+    let workflowCompleted = false;
 
     const poll = setInterval(async () => {
       attempts++;
@@ -11244,7 +11251,29 @@ let up42MoonImg = null;
       }
 
       try {
-        if (runId) {
+        if (!runId) {
+          const runsRes = await fetch(
+            `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/actions/workflows/run_des.yml/runs?branch=${encodeURIComponent(GH_REF)}&per_page=20&ts=${Date.now()}`,
+            {
+              headers: {
+                'Authorization': `Bearer ${token}`,
+                'Accept': 'application/vnd.github+json'
+              },
+              cache: 'no-store'
+            }
+          );
+          if (!runsRes.ok) return;
+          const runs = (await runsRes.json()).workflow_runs || [];
+          const matchingRun = runs.find(run =>
+            String(run.display_title || '').includes(requestId)
+            && new Date(run.created_at || 0).getTime() >= dispatchedAt - 5000
+          );
+          if (!matchingRun) return;
+          runId = matchingRun.id;
+          setDesStatus('DES workflow found. Simulation running...', '#7ee0b1');
+        }
+
+        if (!workflowCompleted) {
           const runRes = await fetch(
             `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/actions/runs/${runId}?ts=${Date.now()}`,
             {
@@ -11262,26 +11291,27 @@ let up42MoonImg = null;
 
           if (run.status !== 'completed') return;
 
-          clearInterval(poll);
-
           if (run.conclusion !== 'success') {
+            clearInterval(poll);
             setDesStatus('Workflow failed - check Actions tab.', '#ff7a8a');
             document.getElementById('runDesBtn').textContent = 'Run DES Simulation';
             document.getElementById('runDesBtn').disabled = false;
             return;
           }
-        } else {
-          clearInterval(poll);
+          workflowCompleted = true;
+          setDesStatus('Workflow complete. Loading its new results...', '#7ee0b1');
         }
 
-        await loadDesResults(token);
+        const loaded = await loadDesResults(token, {requestId, minWrittenAt:dispatchedAt});
+        if (!loaded) return;
+        clearInterval(poll);
         document.getElementById('runDesBtn').textContent = 'Run DES Simulation';
         document.getElementById('runDesBtn').disabled = false;
       } catch (e) {}
     }, window.UI_POLL.workflowPollMs);
   }
 
-  async function loadDesResults(token) {
+  async function loadDesResults(token, {requestId = null, minWrittenAt = 0} = {}) {
     try {
       const resultsPath = currentScenarioSlug
         ? `outputs/scenarios/${currentScenarioSlug}/des_results.json`
@@ -11296,13 +11326,23 @@ let up42MoonImg = null;
           cache: 'no-store'
         }
       );
-      if (!res.ok) return;
+      if (!res.ok) return false;
 
       const meta = await res.json();
       const data = JSON.parse(atob(meta.content.replace(/\n/g, '')));
+      if (requestId && data.request_id !== requestId) {
+        console.log('[DES] Ignoring stale results:', data.request_id, 'expected:', requestId);
+        return false;
+      }
+      if (minWrittenAt && Number(data.written_at || 0) < minWrittenAt) {
+        console.log('[DES] Ignoring results written before the current dispatch.');
+        return false;
+      }
       renderDesResults(data);
+      return true;
     } catch (e) {
       console.error('[DES]', e);
+      return false;
     }
   }
 
