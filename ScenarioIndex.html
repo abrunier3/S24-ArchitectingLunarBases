@@ -6557,11 +6557,17 @@ function drawScenarioLinks() {
   ));
   const explicitRouteCovers = (flow, from, to) =>
     explicitRouteKeys.has(`${String(flow || '').toLowerCase()}:${from}:${to}`);
+  const roverControlledFlowKeys = new Set(
+    getRoverFlowDefinitions().map(definition => String(definition.flow || '').toLowerCase())
+  );
 
   const interfaces = up42Scenario.sysmlInterfaces?.length
     ? up42Scenario.sysmlInterfaces
     : syncScenarioInterfacesFromSysML();
   interfaces.forEach(link => {
+    const flowKey = String(link.flow || '').toLowerCase();
+    const isPowerLike = flowKey.includes('power');
+    if (!isPowerLike && roverControlledFlowKeys.has(flowKey)) return;
     const color = getFlowColor(link.flow);
     (link.from_instances || []).forEach(from => {
       (link.to_instances || []).forEach(to => {
