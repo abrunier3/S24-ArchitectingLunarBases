@@ -5129,8 +5129,11 @@ function up42OnClick(e) {
     // Place active module
     if (!up42ActiveModule) return;
     up42Placements[up42ActiveModule] = { cx:mx, cy:my };
+    refreshScenarioResourceRoutePaths();
     updateUp42InfoCard();
     renderUp42ModuleList();
+    renderConfiguredResourceRoutes();
+    updateDesDistances({ animate:false });
 
     // Auto-advance to next unplaced module (exclude Rover)
     const active = getScenarioInstances();
@@ -5604,8 +5607,9 @@ function createPathBetweenModules(from, to) {
   return aStar(start, end, GRID) || straightLinePath(start, end);
 }
 
-function addScenarioResourceRoute(flow, from, to, stops = [], roverId = null, presetGenerated = false, routeId = null) {
-  const sequence = [from, ...stops, to];
+function recomputeScenarioResourceRoutePath(route) {
+  if (!route) return [];
+  const sequence = [route.from, ...(route.stops || []), route.to].filter(Boolean);
   const pts = [];
   for (let i = 1; i < sequence.length; i++) {
     const segment = createPathBetweenModules(sequence[i - 1], sequence[i]);
@@ -5613,6 +5617,16 @@ function addScenarioResourceRoute(flow, from, to, stops = [], roverId = null, pr
     if (pts.length) pts.push(...segment.slice(1));
     else pts.push(...segment);
   }
+  route.pts = pts;
+  route.distance_km = +getRoutePathDistanceKm(pts).toFixed(3);
+  return pts;
+}
+
+function refreshScenarioResourceRoutePaths() {
+  (up42Scenario.resourceRoutes || []).forEach(recomputeScenarioResourceRoutePath);
+}
+
+function addScenarioResourceRoute(flow, from, to, stops = [], roverId = null, presetGenerated = false, routeId = null) {
   const definition = getRoverFlowDefinition(flow);
   const resolvedRoverId = roverId || getRoverIdsForFlow(flow)[0] || definition.roverType;
   const existingIndex = (up42Scenario.resourceRoutes || []).findIndex(route =>
@@ -5630,9 +5644,10 @@ function addScenarioResourceRoute(flow, from, to, stops = [], roverId = null, pr
     from,
     to,
     stops,
-    pts,
-    distance_km: +getRoutePathDistanceKm(pts).toFixed(3)
+    pts: [],
+    distance_km: 0
   };
+  recomputeScenarioResourceRoutePath(nextRoute);
   if (existingIndex >= 0) up42Scenario.resourceRoutes.splice(existingIndex, 1, nextRoute);
   else up42Scenario.resourceRoutes.push(nextRoute);
   renderConfiguredResourceRoutes();
@@ -6412,6 +6427,7 @@ function drawArrowHeadOnPath(path, color, size = 12) {
 
 function drawScenarioLinks() {
   syncScenarioInterfacesFromSysML();
+  refreshScenarioResourceRoutePaths();
 
   const routeDrawings = [];
 
@@ -6483,6 +6499,13 @@ function drawScenarioLinks() {
     return a && b ? [{x:a.cx, y:a.cy}, {x:b.cx, y:b.cy}] : [];
   };
 
+  const explicitRoutes = up42Scenario.resourceRoutes || [];
+  const explicitRouteKeys = new Set(explicitRoutes.map(route =>
+    `${String(route.flow || '').toLowerCase()}:${route.from}:${route.to}`
+  ));
+  const explicitRouteCovers = (flow, from, to) =>
+    explicitRouteKeys.has(`${String(flow || '').toLowerCase()}:${from}:${to}`);
+
   const interfaces = up42Scenario.sysmlInterfaces?.length
     ? up42Scenario.sysmlInterfaces
     : syncScenarioInterfacesFromSysML();
@@ -6490,6 +6513,7 @@ function drawScenarioLinks() {
     const color = getFlowColor(link.flow);
     (link.from_instances || []).forEach(from => {
       (link.to_instances || []).forEach(to => {
+        if (explicitRouteCovers(link.flow, from, to)) return;
         const a = up42Placements[from];
         const b = up42Placements[to];
         if (!a || !b) return;
@@ -6498,10 +6522,6 @@ function drawScenarioLinks() {
     });
   });
 
-  const explicitRoutes = up42Scenario.resourceRoutes || [];
-  const explicitRouteKeys = new Set(explicitRoutes.map(route =>
-    `${String(route.flow || '').toLowerCase()}:${route.from}:${route.to}`
-  ));
   explicitRoutes.forEach(route => {
     const path = route.pts?.length ? route.pts : getVisualPath(route.from, route.to);
     queueDrawing(path, getFlowColor(route.flow), 3.1, 2, route.flow, false);
@@ -6539,6 +6559,7 @@ function drawScenarioLinks() {
 
 function buildScenarioLogicPayload() {
   syncScenarioInterfacesFromSysML();
+  refreshScenarioResourceRoutePaths();
   return {
     scenario_mode: currentScenarioMode || 'new',
     instances: getScenarioInstances().map(inst => ({
@@ -7179,6 +7200,7 @@ function getShortestNetworkDistanceKm(startId, endId, payload) {
 
 function updateDesDistances(options = {}) {
   const animate = options.animate !== false;
+  refreshScenarioResourceRoutePaths();
   if (!up42Routes.length) {
     clearUp42DesDistances();
     return;
@@ -7260,6 +7282,7 @@ function buildUrbanPlanningPayload(options = {}) {
   const quiet = options.quiet === true;
   const site = upSelectedSite;
   if (!site) return null;
+  refreshScenarioResourceRoutePaths();
 
   const R = 1737400; // lunar radius in metres
   const cosLat = Math.cos(site.lat * Math.PI / 180);
