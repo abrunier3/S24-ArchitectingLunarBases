@@ -2230,6 +2230,17 @@ let nodeCounter = 0;
   }
 
 function buildAssemblyTreeFromActiveSystems() {
+  if (typeof populateStep3 === 'function' && window._step3ModernReady) {
+    const baseGraphData = window._currentGraphData || window._lastGraphData || {
+      parts: sysmlPartsCache,
+      active_nodes: systems.filter(sys => sys.active).map(sys => sys.id),
+      connections: []
+    };
+    const filtered = buildActiveGraphDataFromSystems(baseGraphData);
+    populateStep3(filtered, { preferredModule: currentModuleName || selectedNodeId });
+    return;
+  }
+
   const root = assemblyTree[0];
   const existingById = {};
 
@@ -6451,10 +6462,10 @@ function drawScenarioLinks() {
     return normalized ? ((hash % 3) - 1) * 4.5 : 0;
   };
 
-  const queueDrawing = (path, color, width, priority = 0, flow = '') => {
+  const queueDrawing = (path, color, width, priority = 0, flow = '', dashed = false) => {
     if (!path || path.length < 2) return;
     routeDrawings.push({
-      path, color, width, priority, flow,
+      path, color, width, priority, flow, dashed,
       laneOffset: flowLaneOffset(flow),
       signature: pathSignature(path)
     });
@@ -6493,7 +6504,7 @@ function drawScenarioLinks() {
   ));
   explicitRoutes.forEach(route => {
     const path = route.pts?.length ? route.pts : getVisualPath(route.from, route.to);
-    queueDrawing(path, getFlowColor(route.flow), 2.8, 2, route.flow);
+    queueDrawing(path, getFlowColor(route.flow), 3.1, 2, route.flow, true);
   });
 
   const transports = up42Scenario.transportLinks?.length
@@ -6521,7 +6532,7 @@ function drawScenarioLinks() {
     group.forEach((item, idx) => {
       const duplicateOffset = count > 1 ? (idx - (count - 1) / 2) * 5 : 0;
       const offset = item.laneOffset + duplicateOffset;
-      drawPath(offsetPath(item.path, offset), item.color, false, item.width, true);
+      drawPath(offsetPath(item.path, offset), item.color, item.dashed, item.width, true);
     });
   });
 }
@@ -6930,7 +6941,7 @@ function drawRoutes() {
     const colB = getModuleColor(route.to)   || '#ffd166';
 
     const routeEditing = up42Phase === 'routes';
-    let routeStroke = 'rgba(255,255,255,0.18)';
+    let routeStroke = 'rgba(255,255,255,0.24)';
     if (routeEditing) {
       const grad = up42Ctx.createLinearGradient(path[0].x, path[0].y, path[path.length-1].x, path[path.length-1].y);
       grad.addColorStop(0, colA);
@@ -6944,6 +6955,7 @@ function drawRoutes() {
     up42Ctx.strokeStyle = routeStroke;
     up42Ctx.lineWidth   = routeEditing ? 2.5 : 1.25;
     if (routeEditing) up42Ctx.setLineDash([6,4]);
+    else if (up42Phase === 'logic' || up42Phase === 'validate') up42Ctx.setLineDash([4,5]);
     up42Ctx.stroke();
     up42Ctx.setLineDash([]);
 
@@ -9576,6 +9588,8 @@ let up42MoonImg = null;
     updatePublishCounter();
   }
 
+  window._step3ModernReady = true;
+
   function resetStep3View() {
     const wrap = document.getElementById('viewer3dWrap');
     if (wrap) {
@@ -10476,6 +10490,7 @@ let up42MoonImg = null;
           showFrontAxis: true
         }
       );
+      if (data.module_name !== currentModuleName) return;
     }
 
     if (status) {
