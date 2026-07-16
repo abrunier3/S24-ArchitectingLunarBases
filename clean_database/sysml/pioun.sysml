@@ -111,7 +111,9 @@ package ECLIPSE_LSP1 {
             attribute cadSourceCenterOfMassXM = 0.310870675744;
             attribute cadSourceCenterOfMassYM = 0.185093954844;
             attribute cadSourceCenterOfMassZM = 0.224178281065;
+            attribute cadSourceFrontAxis = "+X";
             attribute cadSourceSurfaceAreaM2 = 21.3006266858;
+            attribute cadSourceUpAxis = "Z";
             attribute cadSurfaceAreaM2 = 418.452578998;
             attribute cadVolumeAvailable = false;
             attribute cadVolumeScaleFactor = 87.07245745;
@@ -314,7 +316,9 @@ package ECLIPSE_LSP1 {
             attribute cadSourceCenterOfMassXM = 0.00790950754972;
             attribute cadSourceCenterOfMassYM = 0.0194416118803;
             attribute cadSourceCenterOfMassZM = 0.0565630057093;
+            attribute cadSourceFrontAxis = "+X";
             attribute cadSourceSurfaceAreaM2 = 1.37934411445;
+            attribute cadSourceUpAxis = "Z";
             attribute cadSurfaceAreaM2 = 245.216736791;
             attribute cadVolumeAvailable = false;
             attribute cadVolumeScaleFactor = 2370.37044771;
