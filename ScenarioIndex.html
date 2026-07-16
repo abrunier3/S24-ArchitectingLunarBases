@@ -3821,6 +3821,19 @@ function setScenarioModeUI(mode, label) {
   });
 }
 
+function scrollToMissionActivation() {
+  const target = document.getElementById('activation');
+  if (!target) return;
+  const scroll = behavior => {
+    const top = target.getBoundingClientRect().top + window.scrollY - 18;
+    window.scrollTo({ top: Math.max(0, top), behavior });
+  };
+  requestAnimationFrame(() => {
+    scroll('smooth');
+    setTimeout(() => scroll('auto'), 280);
+  });
+}
+
 function clearScenarioBuilderState() {
   up42ActiveModule = null;
   up42Phase = 'place';
@@ -3900,7 +3913,7 @@ async function selectScenarioEntryMode(mode, preserveIdentity = false, preset = 
   renderScenarioPowerModels();
   syncDesScenarioModeVisibility();
   drawUp42();
-  document.getElementById('activation')?.scrollIntoView({behavior:'smooth'});
+  scrollToMissionActivation();
 }
 
 function collectDesFormValues() {
@@ -3993,7 +4006,7 @@ function restoreScenarioSnapshot(snapshot) {
   renderScenarioPowerModels();
   syncDesScenarioModeVisibility();
   drawUp42();
-  document.getElementById('activation')?.scrollIntoView({behavior:'smooth'});
+  scrollToMissionActivation();
 }
 
 async function openSavedScenarioPicker() {
