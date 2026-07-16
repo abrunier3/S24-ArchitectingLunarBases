@@ -722,7 +722,22 @@ def run_scenario(optionsDict):
     powerManager = None
     if use_solar:
         solarPowerSystemData = data_from_json("SolarPowerSystemV1.json")['SolarPowerSystem']
-        solarSystem = SolarPowerSystem(system, "Solar_Power_System", solarPowerSystemData.raw['attributes'])
+        solar_attributes = dict(solarPowerSystemData.raw['attributes'])
+        supply_config = scenario_config.get("power", {}).get("supply", {})
+        solar_attributes["powerOutput"] = float(
+            supply_config.get("power_output_kw", solar_attributes["powerOutput"])
+        )
+        solar_attributes["batteryCapacity"] = float(
+            supply_config.get("battery_capacity_kwh", solar_attributes["batteryCapacity"])
+        )
+        solar_attributes["batteryCharge"] = float(
+            supply_config.get("initial_battery_charge_kwh", solar_attributes["batteryCharge"])
+        )
+        if solar_attributes["powerOutput"] < 0 or solar_attributes["batteryCapacity"] < 0:
+            raise ValueError("Power output and battery capacity must be non-negative")
+        if not 0 <= solar_attributes["batteryCharge"] <= solar_attributes["batteryCapacity"]:
+            raise ValueError("Initial battery charge must be between 0 and battery capacity")
+        solarSystem = SolarPowerSystem(system, "Solar_Power_System", solar_attributes)
         logger.add(solarSystem)
         powerManager = PowerManager(
             system,
@@ -856,7 +871,12 @@ def run_scenario(optionsDict):
         r.instanceId = instance_id
         r.energyPerKmPerKg = scenario_config["rovers"]["energy_kwh_per_km_per_kg"]
         r.hoursPerKm       = scenario_config["rovers"]["travel_time_hr_per_km"]
-        r.maxCapacity      = float(scenario_config["rovers"].get("max_capacity_kg", r.maxCapacity))
+        r.maxCapacity      = float(
+            scenario_config["rovers"].get("regolith", {}).get(
+                "max_capacity_kg",
+                scenario_config["rovers"].get("max_capacity_kg", r.maxCapacity),
+            )
+        )
         logger.add(r)
         regolithCargoRovers.append(r)
 
@@ -891,7 +911,12 @@ def run_scenario(optionsDict):
             r.instanceId = instance_id
             r.energyPerKmPerKg = scenario_config["rovers"]["energy_kwh_per_km_per_kg"]
             r.hoursPerKm       = scenario_config["rovers"]["travel_time_hr_per_km"]
-            r.maxCapacity      = float(scenario_config["rovers"].get("max_capacity_kg", r.maxCapacity))
+            r.maxCapacity      = float(
+                scenario_config["rovers"].get("lox", {}).get(
+                    "max_capacity_kg",
+                    scenario_config["rovers"].get("max_capacity_kg", r.maxCapacity),
+                )
+            )
             logger.add(r)
             LOXCargoRovers.append(r)
 

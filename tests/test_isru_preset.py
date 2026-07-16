@@ -35,6 +35,10 @@ class IsruPresetTests(unittest.TestCase):
             preset["scenario_logic"]["roverCounts"],
             {"regolith": 1, "lox": 1},
         )
+        self.assertEqual(
+            preset["scenario_logic"]["roverPayloadsKg"],
+            {"regolith": 4000, "lox": 4000},
+        )
 
         required_controls = {
             "desRoverCount",
@@ -45,13 +49,14 @@ class IsruPresetTests(unittest.TestCase):
             "desProcessRate",
             "desLoxThresh",
             "desSimDuration",
-            "desRoverCapacity",
-            "desRegolithRoverLoad",
             "desPlantBatch",
             "desPlantInputCapacity",
             "desLoxPollDt",
             "desLoxStorageCoeff",
             "desPowerDt",
+            "desSolarPowerOutput",
+            "desSolarBatteryCapacity",
+            "desSolarInitialCharge",
         }
         self.assertTrue(required_controls.issubset(preset["des_form"]))
         for control_id in required_controls:

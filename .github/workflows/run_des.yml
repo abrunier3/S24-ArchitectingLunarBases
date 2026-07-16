@@ -537,24 +537,37 @@ jobs:
               }
           else:
               print("[DES] Running scenario...")
-              run_scenario(slider_value_dict)
+              try:
+                  run_scenario(slider_value_dict)
+              except Exception as exc:
+                  result = {
+                      "written_at": int(time.time() * 1000),
+                      "status": "error",
+                      "warnings": warnings,
+                      "inputs": slider_value_dict,
+                      "sysml_active_nodes": sysml_active_nodes,
+                      "des_active_nodes": active_nodes,
+                      "errors": [str(exc)],
+                      "error_type": type(exc).__name__,
+                  }
+                  print(f"[DES] Scenario failed — results file will still be written: {exc}")
+              else:
+                  with open('lunar_spaceport_results.json') as f:
+                      sim_results = json.load(f)
 
-              with open('lunar_spaceport_results.json') as f:
-                  sim_results = json.load(f)
+                  with open('lunar_spaceport_log.json') as f:
+                      sim_log = json.load(f)
 
-              with open('lunar_spaceport_log.json') as f:
-                  sim_log = json.load(f)
-
-              result = {
-                  "written_at": int(time.time() * 1000),
-                  "status": "success",
-                  "warnings": warnings,
-                  "inputs": slider_value_dict,
-                  "sysml_active_nodes": sysml_active_nodes,
-                  "des_active_nodes": active_nodes,
-                  "results": sim_results,
-                  "log": sim_log,
-              }
+                  result = {
+                      "written_at": int(time.time() * 1000),
+                      "status": "success",
+                      "warnings": warnings,
+                      "inputs": slider_value_dict,
+                      "sysml_active_nodes": sysml_active_nodes,
+                      "des_active_nodes": active_nodes,
+                      "results": sim_results,
+                      "log": sim_log,
+                  }
 
           result["scenario_name"] = scenario_name
           result["scenario_slug"] = scenario_slug

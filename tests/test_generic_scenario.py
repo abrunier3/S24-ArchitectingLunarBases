@@ -5,6 +5,7 @@ from copy import deepcopy
 from pathlib import Path
 
 from S24.DES_pipeline_version.generic_scenario import (
+    compile_scenario,
     run_generic_scenario,
     validate_generic_scenario,
 )
@@ -151,6 +152,28 @@ class GenericScenarioTests(unittest.TestCase):
         self.assertGreater(result["Modules"]["WaterProcessor"]["Cycles"], 0)
         self.assertGreater(result["MoEs"]["Total_Transport_Distance_km"], 0)
         self.assertEqual(result["Power"]["Unserved_Energy_kWh"], 0)
+
+    def test_power_supply_and_payloads_are_overridden_by_scenario_config(self):
+        options = self._options()
+        config = options["scenario_config"]
+        config["power"]["supply"] = {
+            "power_output_kw": 240.0,
+            "battery_capacity_kwh": 900.0,
+            "initial_battery_charge_kwh": 450.0,
+        }
+        config["rovers"]["capacity_by_flow_kg"] = {
+            "water": 25.0,
+            "product": 7.5,
+        }
+
+        blueprint = compile_scenario(options, asset_root=self.assets)
+        solar = blueprint.modules["SolarArray"].attributes
+
+        self.assertEqual(solar["powerOutput"], 240.0)
+        self.assertEqual(solar["batteryCapacity"], 900.0)
+        self.assertEqual(solar["batteryCharge"], 450.0)
+        self.assertEqual(blueprint.rover_capacity_by_flow_kg["Water"], 25.0)
+        self.assertEqual(blueprint.rover_capacity_by_flow_kg["Product"], 7.5)
 
     def test_unknown_equation_variable_is_rejected_before_run(self):
         options = self._options()

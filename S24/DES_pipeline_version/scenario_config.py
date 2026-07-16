@@ -36,6 +36,10 @@ DEFAULT_SCENARIO_CONFIG = {
         "energy_kwh_per_km_per_kg": 0.00034,
         "travel_time_hr_per_km": 5.0,
         "max_capacity_kg": 4000.0,
+        "capacity_by_flow_kg": {
+            "regolith": 4000.0,
+            "lox": 4000.0,
+        },
     },
     "routes": {
         "use_sysml_distances": True,
@@ -45,6 +49,11 @@ DEFAULT_SCENARIO_CONFIG = {
     },
     "power": {
         "management_dt_hr": 1.0,
+        "supply": {
+            "power_output_kw": 100.0,
+            "battery_capacity_kwh": 500.0,
+            "initial_battery_charge_kwh": 500.0,
+        },
         "continuous_load_kw": {
             "habitation": None,
             "communications": None,

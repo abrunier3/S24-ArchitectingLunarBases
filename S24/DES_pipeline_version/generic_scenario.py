@@ -117,6 +117,7 @@ class ScenarioBlueprint:
     power_links: tuple
     duration_hr: float
     rover_capacity_kg: float
+    rover_capacity_by_flow_kg: dict
     travel_time_hr_per_km: float
     energy_kwh_per_km_per_kg: float
     power_config: dict
@@ -172,6 +173,25 @@ def compile_scenario(options, asset_root=ASSET_ROOT):
             outgoing_resources=tuple(sorted(outgoing[instance_id])),
         )
 
+    supply = config.get("power", {}).get("supply", {})
+    for spec in modules.values():
+        if spec.role != "generator":
+            continue
+        spec.attributes["powerOutput"] = float(
+            supply.get("power_output_kw", spec.attributes.get("powerOutput", 0.0))
+        )
+        spec.attributes["batteryCapacity"] = float(
+            supply.get("battery_capacity_kwh", spec.attributes.get("batteryCapacity", 0.0))
+        )
+        spec.attributes["batteryCharge"] = float(
+            supply.get(
+                "initial_battery_charge_kwh",
+                spec.attributes.get("batteryCharge", spec.attributes["batteryCapacity"]),
+            )
+        )
+        if not 0 <= spec.attributes["batteryCharge"] <= spec.attributes["batteryCapacity"]:
+            raise ValueError("Initial battery charge must be between 0 and battery capacity")
+
     rover_types = {route.rover_type for route in routes}
     return ScenarioBlueprint(
         modules=modules,
@@ -179,6 +199,10 @@ def compile_scenario(options, asset_root=ASSET_ROOT):
         power_links=tuple(builder.get("sysml_interfaces", [])),
         duration_hr=float(config.get("simulation", {}).get("duration_hr", 60.0)),
         rover_capacity_kg=float(config.get("rovers", {}).get("max_capacity_kg", 4000.0)),
+        rover_capacity_by_flow_kg={
+            _symbol(flow): float(capacity)
+            for flow, capacity in config.get("rovers", {}).get("capacity_by_flow_kg", {}).items()
+        },
         travel_time_hr_per_km=float(
             config.get("rovers", {}).get("travel_time_hr_per_km", 5.0)
         ),
@@ -612,13 +636,21 @@ class GenericRoverRuntime:
         self.trips = 0
         self.pending_energy_kwh = 0.0
 
-    def context(self, cargo=0.0, distance=None):
+    def capacity_for_flow(self, flow):
+        return max(
+            0.0,
+            float(self.blueprint.rover_capacity_by_flow_kg.get(
+                _symbol(flow), self.blueprint.rover_capacity_kg
+            )),
+        )
+
+    def context(self, cargo=0.0, distance=None, flow=None):
         return {
             **self.attributes,
             "SimulationTime": float(self.env.now),
             "Distance": self.distance_km if distance is None else float(distance),
             "CargoMass": float(cargo),
-            "RoverCapacity": self.blueprint.rover_capacity_kg,
+            "RoverCapacity": self.capacity_for_flow(flow) if flow else self.blueprint.rover_capacity_kg,
             "hoursPerKm": self.blueprint.travel_time_hr_per_km,
             "energyPerKmPerKg": self.blueprint.energy_kwh_per_km_per_kg,
             "ResourceIn": float(cargo),
@@ -626,7 +658,7 @@ class GenericRoverRuntime:
 
     def transport_outputs(self, route, cargo):
         context = {
-            **self.context(cargo=cargo, distance=route.distance_km),
+            **self.context(cargo=cargo, distance=route.distance_km, flow=route.flow),
             f"{route.flow}In": cargo,
         }
         wanted = {f"{route.flow}Out", "TravelTime", "EnergyConsumed", "PowerIn"}
@@ -641,7 +673,7 @@ class GenericRoverRuntime:
                 if source.available(route.flow) <= 0:
                     continue
                 cargo = yield self.env.process(
-                    source.supply(route.flow, self.blueprint.rover_capacity_kg)
+                    source.supply(route.flow, self.capacity_for_flow(route.flow))
                 )
                 if cargo <= 0:
                     continue
