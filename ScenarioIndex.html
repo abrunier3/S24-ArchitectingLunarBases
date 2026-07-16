@@ -3900,7 +3900,7 @@ async function selectScenarioEntryMode(mode, preserveIdentity = false, preset = 
   renderScenarioPowerModels();
   syncDesScenarioModeVisibility();
   drawUp42();
-  document.getElementById('MBSE')?.scrollIntoView({behavior:'smooth'});
+  document.getElementById('activation')?.scrollIntoView({behavior:'smooth'});
 }
 
 function collectDesFormValues() {
@@ -3993,7 +3993,7 @@ function restoreScenarioSnapshot(snapshot) {
   renderScenarioPowerModels();
   syncDesScenarioModeVisibility();
   drawUp42();
-  document.getElementById('MBSE')?.scrollIntoView({behavior:'smooth'});
+  document.getElementById('activation')?.scrollIntoView({behavior:'smooth'});
 }
 
 async function openSavedScenarioPicker() {
@@ -5457,17 +5457,6 @@ function reconcileRoutesWithRoverCounts() {
     const uniqueKey = `${key}:${route.rover_id}`;
 
     if (routeByFlowAndRover.has(uniqueKey)) {
-      const existing = routeByFlowAndRover.get(uniqueKey);
-      const existingSequence = [existing.from, ...(existing.stops || []), existing.to].filter(Boolean);
-      const incomingSequence = [route.from, ...(route.stops || []), route.to].filter(Boolean);
-      const mergedSequence = [...existingSequence];
-      incomingSequence.forEach(moduleId => {
-        if (!mergedSequence.includes(moduleId)) mergedSequence.push(moduleId);
-      });
-      existing.from = mergedSequence[0] || existing.from;
-      existing.to = mergedSequence[mergedSequence.length - 1] || existing.to;
-      existing.stops = mergedSequence.slice(1, -1);
-      recomputeScenarioResourceRoutePath(existing);
       return;
     }
 
