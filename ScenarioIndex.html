@@ -6504,7 +6504,7 @@ function drawScenarioLinks() {
   ));
   explicitRoutes.forEach(route => {
     const path = route.pts?.length ? route.pts : getVisualPath(route.from, route.to);
-    queueDrawing(path, getFlowColor(route.flow), 3.1, 2, route.flow, true);
+    queueDrawing(path, getFlowColor(route.flow), 3.1, 2, route.flow, false);
   });
 
   const transports = up42Scenario.transportLinks?.length
