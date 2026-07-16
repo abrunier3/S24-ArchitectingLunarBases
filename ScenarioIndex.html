@@ -5402,6 +5402,8 @@ function getRoverIdsForFlow(flow) {
 }
 
 function renderRouteCardsForFlow(flow) {
+  reconcileRoutesWithRoverCounts();
+  refreshScenarioResourceRoutePaths();
   const routes = (up42Scenario.resourceRoutes || []).filter(route =>
     String(route.flow || '').toLowerCase() === String(flow || '').toLowerCase()
   );
@@ -5436,21 +5438,67 @@ function renderConfiguredResourceRoutes() {
 }
 
 function reconcileRoutesWithRoverCounts() {
-  const allowedByFlow = new Map(getRoverFlowDefinitions().map(definition => [
+  const definitions = getRoverFlowDefinitions();
+  const allowedByFlow = new Map(definitions.map(definition => [
     definition.key,
-    new Set(getRoverIdsForFlow(definition.flow))
+    getRoverIdsForFlow(definition.flow)
   ]));
-  const seen = new Set();
-  up42Scenario.resourceRoutes = (up42Scenario.resourceRoutes || []).filter(route => {
+  const normalizedRoutes = [];
+  const routeByFlowAndRover = new Map();
+
+  (up42Scenario.resourceRoutes || []).forEach(route => {
     const key = String(route.flow || '').toLowerCase();
     const allowed = allowedByFlow.get(key);
-    if (!allowed?.size) return false;
-    if (!route.rover_id) route.rover_id = [...allowed][0];
+    if (!allowed?.length) return;
+    if (!route.rover_id || !allowed.includes(route.rover_id)) route.rover_id = allowed[0];
     const uniqueKey = `${key}:${route.rover_id}`;
-    if (!allowed.has(route.rover_id) || seen.has(uniqueKey)) return false;
-    seen.add(uniqueKey);
-    return true;
+
+    if (routeByFlowAndRover.has(uniqueKey)) {
+      const existing = routeByFlowAndRover.get(uniqueKey);
+      const existingSequence = [existing.from, ...(existing.stops || []), existing.to].filter(Boolean);
+      const incomingSequence = [route.from, ...(route.stops || []), route.to].filter(Boolean);
+      const mergedSequence = [...existingSequence];
+      incomingSequence.forEach(moduleId => {
+        if (!mergedSequence.includes(moduleId)) mergedSequence.push(moduleId);
+      });
+      existing.from = mergedSequence[0] || existing.from;
+      existing.to = mergedSequence[mergedSequence.length - 1] || existing.to;
+      existing.stops = mergedSequence.slice(1, -1);
+      recomputeScenarioResourceRoutePath(existing);
+      return;
+    }
+
+    routeByFlowAndRover.set(uniqueKey, route);
+    normalizedRoutes.push(route);
   });
+
+  definitions.forEach(definition => {
+    const allowed = allowedByFlow.get(definition.key) || [];
+    if (!allowed.length) return;
+    const template = normalizedRoutes.find(route =>
+      String(route.flow || '').toLowerCase() === definition.key
+    );
+    if (!template) return;
+
+    allowed.forEach(roverId => {
+      const uniqueKey = `${definition.key}:${roverId}`;
+      if (routeByFlowAndRover.has(uniqueKey)) return;
+      const clone = {
+        ...template,
+        id: `${definition.flow}_${roverId}_${Date.now()}_${normalizedRoutes.length}`,
+        rover_id: roverId,
+        rover_type: definition.roverType,
+        preset_generated: false,
+        stops: [...(template.stops || [])],
+        pts: []
+      };
+      recomputeScenarioResourceRoutePath(clone);
+      routeByFlowAndRover.set(uniqueKey, clone);
+      normalizedRoutes.push(clone);
+    });
+  });
+
+  up42Scenario.resourceRoutes = normalizedRoutes;
 }
 
 function syncScenarioRoverCounts() {
