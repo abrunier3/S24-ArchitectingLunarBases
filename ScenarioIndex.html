@@ -6941,7 +6941,7 @@ function drawRoutes() {
     const colB = getModuleColor(route.to)   || '#ffd166';
 
     const routeEditing = up42Phase === 'routes';
-    let routeStroke = 'rgba(255,255,255,0.24)';
+    let routeStroke = 'rgba(255,255,255,0.46)';
     if (routeEditing) {
       const grad = up42Ctx.createLinearGradient(path[0].x, path[0].y, path[path.length-1].x, path[path.length-1].y);
       grad.addColorStop(0, colA);
@@ -6953,9 +6953,9 @@ function drawRoutes() {
     up42Ctx.moveTo(path[0].x, path[0].y);
     path.slice(1).forEach(pt => up42Ctx.lineTo(pt.x, pt.y));
     up42Ctx.strokeStyle = routeStroke;
-    up42Ctx.lineWidth   = routeEditing ? 2.5 : 1.25;
+    up42Ctx.lineWidth   = routeEditing ? 2.5 : 1.8;
     if (routeEditing) up42Ctx.setLineDash([6,4]);
-    else if (up42Phase === 'logic' || up42Phase === 'validate') up42Ctx.setLineDash([4,5]);
+    else if (up42Phase === 'logic' || up42Phase === 'validate') up42Ctx.setLineDash([7,5]);
     up42Ctx.stroke();
     up42Ctx.setLineDash([]);
 
