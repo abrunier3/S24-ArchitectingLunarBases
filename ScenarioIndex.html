@@ -3586,10 +3586,9 @@ window.addEventListener('load',()=>setTimeout(initPolarMap,200));
 // STEP 4.2 — MODULE PLACEMENT + ROUTE GENERATION
 // ══════════════════════════════════════════════════════════════════
 
-// Modules that make sense to place spatially (Rover is mobile, not fixed)
-// All SysML modules are placeable EXCEPT rovers (mobile — detected by name pattern)
-const isRoverNode = id => id.toLowerCase().includes('rover');
-const UP42_EXCLUDED = { has: id => isRoverNode(id) };
+// Modules that make sense to place spatially. Mobile transporters are excluded
+// from fixed placement and handled through route definitions instead.
+const UP42_EXCLUDED = { has: id => isTransporterModule(id) };
 
 // ── Heatmap image URLs per module ────────────────────────────────
 const MODULE_HEATMAPS = {
@@ -5366,7 +5365,7 @@ function setInputValueIfPresent(inputId, value, labelId = null) {
 
 function getRoverFlowDefinitions() {
   const definitions = new Map();
-  systems.filter(system => system.active && isRoverNode(system.id)).forEach(system => {
+  systems.filter(system => system.active && isTransporterModule(system.id)).forEach(system => {
     const part = getSysmlPartData(system.id) || {};
     const items = (part.ports || []).flatMap(port => port.items || []);
     const flows = [...new Set(items.map(item => {
@@ -5951,10 +5950,9 @@ function buildTransportLinksFromConnections(connections, fixedTypes) {
     const roverKey = normalizeScenarioName(roverType);
     const endpointIdx = nameText.indexOf(endpointKey);
     let roverIdx = nameText.indexOf(roverKey);
-    if (roverIdx < 0) roverIdx = nameText.indexOf('rover');
     if (endpointIdx >= 0 && roverIdx >= 0) return endpointIdx < roverIdx ? 'source' : 'target';
-    if (!isRoverNode(conn.fromName) && conn.fromName === endpointType) return 'source';
-    if (!isRoverNode(conn.toName) && conn.toName === endpointType) return 'target';
+    if (!isTransporterModule(conn.fromName) && conn.fromName === endpointType) return 'source';
+    if (!isTransporterModule(conn.toName) && conn.toName === endpointType) return 'target';
     return 'unknown';
   };
 
@@ -5977,15 +5975,15 @@ function buildTransportLinksFromConnections(connections, fixedTypes) {
   connections.forEach(conn => {
     const flow = String(conn.flow || '');
     const flowKey = flow.toLowerCase();
-    if (!flowKey.includes('regolith') && !flowKey.includes('lox')) return;
+    if (!flowKey || isPowerFlow(flow) || isCommunicationFlow(flow)) return;
 
-    const roverType = [conn.fromName, conn.toName].find(name => isRoverNode(name)) ||
-      (flowKey.includes('regolith') ? 'RegolithRover' : 'LOXRover');
+    const roverType = [conn.fromName, conn.toName].find(name => isTransporterModule(name));
+    if (!roverType) return;
     const endpointTypes = [
       ...inferNamedEndpointTypes(conn, fixedTypes),
       conn.fromName,
       conn.toName
-    ].filter(name => name && fixedTypes.includes(name) && !isRoverNode(name));
+    ].filter(name => name && fixedTypes.includes(name) && !isTransporterModule(name));
     const uniqueEndpoints = [...new Set(endpointTypes)];
 
     if (uniqueEndpoints.length >= 2) {
@@ -6047,7 +6045,7 @@ function buildTransportLinksFromConnections(connections, fixedTypes) {
 function syncScenarioInterfacesFromSysML() {
   const graphData = getUp42ActiveGraphData();
   const nodeNames = getGraphActiveNodeList(graphData);
-  const fixedTypes = nodeNames.filter(name => !isRoverNode(name));
+  const fixedTypes = nodeNames.filter(name => !isTransporterModule(name));
   const connections = normalizeSysmlConnections(
     graphData.connections || [],
     nodeNames
@@ -6055,7 +6053,7 @@ function syncScenarioInterfacesFromSysML() {
 
   up42Scenario.sysmlInterfaces = connections
     .filter(conn => !String(conn.flow || '').toLowerCase().includes('com'))
-    .filter(conn => !isRoverNode(conn.fromName) && !isRoverNode(conn.toName))
+    .filter(conn => !isTransporterModule(conn.fromName) && !isTransporterModule(conn.toName))
     .map((conn, idx) => ({
       id: conn.id || conn.key || `sysml_interface_${idx + 1}`,
       from_type: conn.fromName,
@@ -6268,24 +6266,108 @@ function getModuleResourcePorts(moduleId) {
   };
 }
 
+function getModuleAttributeMap(moduleId) {
+  const attributes = getSysmlPartData(getBaseModuleId(moduleId))?.attributes || {};
+  return Object.fromEntries(Object.entries(attributes).map(([key, value]) => [
+    normalizeScenarioName(key),
+    value
+  ]));
+}
+
+function hasStorageAttributes(moduleId) {
+  const attrs = getModuleAttributeMap(moduleId);
+  return Object.keys(attrs).some(key => /storage|inventory|stored|tanklevel/.test(key));
+}
+
+function hasTransporterAttributes(moduleId) {
+  const attrs = getModuleAttributeMap(moduleId);
+  const keys = Object.keys(attrs);
+  return keys.some(key => /payload|maxcapacity|cargocapacity/.test(key)) ||
+    keys.some(key => /hoursperkm|traveltime|speed|energyperkm|energycoeff|transportenergy/.test(key));
+}
+
+function hasPowerGenerationAttributes(moduleId) {
+  const attrs = getModuleAttributeMap(moduleId);
+  return Object.keys(attrs).some(key => /powerout|poweroutput|generation|constantpowerrate|solar/.test(key));
+}
+
+function isPowerFlow(flow) {
+  return String(flow || '').toLowerCase().includes('power');
+}
+
+function isCommunicationFlow(flow) {
+  return String(flow || '').toLowerCase().includes('com');
+}
+
+function getModuleGraphProfile(moduleId) {
+  const baseId = getBaseModuleId(moduleId);
+  const graphData = getUp42ActiveGraphData();
+  const nodeNames = getGraphActiveNodeList(graphData);
+  const connections = normalizeSysmlConnections(graphData.connections || [], nodeNames)
+    .filter(conn => conn.fromName === baseId || conn.toName === baseId);
+  const resourceIncoming = connections.filter(conn =>
+    conn.toName === baseId && !isPowerFlow(conn.flow) && !isCommunicationFlow(conn.flow)
+  );
+  const resourceOutgoing = connections.filter(conn =>
+    conn.fromName === baseId && !isPowerFlow(conn.flow) && !isCommunicationFlow(conn.flow)
+  );
+  const powerIncoming = connections.filter(conn => conn.toName === baseId && isPowerFlow(conn.flow));
+  const powerOutgoing = connections.filter(conn => conn.fromName === baseId && isPowerFlow(conn.flow));
+  const incomingFlows = new Set(resourceIncoming.map(conn => String(conn.flow || '').toLowerCase()));
+  const outgoingFlows = new Set(resourceOutgoing.map(conn => String(conn.flow || '').toLowerCase()));
+  const sameResourceRelay = [...incomingFlows].some(flow => outgoingFlows.has(flow));
+  const transformedResource = [...incomingFlows].some(flow => !outgoingFlows.has(flow)) ||
+    [...outgoingFlows].some(flow => !incomingFlows.has(flow));
+
+  return {
+    connections,
+    resourceIncoming,
+    resourceOutgoing,
+    powerIncoming,
+    powerOutgoing,
+    incomingFlows,
+    outgoingFlows,
+    sameResourceRelay,
+    transformedResource
+  };
+}
+
 function inferModuleClass(moduleId) {
   const baseId = getBaseModuleId(moduleId);
-  const key = normalizeScenarioName(baseId);
+  const profile = getModuleGraphProfile(baseId);
   const ports = getModuleResourcePorts(baseId);
-  if (isRoverNode(baseId) || /transport|hauler|carrier|vehicle/.test(key)) return 'Transporter';
-  if (key.includes('power') || key.includes('solar')) return 'PowerGenerator';
-  if (/depot|storage|tank|store|buffer|warehouse/.test(key)) return 'Storage';
-  if (/source|excavation|mine|generator|producer/.test(key) && ports.outputs.length) return 'Source';
-  if (/consumer|habitat|habitation|user|sink/.test(key) && ports.inputs.length && !ports.outputs.length) return 'Consumer';
-  if (ports.inputs.length && ports.outputs.length) return 'Processor';
+  const equations = getModuleEquationList(baseId);
+  const outputs = new Set(equations.map(getEquationOutputName).filter(Boolean));
+  const hasProcessingTime = outputs.has('ProcessingTime');
+
+  if (profile.resourceIncoming.length && profile.resourceOutgoing.length && hasStorageAttributes(baseId)) return 'Storage';
+  if (profile.resourceIncoming.length && profile.resourceOutgoing.length && profile.sameResourceRelay && hasTransporterAttributes(baseId)) return 'Transporter';
+  if ((profile.powerOutgoing.length || hasPowerGenerationAttributes(baseId)) && !profile.resourceIncoming.length && !profile.resourceOutgoing.length) return 'PowerGenerator';
+  if (!profile.resourceIncoming.length && profile.resourceOutgoing.length) return 'Source';
+  if (profile.resourceIncoming.length && profile.resourceOutgoing.length) {
+    if (hasProcessingTime || profile.transformedResource) return 'Processor';
+    return 'Storage';
+  }
+  if (profile.resourceIncoming.length && !profile.resourceOutgoing.length) return 'Storage';
+  if (profile.powerIncoming.length && !profile.resourceIncoming.length && !profile.resourceOutgoing.length) return 'Consumer';
+
+  if (ports.inputs.length && ports.outputs.length) {
+    if (hasStorageAttributes(baseId)) return 'Storage';
+    if (hasTransporterAttributes(baseId)) return 'Transporter';
+    return hasProcessingTime ? 'Processor' : 'Storage';
+  }
   if (ports.outputs.length) return 'Source';
-  if (ports.inputs.length) return 'Consumer';
+  if (ports.inputs.length) return 'Storage';
   return 'Passive';
 }
 
 function getModuleClass(moduleId) {
   const baseId = getBaseModuleId(moduleId);
   return up42Scenario.moduleClasses?.[baseId] || inferModuleClass(baseId);
+}
+
+function isTransporterModule(moduleId) {
+  return getModuleClass(moduleId) === 'Transporter';
 }
 
 function setModuleClass(moduleId, className) {
@@ -6329,10 +6411,10 @@ function getModuleEquationRequirements(moduleId) {
 
   if (moduleClass === 'Processor' || moduleClass === 'Transporter') {
     required.push({
-      output: isRoverNode(getBaseModuleId(moduleId)) ? 'TravelTime' : 'ProcessingTime',
-      accepted: [isRoverNode(getBaseModuleId(moduleId)) ? 'TravelTime' : 'ProcessingTime'],
+      output: moduleClass === 'Transporter' ? 'TravelTime' : 'ProcessingTime',
+      accepted: [moduleClass === 'Transporter' ? 'TravelTime' : 'ProcessingTime'],
       kind:'time',
-      label: isRoverNode(getBaseModuleId(moduleId)) ? 'Travel time law' : 'Processing time law'
+      label: moduleClass === 'Transporter' ? 'Travel time law' : 'Processing time law'
     });
   }
 
@@ -6802,7 +6884,7 @@ function getScenarioValidationMessages() {
       }
     });
   });
-  systems.filter(system => system.active && isRoverNode(system.id)).forEach(system => {
+  systems.filter(system => system.active && isTransporterModule(system.id)).forEach(system => {
     const outputs = new Set(getModuleEquationList(system.id).map(getEquationOutputName).filter(Boolean));
     getModuleEquationRequirements(system.id).forEach(requirement => {
       if (!(requirement.accepted || [requirement.output]).some(output => outputs.has(output))) {
@@ -8662,10 +8744,10 @@ let up42MoonImg = null;
 
   function buildOperationsGraphDisplayData(data = {}) {
     const rawNodes = getGraphActiveNodeList(data);
-    const visibleNodes = rawNodes.filter(name => !isRoverNode(name));
+    const visibleNodes = rawNodes.filter(name => !isTransporterModule(name));
     const visibleSet = new Set(visibleNodes);
     const normalized = normalizeSysmlConnections(data.connections || [], rawNodes);
-    const transporters = new Set(rawNodes.filter(name => isRoverNode(name)));
+    const transporters = new Set(rawNodes.filter(name => isTransporterModule(name)));
     const dedupe = new Set();
     const visibleConnections = [];
 
@@ -11100,7 +11182,7 @@ let up42MoonImg = null;
     const ids = getScenarioInstances()
       .filter(instance => getBaseModuleId(instance.id) !== 'SolarPowerSystem')
       .map(instance => instance.id);
-    systems.filter(system => system.active && isRoverNode(system.id)).forEach(system => {
+    systems.filter(system => system.active && isTransporterModule(system.id)).forEach(system => {
       const definition = getRoverFlowDefinitions().find(item => item.roverType === system.id);
       const key = definition?.key || system.id.toLowerCase();
       const count = Math.max(1, Number(up42Scenario.roverCounts?.[key] || 1));
