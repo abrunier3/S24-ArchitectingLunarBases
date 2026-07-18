@@ -2281,6 +2281,7 @@ function buildAssemblyTreeFromActiveSystems() {
     }
 
     systems.forEach(sys => {
+      const moduleClass = getModuleClass(sys.id);
       const card = document.createElement('div');
       card.className = 'sys-card' + (sys.active ? ' active' : '');
       card.innerHTML = `
@@ -2289,6 +2290,14 @@ function buildAssemblyTreeFromActiveSystems() {
           <input class="toggle" type="checkbox" ${sys.active ? 'checked' : ''} onchange="toggleSystem('${sys.id}')">
         </div>
         <div class="sys-meta">${sys.meta}</div>
+        <label style="display:grid;grid-template-columns:auto minmax(110px,1fr);gap:7px;align-items:center;margin-top:8px;font-size:9px;color:var(--text3);">
+          Class
+          <select onchange="event.stopPropagation();setModuleClass('${jsString(sys.id)}',this.value)"
+            onclick="event.stopPropagation()"
+            style="width:100%;background:#07101a;color:var(--text1);border:1px solid var(--border2);border-radius:6px;padding:5px;font-size:9px;">
+            ${SCENARIO_MODULE_CLASSES.map(className => `<option value="${className}" ${className === moduleClass ? 'selected' : ''}>${className}</option>`).join('')}
+          </select>
+        </label>
       `;
       wrap.appendChild(card);
     });
@@ -3638,6 +3647,7 @@ let up42Scenario = {
   sysmlInterfaces: [],
   transportLinks: [],
   moduleEquations: {},
+  moduleClasses: {},
   roverCounts: { regolith: 1, lox: 1 },
   roverPayloadsKg: { regolith: 4000, lox: 4000 }
 };
@@ -3846,7 +3856,7 @@ function clearScenarioBuilderState() {
   up42ScenarioPendingStart = null;
   up42Scenario = {
     resourceRoutes: [], powerLinks: [], comLinks: [], moduleLogic: {},
-    sysmlInterfaces: [], transportLinks: [], moduleEquations: {},
+    sysmlInterfaces: [], transportLinks: [], moduleEquations: {}, moduleClasses: {},
     roverCounts: { regolith: 1, lox: 1 },
     roverPayloadsKg: { regolith: 4000, lox: 4000 }
   };
@@ -3867,7 +3877,7 @@ function applyIsruScenarioPreset(preset) {
   up42InstanceCounts = cloneScenarioValue(preset.instance_counts || {});
   up42Scenario = {
     resourceRoutes: [], powerLinks: [], comLinks: [], moduleLogic: {},
-    sysmlInterfaces: [], transportLinks: [], moduleEquations: {},
+    sysmlInterfaces: [], transportLinks: [], moduleEquations: {}, moduleClasses: {},
     roverCounts: {regolith: 1, lox: 1},
     roverPayloadsKg: {regolith: 4000, lox: 4000},
     ...cloneScenarioValue(preset.scenario_logic || {})
@@ -6113,7 +6123,10 @@ function renderEquationModuleList() {
     const selected = getBaseModuleId(up42ActiveModule) === moduleId;
     return `<button type="button" class="btn" onclick="selectEquationModule('${jsString(moduleId)}')"
       style="display:flex;justify-content:space-between;align-items:center;gap:7px;padding:6px 7px;font-size:8px;text-align:left;${selected ? 'border-color:var(--accent);color:var(--accent);' : ''}">
-      <span style="overflow:hidden;text-overflow:ellipsis;">${escapeHtml(moduleId)}</span>
+      <span style="overflow:hidden;text-overflow:ellipsis;">
+        ${escapeHtml(moduleId)}
+        <small style="display:block;color:var(--text3);font-size:7px;margin-top:2px;">${escapeHtml(getModuleClass(moduleId))}</small>
+      </span>
       <span style="color:${missing ? '#ff7a8a' : '#7ee0b1'};white-space:nowrap;">${missing ? `${missing} missing` : `${equations.length} eq.`}</span>
     </button>`;
   }).join('');
@@ -6239,8 +6252,55 @@ function getEquationOutputName(equation) {
   return match ? match[1] : null;
 }
 
+const SCENARIO_MODULE_CLASSES = ['Source', 'Processor', 'Storage', 'Consumer', 'Transporter', 'PowerGenerator', 'Passive'];
+
+function getModuleResourcePorts(moduleId) {
+  const baseId = getBaseModuleId(moduleId);
+  const part = getSysmlPartData(baseId) || {};
+  const physicalPorts = [...new Set((Array.isArray(part.ports) ? part.ports : []).flatMap(port => {
+    const items = Array.isArray(port.items) ? port.items.filter(Boolean) : [];
+    return items.length ? items : [port.name || port.id].filter(Boolean);
+  }))];
+  return {
+    inputs: physicalPorts.filter(token => /In$/i.test(token) && !/^PowerIn$/i.test(token)),
+    outputs: physicalPorts.filter(token => /Out$/i.test(token) && !/^PowerOut$/i.test(token)),
+    all: physicalPorts
+  };
+}
+
+function inferModuleClass(moduleId) {
+  const baseId = getBaseModuleId(moduleId);
+  const key = normalizeScenarioName(baseId);
+  const ports = getModuleResourcePorts(baseId);
+  if (isRoverNode(baseId) || /transport|hauler|carrier|vehicle/.test(key)) return 'Transporter';
+  if (key.includes('power') || key.includes('solar')) return 'PowerGenerator';
+  if (/depot|storage|tank|store|buffer|warehouse/.test(key)) return 'Storage';
+  if (/source|excavation|mine|generator|producer/.test(key) && ports.outputs.length) return 'Source';
+  if (/consumer|habitat|habitation|user|sink/.test(key) && ports.inputs.length && !ports.outputs.length) return 'Consumer';
+  if (ports.inputs.length && ports.outputs.length) return 'Processor';
+  if (ports.outputs.length) return 'Source';
+  if (ports.inputs.length) return 'Consumer';
+  return 'Passive';
+}
+
+function getModuleClass(moduleId) {
+  const baseId = getBaseModuleId(moduleId);
+  return up42Scenario.moduleClasses?.[baseId] || inferModuleClass(baseId);
+}
+
+function setModuleClass(moduleId, className) {
+  const baseId = getBaseModuleId(moduleId);
+  if (!SCENARIO_MODULE_CLASSES.includes(className)) return;
+  up42Scenario.moduleClasses = up42Scenario.moduleClasses || {};
+  up42Scenario.moduleClasses[baseId] = className;
+  renderSystems();
+  renderEquationModuleList();
+  updateUp42InfoCard();
+  renderScenarioValidation();
+}
+
 function isPowerGeneratorModule(moduleId) {
-  return getBaseModuleId(moduleId).toLowerCase().includes('power');
+  return getModuleClass(moduleId) === 'PowerGenerator';
 }
 
 function ensureScenarioPowerBoundaryEquations() {
@@ -6257,17 +6317,17 @@ function ensureScenarioPowerBoundaryEquations() {
 
 function getModuleEquationRequirements(moduleId) {
   const baseId = getBaseModuleId(moduleId);
-  const part = getSysmlPartData(baseId) || {};
-  const physicalPorts = [...new Set((Array.isArray(part.ports) ? part.ports : []).flatMap(port => {
-    const items = Array.isArray(port.items) ? port.items.filter(Boolean) : [];
-    return items.length ? items : [port.name || port.id].filter(Boolean);
-  }))];
-  const resourceOutputs = physicalPorts.filter(token => /Out$/i.test(token) && !/^PowerOut$/i.test(token));
-  const resourceInputs = physicalPorts.filter(token => /In$/i.test(token) && !/^PowerIn$/i.test(token));
-  const hasResourceProcess = (resourceOutputs.length > 0 && resourceInputs.length > 0) || isRoverNode(baseId);
-  const powerGenerator = isPowerGeneratorModule(baseId);
-  const required = resourceOutputs.map(output => ({ output, accepted:[output], kind:'resource', label:`${output} resource law` }));
-  if (hasResourceProcess) {
+  const moduleClass = getModuleClass(baseId);
+  const ports = getModuleResourcePorts(baseId);
+  const required = [];
+
+  if (['Source', 'Processor', 'Transporter'].includes(moduleClass)) {
+    ports.outputs.forEach(output => {
+      required.push({ output, accepted:[output], kind:'resource', label:`${output} resource law` });
+    });
+  }
+
+  if (moduleClass === 'Processor' || moduleClass === 'Transporter') {
     required.push({
       output: isRoverNode(getBaseModuleId(moduleId)) ? 'TravelTime' : 'ProcessingTime',
       accepted: [isRoverNode(getBaseModuleId(moduleId)) ? 'TravelTime' : 'ProcessingTime'],
@@ -6275,12 +6335,7 @@ function getModuleEquationRequirements(moduleId) {
       label: isRoverNode(getBaseModuleId(moduleId)) ? 'Travel time law' : 'Processing time law'
     });
   }
-  if (powerGenerator) {
-    required.push({ output:'PowerOut', accepted:['PowerOut','EnergyGenerated'], kind:'power', label:'Power generation law' });
-  } else {
-    required.push({ output:'PowerIn', accepted:['PowerIn','EnergyConsumed'], kind:'power', label:'Power consumption law' });
-  }
-  if (isRoverNode(baseId)) required.push({ output:'EnergyConsumed', accepted:['EnergyConsumed'], kind:'power', label:'Travel energy law' });
+
   return required;
 }
 
@@ -6303,6 +6358,27 @@ function setModuleEquationList(moduleId, equations) {
     .map(equation => String(equation || '').trim())
     .filter(Boolean)
     .join('\n');
+}
+
+function syncStep4PowerEquationsToStep5(moduleId) {
+  const powerEquations = getModuleEquationList(moduleId).filter(equation =>
+    /^(PowerIn|PowerOut|EnergyConsumed|EnergyGenerated)\s*=/i.test(equation)
+  ).filter(equation => {
+    const output = getEquationOutputName(equation);
+    const rhs = String(equation).split('=').slice(1).join('=').trim();
+    const isZeroBoundary = /^0(?:\.0+)?$/.test(rhs);
+    if (isZeroBoundary && output === 'PowerOut' && !isPowerGeneratorModule(moduleId)) return false;
+    if (isZeroBoundary && output === 'PowerIn' && isPowerGeneratorModule(moduleId)) return false;
+    return true;
+  });
+  const model = ensurePowerModel(moduleId);
+  if (powerEquations.length) {
+    model.mode = 'equation';
+    model.equation = powerEquations.join('\n');
+  } else if (model.mode === 'equation' && /^(PowerIn|PowerOut|EnergyConsumed|EnergyGenerated)\s*=/im.test(model.equation || '')) {
+    model.equation = '';
+  }
+  renderScenarioPowerModels();
 }
 
 function renderModuleEquationPanel(moduleId, groups) {
@@ -6331,7 +6407,7 @@ function renderModuleEquationPanel(moduleId, groups) {
       <button type="button" class="btn" title="Add equation" onclick="addModuleEquation('${safeModuleId}')"
         style="width:28px;height:28px;padding:0;border-color:var(--accent);color:var(--accent);font-size:16px;line-height:1;">+</button>
     </div>
-    <div style="font-size:9px;color:var(--text3);line-height:1.45;margin-bottom:8px;">Double-click an equation to edit it. Terminal outputs must affect a resource, processing time, or power.</div>
+    <div style="font-size:9px;color:var(--text3);line-height:1.45;margin-bottom:8px;">Double-click an equation to edit it. Resource and timing laws are checked here; power can also be configured in Step 5.</div>
     ${renderEquationRequirements(moduleId, equations)}
     ${bubbles || '<div style="padding:10px;border:1px dashed var(--border2);border-radius:8px;color:var(--text3);font-size:9px;text-align:center;">No equation defined.</div>'}
     ${editingNewEquation ? renderEquationBuilder(moduleId, groups, '', equations.length) : ''}
@@ -6386,6 +6462,7 @@ function saveModuleEquation(moduleId, equationIndex) {
     equations.splice(equationIndex, 1);
   }
   setModuleEquationList(moduleId, equations);
+  syncStep4PowerEquationsToStep5(moduleId);
   up42EquationEditorIndex = null;
   updateUp42InfoCard();
   renderEquationModuleList();
@@ -6427,6 +6504,7 @@ function removeModuleEquation(moduleId, equationIndex) {
   if (equationIndex < 0 || equationIndex >= equations.length) return;
   equations.splice(equationIndex, 1);
   setModuleEquationList(moduleId, equations);
+  syncStep4PowerEquationsToStep5(moduleId);
   up42EquationEditorModule = moduleId;
   up42EquationEditorIndex = null;
   updateUp42InfoCard();
@@ -6680,6 +6758,7 @@ function buildScenarioLogicPayload() {
     })),
     rover_counts: {...up42Scenario.roverCounts},
     rover_payloads_kg: {...(up42Scenario.roverPayloadsKg || {})},
+    module_classes: {...(up42Scenario.moduleClasses || {})},
     sysml_interfaces: up42Scenario.sysmlInterfaces,
     transport_links: up42Scenario.transportLinks,
     resource_routes: (up42Scenario.resourceRoutes || []).map(route => ({
@@ -8734,12 +8813,14 @@ let up42MoonImg = null;
     const svgLayer  = document.getElementById('linkLayer');
     if (!container || !svgLayer) return;
 
+    const graphData = data?.raw_active_nodes ? data : buildOperationsGraphDisplayData(data || {});
+
     container.querySelectorAll('.node').forEach(n => n.remove());
     svgLayer.innerHTML = '<defs></defs>';
     const defs = svgLayer.querySelector('defs');
 
-    const nodes = data.active_nodes || [];
-    const conns = normalizeSysmlConnections(data.connections || [], nodes);
+    const nodes = graphData.active_nodes || [];
+    const conns = normalizeSysmlConnections(graphData.connections || [], nodes);
 
     const cW = container.offsetWidth || 700;
     const cH = container.offsetHeight || 470;
