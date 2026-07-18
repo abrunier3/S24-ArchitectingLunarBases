@@ -2338,15 +2338,16 @@ function toggleSystem(id) {
   };
   if (baseGraphData) {
     const filtered = buildActiveGraphDataFromSystems(baseGraphData);
+    const visibleGraphData = buildOperationsGraphDisplayData(filtered);
     window._currentGraphData = filtered;
-    renderLiveGraph(filtered);
+    renderLiveGraph(visibleGraphData);
     if (typeof populateStep3 === 'function') {
       populateStep3(filtered, { preferredModule: currentModuleName });
     }
     const caption = document.getElementById('opsCaption');
     if (caption) {
       caption.textContent = filtered.active_nodes?.length
-        ? `[Live - SysML] ${filtered.active_nodes.length} active nodes · ${filtered.connections?.length ?? 0} connections.`
+        ? `[Live - SysML] ${visibleGraphData.active_nodes.length} visible nodes · ${visibleGraphData.connections.length} visible connections.`
         : 'No active nodes returned from pipeline.';
     }
   }
@@ -5453,6 +5454,51 @@ function renderConfiguredResourceRoutes() {
   }
 }
 
+function ensureDefaultResourceRoutesFromTransportLinks() {
+  if (currentScenarioMode === 'isru') return;
+
+  const definitions = getRoverFlowDefinitions();
+  const routes = up42Scenario.resourceRoutes || (up42Scenario.resourceRoutes = []);
+
+  definitions.forEach(definition => {
+    const roverIds = getRoverIdsForFlow(definition.flow);
+    if (!roverIds.length) return;
+
+    const candidateMap = new Map();
+    (up42Scenario.transportLinks || [])
+      .filter(link => String(link.flow || '').toLowerCase() === definition.key)
+      .forEach(link => {
+        (link.from_instances || []).forEach(from => {
+          (link.to_instances || []).forEach(to => {
+            if (!from || !to || from === to) return;
+            candidateMap.set(`${from}:${to}`, { from, to });
+          });
+        });
+      });
+
+    const candidates = [...candidateMap.values()];
+    if (!candidates.length) return;
+
+    roverIds.forEach((roverId, index) => {
+      const existing = routes.find(route =>
+        String(route.flow || '').toLowerCase() === definition.key &&
+        route.rover_id === roverId
+      );
+      if (existing) return;
+
+      const candidate = candidates[index % candidates.length];
+      addScenarioResourceRoute(
+        definition.flow,
+        candidate.from,
+        candidate.to,
+        [],
+        roverId,
+        true
+      );
+    });
+  });
+}
+
 function reconcileRoutesWithRoverCounts() {
   const definitions = getRoverFlowDefinitions();
   const allowedByFlow = new Map(definitions.map(definition => [
@@ -6011,6 +6057,9 @@ function syncScenarioInterfacesFromSysML() {
       to_instances: getPlacedInstancesForBase(conn.toName)
     }));
   up42Scenario.transportLinks = buildTransportLinksFromConnections(connections, fixedTypes);
+  ensureDefaultResourceRoutesFromTransportLinks();
+  reconcileRoutesWithRoverCounts();
+  refreshScenarioResourceRoutePaths();
   ensureScenarioPowerBoundaryEquations();
 
   renderSysmlInterfaceList();
@@ -8373,13 +8422,15 @@ let up42MoonImg = null;
     syncSystemsFromGraphData(data);
     const graphNodes = getGraphActiveNodeList(data);
     const resolvedConnections = normalizeSysmlConnections(data.connections || [], graphNodes);
-    const visibleNodeCount = graphNodes.length;
-    const visibleGraphData = {
+    const fullGraphData = {
       ...data,
       parts: sysmlPartsCache,
       active_nodes: graphNodes,
       connections: resolvedConnections
     };
+    const visibleGraphData = buildOperationsGraphDisplayData(fullGraphData);
+    const visibleNodeCount = visibleGraphData.active_nodes.length;
+    const visibleConnectionCount = visibleGraphData.connections.length;
 
     const btn = document.getElementById('runGraphBtn');
     if (btn) {
@@ -8390,24 +8441,24 @@ let up42MoonImg = null;
     const activeSysEl = document.getElementById('activeSystemsMetric');
     const edgesEl = document.getElementById('networkEdgesMetric');
     if (activeSysEl) activeSysEl.textContent = visibleNodeCount || '—';
-    if (edgesEl) edgesEl.textContent = resolvedConnections.length ?? '—';
+    if (edgesEl) edgesEl.textContent = visibleConnectionCount ?? '—';
 
     const caption = document.getElementById('opsCaption');
     if (caption) {
       caption.textContent = graphNodes.length
-        ? `[Live - SysML] ${visibleNodeCount} active nodes · ${resolvedConnections.length} connections.`
+        ? `[Live - SysML] ${visibleNodeCount} visible nodes · ${visibleConnectionCount} visible connections.`
         : 'No active nodes returned from pipeline.';
     }
 
     setGraphStatus(
-      `${visibleNodeCount} nodes · ${resolvedConnections.length} connections - live data from SysML`,
+      `${visibleNodeCount} visible nodes · ${visibleConnectionCount} visible connections - live data from SysML`,
       '#7ee0b1'
     );
 
     window._lastGraphData = data;
-    window._currentGraphData = visibleGraphData;
+    window._currentGraphData = fullGraphData;
     renderLiveGraph(visibleGraphData);
-    if (data.parts) populateStep3(visibleGraphData);
+    if (data.parts) populateStep3(fullGraphData);
     renderSystems();
     buildAssemblyTreeFromActiveSystems();
     renderUp42ModuleList();
@@ -8528,6 +8579,70 @@ let up42MoonImg = null;
     });
 
     return normalized;
+  }
+
+  function buildOperationsGraphDisplayData(data = {}) {
+    const rawNodes = getGraphActiveNodeList(data);
+    const visibleNodes = rawNodes.filter(name => !isRoverNode(name));
+    const visibleSet = new Set(visibleNodes);
+    const normalized = normalizeSysmlConnections(data.connections || [], rawNodes);
+    const transporters = new Set(rawNodes.filter(name => isRoverNode(name)));
+    const dedupe = new Set();
+    const visibleConnections = [];
+
+    const pushVisibleConnection = conn => {
+      if (!conn?.fromName || !conn?.toName || conn.fromName === conn.toName) return;
+      if (!visibleSet.has(conn.fromName) || !visibleSet.has(conn.toName)) return;
+      const flow = conn.flow || 'Interface';
+      const key = `${conn.fromName}::${conn.toName}::${flow}`;
+      if (dedupe.has(key)) return;
+      dedupe.add(key);
+      visibleConnections.push({ ...conn, flow });
+    };
+
+    normalized.forEach(conn => {
+      if (transporters.has(conn.fromName) || transporters.has(conn.toName)) return;
+      pushVisibleConnection(conn);
+    });
+
+    transporters.forEach(roverName => {
+      const incoming = normalized.filter(conn =>
+        conn.toName === roverName &&
+        visibleSet.has(conn.fromName)
+      );
+      const outgoing = normalized.filter(conn =>
+        conn.fromName === roverName &&
+        visibleSet.has(conn.toName)
+      );
+
+      incoming.forEach(sourceConn => {
+        const sourceFlow = String(sourceConn.flow || '').toLowerCase();
+        const matchingOutgoing = outgoing.filter(targetConn => {
+          const targetFlow = String(targetConn.flow || '').toLowerCase();
+          return !sourceFlow || !targetFlow || sourceFlow === targetFlow;
+        });
+
+        (matchingOutgoing.length ? matchingOutgoing : outgoing).forEach(targetConn => {
+          pushVisibleConnection({
+            ...targetConn,
+            id: `${sourceConn.id || sourceConn.name || sourceConn.fromName}_${targetConn.id || targetConn.name || targetConn.toName}`,
+            name: `${sourceConn.name || sourceConn.fromName} via ${roverName} to ${targetConn.name || targetConn.toName}`,
+            fromName: sourceConn.fromName,
+            toName: targetConn.toName,
+            flow: targetConn.flow || sourceConn.flow || 'Transport',
+            viaTransporter: roverName
+          });
+        });
+      });
+    });
+
+    return {
+      ...data,
+      active_nodes: visibleNodes,
+      connections: visibleConnections,
+      raw_active_nodes: rawNodes,
+      raw_connections: normalized
+    };
   }
 
   function computeLiveGraphLayout(nodeNames, conns, cW, cH, nodeW, nodeH) {
