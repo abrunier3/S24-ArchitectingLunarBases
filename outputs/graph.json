@@ -1,63 +1,117 @@
 {
-  "written_at": 1784479118197,
-  "scenario_name": "Cargo_Relay_Test",
-  "scenario_slug": "Cargo_Relay_Test",
-  "sysml_file": "clean_database/sysml/Cargo_Relay_Test.sysml",
+  "written_at": 1784479465217,
+  "scenario_name": "Ice_Processing_Test",
+  "scenario_slug": "Ice_Processing_Test",
+  "sysml_file": "clean_database/sysml/Ice_Processing_Test.sysml",
   "active_nodes": [
-    "CargoSource",
-    "CargoRover",
-    "ForwardDepot",
-    "HabitatConsumer"
+    "IceExtractor",
+    "IceRover",
+    "WaterProcessor",
+    "WaterRover",
+    "WaterTank",
+    "SolarPowerSystem"
   ],
-  "active_nodes_count": 4,
+  "active_nodes_count": 6,
   "connections": [
     {
-      "name": "SourceToRover",
-      "type": "CargoMovement",
-      "flow": "Cargo",
+      "name": "ExtractorToIceRover",
+      "type": "IceMovement",
+      "flow": "Ice",
       "from": {
-        "part": "CargoSource",
-        "port": "CargoSource_CargoPortOut"
+        "part": "IceExtractor",
+        "port": "IceExtractor_IcePortOut"
       },
       "to": {
-        "part": "CargoRover",
-        "port": "CargoRover_CargoPortInOut"
+        "part": "IceRover",
+        "port": "IceRover_IcePortInOut"
       }
     },
     {
-      "name": "RoverToForwardDepot",
-      "type": "CargoMovement",
-      "flow": "Cargo",
+      "name": "IceRoverToProcessor",
+      "type": "IceMovement",
+      "flow": "Ice",
       "from": {
-        "part": "CargoRover",
-        "port": "CargoRover_CargoPortInOut"
+        "part": "IceRover",
+        "port": "IceRover_IcePortInOut"
       },
       "to": {
-        "part": "ForwardDepot",
-        "port": "ForwardDepot_CargoPortInOut"
+        "part": "WaterProcessor",
+        "port": "WaterProcessor_IcePortIn"
       }
     },
     {
-      "name": "ForwardDepotToHabitat",
-      "type": "CargoMovement",
-      "flow": "Cargo",
+      "name": "ProcessorToWaterRover",
+      "type": "WaterMovement",
+      "flow": "Water",
       "from": {
-        "part": "ForwardDepot",
-        "port": "ForwardDepot_CargoPortInOut"
+        "part": "WaterProcessor",
+        "port": "WaterProcessor_WaterPortOut"
       },
       "to": {
-        "part": "HabitatConsumer",
-        "port": "Habitat_CargoPortIn"
+        "part": "WaterRover",
+        "port": "WaterRover_WaterPortInOut"
+      }
+    },
+    {
+      "name": "WaterRoverToTank",
+      "type": "WaterMovement",
+      "flow": "Water",
+      "from": {
+        "part": "WaterRover",
+        "port": "WaterRover_WaterPortInOut"
+      },
+      "to": {
+        "part": "WaterTank",
+        "port": "WaterTank_WaterPortIn"
+      }
+    },
+    {
+      "name": "SolarToExtractor",
+      "type": "PowerMovement",
+      "flow": "Power",
+      "from": {
+        "part": "SolarPowerSystem",
+        "port": "Solar_ExtractorPowerOut"
+      },
+      "to": {
+        "part": "IceExtractor",
+        "port": "IceExtractor_PowerPortIn"
+      }
+    },
+    {
+      "name": "SolarToProcessor",
+      "type": "PowerMovement",
+      "flow": "Power",
+      "from": {
+        "part": "SolarPowerSystem",
+        "port": "Solar_ProcessorPowerOut"
+      },
+      "to": {
+        "part": "WaterProcessor",
+        "port": "WaterProcessor_PowerPortIn"
+      }
+    },
+    {
+      "name": "SolarToTank",
+      "type": "PowerMovement",
+      "flow": "Power",
+      "from": {
+        "part": "SolarPowerSystem",
+        "port": "Solar_TankPowerOut"
+      },
+      "to": {
+        "part": "WaterTank",
+        "port": "WaterTank_PowerPortIn"
       }
     }
   ],
   "parts": {
-    "CargoSource": {
-      "id": "urn:S24_PIPELINE:part:CargoSource:001",
+    "IceExtractor": {
+      "id": "urn:S24_PIPELINE:part:IceExtractor:001",
       "type": "Part",
       "dimensions": {
         "size_m": {
-          "length": 6.0,
+          "length": 8.0,
           "width": 6.0,
           "height": 4.0
         },
@@ -77,24 +131,33 @@
         ]
       },
       "attributes": {
-        "supplyRate": 12.0
+        "extractionRate": 15.0
       },
       "materialRef": null,
       "ports": [
         {
-          "name": "CargoSource_CargoPortOut",
+          "name": "IceExtractor_IcePortOut",
           "direction": [
             "out"
           ],
           "items": [
-            "CargoOut"
+            "IceOut"
+          ]
+        },
+        {
+          "name": "IceExtractor_PowerPortIn",
+          "direction": [
+            "in"
+          ],
+          "items": [
+            "PowerIn"
           ]
         }
       ],
       "metadata": {}
     },
-    "CargoRover": {
-      "id": "urn:S24_PIPELINE:part:CargoRover:001",
+    "IceRover": {
+      "id": "urn:S24_PIPELINE:part:IceRover:001",
       "type": "Part",
       "dimensions": {
         "size_m": {
@@ -118,71 +181,28 @@
         ]
       },
       "attributes": {
-        "maxCapacity": 8.0,
-        "hoursPerKm": 0.75,
-        "energyPerKmPerKg": 0.008
+        "maxCapacity": 10.0,
+        "hoursPerKm": 0.5,
+        "energyPerKmPerKg": 0.01
       },
       "materialRef": null,
       "ports": [
         {
-          "name": "CargoRover_CargoPortInOut",
+          "name": "IceRover_IcePortInOut",
           "direction": [
             "in",
             "out"
           ],
           "items": [
-            "CargoIn",
-            "CargoOut"
+            "IceIn",
+            "IceOut"
           ]
         }
       ],
       "metadata": {}
     },
-    "ForwardDepot": {
-      "id": "urn:S24_PIPELINE:part:ForwardDepot:001",
-      "type": "Part",
-      "dimensions": {
-        "size_m": {
-          "length": 5.0,
-          "width": 5.0,
-          "height": 3.0
-        },
-        "metersPerUnit": 1,
-        "upAxis": "Z"
-      },
-      "transform": {
-        "position_m": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "rotation_deg": [
-          0.0,
-          0.0,
-          0.0
-        ]
-      },
-      "attributes": {
-        "storageCapacity": 100.0
-      },
-      "materialRef": null,
-      "ports": [
-        {
-          "name": "ForwardDepot_CargoPortInOut",
-          "direction": [
-            "in",
-            "out"
-          ],
-          "items": [
-            "CargoIn",
-            "CargoOut"
-          ]
-        }
-      ],
-      "metadata": {}
-    },
-    "HabitatConsumer": {
-      "id": "urn:S24_PIPELINE:part:HabitatConsumer:001",
+    "WaterProcessor": {
+      "id": "urn:S24_PIPELINE:part:WaterProcessor:001",
       "type": "Part",
       "dimensions": {
         "size_m": {
@@ -205,16 +225,193 @@
           0.0
         ]
       },
-      "attributes": {},
+      "attributes": {
+        "conversionEfficiency": 0.8,
+        "processingRate": 10.0
+      },
       "materialRef": null,
       "ports": [
         {
-          "name": "Habitat_CargoPortIn",
+          "name": "WaterProcessor_IcePortIn",
           "direction": [
             "in"
           ],
           "items": [
-            "CargoIn"
+            "IceIn"
+          ]
+        },
+        {
+          "name": "WaterProcessor_WaterPortOut",
+          "direction": [
+            "out"
+          ],
+          "items": [
+            "WaterOut"
+          ]
+        },
+        {
+          "name": "WaterProcessor_PowerPortIn",
+          "direction": [
+            "in"
+          ],
+          "items": [
+            "PowerIn"
+          ]
+        }
+      ],
+      "metadata": {}
+    },
+    "WaterRover": {
+      "id": "urn:S24_PIPELINE:part:WaterRover:001",
+      "type": "Part",
+      "dimensions": {
+        "size_m": {
+          "length": 4.0,
+          "width": 2.5,
+          "height": 2.0
+        },
+        "metersPerUnit": 1,
+        "upAxis": "Z"
+      },
+      "transform": {
+        "position_m": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_deg": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "attributes": {
+        "maxCapacity": 10.0,
+        "hoursPerKm": 0.5,
+        "energyPerKmPerKg": 0.01
+      },
+      "materialRef": null,
+      "ports": [
+        {
+          "name": "WaterRover_WaterPortInOut",
+          "direction": [
+            "in",
+            "out"
+          ],
+          "items": [
+            "WaterIn",
+            "WaterOut"
+          ]
+        }
+      ],
+      "metadata": {}
+    },
+    "WaterTank": {
+      "id": "urn:S24_PIPELINE:part:WaterTank:001",
+      "type": "Part",
+      "dimensions": {
+        "size_m": {
+          "length": 5.0,
+          "width": 5.0,
+          "height": 5.0
+        },
+        "metersPerUnit": 1,
+        "upAxis": "Z"
+      },
+      "transform": {
+        "position_m": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_deg": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "attributes": {
+        "storageCapacity": 500.0
+      },
+      "materialRef": null,
+      "ports": [
+        {
+          "name": "WaterTank_WaterPortIn",
+          "direction": [
+            "in"
+          ],
+          "items": [
+            "WaterIn"
+          ]
+        },
+        {
+          "name": "WaterTank_PowerPortIn",
+          "direction": [
+            "in"
+          ],
+          "items": [
+            "PowerIn"
+          ]
+        }
+      ],
+      "metadata": {}
+    },
+    "SolarPowerSystem": {
+      "id": "urn:S24_PIPELINE:part:SolarPowerSystem:001",
+      "type": "Part",
+      "dimensions": {
+        "size_m": {
+          "length": 12.0,
+          "width": 10.0,
+          "height": 2.0
+        },
+        "metersPerUnit": 1,
+        "upAxis": "Z"
+      },
+      "transform": {
+        "position_m": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_deg": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "attributes": {
+        "powerOutput": 100.0,
+        "batteryCapacity": 200.0,
+        "batteryCharge": 200.0
+      },
+      "materialRef": null,
+      "ports": [
+        {
+          "name": "Solar_ExtractorPowerOut",
+          "direction": [
+            "out"
+          ],
+          "items": [
+            "PowerOut"
+          ]
+        },
+        {
+          "name": "Solar_ProcessorPowerOut",
+          "direction": [
+            "out"
+          ],
+          "items": [
+            "PowerOut"
+          ]
+        },
+        {
+          "name": "Solar_TankPowerOut",
+          "direction": [
+            "out"
+          ],
+          "items": [
+            "PowerOut"
           ]
         }
       ],
