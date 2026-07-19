@@ -354,6 +354,10 @@ def validate_generic_scenario(options, raise_error=True, asset_root=ASSET_ROOT):
                 f"[INFO] {module.instance_id} uses additive storage when no ResourceStored equation is defined."
             )
 
+    power_ignored = bool(blueprint.power_config.get("ignore_power"))
+    if power_ignored:
+        messages.append("[INFO] Energy-Unconstrained Mode: power demand and supply are ignored.")
+
     config = load_scenario_config(options)
     builder = config.get("scenario_builder", {})
     for rover_id, assigned_routes in rover_routes.items():
@@ -385,13 +389,13 @@ def validate_generic_scenario(options, raise_error=True, asset_root=ASSET_ROOT):
                 messages.append(f"[ERROR] {rover_id} must define {flow}Out.")
         if "TravelTime" not in outputs:
             messages.append(f"[ERROR] {rover_id} must define TravelTime.")
-        if "EnergyConsumed" not in outputs:
+        if not power_ignored and "EnergyConsumed" not in outputs:
             messages.append(f"[WARNING] {rover_id} uses the default rover energy law.")
         rover_model = blueprint.power_config.get("module_models", {}).get(
             rover_id,
             blueprint.power_config.get("module_models", {}).get(rover_type, {}),
         )
-        if rover_model.get("mode") == "equation":
+        if not power_ignored and rover_model.get("mode") == "equation":
             _append_equation_errors(
                 messages,
                 f"{rover_id} power model",
@@ -400,52 +404,53 @@ def validate_generic_scenario(options, raise_error=True, asset_root=ASSET_ROOT):
                 {"PowerIn", "EnergyConsumed"},
             )
 
-    incoming_power = set()
-    outgoing_power = set()
-    for link in blueprint.power_links:
-        if "power" not in str(link.get("flow") or "").lower():
-            continue
-        incoming_power.update(link.get("to_instances") or ())
-        outgoing_power.update(link.get("from_instances") or ())
-    power_models = blueprint.power_config.get("module_models", {})
-    for module in blueprint.modules.values():
-        outputs = set()
-        try:
-            outputs = get_equation_contract(module.equations)["outputs"]
-        except ScenarioEquationError:
-            pass
-        model = power_models.get(
-            module.instance_id, power_models.get(module.module_type, {})
-        )
-        if model.get("mode") == "equation":
-            _append_equation_errors(
-                messages,
-                f"{module.instance_id} power model",
-                model.get("equation", ""),
-                _module_equation_inputs(module),
-                {"PowerIn", "EnergyConsumed"},
+    if not power_ignored:
+        incoming_power = set()
+        outgoing_power = set()
+        for link in blueprint.power_links:
+            if "power" not in str(link.get("flow") or "").lower():
+                continue
+            incoming_power.update(link.get("to_instances") or ())
+            outgoing_power.update(link.get("from_instances") or ())
+        power_models = blueprint.power_config.get("module_models", {})
+        for module in blueprint.modules.values():
+            outputs = set()
+            try:
+                outputs = get_equation_contract(module.equations)["outputs"]
+            except ScenarioEquationError:
+                pass
+            model = power_models.get(
+                module.instance_id, power_models.get(module.module_type, {})
             )
-        elif model.get("mode") == "profile":
-            points = model.get("points") or []
-            times = [float(point.get("time_hr", 0.0)) for point in points]
-            if len(points) < 2 or times != sorted(times):
-                messages.append(
-                    f"[ERROR] {module.instance_id} power profile requires at least two time-ordered points."
+            if model.get("mode") == "equation":
+                _append_equation_errors(
+                    messages,
+                    f"{module.instance_id} power model",
+                    model.get("equation", ""),
+                    _module_equation_inputs(module),
+                    {"PowerIn", "EnergyConsumed"},
                 )
-        elif float(model.get("average_kw", 0.0) or 0.0) < 0:
-            messages.append(
-                f"[ERROR] {module.instance_id} average power demand cannot be negative."
+            elif model.get("mode") == "profile":
+                points = model.get("points") or []
+                times = [float(point.get("time_hr", 0.0)) for point in points]
+                if len(points) < 2 or times != sorted(times):
+                    messages.append(
+                        f"[ERROR] {module.instance_id} power profile requires at least two time-ordered points."
+                    )
+            elif float(model.get("average_kw", 0.0) or 0.0) < 0:
+                messages.append(
+                    f"[ERROR] {module.instance_id} average power demand cannot be negative."
+                )
+            has_demand = (
+                "PowerIn" in outputs
+                or "EnergyConsumed" in outputs
+                or float(model.get("average_kw", 0.0) or 0.0) > 0
+                or model.get("mode") in {"profile", "equation"}
             )
-        has_demand = (
-            "PowerIn" in outputs
-            or "EnergyConsumed" in outputs
-            or float(model.get("average_kw", 0.0) or 0.0) > 0
-            or model.get("mode") in {"profile", "equation"}
-        )
-        if module.role != "generator" and has_demand and module.instance_id not in incoming_power:
-            messages.append(f"[ERROR] {module.instance_id} consumes power but has no incoming power interface.")
-        if module.role == "generator" and module.instance_id not in outgoing_power:
-            messages.append(f"[WARNING] {module.instance_id} has no outgoing power interface.")
+            if module.role != "generator" and has_demand and module.instance_id not in incoming_power:
+                messages.append(f"[ERROR] {module.instance_id} consumes power but has no incoming power interface.")
+            if module.role == "generator" and module.instance_id not in outgoing_power:
+                messages.append(f"[WARNING] {module.instance_id} has no outgoing power interface.")
 
     errors = [message for message in messages if message.startswith("[ERROR]")]
     if errors and raise_error:
@@ -944,8 +949,26 @@ def run_generic_scenario(
         rovers[rover_id] = rover
         env.process(rover.run_routes(routes, modules))
 
-    power = GenericPowerRuntime(env, blueprint, modules, rovers)
-    env.process(power.run())
+    power_ignored = bool(blueprint.power_config.get("ignore_power"))
+    power = None if power_ignored else GenericPowerRuntime(env, blueprint, modules, rovers)
+    if power is not None:
+        env.process(power.run())
+
+    def power_snapshot():
+        if power is not None:
+            return power.snapshot()
+        return {
+            "Mode": "Energy-Unconstrained",
+            "Power_Ignored": True,
+            "Total_Generated_kWh": 0.0,
+            "Total_Demand_kWh": 0.0,
+            "Unserved_Energy_kWh": 0.0,
+            "Battery_Charge_kWh": None,
+            "Battery_Capacity_kWh": None,
+            "Energy_Generated_Time_Array_kWh": [],
+            "Total_Demand_Time_Array_kWh": [],
+        }
+
     log = {}
 
     def snapshot_logger():
@@ -953,7 +976,7 @@ def run_generic_scenario(
             log[str(round(env.now, 6))] = {
                 **{module_id: module.snapshot() for module_id, module in modules.items()},
                 **{rover_id: rover.snapshot() for rover_id, rover in rovers.items()},
-                "Power_Manager": power.snapshot(),
+                "Power_Manager": power_snapshot(),
             }
             yield env.timeout(1.0)
 
@@ -962,7 +985,7 @@ def run_generic_scenario(
     log[str(round(blueprint.duration_hr, 6))] = {
         **{module_id: module.snapshot() for module_id, module in modules.items()},
         **{rover_id: rover.snapshot() for rover_id, rover in rovers.items()},
-        "Power_Manager": power.snapshot(),
+        "Power_Manager": power_snapshot(),
     }
 
     route_totals = defaultdict(float)
@@ -1000,15 +1023,15 @@ def run_generic_scenario(
             }
             for flow, amount in flow_totals.items()
         },
-        "Power": power.snapshot(),
+        "Power": power_snapshot(),
         "MoEs": {
             "Total_Resource_Transported": round(sum(flow_totals.values()), 6),
             "Total_Resource_Delivered_To_Terminals": round(
                 sum(terminal_totals.values()), 6
             ),
-            "Total_System_Demand_kWh": round(power.total_demand_kwh, 6),
-            "Total_Energy_Generated_kWh": round(power.total_generated_kwh, 6),
-            "Unserved_Energy_kWh": round(power.unserved_energy_kwh, 6),
+            "Total_System_Demand_kWh": 0.0 if power is None else round(power.total_demand_kwh, 6),
+            "Total_Energy_Generated_kWh": 0.0 if power is None else round(power.total_generated_kwh, 6),
+            "Unserved_Energy_kWh": 0.0 if power is None else round(power.unserved_energy_kwh, 6),
             "Total_Transport_Distance_km": round(
                 sum(rover.distance_km for rover in rovers.values()), 6
             ),

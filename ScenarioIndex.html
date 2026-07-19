@@ -1908,6 +1908,7 @@
               ▶ Run Graph
             </button>
             <div id="graphStatus" style="font-size:12px; color:var(--text2); line-height:1.5;"></div>
+            <div id="powerModeStatus" style="font-size:10px;color:var(--text3);line-height:1.45;"></div>
           </div>
 
         </div>
@@ -2268,6 +2269,7 @@ function buildAssemblyTreeFromActiveSystems() {
 
     if (systems.length === 0) {
       wrap.innerHTML = '<div style="color:var(--text3);font-size:12px;padding:12px 0;">Run Graph to load modules from SysML.</div>';
+      updatePowerModeStatus();
       return;
     }
 
@@ -2304,6 +2306,7 @@ function buildAssemblyTreeFromActiveSystems() {
     if (typeof renderScenarioPowerModels === 'function') {
       renderScenarioPowerModels();
     }
+    updatePowerModeStatus();
     updateTopMetrics();
   }
 
@@ -2320,6 +2323,7 @@ function buildActiveGraphDataFromSystems(baseData = window._lastGraphData || {})
   const normalized = normalizeSysmlConnections(baseData.connections || [], baseGraphNodes);
   const activeNodes = baseGraphNodes.filter(n => activeIds.has(n));
   const transportedFlows = activeTransportedFlowKeys(activeIds);
+  const ignorePower = isPowerIgnored();
 
   return {
     ...baseData,
@@ -2327,6 +2331,7 @@ function buildActiveGraphDataFromSystems(baseData = window._lastGraphData || {})
     active_nodes: activeNodes,
     connections: normalized.filter(c => {
       if (!activeIds.has(c.fromName) || !activeIds.has(c.toName)) return false;
+      if (ignorePower && isPowerFlow(c.flow)) return false;
       if (isMaterialFlow(c.flow) && !transportedFlows.has(String(c.flow || '').toLowerCase())) {
         return false;
       }
@@ -2366,6 +2371,33 @@ function refreshOperationsGraphFromActiveSystems(options = {}) {
       : 'No active nodes returned from pipeline.';
   }
   return { filtered, visibleGraphData };
+}
+
+function getActivePowerGenerationSystems() {
+  return systems.filter(system => system.active && getModuleClass(system.id) === 'PowerGenerator');
+}
+
+function isPowerIgnored() {
+  return systems.length > 0 && getActivePowerGenerationSystems().length === 0;
+}
+
+function getPowerModeLabel() {
+  return isPowerIgnored() ? 'Energy-Unconstrained Mode' : 'Power-Constrained Mode';
+}
+
+function updatePowerModeStatus() {
+  const el = document.getElementById('powerModeStatus');
+  if (!el) return;
+  if (!systems.length) {
+    el.textContent = '';
+    return;
+  }
+  if (isPowerIgnored()) {
+    el.innerHTML = '<b style="color:#ffd166;">Energy-Unconstrained Mode</b> · no active power-generation asset; DES ignores power demand and supply.';
+  } else {
+    const names = getActivePowerGenerationSystems().map(system => escapeHtml(system.name || system.id)).join(', ');
+    el.innerHTML = `<b style="color:#7ee0b1;">Power-Constrained Mode</b> · active generator: ${names}.`;
+  }
 }
 
 function toggleSystem(id) {
@@ -6140,6 +6172,7 @@ function syncScenarioInterfacesFromSysML() {
   up42Scenario.transportLinks = transportLinks;
   up42Scenario.sysmlInterfaces = connections
     .filter(conn => !String(conn.flow || '').toLowerCase().includes('com'))
+    .filter(conn => !(isPowerIgnored() && isPowerFlow(conn.flow)))
     .filter(conn => !isTransporterModule(conn.fromName) && !isTransporterModule(conn.toName))
     .filter(conn => !(
       isMaterialFlow(conn.flow) &&
@@ -6542,6 +6575,7 @@ function setModuleEquationList(moduleId, equations) {
 }
 
 function syncStep4PowerEquationsToStep5(moduleId) {
+  if (isPowerIgnored()) return;
   const powerEquations = getModuleEquationList(moduleId).filter(equation =>
     /^(PowerIn|PowerOut|EnergyConsumed|EnergyGenerated)\s*=/i.test(equation)
   ).filter(equation => {
@@ -6588,7 +6622,7 @@ function renderModuleEquationPanel(moduleId, groups) {
       <button type="button" class="btn" title="Add equation" onclick="addModuleEquation('${safeModuleId}')"
         style="width:28px;height:28px;padding:0;border-color:var(--accent);color:var(--accent);font-size:16px;line-height:1;">+</button>
     </div>
-    <div style="font-size:9px;color:var(--text3);line-height:1.45;margin-bottom:8px;">Double-click an equation to edit it. Resource and timing laws are checked here; power can also be configured in Step 5.</div>
+    <div style="font-size:9px;color:var(--text3);line-height:1.45;margin-bottom:8px;">Double-click an equation to edit it. Resource and timing laws are checked here; ${isPowerIgnored() ? 'power is ignored in Energy-Unconstrained Mode.' : 'power can also be configured in Step 5.'}</div>
     ${renderEquationRequirements(moduleId, equations)}
     ${bubbles || '<div style="padding:10px;border:1px dashed var(--border2);border-radius:8px;color:var(--text3);font-size:9px;text-align:center;">No equation defined.</div>'}
     ${editingNewEquation ? renderEquationBuilder(moduleId, groups, '', equations.length) : ''}
@@ -6927,6 +6961,8 @@ function buildScenarioLogicPayload() {
     rover_counts: {...up42Scenario.roverCounts},
     rover_payloads_kg: {...(up42Scenario.roverPayloadsKg || {})},
     module_classes: {...(up42Scenario.moduleClasses || {})},
+    power_mode: isPowerIgnored() ? 'energy_unconstrained' : 'power_constrained',
+    ignore_power: isPowerIgnored(),
     sysml_interfaces: up42Scenario.sysmlInterfaces,
     transport_links: up42Scenario.transportLinks,
     resource_routes: (up42Scenario.resourceRoutes || []).map(route => ({
@@ -6951,18 +6987,21 @@ function getScenarioValidationMessages() {
   const powered = new Set((up42Scenario.sysmlInterfaces || [])
     .filter(link => String(link.flow || '').toLowerCase().includes('power'))
     .flatMap(link => link.to_instances || []));
-  const powerSources = placedIds.filter(id => getBaseModuleId(id).toLowerCase().includes('solar') || getBaseModuleId(id).toLowerCase().includes('power'));
   const equationModules = Object.entries(up42Scenario.moduleEquations || {})
     .filter(([, equations]) => splitModuleEquations(equations).length)
     .map(([moduleId]) => moduleId);
   const warnings = [];
   const errors = [];
+  const infos = [];
+  const ignorePower = isPowerIgnored();
 
   if (missingPlacements.length) errors.push(`Missing placement: ${missingPlacements.join(', ')}`);
-  if (!powerSources.length) warnings.push('No placed power generation asset detected.');
+  if (ignorePower) {
+    infos.push('Energy-Unconstrained Mode: no active power-generation asset detected, so DES treats energy as unlimited and ignores power interfaces, power demand, and power supply.');
+  }
   placedIds.forEach(id => {
     const base = getBaseModuleId(id).toLowerCase();
-    if (!base.includes('solar') && !base.includes('power') && !powered.has(id)) warnings.push(`${id} has no incoming power link.`);
+    if (!ignorePower && !base.includes('solar') && !base.includes('power') && !powered.has(id)) warnings.push(`${id} has no incoming power link.`);
     const outputs = new Set(getModuleEquationList(id).map(getEquationOutputName).filter(Boolean));
     getModuleEquationRequirements(id).forEach(requirement => {
       if (!(requirement.accepted || [requirement.output]).some(output => outputs.has(output))) {
@@ -7009,14 +7048,14 @@ function getScenarioValidationMessages() {
     );
   });
 
-  return { errors, warnings };
+  return { errors, warnings, infos };
 }
 
 function renderScenarioValidation() {
   if (up42Phase !== 'validate') return;
   const card = document.getElementById('up42InfoCard');
   if (!card) return;
-  const { errors, warnings } = getScenarioValidationMessages();
+  const { errors, warnings, infos } = getScenarioValidationMessages();
   const ok = !errors.length;
   card.innerHTML = `
     <div style="font-size:13px;font-weight:800;color:${ok ? '#00ff9d' : '#ff7a8a'};margin-bottom:8px;">Scenario Validation</div>
@@ -7029,6 +7068,7 @@ function renderScenarioValidation() {
         Modules with equations: <b style="color:var(--text1);">${Object.values(up42Scenario.moduleEquations || {}).filter(equations => splitModuleEquations(equations).length).length}</b>
       </div>
     </div>
+    ${infos.length ? `<div style="font-size:10px;color:#7ee0b1;line-height:1.5;margin-bottom:8px;">${infos.map(info => `• ${info}`).join('<br>')}</div>` : ''}
     ${errors.length ? `<div style="font-size:10px;color:#ff7a8a;line-height:1.5;margin-bottom:8px;">${errors.map(e => `• ${e}`).join('<br>')}</div>` : ''}
     ${warnings.length ? `<div style="font-size:10px;color:#ffd166;line-height:1.5;margin-bottom:8px;">${warnings.map(w => `• ${w}`).join('<br>')}</div>` : ''}
     ${(!errors.length && !warnings.length) ? '<div style="font-size:10px;color:#00ff9d;">Scenario is ready to run.</div>' : ''}
@@ -7831,6 +7871,9 @@ let up42MoonImg = null;
           <input id="desRegDist" type="hidden" value="1">
           <input id="desLoxDist" type="hidden" value="1">
         </div>
+        <div id="desNoPowerNotice" style="display:none;grid-column:1/-1;padding:9px 10px;background:rgba(255,209,102,0.08);border:1px solid rgba(255,209,102,0.32);border-radius:8px;font-size:10px;color:#ffd166;line-height:1.45;">
+          Energy-Unconstrained Mode: no active power-generation asset was selected in Step 2, so DES treats energy as unlimited.
+        </div>
 
         <div style="grid-column:1/-1;padding:4px 0 6px;border-bottom:1px solid var(--border2);margin-top:2px;">
           <div style="font-size:10px;color:var(--accent);font-weight:700;letter-spacing:0.8px;">1. TRANSPORT</div>
@@ -7898,7 +7941,7 @@ let up42MoonImg = null;
           <input id="desLoxPollDt" type="number" min="0.1" step="0.1" value="1" style="width:100%;margin-top:5px;background:#07101a;color:var(--text1);border:1px solid var(--border2);border-radius:5px;padding:6px;">
           <span style="display:block;font-size:9px;color:var(--text3);margin-top:4px;">Time between checks for a transport request, in hours.</span>
         </label>
-        <label style="padding:8px;border:1px solid var(--border2);border-radius:7px;font-size:10px;color:var(--text2);line-height:1.4;">Power management interval <small style="color:#ffd166;">[Power network]</small>
+        <label id="desControlPowerDt" style="padding:8px;border:1px solid var(--border2);border-radius:7px;font-size:10px;color:var(--text2);line-height:1.4;">Power management interval <small style="color:#ffd166;">[Power network]</small>
           <input id="desPowerDt" type="number" min="0.1" step="0.1" value="1" style="width:100%;margin-top:5px;background:#07101a;color:var(--text1);border:1px solid var(--border2);border-radius:5px;padding:6px;">
           <span style="display:block;font-size:9px;color:var(--text3);margin-top:4px;">Time between generation, demand, and battery balance updates.</span>
         </label>
@@ -8834,6 +8877,7 @@ let up42MoonImg = null;
     const normalized = normalizeSysmlConnections(data.connections || [], rawNodes);
     const transporters = new Set(rawNodes.filter(name => isTransporterModule(name)));
     const transportedFlows = activeTransportedFlowKeys(rawNodes);
+    const ignorePower = isPowerIgnored();
     const dedupe = new Set();
     const visibleConnections = [];
 
@@ -8848,6 +8892,9 @@ let up42MoonImg = null;
     };
 
     normalized.forEach(conn => {
+      if (ignorePower && isPowerFlow(conn.flow)) {
+        return;
+      }
       if (isMaterialFlow(conn.flow) && !transportedFlows.has(String(conn.flow || '').toLowerCase())) {
         return;
       }
@@ -11159,6 +11206,22 @@ let up42MoonImg = null;
     });
 
     syncDesPowerDefaultsFromSysML();
+    syncPowerModeVisibility();
+  }
+
+  function syncPowerModeVisibility() {
+    const ignorePower = isPowerIgnored();
+    [
+      'desControlRoverEnergy',
+      'desControlPowerDt',
+      'desPowerSupplySection',
+      'desModulePowerSection'
+    ].forEach(id => {
+      const element = document.getElementById(id);
+      if (element) element.style.display = ignorePower ? 'none' : '';
+    });
+    const notice = document.getElementById('desNoPowerNotice');
+    if (notice) notice.style.display = ignorePower ? 'block' : 'none';
   }
 
   function getSysmlNumericAttribute(moduleId, attributeName, fallback) {
@@ -11287,6 +11350,7 @@ let up42MoonImg = null;
   }
 
   function getPowerModelModuleIds() {
+    if (isPowerIgnored()) return [];
     const ids = getScenarioInstances()
       .filter(instance => getBaseModuleId(instance.id) !== 'SolarPowerSystem')
       .map(instance => instance.id);
@@ -11363,6 +11427,10 @@ let up42MoonImg = null;
   function renderScenarioPowerModels() {
     const wrap = document.getElementById('desModulePowerModels');
     if (!wrap) return;
+    if (isPowerIgnored()) {
+      wrap.innerHTML = '';
+      return;
+    }
     const moduleIds = getPowerModelModuleIds();
     if (!moduleIds.length) {
       wrap.innerHTML = '<div style="padding:12px;color:var(--text3);font-size:10px;text-align:center;">Run Step 2 to load active modules.</div>';
@@ -11494,14 +11562,15 @@ let up42MoonImg = null;
     renderScenarioPowerModels();
   }
 
-  function syncDesScenarioModeVisibility() {
-    const isIsru = currentScenarioMode === 'isru';
-    ['desControlProcessRate', 'desControlLoxThresh', 'desIsruConfigurationHeading', 'desIsruAdvancedAssumptions'].forEach(id => {
-      const element = document.getElementById(id);
-      if (element) element.style.display = isIsru ? '' : 'none';
-    });
-    renderScenarioPowerModels();
-  }
+	  function syncDesScenarioModeVisibility() {
+	    const isIsru = currentScenarioMode === 'isru';
+	    ['desControlProcessRate', 'desControlLoxThresh', 'desIsruConfigurationHeading', 'desIsruAdvancedAssumptions'].forEach(id => {
+	      const element = document.getElementById(id);
+	      if (element) element.style.display = isIsru ? '' : 'none';
+	    });
+	    syncPowerModeVisibility();
+	    renderScenarioPowerModels();
+	  }
 
   function getDesSliderValues() {
     return {
@@ -11523,9 +11592,10 @@ let up42MoonImg = null;
     return Number.isFinite(value) ? value : fallback;
   }
 
-  function buildDesScenarioConfig() {
-    const isIsruPreset = currentScenarioMode === 'isru';
-    const sliderValues = getDesSliderValues();
+	  function buildDesScenarioConfig() {
+	    const isIsruPreset = currentScenarioMode === 'isru';
+	    const ignorePower = isPowerIgnored();
+	    const sliderValues = getDesSliderValues();
     const roverPayloads = {...(up42Scenario.roverPayloadsKg || {})};
     const regolithPayload = Math.max(0, Number(roverPayloads.regolith ?? 4000));
     const loxPayload = Math.max(0, Number(roverPayloads.lox ?? 4000));
@@ -11550,12 +11620,12 @@ let up42MoonImg = null;
         duration_hr: getNumberInputValue('desSimDuration', 60),
       },
       rovers: {
-        regolith: { count: regolithRoverCount, max_capacity_kg: regolithPayload },
-        lox: { count: loxRoverCount, max_capacity_kg: loxPayload },
-        capacity_by_flow_kg: roverPayloads,
-        energy_kwh_per_km_per_kg: Number(sliderValues.Rover_Energy_Consumption),
-        travel_time_hr_per_km: Number(sliderValues.Rover_Travel_Time),
-        max_capacity_kg: roverCapacity,
+	        regolith: { count: regolithRoverCount, max_capacity_kg: regolithPayload },
+	        lox: { count: loxRoverCount, max_capacity_kg: loxPayload },
+	        capacity_by_flow_kg: roverPayloads,
+	        energy_kwh_per_km_per_kg: ignorePower ? 0 : Number(sliderValues.Rover_Energy_Consumption),
+	        travel_time_hr_per_km: Number(sliderValues.Rover_Travel_Time),
+	        max_capacity_kg: roverCapacity,
       },
       regolith: {
         rover_load_kg: regolithPayload,
@@ -11578,8 +11648,10 @@ let up42MoonImg = null;
           : 0,
         lox_storage_energy_dt_hr: 1,
       },
-      power: {
-        management_dt_hr: getNumberInputValue('desPowerDt', 1),
+	      power: {
+	        ignore_power: ignorePower,
+	        mode: ignorePower ? 'energy_unconstrained' : 'power_constrained',
+	        management_dt_hr: getNumberInputValue('desPowerDt', 1),
         supply: {
           power_output_kw: getNumberInputValue('desSolarPowerOutput', 100),
           battery_capacity_kwh: getNumberInputValue('desSolarBatteryCapacity', 500),
@@ -11604,8 +11676,8 @@ let up42MoonImg = null;
           charging_power_kw: 20,
           efficiency: 0.85,
         },
-        module_models: cloneScenarioValue(scenarioPowerModels),
-      },
+	        module_models: ignorePower ? {} : cloneScenarioValue(scenarioPowerModels),
+	      },
       scenario_builder: buildScenarioLogicPayload(),
     };
   }
@@ -11649,9 +11721,10 @@ let up42MoonImg = null;
     return overrides;
   }
 
-  function getPowerModelValidationErrors() {
-    const errors = [];
-    getPowerModelModuleIds().forEach(moduleId => {
+	  function getPowerModelValidationErrors() {
+	    const errors = [];
+	    if (isPowerIgnored()) return errors;
+	    getPowerModelModuleIds().forEach(moduleId => {
       const model = ensurePowerModel(moduleId);
       if (model.mode === 'equation' && !/^\s*(PowerIn|EnergyConsumed)\s*=/m.test(model.equation || '')) {
         errors.push(`${moduleId}: power equation must assign PowerIn or EnergyConsumed.`);

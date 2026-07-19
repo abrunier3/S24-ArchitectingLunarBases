@@ -226,6 +226,27 @@ class GenericScenarioTests(unittest.TestCase):
         )
         self.assertTrue(any("consumes power" in message for message in messages))
 
+    def test_ignore_power_skips_power_interface_validation_and_runtime(self):
+        options = self._options()
+        options["scenario_config"]["power"]["ignore_power"] = True
+        options["scenario_config"]["scenario_builder"]["sysml_interfaces"] = []
+
+        messages = validate_generic_scenario(
+            options, raise_error=False, asset_root=self.assets
+        )
+        self.assertFalse(any("consumes power" in message for message in messages))
+        self.assertTrue(any("Energy-Unconstrained" in message for message in messages))
+
+        result = run_generic_scenario(
+            options,
+            asset_root=self.assets,
+            results_path=self.root / "ignore_power_results.json",
+            log_path=self.root / "ignore_power_log.json",
+        )
+
+        self.assertTrue(result["Power"]["Power_Ignored"])
+        self.assertEqual(result["MoEs"]["Unserved_Energy_kWh"], 0.0)
+
 
 if __name__ == "__main__":
     unittest.main()
