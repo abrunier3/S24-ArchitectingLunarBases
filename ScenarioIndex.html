@@ -5763,11 +5763,13 @@ function addScenarioResourceRoute(flow, from, to, stops = [], roverId = null, pr
   const existingIndex = (up42Scenario.resourceRoutes || []).findIndex(route =>
     route.id === routeId || (
       String(route.flow || '').toLowerCase() === String(flow || '').toLowerCase() &&
-      route.rover_id === resolvedRoverId
+      route.rover_id === resolvedRoverId &&
+      route.from === from &&
+      route.to === to
     )
   );
   const nextRoute = {
-    id: routeId || `${flow}_${resolvedRoverId}_${Date.now()}`,
+    id: routeId || `${flow}_${resolvedRoverId}_${from}_${to}_${Date.now()}`.replace(/[^A-Za-z0-9_-]/g, '_'),
     flow,
     rover_type: definition.roverType,
     rover_id: resolvedRoverId,
@@ -6887,20 +6889,6 @@ function drawScenarioLinks() {
   explicitRoutes.forEach(route => {
     const path = route.pts?.length ? route.pts : getVisualPath(route.from, route.to);
     queueDrawing(path, getFlowColor(route.flow), 3.1, 2, route.flow, false);
-  });
-
-  const transports = up42Scenario.transportLinks?.length
-    ? up42Scenario.transportLinks
-    : [];
-  transports.forEach(link => {
-    const color = getFlowColor(link.flow);
-    (link.from_instances || []).forEach(from => {
-      (link.to_instances || []).forEach(to => {
-        if (explicitRouteKeys.has(`${String(link.flow || '').toLowerCase()}:${from}:${to}`)) return;
-        const path = getVisualPath(from, to);
-        queueDrawing(path, color, 2.8, 1, link.flow);
-      });
-    });
   });
 
   const groups = new Map();
