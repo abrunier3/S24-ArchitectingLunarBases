@@ -5944,17 +5944,21 @@ function getPlacedInstancesForBase(baseId) {
 function getFlowColor(flow) {
   const value = String(flow || '').toLowerCase();
   if (value.includes('power')) return '#ff5c5c';
+  if (value.includes('ice')) return '#b388ff';
+  if (value.includes('water')) return '#00d4ff';
+  if (value.includes('lox')) return '#57c7ff';
+  if (value.includes('oxygen')) return '#57c7ff';
   if (value.includes('regolith')) return '#f4b942';
-  if (value.includes('lox')) return '#4cc9f0';
-  return '#8bffce';
+  if (value.includes('cargo')) return '#ffb347';
+  if (value.includes('hydrogen')) return '#ff7ac8';
+  if (value.includes('methane')) return '#7ee0b1';
+  const palette = ['#ffd166', '#06d6a0', '#ef476f', '#118ab2', '#c77dff', '#f77f00', '#2ec4b6'];
+  let hash = 0;
+  for (const char of value || 'flow') hash = (hash * 31 + char.charCodeAt(0)) >>> 0;
+  return palette[hash % palette.length];
 }
 
 function getOperationsFlowColor(flow) {
-  const value = String(flow || '').toLowerCase();
-  if (value.includes('power')) return '#7ee0b1';
-  if (value.includes('lox')) return '#57c7ff';
-  if (value.includes('regolith')) return '#ffb347';
-  if (value.includes('cargo')) return '#ffb347';
   return getFlowColor(flow);
 }
 
