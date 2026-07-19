@@ -175,6 +175,18 @@ class GenericScenarioTests(unittest.TestCase):
         self.assertEqual(blueprint.rover_capacity_by_flow_kg["Water"], 25.0)
         self.assertEqual(blueprint.rover_capacity_by_flow_kg["Product"], 7.5)
 
+    def test_module_class_override_controls_des_role(self):
+        options = self._options()
+        options["scenario_config"]["scenario_builder"]["module_classes"] = {
+            "WaterProcessor": "Storage",
+            "SolarArray": "PowerGenerator",
+        }
+
+        blueprint = compile_scenario(options, asset_root=self.assets)
+
+        self.assertEqual(blueprint.modules["WaterProcessor"].role, "storage")
+        self.assertEqual(blueprint.modules["SolarArray"].role, "generator")
+
     def test_unknown_equation_variable_is_rejected_before_run(self):
         options = self._options()
         scenario = options["scenario_config"]

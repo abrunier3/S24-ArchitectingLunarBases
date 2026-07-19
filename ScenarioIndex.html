@@ -1914,11 +1914,8 @@
 
         <div class="panel">
           <div class="panel-title">Mission Operations Graph</div>
-          <div class="ops-legend">
+          <div class="ops-legend" id="opsLegend">
             <span><span class="legend-module"></span>Module</span>
-            <span><span class="legend-dot" style="background:#7ee0b1"></span>Power flow</span>
-            <span><span class="legend-dot" style="background:#57c7ff"></span>LOX flow</span>
-            <span><span class="legend-dot" style="background:#ffb347"></span>Regolith flow</span>
           </div>
           <div class="ops-graph" id="opsGraph">
             <svg class="link-layer" id="linkLayer" viewBox="0 0 1000 520" preserveAspectRatio="none"></svg>
@@ -2322,15 +2319,53 @@ function buildActiveGraphDataFromSystems(baseData = window._lastGraphData || {})
   );
   const normalized = normalizeSysmlConnections(baseData.connections || [], baseGraphNodes);
   const activeNodes = baseGraphNodes.filter(n => activeIds.has(n));
+  const transportedFlows = activeTransportedFlowKeys(activeIds);
 
   return {
     ...baseData,
     parts,
     active_nodes: activeNodes,
-    connections: normalized.filter(c =>
-      activeIds.has(c.fromName) && activeIds.has(c.toName)
-    )
+    connections: normalized.filter(c => {
+      if (!activeIds.has(c.fromName) || !activeIds.has(c.toName)) return false;
+      if (isMaterialFlow(c.flow) && !transportedFlows.has(String(c.flow || '').toLowerCase())) {
+        return false;
+      }
+      return true;
+    })
   };
+}
+
+function syncModuleClassesWithCurrentGraph(options = {}) {
+  up42Scenario.moduleClasses = up42Scenario.moduleClasses || {};
+  up42Scenario.moduleClassOverrides = up42Scenario.moduleClassOverrides || {};
+  systems.forEach(system => {
+    const baseId = getBaseModuleId(system.id);
+    if (!baseId) return;
+    up42Scenario.moduleClasses[baseId] = up42Scenario.moduleClassOverrides[baseId] || inferModuleClass(baseId);
+  });
+  return up42Scenario.moduleClasses;
+}
+
+function refreshOperationsGraphFromActiveSystems(options = {}) {
+  const baseGraphData = window._lastGraphData || window._currentGraphData || {
+    parts: sysmlPartsCache,
+    active_nodes: Object.keys(sysmlPartsCache),
+    connections: []
+  };
+  const filtered = buildActiveGraphDataFromSystems(baseGraphData);
+  const visibleGraphData = buildOperationsGraphDisplayData(filtered);
+  window._currentGraphData = filtered;
+  renderLiveGraph(visibleGraphData);
+  if (typeof populateStep3 === 'function') {
+    populateStep3(filtered, { preferredModule: options.preferredModule || currentModuleName });
+  }
+  const caption = document.getElementById('opsCaption');
+  if (caption) {
+    caption.textContent = filtered.active_nodes?.length
+      ? `[Live - SysML] ${visibleGraphData.active_nodes.length} visible nodes · ${visibleGraphData.connections.length} visible connections.`
+      : 'No active nodes returned from pipeline.';
+  }
+  return { filtered, visibleGraphData };
 }
 
 function toggleSystem(id) {
@@ -2340,26 +2375,11 @@ function toggleSystem(id) {
   renderSystems();
 
   // Re-render live graph and Step 3 from the same filtered active-node dataset.
-  const baseGraphData = window._lastGraphData || window._currentGraphData || {
-    parts: sysmlPartsCache,
-    active_nodes: Object.keys(sysmlPartsCache),
-    connections: []
-  };
-  if (baseGraphData) {
-    const filtered = buildActiveGraphDataFromSystems(baseGraphData);
-    const visibleGraphData = buildOperationsGraphDisplayData(filtered);
-    window._currentGraphData = filtered;
-    renderLiveGraph(visibleGraphData);
-    if (typeof populateStep3 === 'function') {
-      populateStep3(filtered, { preferredModule: currentModuleName });
-    }
-    const caption = document.getElementById('opsCaption');
-    if (caption) {
-      caption.textContent = filtered.active_nodes?.length
-        ? `[Live - SysML] ${visibleGraphData.active_nodes.length} visible nodes · ${visibleGraphData.connections.length} visible connections.`
-        : 'No active nodes returned from pipeline.';
-    }
-  }
+  refreshOperationsGraphFromActiveSystems();
+  syncScenarioInterfacesFromSysML();
+  renderScenarioValidation();
+  updateUp42InfoCard();
+  drawUp42();
   if (typeof updatePublishCounter === 'function') updatePublishCounter();
 }
 
@@ -3647,6 +3667,7 @@ let up42Scenario = {
   transportLinks: [],
   moduleEquations: {},
   moduleClasses: {},
+  moduleClassOverrides: {},
   roverCounts: { regolith: 1, lox: 1 },
   roverPayloadsKg: { regolith: 4000, lox: 4000 }
 };
@@ -3855,7 +3876,7 @@ function clearScenarioBuilderState() {
   up42ScenarioPendingStart = null;
   up42Scenario = {
     resourceRoutes: [], powerLinks: [], comLinks: [], moduleLogic: {},
-    sysmlInterfaces: [], transportLinks: [], moduleEquations: {}, moduleClasses: {},
+    sysmlInterfaces: [], transportLinks: [], moduleEquations: {}, moduleClasses: {}, moduleClassOverrides: {},
     roverCounts: { regolith: 1, lox: 1 },
     roverPayloadsKg: { regolith: 4000, lox: 4000 }
   };
@@ -3876,7 +3897,7 @@ function applyIsruScenarioPreset(preset) {
   up42InstanceCounts = cloneScenarioValue(preset.instance_counts || {});
   up42Scenario = {
     resourceRoutes: [], powerLinks: [], comLinks: [], moduleLogic: {},
-    sysmlInterfaces: [], transportLinks: [], moduleEquations: {}, moduleClasses: {},
+    sysmlInterfaces: [], transportLinks: [], moduleEquations: {}, moduleClasses: {}, moduleClassOverrides: {},
     roverCounts: {regolith: 1, lox: 1},
     roverPayloadsKg: {regolith: 4000, lox: 4000},
     ...cloneScenarioValue(preset.scenario_logic || {})
@@ -5366,13 +5387,7 @@ function setInputValueIfPresent(inputId, value, labelId = null) {
 function getRoverFlowDefinitions() {
   const definitions = new Map();
   systems.filter(system => system.active && isTransporterModule(system.id)).forEach(system => {
-    const part = getSysmlPartData(system.id) || {};
-    const items = (part.ports || []).flatMap(port => port.items || []);
-    const flows = [...new Set(items.map(item => {
-      const match = String(item || '').match(/^(.+?)(?:In|Out)$/i);
-      return match ? match[1] : null;
-    }).filter(flow => flow && flow.toLowerCase() !== 'power'))];
-    flows.forEach(flow => {
+    getTransporterFlows(system.id).forEach(flow => {
       const key = flow.toLowerCase();
       if (!definitions.has(key)) definitions.set(key, { flow, roverType: system.id, key });
     });
@@ -5488,14 +5503,16 @@ function ensureDefaultResourceRoutesFromTransportLinks() {
     const candidates = [...candidateMap.values()];
     if (!candidates.length) return;
 
-    roverIds.forEach((roverId, index) => {
+    candidates.forEach((candidate, index) => {
+      const roverId = roverIds[index % roverIds.length];
       const existing = routes.find(route =>
         String(route.flow || '').toLowerCase() === definition.key &&
-        route.rover_id === roverId
+        route.rover_id === roverId &&
+        route.from === candidate.from &&
+        route.to === candidate.to
       );
       if (existing) return;
 
-      const candidate = candidates[index % candidates.length];
       addScenarioResourceRoute(
         definition.flow,
         candidate.from,
@@ -5515,20 +5532,22 @@ function reconcileRoutesWithRoverCounts() {
     getRoverIdsForFlow(definition.flow)
   ]));
   const normalizedRoutes = [];
-  const routeByFlowAndRover = new Map();
+  const routeBySignature = new Map();
 
-  (up42Scenario.resourceRoutes || []).forEach(route => {
+  (up42Scenario.resourceRoutes || []).forEach((route, index) => {
     const key = String(route.flow || '').toLowerCase();
     const allowed = allowedByFlow.get(key);
     if (!allowed?.length) return;
-    if (!route.rover_id || !allowed.includes(route.rover_id)) route.rover_id = allowed[0];
-    const uniqueKey = `${key}:${route.rover_id}`;
+    if (!route.rover_id || !allowed.includes(route.rover_id)) {
+      route.rover_id = allowed[index % allowed.length];
+    }
+    const uniqueKey = `${key}:${route.from}:${route.to}:${route.rover_id}`;
 
-    if (routeByFlowAndRover.has(uniqueKey)) {
+    if (routeBySignature.has(uniqueKey)) {
       return;
     }
 
-    routeByFlowAndRover.set(uniqueKey, route);
+    routeBySignature.set(uniqueKey, route);
     normalizedRoutes.push(route);
   });
 
@@ -5541,8 +5560,11 @@ function reconcileRoutesWithRoverCounts() {
     if (!template) return;
 
     allowed.forEach(roverId => {
-      const uniqueKey = `${definition.key}:${roverId}`;
-      if (routeByFlowAndRover.has(uniqueKey)) return;
+      const hasAssignment = normalizedRoutes.some(route =>
+        String(route.flow || '').toLowerCase() === definition.key &&
+        route.rover_id === roverId
+      );
+      if (hasAssignment) return;
       const clone = {
         ...template,
         id: `${definition.flow}_${roverId}_${Date.now()}_${normalizedRoutes.length}`,
@@ -5553,7 +5575,7 @@ function reconcileRoutesWithRoverCounts() {
         pts: []
       };
       recomputeScenarioResourceRoutePath(clone);
-      routeByFlowAndRover.set(uniqueKey, clone);
+      routeBySignature.set(`${definition.key}:${clone.from}:${clone.to}:${roverId}`, clone);
       normalizedRoutes.push(clone);
     });
   });
@@ -5925,6 +5947,45 @@ function getFlowColor(flow) {
   return '#8bffce';
 }
 
+function getOperationsFlowColor(flow) {
+  const value = String(flow || '').toLowerCase();
+  if (value.includes('power')) return '#7ee0b1';
+  if (value.includes('lox')) return '#57c7ff';
+  if (value.includes('regolith')) return '#ffb347';
+  if (value.includes('cargo')) return '#ffb347';
+  return getFlowColor(flow);
+}
+
+function getTransporterFlows(moduleId) {
+  const part = getSysmlPartData(moduleId) || {};
+  const items = (part.ports || []).flatMap(port => port.items || []);
+  return [...new Set(items.map(item => {
+    const match = String(item || '').match(/^(.+?)(?:In|Out)$/i);
+    return match ? match[1] : null;
+  }).filter(flow => flow && flow.toLowerCase() !== 'power'))];
+}
+
+function activeTransportedFlowKeys(activeIds) {
+  const activeSet = activeIds instanceof Set ? activeIds : new Set(activeIds || []);
+  const keys = new Set();
+  systems
+    .filter(system => {
+      if (!activeSet.has(system.id)) return false;
+      const baseId = getBaseModuleId(system.id);
+      const explicitClass = up42Scenario.moduleClassOverrides?.[baseId] || up42Scenario.moduleClasses?.[baseId];
+      if (explicitClass) return explicitClass === 'Transporter';
+      return hasTransporterAttributes(baseId) && getTransporterFlows(baseId).length > 0;
+    })
+    .forEach(system => {
+      getTransporterFlows(system.id).forEach(flow => keys.add(String(flow).toLowerCase()));
+    });
+  return keys;
+}
+
+function isMaterialFlow(flow) {
+  return !isPowerFlow(flow) && !isCommunicationFlow(flow);
+}
+
 function normalizeScenarioName(value) {
   return String(value || '').toLowerCase().replace(/[^a-z0-9]/g, '');
 }
@@ -5972,13 +6033,27 @@ function buildTransportLinksFromConnections(connections, fixedTypes) {
     });
   };
 
+  const roverByFlow = new Map(
+    getRoverFlowDefinitions().map(definition => [definition.key, definition.roverType])
+  );
+
   connections.forEach(conn => {
     const flow = String(conn.flow || '');
     const flowKey = flow.toLowerCase();
     if (!flowKey || isPowerFlow(flow) || isCommunicationFlow(flow)) return;
 
     const roverType = [conn.fromName, conn.toName].find(name => isTransporterModule(name));
-    if (!roverType) return;
+    if (!roverType) {
+      const inferredRoverType = roverByFlow.get(flowKey);
+      if (
+        inferredRoverType &&
+        fixedTypes.includes(conn.fromName) &&
+        fixedTypes.includes(conn.toName)
+      ) {
+        pushLink(flow, conn.fromName, conn.toName, inferredRoverType, conn.name);
+      }
+      return;
+    }
     const endpointTypes = [
       ...inferNamedEndpointTypes(conn, fixedTypes),
       conn.fromName,
@@ -6051,9 +6126,19 @@ function syncScenarioInterfacesFromSysML() {
     nodeNames
   );
 
+  const transportLinks = buildTransportLinksFromConnections(connections, fixedTypes);
+  const transportKeys = new Set(transportLinks.map(link =>
+    `${String(link.flow || '').toLowerCase()}:${link.from_type}:${link.to_type}`
+  ));
+
+  up42Scenario.transportLinks = transportLinks;
   up42Scenario.sysmlInterfaces = connections
     .filter(conn => !String(conn.flow || '').toLowerCase().includes('com'))
     .filter(conn => !isTransporterModule(conn.fromName) && !isTransporterModule(conn.toName))
+    .filter(conn => !(
+      isMaterialFlow(conn.flow) &&
+      transportKeys.has(`${String(conn.flow || '').toLowerCase()}:${conn.fromName}:${conn.toName}`)
+    ))
     .map((conn, idx) => ({
       id: conn.id || conn.key || `sysml_interface_${idx + 1}`,
       from_type: conn.fromName,
@@ -6064,7 +6149,6 @@ function syncScenarioInterfacesFromSysML() {
       from_instances: getPlacedInstancesForBase(conn.fromName),
       to_instances: getPlacedInstancesForBase(conn.toName)
     }));
-  up42Scenario.transportLinks = buildTransportLinksFromConnections(connections, fixedTypes);
   ensureDefaultResourceRoutesFromTransportLinks();
   reconcileRoutesWithRoverCounts();
   refreshScenarioResourceRoutePaths();
@@ -6339,7 +6423,9 @@ function inferModuleClass(moduleId) {
   const equations = getModuleEquationList(baseId);
   const outputs = new Set(equations.map(getEquationOutputName).filter(Boolean));
   const hasProcessingTime = outputs.has('ProcessingTime');
+  const canTransportResources = hasTransporterAttributes(baseId) && getTransporterFlows(baseId).length > 0;
 
+  if (canTransportResources) return 'Transporter';
   if (profile.resourceIncoming.length && profile.resourceOutgoing.length && hasStorageAttributes(baseId)) return 'Storage';
   if (profile.resourceIncoming.length && profile.resourceOutgoing.length && profile.sameResourceRelay && hasTransporterAttributes(baseId)) return 'Transporter';
   if ((profile.powerOutgoing.length || hasPowerGenerationAttributes(baseId)) && !profile.resourceIncoming.length && !profile.resourceOutgoing.length) return 'PowerGenerator';
@@ -6363,7 +6449,9 @@ function inferModuleClass(moduleId) {
 
 function getModuleClass(moduleId) {
   const baseId = getBaseModuleId(moduleId);
-  return up42Scenario.moduleClasses?.[baseId] || inferModuleClass(baseId);
+  return up42Scenario.moduleClassOverrides?.[baseId] ||
+    up42Scenario.moduleClasses?.[baseId] ||
+    inferModuleClass(baseId);
 }
 
 function isTransporterModule(moduleId) {
@@ -6374,11 +6462,16 @@ function setModuleClass(moduleId, className) {
   const baseId = getBaseModuleId(moduleId);
   if (!SCENARIO_MODULE_CLASSES.includes(className)) return;
   up42Scenario.moduleClasses = up42Scenario.moduleClasses || {};
+  up42Scenario.moduleClassOverrides = up42Scenario.moduleClassOverrides || {};
   up42Scenario.moduleClasses[baseId] = className;
+  up42Scenario.moduleClassOverrides[baseId] = className;
+  refreshOperationsGraphFromActiveSystems({ preferredModule: currentModuleName });
+  syncScenarioInterfacesFromSysML();
   renderSystems();
   renderEquationModuleList();
   updateUp42InfoCard();
   renderScenarioValidation();
+  drawUp42();
 }
 
 function isPowerGeneratorModule(moduleId) {
@@ -6828,6 +6921,7 @@ function drawScenarioLinks() {
 
 function buildScenarioLogicPayload() {
   syncScenarioInterfacesFromSysML();
+  syncModuleClassesWithCurrentGraph();
   refreshScenarioResourceRoutePaths();
   return {
     scenario_mode: currentScenarioMode || 'new',
@@ -8589,6 +8683,9 @@ let up42MoonImg = null;
       active_nodes: graphNodes,
       connections: resolvedConnections
     };
+    window._lastGraphData = data;
+    window._currentGraphData = fullGraphData;
+    syncModuleClassesWithCurrentGraph();
     const visibleGraphData = buildOperationsGraphDisplayData(fullGraphData);
     const visibleNodeCount = visibleGraphData.active_nodes.length;
     const visibleConnectionCount = visibleGraphData.connections.length;
@@ -8616,8 +8713,6 @@ let up42MoonImg = null;
       '#7ee0b1'
     );
 
-    window._lastGraphData = data;
-    window._currentGraphData = fullGraphData;
     renderLiveGraph(visibleGraphData);
     if (data.parts) populateStep3(fullGraphData);
     renderSystems();
@@ -8628,8 +8723,6 @@ let up42MoonImg = null;
     drawUp42();
     console.log('[GRAPH RESULT]', data);
   }
-
-  const FLOW_COLORS = { 'Power': '#7ee0b1', 'LOX': '#57c7ff', 'Regolith': '#ffb347' };
 
   function buildPortOwnerMap() {
     const portOwners = new Map();
@@ -8748,6 +8841,7 @@ let up42MoonImg = null;
     const visibleSet = new Set(visibleNodes);
     const normalized = normalizeSysmlConnections(data.connections || [], rawNodes);
     const transporters = new Set(rawNodes.filter(name => isTransporterModule(name)));
+    const transportedFlows = activeTransportedFlowKeys(rawNodes);
     const dedupe = new Set();
     const visibleConnections = [];
 
@@ -8762,6 +8856,9 @@ let up42MoonImg = null;
     };
 
     normalized.forEach(conn => {
+      if (isMaterialFlow(conn.flow) && !transportedFlows.has(String(conn.flow || '').toLowerCase())) {
+        return;
+      }
       if (transporters.has(conn.fromName) || transporters.has(conn.toName)) return;
       pushVisibleConnection(conn);
     });
@@ -8890,6 +8987,24 @@ let up42MoonImg = null;
     return positions;
   }
 
+  function renderOpsLegend(graphData) {
+    const legend = document.getElementById('opsLegend');
+    if (!legend) return;
+    const flowNames = [...new Set((graphData?.connections || [])
+      .map(conn => conn.flow || conn.type || 'Flow')
+      .filter(Boolean))]
+      .sort((a, b) => {
+        const rank = flow => String(flow).toLowerCase().includes('power') ? 0 : 1;
+        return rank(a) - rank(b) || String(a).localeCompare(String(b));
+      });
+    legend.innerHTML = [
+      '<span><span class="legend-module"></span>Module</span>',
+      ...flowNames.map(flow =>
+        `<span><span class="legend-dot" style="background:${getOperationsFlowColor(flow)}"></span>${escapeHtml(flow)} flow</span>`
+      )
+    ].join('');
+  }
+
   function renderLiveGraph(data) {
     const container = document.getElementById('opsGraph');
     const svgLayer  = document.getElementById('linkLayer');
@@ -8903,6 +9018,7 @@ let up42MoonImg = null;
 
     const nodes = graphData.active_nodes || [];
     const conns = normalizeSysmlConnections(graphData.connections || [], nodes);
+    renderOpsLegend({ ...graphData, connections: conns });
 
     const cW = container.offsetWidth || 700;
     const cH = container.offsetHeight || 470;
@@ -8946,8 +9062,8 @@ let up42MoonImg = null;
       const pxB = resolvedPx[toName];
       if (!pxA || !pxB) return;
 
-      const color = FLOW_COLORS[flow] || '#ffb347';
-      const markerId = `arrowhead-${flow}`;
+      const color = getOperationsFlowColor(flow);
+      const markerId = `arrowhead-${String(flow).replace(/[^A-Za-z0-9_-]/g, '_')}`;
 
       if (!defs.querySelector(`#${markerId}`)) {
         const marker = document.createElementNS('http://www.w3.org/2000/svg', 'marker');

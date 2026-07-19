@@ -62,6 +62,22 @@ def _module_equations(builder, instance_id, module_type):
     return equations.get(instance_id, equations.get(module_type, ""))
 
 
+def _module_explicit_role(builder, instance_id, module_type):
+    classes = builder.get("module_classes", {})
+    raw = classes.get(instance_id, classes.get(module_type, ""))
+    key = re.sub(r"[^a-z]", "", str(raw).lower())
+    return {
+        "source": "source",
+        "processor": "processor",
+        "storage": "storage",
+        "consumer": "consumer",
+        "powergenerator": "generator",
+        "generator": "generator",
+        "transporter": "transporter",
+        "passive": "consumer",
+    }.get(key, "")
+
+
 def _is_power_generator(module_type, equations=""):
     try:
         outputs = _equation_outputs(equations)
@@ -78,9 +94,12 @@ class ModuleSpec:
     equations: str
     incoming_resources: tuple
     outgoing_resources: tuple
+    explicit_role: str = ""
 
     @property
     def role(self):
+        if self.explicit_role and self.explicit_role != "transporter":
+            return self.explicit_role
         if self.incoming_resources and self.outgoing_resources:
             try:
                 outputs = set(_equation_outputs(self.equations))
@@ -171,6 +190,7 @@ def compile_scenario(options, asset_root=ASSET_ROOT):
             equations=_module_equations(builder, instance_id, module_type),
             incoming_resources=tuple(sorted(incoming[instance_id])),
             outgoing_resources=tuple(sorted(outgoing[instance_id])),
+            explicit_role=_module_explicit_role(builder, instance_id, module_type),
         )
 
     supply = config.get("power", {}).get("supply", {})
