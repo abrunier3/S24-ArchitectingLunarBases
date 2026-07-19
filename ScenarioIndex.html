@@ -3712,6 +3712,7 @@ let up42Scenario = {
 const SCENARIO_STORAGE_KEY = 'eclipse.savedScenarios.v1';
 const SCENARIO_SCHEMA_VERSION = 1;
 const ISRU_PRESET_PATH = 'clean_database/scenarios/presets/ISRU.json';
+const SCENARIO_INDEX_PATH = 'clean_database/scenarios/index.json';
 let currentScenarioMode = null;
 let currentScenarioId = null;
 let currentScenarioName = null;
@@ -3719,6 +3720,7 @@ let currentScenarioSlug = null;
 let currentSysmlFile = 'clean_database/sysml/ECLIPSE_Project.sysml';
 let pendingScenarioEntryMode = null;
 let repositoryScenarioCache = [];
+let repositoryScenarioLoadMessage = '';
 let latestRunScenarioSnapshot = null;
 let scenarioPowerModels = {};
 let pendingStopRoute = null;
@@ -3850,22 +3852,59 @@ async function confirmScenarioName() {
 function getSavedScenarios() {
   try {
     const parsed = JSON.parse(localStorage.getItem(SCENARIO_STORAGE_KEY) || '[]');
-    return Array.isArray(parsed) ? parsed : [];
+    return Array.isArray(parsed)
+      ? parsed.map(snapshot => {
+        const normalized = normalizeScenarioSnapshot(snapshot);
+        return normalized ? {...normalized, _source: 'local'} : null;
+      }).filter(Boolean)
+      : [];
   } catch (error) {
     console.warn('[SCENARIO] Unable to read saved scenarios:', error);
     return [];
   }
 }
 
-function getAvailableScenarios() {
+function normalizeScenarioSnapshot(snapshot, fallbackSlug = '') {
+  if (!snapshot || typeof snapshot !== 'object') return null;
+  const slug = snapshot.scenario_slug || snapshot.id || fallbackSlug || normalizeScenarioFileStem(snapshot.name || '');
+  if (!slug) return null;
+  return {
+    ...snapshot,
+    id: snapshot.id || slug,
+    name: snapshot.name || slug,
+    scenario_slug: slug,
+    sysml_file: snapshot.sysml_file || scenarioSysmlPath(slug),
+    saved_at: snapshot.saved_at || snapshot.created_at || new Date(0).toISOString(),
+  };
+}
+
+function mergeScenarioSnapshots(...groups) {
   const merged = new Map();
-  repositoryScenarioCache.forEach(snapshot => merged.set(snapshot.id || snapshot.scenario_slug, snapshot));
-  getSavedScenarios().forEach(snapshot => merged.set(snapshot.id || snapshot.scenario_slug, snapshot));
-  return [...merged.values()].filter(Boolean);
+  groups.flat().filter(Boolean).forEach(snapshot => {
+    const normalized = normalizeScenarioSnapshot(snapshot);
+    if (!normalized) return;
+    const key = normalized.id || normalized.scenario_slug;
+    merged.set(key, {...(merged.get(key) || {}), ...normalized});
+  });
+  return [...merged.values()].sort((a, b) =>
+    new Date(b.saved_at || 0).getTime() - new Date(a.saved_at || 0).getTime()
+  );
+}
+
+function getAvailableScenarios() {
+  return mergeScenarioSnapshots(repositoryScenarioCache, getSavedScenarios());
+}
+
+function stripScenarioRuntimeMetadata(snapshot) {
+  if (!snapshot || typeof snapshot !== 'object') return snapshot;
+  const clean = {...snapshot};
+  delete clean._source;
+  delete clean._sourcePath;
+  return clean;
 }
 
 function writeSavedScenarios(scenarios) {
-  localStorage.setItem(SCENARIO_STORAGE_KEY, JSON.stringify(scenarios));
+  localStorage.setItem(SCENARIO_STORAGE_KEY, JSON.stringify((scenarios || []).map(stripScenarioRuntimeMetadata)));
   refreshSavedScenarioSummary();
 }
 
@@ -4081,6 +4120,11 @@ function restoreScenarioSnapshot(snapshot) {
 async function openSavedScenarioPicker() {
   const picker = document.getElementById('savedScenarioPicker');
   if (picker) picker.style.display = 'block';
+  const list = document.getElementById('savedScenarioList');
+  if (list) {
+    list.innerHTML = '<div style="padding:12px;color:var(--text3);font-size:10px;text-align:center;">Loading saved scenarios...</div>';
+  }
+  requestAnimationFrame(() => picker?.scrollIntoView({behavior:'smooth', block:'start'}));
   renderSavedScenarioList();
   await fetchRepositoryScenarios();
   renderSavedScenarioList();
@@ -4096,22 +4140,37 @@ function renderSavedScenarioList() {
   if (!list) return;
   const scenarios = getAvailableScenarios();
   if (!scenarios.length) {
-    list.innerHTML = '<div style="padding:12px;color:var(--text3);font-size:10px;text-align:center;">No scenario has been saved yet.</div>';
+    list.innerHTML = `
+      <div style="padding:12px;color:var(--text3);font-size:10px;text-align:center;line-height:1.5;">
+        No scenario has been saved yet.
+        ${repositoryScenarioLoadMessage ? `<br><span style="color:#ffd166;">${escapeHtml(repositoryScenarioLoadMessage)}</span>` : ''}
+      </div>`;
     return;
   }
-  list.innerHTML = scenarios.map(snapshot => `
+  list.innerHTML = `
+    ${repositoryScenarioLoadMessage ? `<div style="padding:8px 10px;border:1px solid rgba(255,209,102,0.28);border-radius:7px;color:#ffd166;font-size:9px;line-height:1.4;">${escapeHtml(repositoryScenarioLoadMessage)}</div>` : ''}
+    ${scenarios.map(snapshot => {
+      const canDelete = snapshot._source === 'local' || !snapshot._source;
+      const deleteControl = canDelete
+        ? `<button type="button" class="btn" title="Delete browser-saved scenario" style="width:30px;height:30px;padding:0;color:#ff7a8a;" onclick="deleteSavedScenario('${jsString(snapshot.id)}')">&times;</button>`
+        : `<span title="Repository scenario" style="width:30px;height:30px;display:grid;place-items:center;color:var(--text3);font-size:10px;">repo</span>`;
+      return `
     <div style="display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:7px;align-items:center;padding:9px;border:1px solid var(--border2);border-radius:8px;">
       <div style="min-width:0;">
         <div style="font-size:11px;font-weight:700;color:var(--text1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(snapshot.name || 'Unnamed scenario')}</div>
-        <div style="font-size:8px;color:var(--text3);margin-top:2px;">${escapeHtml(snapshot.site_id || 'No site')} · ${new Date(snapshot.saved_at).toLocaleString()}</div>
+        <div style="font-size:8px;color:var(--text3);margin-top:2px;">${escapeHtml(snapshot.site_id || snapshot.mode || 'No site')} · ${new Date(snapshot.saved_at).toLocaleString()}</div>
       </div>
       <button type="button" class="btn btn-secondary" style="padding:6px 9px;font-size:9px;" onclick="loadSavedScenario('${jsString(snapshot.id)}')">Load</button>
-      <button type="button" class="btn" title="Delete saved scenario" style="width:30px;height:30px;padding:0;color:#ff7a8a;" onclick="deleteSavedScenario('${jsString(snapshot.id)}')">&times;</button>
-    </div>`).join('');
+      ${deleteControl}
+    </div>`;
+    }).join('')}`;
 }
 
-function loadSavedScenario(id) {
-  const snapshot = getAvailableScenarios().find(item => (item.id || item.scenario_slug) === id);
+async function loadSavedScenario(id) {
+  let snapshot = getAvailableScenarios().find(item => (item.id || item.scenario_slug) === id);
+  if (snapshot?._sourcePath && !snapshot.scenario_logic) {
+    snapshot = await loadScenarioSnapshotFromPath(snapshot._sourcePath, snapshot.scenario_slug || id) || snapshot;
+  }
   if (snapshot) restoreScenarioSnapshot(snapshot);
   closeSavedScenarioPicker();
 }
@@ -8518,34 +8577,69 @@ let up42MoonImg = null;
     repositoryScenarioCache = [...repositoryScenarioCache.filter(item => item.id !== slug), cloneScenarioValue(snapshot)];
   }
 
+  async function fetchScenarioIndexFallback() {
+    try {
+      const response = await fetch(`${SCENARIO_INDEX_PATH}?ts=${Date.now()}`, {cache: 'no-store'});
+      if (!response.ok) return [];
+      const index = await response.json();
+      return (index.scenarios || []).map(entry => normalizeScenarioSnapshot({
+        ...entry,
+        _sourcePath: entry.path || scenarioConfigPath(entry.scenario_slug || entry.id),
+        _source: 'index'
+      })).filter(Boolean);
+    } catch (error) {
+      console.warn('[SCENARIO] Unable to load local scenario index:', error);
+      return [];
+    }
+  }
+
+  async function loadScenarioSnapshotFromPath(path, fallbackSlug = '') {
+    if (!path) return null;
+    try {
+      const token = sessionStorage.getItem('gh_pat');
+      const meta = await getGithubContent(path, token);
+      if (meta?.content) {
+        return normalizeScenarioSnapshot(JSON.parse(githubContentToText(meta)), fallbackSlug);
+      }
+    } catch (error) {
+      console.warn(`[SCENARIO] GitHub scenario load failed for ${path}; trying local fetch.`, error);
+    }
+    try {
+      const response = await fetch(`${path}?ts=${Date.now()}`, {cache: 'no-store'});
+      if (!response.ok) return null;
+      return normalizeScenarioSnapshot(await response.json(), fallbackSlug);
+    } catch (error) {
+      console.warn(`[SCENARIO] Unable to load scenario ${path}:`, error);
+      return null;
+    }
+  }
+
   async function fetchRepositoryScenarios() {
+    const indexedScenarios = await fetchScenarioIndexFallback();
     try {
       const token = sessionStorage.getItem('gh_pat');
       const entries = await getGithubContent('clean_database/scenarios', token);
-      if (!Array.isArray(entries)) return [];
+      if (!Array.isArray(entries)) {
+        repositoryScenarioCache = mergeScenarioSnapshots(repositoryScenarioCache, indexedScenarios);
+        refreshSavedScenarioSummary();
+        return repositoryScenarioCache;
+      }
       const scenarios = await Promise.all(entries
-        .filter(entry => entry.type === 'file' && entry.name.toLowerCase().endsWith('.json'))
+        .filter(entry => entry.type === 'file' && entry.name.toLowerCase().endsWith('.json') && entry.name !== 'index.json')
         .map(async entry => {
-          const meta = await getGithubContent(entry.path, token);
-          try {
-            const snapshot = JSON.parse(githubContentToText(meta));
-            snapshot.scenario_slug ||= entry.name.replace(/\.json$/i, '');
-            snapshot.id ||= snapshot.scenario_slug;
-            snapshot.name ||= snapshot.scenario_slug;
-            snapshot.sysml_file ||= scenarioSysmlPath(snapshot.scenario_slug);
-            snapshot.saved_at ||= snapshot.created_at || new Date(0).toISOString();
-            return snapshot;
-          } catch (error) {
-            console.warn(`[SCENARIO] Invalid repository configuration ${entry.path}:`, error);
-            return null;
-          }
+          const snapshot = await loadScenarioSnapshotFromPath(entry.path, entry.name.replace(/\.json$/i, ''));
+          return snapshot ? {...snapshot, _source: 'repo', _sourcePath: entry.path} : null;
         }));
-      repositoryScenarioCache = scenarios.filter(Boolean);
+      repositoryScenarioLoadMessage = '';
+      repositoryScenarioCache = mergeScenarioSnapshots(scenarios.filter(Boolean), indexedScenarios);
       refreshSavedScenarioSummary();
       return repositoryScenarioCache;
     } catch (error) {
       console.warn('[SCENARIO] Unable to load repository scenarios:', error);
-      return [];
+      repositoryScenarioLoadMessage = 'Repository list unavailable; showing local scenario index and browser-saved scenarios.';
+      repositoryScenarioCache = mergeScenarioSnapshots(repositoryScenarioCache, indexedScenarios);
+      refreshSavedScenarioSummary();
+      return repositoryScenarioCache;
     }
   }
 
