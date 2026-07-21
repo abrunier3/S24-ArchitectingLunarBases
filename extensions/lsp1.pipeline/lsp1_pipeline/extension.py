@@ -620,6 +620,8 @@ class LSP1PipelineExtension(omni.ext.IExt):
             drawn = 0
 
             for route_name, route_info in route_projection.items():
+                if not route_info.get("visible_in_scene", True):
+                    continue
                 route_root = UsdGeom.Xform.Define(stage, f"{root_path}/{route_name}")
                 route_root.GetPrim().CreateAttribute(
                     "route:maxSlopeDeg",
@@ -683,6 +685,8 @@ class LSP1PipelineExtension(omni.ext.IExt):
         UsdGeom.Xform.Define(stage, root_path)
         marker_count = 0
         for route_name, route_info in route_projection.items():
+            if not route_info.get("visible_in_scene", True):
+                continue
             route_root = UsdGeom.Xform.Define(stage, f"{root_path}/{route_name}")
             route_root.GetPrim().CreateAttribute(
                 "route:flow",

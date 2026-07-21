@@ -374,6 +374,26 @@ jobs:
                       return None
                   return {"waypoints_m": all_waypoints, "distance_km": round(total_dist, 3)}
 
+              def concat_operational_path(start, end, stops=None):
+                  """Resolve a rover assignment along the physical terrain network."""
+                  nodes = [start, *(stops or []), end]
+                  all_waypoints = []
+                  total_dist = 0.0
+                  for source, destination in zip(nodes, nodes[1:]):
+                      leg = concat_path(source, destination)
+                      if not leg:
+                          return None
+                      waypoints = leg["waypoints_m"]
+                      if all_waypoints and waypoints:
+                          all_waypoints.extend(waypoints[1:])
+                      else:
+                          all_waypoints.extend(waypoints)
+                      total_dist += leg["distance_km"]
+                  return {
+                      "waypoints_m": all_waypoints,
+                      "distance_km": round(total_dist, 3),
+                  } if all_waypoints else None
+
               # Build the two physical routes:
               # 1. Regolith: ISRUExcavation → ISRUPlant
               # 2. LOX: ISRUPlant → PropellantDepot → LaunchLandingZone
@@ -452,7 +472,18 @@ jobs:
                   source = route.get("from")
                   destination = route.get("to")
                   route_name = route.get("route_name") or f"{source}To{destination}_{flow}"
-                  geometry = conns.get(route_name)
+                  geometry = concat_operational_path(
+                      source,
+                      destination,
+                      route.get("stops", []),
+                  )
+                  if geometry:
+                      geometry["flow"] = flow
+                      conns[route_name] = geometry
+                  else:
+                      # Keep the explicit Step 4 path only as a compatibility
+                      # fallback when the physical terrain graph is disconnected.
+                      geometry = conns.get(route_name)
                   if not geometry:
                       print(f"[UP] Operational route geometry missing: {route_name}")
                       continue

@@ -7967,16 +7967,7 @@ function buildUrbanPlanningPayload(options = {}) {
     key: `${route.from}To${route.to}`,
     flow: route.flow || 'Structural',
     distance_km: +getRoutePathDistanceKm(route.pts || []).toFixed(3)
-  })).concat(up42Scenario.resourceRoutes.map(route => ({
-    from: route.from,
-    to: route.to,
-    key: `${route.from}To${route.to}_${route.flow}`,
-    flow: route.flow,
-    rover_type: route.rover_type,
-    rover_id: route.rover_id || null,
-    stops: route.stops || [],
-    distance_km: +getRoutePathDistanceKm(route.pts || []).toFixed(3)
-  })));
+  }));
 
   const payload = {
     site: site.id,

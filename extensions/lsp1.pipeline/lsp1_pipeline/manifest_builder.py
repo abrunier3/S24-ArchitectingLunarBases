@@ -552,6 +552,7 @@ def _build_terrain_route_diagnostics(
             route_inputs.append({
                 "name": route_name,
                 "flow": geometry.get("flow") or definition.get("flow"),
+                "visible_in_scene": bool(definition),
                 "path": geometry,
             })
     else:
@@ -613,6 +614,7 @@ def _build_terrain_route_diagnostics(
 
         routes[route_name] = {
             "flow": connection.get("flow"),
+            "visible_in_scene": connection.get("visible_in_scene", True),
             "status": _slope_status(max_slope, out_of_bounds),
             "input_waypoint_count": len(waypoints),
             "original_waypoints_m": [_round_point(point) for point in waypoints],

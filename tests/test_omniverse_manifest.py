@@ -25,6 +25,10 @@ class OmniverseManifestTests(unittest.TestCase):
                         "regolith_route": {
                             "flow": "Regolith",
                             "waypoints_m": [[0, 0], [10, 0]],
+                        },
+                        "ISRUPlantToPropellantDepot_LOX": {
+                            "flow": "LOX",
+                            "waypoints_m": [[10, 0], [20, 0]],
                         }
                     },
                 }
@@ -35,6 +39,10 @@ class OmniverseManifestTests(unittest.TestCase):
         route = diagnostics["routes"]["regolith_route"]
         self.assertEqual(route["original_waypoints_m"], [[0.0, 0.0], [10.0, 0.0]])
         self.assertEqual(route["terrain_waypoints_m"], [[0.0, 0.0, 0.0], [10.0, 0.0, 10.0]])
+        self.assertTrue(route["visible_in_scene"])
+        self.assertFalse(
+            diagnostics["routes"]["ISRUPlantToPropellantDepot_LOX"]["visible_in_scene"]
+        )
 
 
 if __name__ == "__main__":

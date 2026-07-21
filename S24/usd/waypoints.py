@@ -100,6 +100,7 @@ def get_visualization_connections(data: Dict[str, Any]) -> List[Dict[str, Any]]:
             "name": route_name,
             "type": "UrbanPlanningRoute",
             "flow": (geometry or {}).get("flow") or definition.get("flow", "Structural"),
+            "visualization_hidden": not bool(definition),
             "from": {"part": definition.get("from", "Unknown")},
             "to": {"part": definition.get("to", "Unknown")},
             "path": {
@@ -173,6 +174,8 @@ def create_connection_curve(
     prim.CreateAttribute("connection:numWaypoints", Sdf.ValueTypeNames.Int).Set(
         len(points)
     )
+    if connection.get("visualization_hidden"):
+        UsdGeom.Imageable(prim).MakeInvisible()
 
 
 def create_waypoint_markers(
@@ -206,6 +209,8 @@ def create_waypoint_markers(
             "waypoint:index",
             Sdf.ValueTypeNames.Int
         ).Set(i)
+        if connection.get("visualization_hidden"):
+            UsdGeom.Imageable(sphere.GetPrim()).MakeInvisible()
 
 
 def write_connections_usda(
