@@ -78,6 +78,28 @@ class IsruRuntimeTests(unittest.TestCase):
 
         self.assertTrue(results_written)
 
+    def test_energy_unconstrained_mode_skips_power_manager_and_rover_battery_limits(self):
+        options = {
+            "active_nodes": ["ISRUPlant", "RegolithRover", "SolarPowerSystem"],
+            "scenario_config": {
+                "simulation": {"duration_hr": 0.01},
+                "rovers": {"energy_kwh_per_km_per_kg": 100.0},
+                "power": {"ignore_power": True},
+            },
+        }
+
+        previous_cwd = os.getcwd()
+        try:
+            with tempfile.TemporaryDirectory() as temp_dir:
+                os.chdir(temp_dir)
+                run_scenario(options)
+                results = json.loads(Path("lunar_spaceport_results.json").read_text())
+        finally:
+            os.chdir(previous_cwd)
+
+        self.assertNotIn("Solar_Power_System", results)
+        self.assertNotIn("Power_Manager", results)
+
     def test_reference_preset_equations_run_with_all_isru_systems(self):
         root = Path(__file__).resolve().parents[1]
         preset = json.loads(

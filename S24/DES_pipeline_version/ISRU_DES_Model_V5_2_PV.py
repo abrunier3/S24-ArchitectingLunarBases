@@ -528,6 +528,7 @@ def check_scenario_validity(active_nodes, raiseError=True):
 def run_scenario(optionsDict):
     start_time = time.perf_counter()
     scenario_config = load_scenario_config(optionsDict)
+    power_ignored = bool(scenario_config.get("power", {}).get("ignore_power", False))
 
     # =========================================================
     # ACTIVE NODES: Determine which systems are included in this
@@ -575,7 +576,7 @@ def run_scenario(optionsDict):
     # construction, process spawning, printing, and result export.
     use_isru          = "ISRUPlant"          in active_nodes  # always True (checked above)
     use_regolith_rover= "RegolithRover"      in active_nodes  # always True (checked above)
-    use_solar         = "SolarPowerSystem"   in active_nodes
+    use_solar         = "SolarPowerSystem"   in active_nodes and not power_ignored
     use_habitat       = "HabitationModule"   in active_nodes
     use_comms         = "CommunicationModule"in active_nodes
     use_landing_zone  = "LaunchLandingZone"  in active_nodes
@@ -589,16 +590,22 @@ def run_scenario(optionsDict):
     # • HabitationModule / CommunicationModule without SolarPowerSystem:
     #   they are created but cannot be registered with a power manager,
     #   so their power draws are not accounted for.
-    if use_habitat and not use_solar:
+    if power_ignored:
+        message = (
+            "[INFO] Energy-Unconstrained Mode: power demand, generation, and "
+            "rover battery limits are ignored."
+        )
+        print(message)
+    if use_habitat and not use_solar and not power_ignored:
         print("[INFO] HabitationModule present but SolarPowerSystem absent — "
               "habitat power draw will not be managed.")
-    if use_comms and not use_solar:
+    if use_comms and not use_solar and not power_ignored:
         print("[INFO] CommunicationModule present but SolarPowerSystem absent — "
               "comms power draw will not be managed.")
-    if use_isru and not use_solar:
+    if use_isru and not use_solar and not power_ignored:
         print("[INFO] ISRUPlant present but SolarPowerSystem absent — "
               "ISRU power draw will not be managed.")
-    if use_landing_zone and not use_solar:
+    if use_landing_zone and not use_solar and not power_ignored:
         print("[INFO] LaunchLandingZone present but SolarPowerSystem absent — "
               "landing zone power draw will not be managed.")
     if use_lox_rover and not use_landing_zone:
@@ -873,6 +880,8 @@ def run_scenario(optionsDict):
                        ))
         r.instanceId = instance_id
         r.energyPerKmPerKg = scenario_config["rovers"]["energy_kwh_per_km_per_kg"]
+        if power_ignored:
+            r.energyPerKmPerKg = 0.0
         r.hoursPerKm       = scenario_config["rovers"]["travel_time_hr_per_km"]
         r.maxCapacity      = float(
             scenario_config["rovers"].get("regolith", {}).get(
@@ -913,6 +922,8 @@ def run_scenario(optionsDict):
                            ))
             r.instanceId = instance_id
             r.energyPerKmPerKg = scenario_config["rovers"]["energy_kwh_per_km_per_kg"]
+            if power_ignored:
+                r.energyPerKmPerKg = 0.0
             r.hoursPerKm       = scenario_config["rovers"]["travel_time_hr_per_km"]
             r.maxCapacity      = float(
                 scenario_config["rovers"].get("lox", {}).get(
