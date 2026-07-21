@@ -1,0 +1,113 @@
+{
+  "schema_version": 1,
+  "id": "Final_test",
+  "name": "Final_test",
+  "scenario_slug": "Final_test",
+  "mode": "isru",
+  "sysml_file": "clean_database/sysml/Final_test.sysml",
+  "template_sysml": "clean_database/sysml/ECLIPSE_Project.sysml",
+  "created_at": "2026-07-21T16:16:03.616Z",
+  "saved_at": "2026-07-21T16:16:03.619Z",
+  "active_nodes": [
+    "HabitationModule",
+    "ISRUPlant",
+    "LaunchLandingZone",
+    "PropellantDepot",
+    "LOXRover",
+    "SolarPowerSystem",
+    "RegolithRover",
+    "ISRUExcavation"
+  ],
+  "instance_counts": {
+    "HabitationModule": 1,
+    "ISRUPlant": 1,
+    "LaunchLandingZone": 1,
+    "PropellantDepot": 1,
+    "SolarPowerSystem": 1,
+    "ISRUExcavation": 1
+  },
+  "placements": {},
+  "orientations": {},
+  "terrain_routes": [],
+  "scenario_logic": {
+    "resourceRoutes": [],
+    "powerLinks": [],
+    "comLinks": [],
+    "moduleLogic": {},
+    "sysmlInterfaces": [],
+    "transportLinks": [],
+    "moduleEquations": {
+      "ISRUExcavation": "RegolithOut = RequestedRegolith\nEnergyConsumed = excavationEnergyCoeff * RegolithOut",
+      "RegolithRover": "RegolithOut = min(RegolithIn, RoverCapacity)\nTravelTime = Distance * hoursPerKm\nEnergyConsumed = Distance * CargoMass * energyPerKmPerKg",
+      "ISRUPlant": "LOXOut = RegolithIn * extractedLOXFraction\nProcessingTime = RegolithIn / processingRate\nEnergyConsumed = E_exc + E_trans + E_bene + E_reactor + E_electro + E_liq",
+      "LOXRover": "LOXOut = min(LOXIn, RoverCapacity)\nTravelTime = Distance * hoursPerKm\nEnergyConsumed = Distance * CargoMass * energyPerKmPerKg",
+      "PropellantDepot": "LOXStored = LOXStored + LOXIn\nPowerIn = 0",
+      "SolarPowerSystem": "PowerOut = powerOutput",
+      "HabitationModule": "PowerIn = constantPowerRate",
+      "LaunchLandingZone": "PowerIn = utilitiesPowerRate + LOXStored * chillingPowerPerKgLox"
+    },
+    "roverCounts": {
+      "regolith": 1,
+      "lox": 1
+    },
+    "roverPayloadsKg": {
+      "regolith": 4000,
+      "lox": 4000
+    }
+  },
+  "power_models": {
+    "HabitationModule": {
+      "mode": "average",
+      "average_kw": 5,
+      "points": [
+        {
+          "time_hr": 0,
+          "power_kw": 5
+        },
+        {
+          "time_hr": 60,
+          "power_kw": 5
+        }
+      ],
+      "equation": "",
+      "spike_energy_kwh": 20,
+      "spike_time_hr": 10
+    },
+    "LaunchLandingZone": {
+      "mode": "equation",
+      "average_kw": 3,
+      "points": [
+        {
+          "time_hr": 0,
+          "power_kw": 3
+        },
+        {
+          "time_hr": 60,
+          "power_kw": 3
+        }
+      ],
+      "equation": "PowerIn = 3 + LOXStored * 0.31",
+      "spike_energy_kwh": 50,
+      "spike_time_hr": 25
+    }
+  },
+  "des_form": {
+    "desRoverCount": "1",
+    "desLoxRoverCount": "1",
+    "desPlantCount": "1",
+    "desRoverEnergy": "0.00034",
+    "desRoverTravel": "5",
+    "desProcessRate": "1600",
+    "desLoxThresh": "100",
+    "desSimDuration": "60",
+    "desPlantBatch": "4000",
+    "desPlantInputCapacity": "20000",
+    "desLoxPollDt": "1",
+    "desLoxStorageCoeff": "0.31",
+    "desPowerDt": "1",
+    "desSolarPowerOutput": "100",
+    "desSolarBatteryCapacity": "500",
+    "desSolarInitialCharge": "500"
+  },
+  "results": null
+}
