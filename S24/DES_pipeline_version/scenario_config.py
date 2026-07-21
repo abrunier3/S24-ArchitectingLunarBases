@@ -72,11 +72,6 @@ DEFAULT_SCENARIO_CONFIG = {
                 {"time_hr": 25.0, "energy_kwh": 50.0}
             ],
         },
-        "charging_station": {
-            "enabled_when_lox_rover_active": False,
-            "charging_power_kw": 20.0,
-            "efficiency": 0.85,
-        },
         "module_models": {},
     },
 }

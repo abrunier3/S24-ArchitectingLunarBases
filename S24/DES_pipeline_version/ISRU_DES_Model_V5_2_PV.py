@@ -33,7 +33,6 @@ from S24.DES_pipeline_version.PowerManager import (
 from S24.DES_pipeline_version.HabitationModule import HabitationModule
 from S24.DES_pipeline_version.CommunicationModule import CommunicationModule
 from S24.DES_pipeline_version.LunarRover import LunarRover
-from S24.DES_pipeline_version.RoverChargingStation import RoverChargingStation
 from S24.DES_pipeline_version.LandingLaunchZone import LandingLaunchZone
 from S24.DES_pipeline_version.ImportUtility import data_from_json
 from S24.DES_pipeline_version.LoggingManager import LoggingManager
@@ -618,6 +617,10 @@ def run_scenario(optionsDict):
     # Experiment data -----------------------------------------
     experiment = "ISRU Processing Plant – Active Nodes: " + ", ".join(sorted(active_nodes))
     scenario_builder = scenario_config.get("scenario_builder", {})
+    asset_root = scenario_config.get("scenario", {}).get("json_asset_root")
+
+    def load_asset(filename):
+        return data_from_json(filename, asset_root=asset_root)
     supported_equation_modules = {
         "ISRUPlant",
         "ISRUExcavation",
@@ -669,8 +672,8 @@ def run_scenario(optionsDict):
     logger.setup()
 
     # ---- ISRU Plants (always present — enforced above) ------
-    isruPlantData = data_from_json("ISRUV2.json")['ISRUPlant']
-    excavationData = data_from_json("ISRUExcavation.json")['ISRUExcavation']
+    isruPlantData = load_asset("ISRUV2.json")['ISRUPlant']
+    excavationData = load_asset("ISRUExcavation.json")['ISRUExcavation']
     plant_attributes = dict(isruPlantData.raw['attributes'])
     plant_attributes.setdefault(
         "excavationEnergyCoeff",
@@ -731,7 +734,7 @@ def run_scenario(optionsDict):
     solarSystem  = None
     powerManager = None
     if use_solar:
-        solarPowerSystemData = data_from_json("SolarPowerSystemV1.json")['SolarPowerSystem']
+        solarPowerSystemData = load_asset("SolarPowerSystemV1.json")['SolarPowerSystem']
         solar_attributes = dict(solarPowerSystemData.raw['attributes'])
         supply_config = scenario_config.get("power", {}).get("supply", {})
         solar_attributes["powerOutput"] = float(
@@ -784,7 +787,7 @@ def run_scenario(optionsDict):
     # ---- Habitation Module (optional) -----------------------
     habitat = None
     if use_habitat:
-        habitationModuleData = data_from_json("HabitationModuleV1.json")['HabitationModule']
+        habitationModuleData = load_asset("HabitationModuleV1.json")['HabitationModule']
         habitat = HabitationModule(system, "Habitat-1", habitationModuleData.raw['attributes'])
         habitat_power_kw = continuous_power.get("habitation")
         if habitat_power_kw is not None:
@@ -803,7 +806,7 @@ def run_scenario(optionsDict):
     # ---- Communication Module (optional) --------------------
     comms = None
     if use_comms:
-        communicationModuleData = data_from_json("CommunicationModuleV1.json")['CommunicationModule']
+        communicationModuleData = load_asset("CommunicationModuleV1.json")['CommunicationModule']
         comms = CommunicationModule(system, "CommArray-1", communicationModuleData.raw['attributes'])
         comms_power_kw = continuous_power.get("communications")
         if comms_power_kw is not None:
@@ -822,7 +825,7 @@ def run_scenario(optionsDict):
     # ---- Landing / Launch Zone (optional) -------------------
     landingZone = None
     if use_landing_zone:
-        landingZoneData = data_from_json("LaunchLandingZoneV1.json")['LaunchLandingZone']
+        landingZoneData = load_asset("LaunchLandingZoneV1.json")['LaunchLandingZone']
         landingZone = LandingLaunchZone(system, "LZ-Alpha", attributeDict=landingZoneData.raw['attributes'])
         landing_utilities_kw = continuous_power.get("landing_zone_utilities")
         if landing_utilities_kw is not None:
@@ -846,7 +849,7 @@ def run_scenario(optionsDict):
     propellant_depots = {}
     depot_instances = _scenario_instances(scenario_builder, "PropellantDepot", 0)
     if depot_instances:
-        propellantDepotData = data_from_json("PropellantDepot.json")['PropellantDepot']
+        propellantDepotData = load_asset("PropellantDepot.json")['PropellantDepot']
         for instance in depot_instances:
             depot = PropellantDepotRuntime(
                 system,
@@ -864,7 +867,7 @@ def run_scenario(optionsDict):
             logger.add(depot)
 
     # ---- Rovers (regolith always present; LOX optional) -----
-    roverData = data_from_json("RoverV1.json")['Rover']
+    regolithRoverData = load_asset("RegolithRover.json")['RegolithRover']
 
     regolithCargoRovers = []
     for i in range(num_regolith_rovers):
@@ -874,7 +877,7 @@ def run_scenario(optionsDict):
             else f"RegolithRover_{i+1}"
         )
         r = LunarRover(system, name=f"Regolith Cargo Rover {i+1}", roverType="cargo",
-                       attributeDict=roverData.raw['attributes'],
+                       attributeDict=regolithRoverData.raw['attributes'],
                        equations=_module_equations(
                            scenario_builder, instance_id, "RegolithRover"
                        ))
@@ -911,12 +914,12 @@ def run_scenario(optionsDict):
         )
 
     LOXCargoRovers = []
-    chargingStation = None
     if use_lox_rover:
+        loxRoverData = load_asset("LOXRover.json")['LOXRover']
         for i in range(num_lox_rovers):
             instance_id = "LOXRover" if num_lox_rovers == 1 else f"LOXRover_{i+1}"
             r = LunarRover(system, name=f"LOX Cargo Rover {i+1}", roverType="cargo",
-                           attributeDict=roverData.raw['attributes'],
+                           attributeDict=loxRoverData.raw['attributes'],
                            equations=_module_equations(
                                scenario_builder, instance_id, "LOXRover"
                            ))
@@ -933,22 +936,6 @@ def run_scenario(optionsDict):
             )
             logger.add(r)
             LOXCargoRovers.append(r)
-
-        # Charging station is only meaningful when there are rovers needing a charge;
-        # tie its existence to the LOX rover (the regolith rovers are always present
-        # so the station is always built when the LOX rover is, giving it something
-        # useful to do for both rover types).
-        charging_config = scenario_config["power"]["charging_station"]
-        if charging_config.get("enabled_when_lox_rover_active", True):
-            chargingStation = RoverChargingStation(
-                system,
-                "ChargeStation-1",
-                chargingPowerRate=charging_config["charging_power_kw"],
-                efficiencyFactor=charging_config["efficiency"]
-            )
-            if powerManager:
-                powerManager.registerConsumer(chargingStation)
-            logger.add(chargingStation)
 
     # Any remaining Step 5 module model becomes an explicit grid consumer.
     # This keeps power models functional even when a module has no dedicated
@@ -1143,11 +1130,6 @@ def run_scenario(optionsDict):
         print(f"  Battery Charge: {r.batteryCharge:.2f}/{r.batteryCapacity:.2f} kWh")
         print(f"  Current Load: {r.currentLoad:.2f} kg")
 
-    if chargingStation:
-        print(f"\n{chargingStation.name}:")
-        print(f"  Energy Consumed: {chargingStation.totalEnergyConsumed:.2f} kWh")
-        print(f"  Energy Delivered to Rovers: {chargingStation.totalEnergyDelivered:.2f} kWh")
-
     print("="*70)
 
     # Output --------------------------------------------------
@@ -1306,13 +1288,6 @@ def run_scenario(optionsDict):
             "Battery_Charge_kWh":   round(only_rover.batteryCharge, 2),
             "Battery_Capacity_kWh": round(only_rover.batteryCapacity, 2),
             "Current_Load_kg":      round(only_rover.currentLoad, 2),
-        }
-
-    if chargingStation:
-        final_results["Charging_Station"] = {
-            "Name":                           chargingStation.name,
-            "Energy_Consumed_kWh":            round(chargingStation.totalEnergyConsumed, 2),
-            "Energy_Delivered_to_Rovers_kWh": round(chargingStation.totalEnergyDelivered, 2),
         }
 
     # Export to JSON file

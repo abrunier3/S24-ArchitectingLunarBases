@@ -43,6 +43,8 @@ class DesTimeSeriesUiTests(unittest.TestCase):
         )
         self.assertIn("travel_time_hr_per_km: Number(sliderValues.Rover_Travel_Time)", html)
         self.assertIn("processing_rate_kg_hr: Number(sliderValues.ISRU_Plant_Processing_Rate)", html)
+        self.assertIn("dispatch_poll_dt_hr: getNumberInputValue('desRegolithPollDt', 0.1)", html)
+        self.assertIn("lox_storage_energy_dt_hr: getNumberInputValue('desLoxStorageDt', 1)", html)
 
 
 if __name__ == "__main__":

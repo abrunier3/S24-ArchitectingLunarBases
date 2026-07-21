@@ -4016,6 +4016,7 @@ function applyIsruScenarioPreset(preset) {
     roverPayloadsKg: {regolith: 4000, lox: 4000},
     ...cloneScenarioValue(preset.scenario_logic || {})
   };
+  migrateLegacyIsruEquations();
   scenarioPowerModels = cloneScenarioValue(preset.power_models || {});
   clearAutoSyncedEventEnergyModels();
   restoreDesFormValues(preset.des_form || {});
@@ -4138,6 +4139,7 @@ function restoreScenarioSnapshot(snapshot) {
   up42Orientations = cloneScenarioValue(snapshot.orientations || {});
   up42Routes = cloneScenarioValue(snapshot.terrain_routes || []);
   up42Scenario = cloneScenarioValue(snapshot.scenario_logic || up42Scenario);
+  migrateLegacyIsruEquations();
   scenarioPowerModels = cloneScenarioValue(snapshot.power_models || {});
   clearAutoSyncedEventEnergyModels();
   updatePowerModeStatus();
@@ -6415,9 +6417,20 @@ function getDefaultEquationTemplate(moduleId) {
   const baseId = getBaseModuleId(moduleId);
   if (baseId === 'ISRUPlant') {
     return [
+      'BeneficiatedIlmenite = RegolithIn * ilmeniteRecoveryFraction * regHeadGrade',
+      'BeneficiatedRegolith = BeneficiatedIlmenite / (beneficiationRegolithMultiplier * regHeadGrade)',
+      'GangueMass = RegolithIn - BeneficiatedRegolith',
+      'WaterMass = BeneficiatedIlmenite * waterRecoveryFraction * waterMolarMass / ilmeniteMolarMass',
+      'OxygenMass = WaterMass * oxygenMolarMass / (2 * waterMolarMass)',
       'LOXOut = RegolithIn * conversionEfficiency',
       'ProcessingTime = RegolithIn / processingRate',
-      'EnergyConsumed = E_exc + E_trans + E_bene + E_reactor + E_electro + E_liq'
+      'ExcavationEnergy = excavationEnergyCoeff * RegolithIn',
+      'TransportEnergy = transportEnergyCoeff * RegolithIn * transportDist',
+      'BeneficiationEnergy = RegolithIn * lunarGravity * liftHeight / joulesPerKWh + GangueMass * gangueTransportEnergyCoeff * gangueTransportDist',
+      'ReactorEnergy = reactorEnergyCoeff * BeneficiatedRegolith',
+      'ElectrolysisEnergy = electrolysisEnergyCoeff * WaterMass',
+      'LiquefactionEnergy = liquefactionEnergyCoeff * OxygenMass',
+      'EnergyConsumed = ExcavationEnergy + TransportEnergy + BeneficiationEnergy + ReactorEnergy + ElectrolysisEnergy + LiquefactionEnergy'
     ].join('\n');
   }
   if (baseId === 'RegolithRover') {
@@ -6429,23 +6442,66 @@ function getDefaultEquationTemplate(moduleId) {
   return '';
 }
 
+function expandLegacyIsruEnergyEquation(equations) {
+  const lines = splitModuleEquations(equations);
+  const legacyIndex = lines.findIndex(line =>
+    /^EnergyConsumed\s*=\s*E_exc\s*\+\s*E_trans\s*\+\s*E_bene\s*\+\s*E_reactor\s*\+\s*E_electro\s*\+\s*E_liq\s*$/i.test(line)
+  );
+  if (legacyIndex < 0) return lines;
+
+  const expandedEnergy = splitModuleEquations(getDefaultEquationTemplate('ISRUPlant'))
+    .filter(line => !/^(LOXOut|ProcessingTime)\s*=/i.test(line));
+  lines.splice(legacyIndex, 1, ...expandedEnergy);
+  return lines;
+}
+
+function migrateLegacyIsruEquations() {
+  up42Scenario.moduleEquations = up42Scenario.moduleEquations || {};
+  Object.entries(up42Scenario.moduleEquations).forEach(([moduleId, equations]) => {
+    if (getBaseModuleId(moduleId) !== 'ISRUPlant') return;
+    up42Scenario.moduleEquations[moduleId] = expandLegacyIsruEnergyEquation(equations).join('\n');
+  });
+}
+
 function getEquationTokenGroups(moduleId) {
   const baseId = getBaseModuleId(moduleId);
   const part = getSysmlPartData(baseId) || {};
-  const ports = [...new Set((Array.isArray(part.ports) ? part.ports : []).flatMap(port => {
+  const moduleClass = getModuleClass(baseId);
+  const explicitPorts = [...new Set((Array.isArray(part.ports) ? part.ports : []).flatMap(port => {
     const items = Array.isArray(port.items) ? port.items.filter(Boolean) : [];
     return items.length ? items : [port.name || port.id].filter(Boolean);
   }))];
-  const attrs = Object.keys(part.attributes || {});
-  const standard = [
-    'SimulationTime', 'ProcessingTime', 'TravelTime', 'PowerIn', 'PowerOut',
-    'EnergyConsumed', 'EnergyGenerated', 'Distance', 'CargoMass', 'RoverCapacity'
-  ];
+  const portFlows = getModulePortFlowDirections(baseId);
+  const graphProfile = getModuleGraphProfile(baseId);
+  const attrs = Object.keys(part.attributes || {}).filter(isSimulationAttributeName);
+  const standardByClass = {
+    Source: ['SimulationTime'],
+    Processor: ['SimulationTime', 'ProcessingTime', 'EnergyConsumed'],
+    Storage: ['SimulationTime'],
+    Consumer: ['SimulationTime', 'EnergyConsumed'],
+    Transporter: ['SimulationTime', 'TravelTime', 'Distance', 'CargoMass', 'RoverCapacity', 'EnergyConsumed'],
+    PowerGenerator: ['SimulationTime', 'EnergyGenerated'],
+    Passive: ['SimulationTime']
+  };
+  const powerPorts = [];
+  if (portFlows.powerInputs.length || graphProfile.powerIncoming.length) powerPorts.push('PowerIn');
+  if (portFlows.powerOutputs.length || graphProfile.powerOutgoing.length) powerPorts.push('PowerOut');
+  const scenarioSpecific = baseId === 'ISRUPlant' ? ['transportDist'] : [];
   return {
-    ports: [...new Set([...ports, ...standard])],
+    ports: [...new Set([
+      ...explicitPorts,
+      ...(standardByClass[moduleClass] || standardByClass.Passive),
+      ...powerPorts,
+      ...scenarioSpecific
+    ])],
     attrs,
     ops: ['=', '+', '-', '*', '/', '^', '(', ')', 'min(', 'max(']
   };
+}
+
+function isSimulationAttributeName(name) {
+  // CAD extraction metadata describes geometry only; it cannot affect a DES equation.
+  return !/^cad/i.test(String(name || ''));
 }
 
 function renderTokenButtons(label, values, color) {
@@ -8087,6 +8143,10 @@ let up42MoonImg = null;
           <input id="desLoxPollDt" type="number" min="0.1" step="0.1" value="1" style="width:100%;margin-top:5px;background:#07101a;color:var(--text1);border:1px solid var(--border2);border-radius:5px;padding:6px;">
           <span style="display:block;font-size:9px;color:var(--text3);margin-top:4px;">Time between checks for a transport request, in hours.</span>
         </label>
+        <label style="padding:8px;border:1px solid var(--border2);border-radius:7px;font-size:10px;color:var(--text2);line-height:1.4;">Regolith dispatch check interval <small style="color:#f4a261;">[ISRU transport]</small>
+          <input id="desRegolithPollDt" type="number" min="0.1" step="0.1" value="0.1" style="width:100%;margin-top:5px;background:#07101a;color:var(--text1);border:1px solid var(--border2);border-radius:5px;padding:6px;">
+          <span style="display:block;font-size:9px;color:var(--text3);margin-top:4px;">Time between checks for the next regolith rover dispatch, in hours.</span>
+        </label>
         <label id="desControlPowerDt" style="padding:8px;border:1px solid var(--border2);border-radius:7px;font-size:10px;color:var(--text2);line-height:1.4;">Power management interval <small style="color:#ffd166;">[Power network]</small>
           <input id="desPowerDt" type="number" min="0.1" step="0.1" value="1" style="width:100%;margin-top:5px;background:#07101a;color:var(--text1);border:1px solid var(--border2);border-radius:5px;padding:6px;">
           <span style="display:block;font-size:9px;color:var(--text3);margin-top:4px;">Time between generation, demand, and battery balance updates.</span>
@@ -8149,6 +8209,10 @@ let up42MoonImg = null;
             <label style="padding:8px;border:1px solid var(--border2);border-radius:7px;font-size:10px;color:var(--text2);line-height:1.4;">Storage energy coefficient <small style="color:#ff7a8a;">[ISRUPlant]</small>
               <input id="desLoxStorageCoeff" type="number" min="0" step="0.01" value="0.31" style="width:100%;margin-top:5px;background:#07101a;color:var(--text1);border:1px solid var(--border2);border-radius:5px;padding:6px;">
               <span style="display:block;font-size:9px;color:var(--text3);margin-top:4px;">Energy consumed per kilogram of stored LOX per hour, in kWh/kg/hr.</span>
+            </label>
+            <label style="padding:8px;border:1px solid var(--border2);border-radius:7px;font-size:10px;color:var(--text2);line-height:1.4;">Storage energy accounting interval <small style="color:#ff7a8a;">[ISRUPlant]</small>
+              <input id="desLoxStorageDt" type="number" min="0.1" step="0.1" value="1" style="width:100%;margin-top:5px;background:#07101a;color:var(--text1);border:1px solid var(--border2);border-radius:5px;padding:6px;">
+              <span style="display:block;font-size:9px;color:var(--text3);margin-top:4px;">Time step used to account for energy while LOX remains stored, in hours.</span>
             </label>
           </div>
 
@@ -11870,7 +11934,7 @@ let up42MoonImg = null;
           ? getNumberInputValue('desPlantInputCapacity', 20000)
           : roverCapacity * Math.max(1, regolithRoverCount),
         dispatch_policy: 'least_fill_ratio',
-        dispatch_poll_dt_hr: 0.1,
+        dispatch_poll_dt_hr: getNumberInputValue('desRegolithPollDt', 0.1),
       },
       isru: {
         plant_count: plantCount,
@@ -11883,7 +11947,7 @@ let up42MoonImg = null;
         lox_storage_energy_kwh_per_kg_hr: isIsruPreset
           ? getNumberInputValue('desLoxStorageCoeff', 0.31)
           : 0,
-        lox_storage_energy_dt_hr: 1,
+        lox_storage_energy_dt_hr: getNumberInputValue('desLoxStorageDt', 1),
       },
 	      power: {
 	        ignore_power: ignorePower,
@@ -11907,11 +11971,6 @@ let up42MoonImg = null;
           habitation: [],
           communications: [],
           landing_zone: [],
-        },
-        charging_station: {
-          enabled_when_lox_rover_active: false,
-          charging_power_kw: 20,
-          efficiency: 0.85,
         },
 	        module_models: ignorePower ? {} : cloneScenarioValue(scenarioPowerModels),
 	      },

@@ -11,6 +11,8 @@ from S24.DES_pipeline_version.ISRU_DES_Model_V5_2_PV import (
     run_scenario,
 )
 from S24.DES_pipeline_version.ISRUPlant import ISRUPlant
+from S24.DES_pipeline_version.ImportUtility import data_from_json
+from S24.DES_pipeline_version.scenario_equations import evaluate_equations
 
 
 class IsruRuntimeTests(unittest.TestCase):
@@ -28,6 +30,41 @@ class IsruRuntimeTests(unittest.TestCase):
         system.run()
 
         self.assertEqual(plant.totalLOXProduction, 40.0)
+
+    def test_detailed_isru_equation_matches_the_named_process_parameters(self):
+        root = Path(__file__).resolve().parents[1]
+        attributes = json.loads(
+            (root / "clean_database/json/ECLIPSE_Project/assets/ISRUPlant.json").read_text()
+        )["attributes"]
+        equations = json.loads(
+            (root / "clean_database/scenarios/presets/ISRU.json").read_text()
+        )["scenario_logic"]["moduleEquations"]["ISRUPlant"]
+        regolith_mass = 4000.0
+        expected = evaluate_equations(
+            equations,
+            {**attributes, "RegolithIn": regolith_mass, "transportDist": 1.0},
+            effect_outputs={"LOXOut", "ProcessingTime", "EnergyConsumed", "PowerIn"},
+        )
+
+        system = simpy.Environment()
+        plant = ISRUPlant(system, "plant", attributes)
+        system.process(plant.processRegolith(system, regolith_mass))
+        system.run()
+
+        self.assertAlmostEqual(plant.totalLOXProduction, expected["LOXOut"])
+        self.assertAlmostEqual(plant.totalEnergyConsumed, expected["EnergyConsumed"])
+
+    def test_scenario_asset_root_is_used_for_runtime_assets(self):
+        root = Path(__file__).resolve().parents[1]
+        asset = data_from_json(
+            "ISRUV2.json",
+            asset_root="clean_database/json/ISRU_petit/assets",
+        )["ISRUPlant"]
+
+        expected = json.loads(
+            (root / "clean_database/json/ISRU_petit/assets/ISRUPlant.json").read_text()
+        )["attributes"]
+        self.assertEqual(asset.raw["attributes"], expected)
 
     def test_base_rover_route_applies_to_every_fleet_instance(self):
         builder = {
@@ -99,6 +136,37 @@ class IsruRuntimeTests(unittest.TestCase):
 
         self.assertNotIn("Solar_Power_System", results)
         self.assertNotIn("Power_Manager", results)
+
+    def test_legacy_charging_station_config_is_ignored(self):
+        options = {
+            "active_nodes": [
+                "ISRUPlant",
+                "RegolithRover",
+                "LOXRover",
+                "LaunchLandingZone",
+            ],
+            "scenario_config": {
+                "simulation": {"duration_hr": 0.01},
+                "power": {
+                    "charging_station": {
+                        "enabled_when_lox_rover_active": True,
+                        "charging_power_kw": 999.0,
+                        "efficiency": 0.01,
+                    }
+                },
+            },
+        }
+
+        previous_cwd = os.getcwd()
+        try:
+            with tempfile.TemporaryDirectory() as temp_dir:
+                os.chdir(temp_dir)
+                run_scenario(options)
+                results = json.loads(Path("lunar_spaceport_results.json").read_text())
+        finally:
+            os.chdir(previous_cwd)
+
+        self.assertNotIn("Charging_Station", results)
 
     def test_reference_preset_equations_run_with_all_isru_systems(self):
         root = Path(__file__).resolve().parents[1]

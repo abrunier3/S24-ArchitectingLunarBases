@@ -38,7 +38,7 @@
     "moduleEquations": {
       "ISRUExcavation": "RegolithOut = RequestedRegolith\nEnergyConsumed = excavationEnergyCoeff * RegolithOut",
       "RegolithRover": "RegolithOut = min(RegolithIn, RoverCapacity)\nTravelTime = Distance * hoursPerKm\nEnergyConsumed = Distance * CargoMass * energyPerKmPerKg",
-      "ISRUPlant": "LOXOut = RegolithIn * conversionEfficiency\nProcessingTime = RegolithIn / processingRate\nEnergyConsumed = E_exc + E_trans + E_bene + E_reactor + E_electro + E_liq",
+      "ISRUPlant": "LOXOut = RegolithIn * conversionEfficiency\nProcessingTime = RegolithIn / processingRate\nBeneficiatedIlmenite = RegolithIn * ilmeniteRecoveryFraction * regHeadGrade\nBeneficiatedRegolith = BeneficiatedIlmenite / (beneficiationRegolithMultiplier * regHeadGrade)\nGangueMass = RegolithIn - BeneficiatedRegolith\nWaterMass = BeneficiatedIlmenite * waterRecoveryFraction * waterMolarMass / ilmeniteMolarMass\nOxygenMass = WaterMass * oxygenMolarMass / (2 * waterMolarMass)\nExcavationEnergy = excavationEnergyCoeff * RegolithIn\nTransportEnergy = transportEnergyCoeff * RegolithIn * transportDist\nBeneficiationEnergy = RegolithIn * lunarGravity * liftHeight / joulesPerKWh + GangueMass * gangueTransportEnergyCoeff * gangueTransportDist\nReactorEnergy = reactorEnergyCoeff * BeneficiatedRegolith\nElectrolysisEnergy = electrolysisEnergyCoeff * WaterMass\nLiquefactionEnergy = liquefactionEnergyCoeff * OxygenMass\nEnergyConsumed = ExcavationEnergy + TransportEnergy + BeneficiationEnergy + ReactorEnergy + ElectrolysisEnergy + LiquefactionEnergy",
       "LOXRover": "LOXOut = min(LOXIn, RoverCapacity)\nTravelTime = Distance * hoursPerKm\nEnergyConsumed = Distance * CargoMass * energyPerKmPerKg",
       "PropellantDepot": "LOXStored = LOXStored + LOXIn\nPowerIn = 0",
       "SolarPowerSystem": "PowerOut = powerOutput",
@@ -110,13 +110,15 @@
     "desLoxThresh": "100",
     "desSimDuration": "60",
     "desLoxPollDt": "1",
+    "desRegolithPollDt": "0.1",
     "desPowerDt": "1",
     "desSolarPowerOutput": "100",
     "desSolarBatteryCapacity": "500",
     "desSolarInitialCharge": "500",
     "desPlantBatch": "4000",
     "desPlantInputCapacity": "20000",
-    "desLoxStorageCoeff": "0.31"
+    "desLoxStorageCoeff": "0.31",
+    "desLoxStorageDt": "1"
   },
   "results": null
 }

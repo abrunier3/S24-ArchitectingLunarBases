@@ -483,6 +483,12 @@ def _build_original_segment_diagnostics(
             else:
                 sampled.append((point[0], point[1], z))
 
+        terrain_waypoints = []
+        for point in waypoints:
+            z = sampler.sample_height(point[0], point[1])
+            if z is not None:
+                terrain_waypoints.append(_round_point((point[0], point[1], z)))
+
         slopes, slope_segments, projected_start, projected_end = _slope_stats_from_sampled(sampled)
         max_slope = max(slopes) if slopes else None
         mean_slope = sum(slopes) / len(slopes) if slopes else None
@@ -604,6 +610,7 @@ def _build_terrain_route_diagnostics(
             "status": _slope_status(max_slope, out_of_bounds),
             "input_waypoint_count": len(waypoints),
             "original_waypoints_m": [_round_point(point) for point in waypoints],
+            "terrain_waypoints_m": terrain_waypoints,
             "sample_count": len(dense),
             "valid_sample_count": len(valid_samples),
             "out_of_bounds_count": out_of_bounds,

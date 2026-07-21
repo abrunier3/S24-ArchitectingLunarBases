@@ -58,7 +58,9 @@ class IsruPresetTests(unittest.TestCase):
             "desPlantBatch",
             "desPlantInputCapacity",
             "desLoxPollDt",
+            "desRegolithPollDt",
             "desLoxStorageCoeff",
+            "desLoxStorageDt",
             "desPowerDt",
             "desSolarPowerOutput",
             "desSolarBatteryCapacity",
@@ -85,6 +87,14 @@ class IsruPresetTests(unittest.TestCase):
             preset["scenario_logic"]["moduleEquations"]["ISRUPlant"].splitlines()[0],
             "LOXOut = RegolithIn * conversionEfficiency",
         )
+        self.assertIn(
+            "BeneficiatedIlmenite = RegolithIn * ilmeniteRecoveryFraction * regHeadGrade",
+            preset["scenario_logic"]["moduleEquations"]["ISRUPlant"],
+        )
+        self.assertIn(
+            "EnergyConsumed = ExcavationEnergy + TransportEnergy + BeneficiationEnergy + ReactorEnergy + ElectrolysisEnergy + LiquefactionEnergy",
+            preset["scenario_logic"]["moduleEquations"]["ISRUPlant"],
+        )
 
     def test_isru_graph_classification_uses_raw_connections_and_port_directions(self):
         html = INDEX_PATH.read_text()
@@ -103,6 +113,11 @@ class IsruPresetTests(unittest.TestCase):
         self.assertIn("function clearAutoSyncedEventEnergyModels()", html)
         self.assertIn('id="manualNoPowerModeToggle"', html)
         self.assertIn("function setManualNoPowerMode(enabled)", html)
+        self.assertIn("function migrateLegacyIsruEquations()", html)
+        self.assertIn("const standardByClass = {", html)
+        self.assertIn("Transporter: ['SimulationTime', 'TravelTime', 'Distance', 'CargoMass', 'RoverCapacity', 'EnergyConsumed']", html)
+        self.assertIn("function isSimulationAttributeName(name)", html)
+        self.assertIn("return !/^cad/i.test", html)
         self.assertIn("return isManualNoPowerMode() ||", html)
         self.assertIn(
             "/^(PowerIn|PowerOut|EnergyGenerated)\\s*=",

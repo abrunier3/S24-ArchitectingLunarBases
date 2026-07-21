@@ -664,27 +664,64 @@ class LSP1PipelineExtension(omni.ext.IExt):
                     )
                     drawn += 1
 
-                # The raw waypoint USD layer is authored in the UI's z=0
-                # frame.  Show the same route's original waypoints on the
-                # sampled terrain so they remain visible in Omniverse.
-                for waypoint_idx, point in enumerate(route_info.get("original_waypoints_m", [])):
-                    if not isinstance(point, list) or len(point) < 3:
-                        continue
-                    marker = UsdGeom.Sphere.Define(
-                        stage,
-                        f"{root_path}/{route_name}/Waypoint_{waypoint_idx:03d}",
-                    )
-                    marker.CreateRadiusAttr(7.0)
-                    marker.CreateDisplayColorAttr([Gf.Vec3f(1.0, 0.9, 0.25)])
-                    marker_xform = UsdGeom.Xformable(marker.GetPrim())
-                    marker_xform.AddTranslateOp().Set(
-                        Gf.Vec3d(float(point[0]), float(point[1]), float(point[2]) + 1.5)
-                    )
+            self._draw_projected_waypoints(stage, route_projection)
 
             print(f"[LSP1 Pipeline] Drew {drawn} slope-colored route segment(s).")
 
         except Exception as e:
             print("[LSP1 Pipeline] Route slope debug draw failed:", repr(e))
+
+    def _draw_projected_waypoints(self, stage, route_projection):
+        """Expose terrain-projected route waypoints under a stable Stage path."""
+        from pxr import UsdGeom, Gf, Sdf
+
+        root_path = self.manifest.get("waypoint_root", "/World/ConnectionWaypoints")
+        existing = stage.GetPrimAtPath(root_path)
+        if existing and existing.IsValid():
+            stage.RemovePrim(root_path)
+
+        UsdGeom.Xform.Define(stage, root_path)
+        marker_count = 0
+        for route_name, route_info in route_projection.items():
+            route_root = UsdGeom.Xform.Define(stage, f"{root_path}/{route_name}")
+            route_root.GetPrim().CreateAttribute(
+                "route:flow",
+                Sdf.ValueTypeNames.String,
+            ).Set(str(route_info.get("flow") or ""))
+
+            # The raw waypoint USD layer is authored in the UI's z=0 frame.
+            # These copies use the terrain-projected z coordinates from the
+            # visualization manifest, so they are both visible and inspectable.
+            points = route_info.get("terrain_waypoints_m") or []
+            if not points:
+                # Compatibility with manifests written before
+                # ``terrain_waypoints_m`` was introduced: original segment
+                # endpoints are already terrain-projected by the sampler.
+                for segment in route_info.get("original_segments", []):
+                    start = segment.get("from_m")
+                    end = segment.get("to_m")
+                    if start and (not points or points[-1] != start):
+                        points.append(start)
+                    if end and (not points or points[-1] != end):
+                        points.append(end)
+            if not points:
+                points = route_info.get("original_waypoints_m", [])
+            for waypoint_idx, point in enumerate(points):
+                if not isinstance(point, list) or len(point) < 3:
+                    continue
+                marker = UsdGeom.Sphere.Define(
+                    stage,
+                    f"{root_path}/{route_name}/Waypoint_{waypoint_idx:03d}",
+                )
+                marker.CreateRadiusAttr(7.0)
+                marker.CreateDisplayColorAttr([Gf.Vec3f(1.0, 0.9, 0.25)])
+                marker_xform = UsdGeom.Xformable(marker.GetPrim())
+                marker_xform.AddTranslateOp().Set(
+                    Gf.Vec3d(float(point[0]), float(point[1]), float(point[2]) + 1.5)
+                )
+                marker_count += 1
+
+        print(f"[LSP1 Pipeline] Added {marker_count} terrain-projected waypoint marker(s).")
 
     def _set_route_slope_debug_visible(self, visible):
         try:
@@ -695,15 +732,19 @@ class LSP1PipelineExtension(omni.ext.IExt):
             if not stage:
                 return
 
-            prim = stage.GetPrimAtPath("/World/TerrainRouteSlopeDebug")
-            if not prim or not prim.IsValid():
-                return
+            for prim_path in (
+                "/World/TerrainRouteSlopeDebug",
+                self.manifest.get("waypoint_root", "/World/ConnectionWaypoints"),
+            ):
+                prim = stage.GetPrimAtPath(prim_path)
+                if not prim or not prim.IsValid():
+                    continue
 
-            imageable = UsdGeom.Imageable(prim)
-            if visible:
-                imageable.MakeVisible()
-            else:
-                imageable.MakeInvisible()
+                imageable = UsdGeom.Imageable(prim)
+                if visible:
+                    imageable.MakeVisible()
+                else:
+                    imageable.MakeInvisible()
 
         except Exception as e:
             print("[LSP1 Pipeline] Route visibility update failed:", repr(e))

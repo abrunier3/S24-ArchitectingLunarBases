@@ -23,6 +23,14 @@ class ISRUPlant:
         self.processingRate = attributeDict['processingRate']
         self.sourceAttributes = dict(attributeDict)
         self.regHeadGrade = attributeDict['regHeadGrade']
+        self.ilmeniteRecoveryFraction = attributeDict['ilmeniteRecoveryFraction']
+        self.beneficiationRegolithMultiplier = attributeDict['beneficiationRegolithMultiplier']
+        self.waterRecoveryFraction = attributeDict['waterRecoveryFraction']
+        self.waterMolarMass = attributeDict['waterMolarMass']
+        self.ilmeniteMolarMass = attributeDict['ilmeniteMolarMass']
+        self.oxygenMolarMass = attributeDict['oxygenMolarMass']
+        self.joulesPerKWh = attributeDict['joulesPerKWh']
+        self.gangueTransportEnergyCoeff = attributeDict['gangueTransportEnergyCoeff']
         self.conversionEfficiency = float(attributeDict.get('conversionEfficiency', 0.0))
         if not 0 <= self.conversionEfficiency <= 1:
             raise ValueError('conversionEfficiency must be between 0 and 1')
@@ -57,13 +65,18 @@ class ISRUPlant:
         generatedLOX = self.conversionEfficiency*regolithMass
 
         #Determine waste mass (gangue)
-        m_bene_ilm = regolithMass*0.505*self.regHeadGrade #Eq 9 in [1]
-        m_bene_reg = m_bene_ilm/(6*self.regHeadGrade) #Eq 10 in [1]
+        m_bene_ilm = regolithMass * self.ilmeniteRecoveryFraction * self.regHeadGrade
+        m_bene_reg = m_bene_ilm / (
+            self.beneficiationRegolithMultiplier * self.regHeadGrade
+        )
         m_gangue = regolithMass - m_bene_reg
 
         #Calculate mass of water and oxygen
-        m_H2O = m_bene_ilm*0.47*(18.01528/151.71) #Eq 13 in [1]
-        m_O2 = (m_H2O*31.999)/(2*18.01528) # Eq 16 in [1]
+        m_H2O = (
+            m_bene_ilm * self.waterRecoveryFraction
+            * (self.waterMolarMass / self.ilmeniteMolarMass)
+        )
+        m_O2 = (m_H2O * self.oxygenMolarMass) / (2 * self.waterMolarMass)
 
         #Get simulation to yield for however long is required to process the amount of regolith given to the plant. Assume that the plant has the capability to hold any amount of regolith that could reasonably be given to it.
         yieldLength = regolithMass/self.processingRate
@@ -72,7 +85,10 @@ class ISRUPlant:
         E_exc = self.excavationEnergyCoeff*regolithMass #Excavation Energy, kWh, Eq 5 in [1]
         E_trans = self.transportEnergyCoeff*regolithMass*transportDist #Transportation Energy, kWh, Eq 8 in [1]
 
-        E_bene = ((regolithMass*self.lg*self.liftHeight)/3600000) + m_gangue*(3.6*10**-4)*self.gangueTransportDist #Beneficiation Energy, kWh, Eq 11 in [1], note that the first cosntant of 1 represents the height that the regolith needs to be lifted for beneficiation in meters, the second constant of 1 represents the distance that the waste material (gangue) is transported in km
+        E_bene = (
+            (regolithMass * self.lg * self.liftHeight) / self.joulesPerKWh
+            + m_gangue * self.gangueTransportEnergyCoeff * self.gangueTransportDist
+        )
         E_reactor =  self.reactorEnergyCoeff * m_bene_reg #Energy Required By Reactor, kWh, Eq 14 in [1] (took the mean value of 0.385)
         E_electro = self.electrolysisEnergyCoeff*m_H2O #Energy for Electrolysis, kWh, Eq 18 in [1]
         E_liq = self.liquefactionEnergyCoeff*m_O2 #Liquefaction, kWh, Eq. 21 in [1]
