@@ -251,23 +251,25 @@ package ECLIPSE_LSP1 {
             satisfy requirement loxRoverEnergyTest :> LSP1_3::LSP1_3_3;
 
             // BEGIN AUTO CAD METADATA: LOXRover
-            attribute cadAreaScaleFactor = 3.84467526874;
-            attribute cadCenterOfMassXM = -2.30975355026e-18;
-            attribute cadCenterOfMassYM = 0.490614609343;
-            attribute cadCenterOfMassZM = 1.5;
+            attribute cadAreaScaleFactor = 1.49943568337;
+            attribute cadCenterOfMassXM = -2.14102566277e-17;
+            attribute cadCenterOfMassYM = -1.76567698523e-16;
+            attribute cadCenterOfMassZM = 1.80635041006;
             attribute cadFormat = "STEP";
-            attribute cadLengthScaleFactor = 1.96078435039;
-            attribute cadMetadataScaleFactor = 1.96078435039;
-            attribute cadSourceCenterOfMassXM = -1.17797428861e-18;
-            attribute cadSourceCenterOfMassYM = 1.22523817605;
-            attribute cadSourceCenterOfMassZM = -7.06784573164e-18;
+            attribute cadLengthScaleFactor = 1.22451446842;
+            attribute cadMetadataScaleFactor = 1.22451446842;
+            attribute cadSourceCenterOfMassXM = -1.74846906099e-17;
+            attribute cadSourceCenterOfMassYM = 1.22520585723;
+            attribute cadSourceCenterOfMassZM = 3.78834963215e-17;
             attribute cadSourceFile = "Viper Rover.STEP";
-            attribute cadSourceSurfaceAreaM2 = 19.7143625822;
-            attribute cadSourceVolumeM3 = 3.92702057592;
-            attribute cadSurfaceAreaM2 = 75.7953222587;
+            attribute cadSourceFrontAxis = "+X";
+            attribute cadSourceSurfaceAreaM2 = 19.714776743;
+            attribute cadSourceUpAxis = "Y";
+            attribute cadSourceVolumeM3 = 3.92712415182;
+            attribute cadSurfaceAreaM2 = 29.5610397381;
             attribute cadVolumeAvailable = true;
-            attribute cadVolumeM3 = 29.6041552361;
-            attribute cadVolumeScaleFactor = 7.53857909928;
+            attribute cadVolumeM3 = 7.21051681747;
+            attribute cadVolumeScaleFactor = 1.83608068875;
             attribute cadVolumeStatus = "available";
             // END AUTO CAD METADATA: LOXRover
 
@@ -365,25 +367,25 @@ package ECLIPSE_LSP1 {
             satisfy requirement regolithRoverRangeTest :> LSP1_2::LSP1_2_5;
 
             // BEGIN AUTO CAD METADATA: RegolithRover
-            attribute cadAreaScaleFactor = 0.0019832397286;
-            attribute cadCenterOfMassXM = -0.0340625744913;
-            attribute cadCenterOfMassYM = -0.312860912769;
-            attribute cadCenterOfMassZM = 1.487062779;
-            attribute cadFormat = "STL";
-            attribute cadLengthScaleFactor = 0.0445335797865;
-            attribute cadMetadataScaleFactor = 0.0445335797865;
-            attribute cadSourceCenterOfMassXM = 65.1211638897;
-            attribute cadSourceCenterOfMassYM = 15.4788810544;
-            attribute cadSourceCenterOfMassZM = 34.4594961613;
-            attribute cadSourceFile = "body-small.STL";
+            attribute cadAreaScaleFactor = 1.49943568337;
+            attribute cadCenterOfMassXM = -2.14102566277e-17;
+            attribute cadCenterOfMassYM = -1.76567698523e-16;
+            attribute cadCenterOfMassZM = 1.80635041006;
+            attribute cadFormat = "STEP";
+            attribute cadLengthScaleFactor = 1.22451446842;
+            attribute cadMetadataScaleFactor = 1.22451446842;
+            attribute cadSourceCenterOfMassXM = -1.74846906099e-17;
+            attribute cadSourceCenterOfMassYM = 1.22520585723;
+            attribute cadSourceCenterOfMassZM = 3.78834963215e-17;
+            attribute cadSourceFile = "Viper Rover.STEP";
             attribute cadSourceFrontAxis = "+X";
-            attribute cadSourceSurfaceAreaM2 = 14354.929044;
-            attribute cadSourceUpAxis = "Z";
-            attribute cadSourceVolumeM3 = 36293.8120314;
-            attribute cadSurfaceAreaM2 = 28.4692655813;
+            attribute cadSourceSurfaceAreaM2 = 19.714776743;
+            attribute cadSourceUpAxis = "Y";
+            attribute cadSourceVolumeM3 = 3.92712415182;
+            attribute cadSurfaceAreaM2 = 29.5610397381;
             attribute cadVolumeAvailable = true;
-            attribute cadVolumeM3 = 3.20549723211;
-            attribute cadVolumeScaleFactor = 8.83207646895e-05;
+            attribute cadVolumeM3 = 7.21051681747;
+            attribute cadVolumeScaleFactor = 1.83608068875;
             attribute cadVolumeStatus = "available";
             // END AUTO CAD METADATA: RegolithRover
 
