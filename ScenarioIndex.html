@@ -2377,9 +2377,11 @@ function getActivePowerGenerationSystems() {
   return systems.filter(system => {
     if (!system.active) return false;
     const baseId = getBaseModuleId(system.id);
-    const explicitClass = up42Scenario.moduleClassOverrides?.[baseId] || up42Scenario.moduleClasses?.[baseId];
+    const explicitClass = up42Scenario.moduleClassOverrides?.[baseId];
     if (explicitClass) return explicitClass === 'PowerGenerator';
-    return hasPowerGenerationAttributes(baseId) || /solar|power/i.test(baseId);
+    const profile = getModuleGraphProfile(baseId);
+    if (profile.powerOutgoing.length) return true;
+    return getModulePortFlowDirections(baseId).powerOutputs.length > 0;
   });
 }
 
@@ -6068,6 +6070,13 @@ function getTransporterFlows(moduleId) {
   }).filter(flow => flow && flow.toLowerCase() !== 'power'))];
 }
 
+function isAssignedScenarioTransporter(moduleId) {
+  const baseId = getBaseModuleId(moduleId);
+  return (up42Scenario.resourceRoutes || []).some(route =>
+    getBaseModuleId(route.rover_type) === baseId || getBaseModuleId(route.rover_id) === baseId
+  );
+}
+
 function activeTransportedFlowKeys(activeIds) {
   const activeSet = activeIds instanceof Set ? activeIds : new Set(activeIds || []);
   const keys = new Set();
@@ -6075,9 +6084,8 @@ function activeTransportedFlowKeys(activeIds) {
     .filter(system => {
       if (!activeSet.has(system.id)) return false;
       const baseId = getBaseModuleId(system.id);
-      const explicitClass = up42Scenario.moduleClassOverrides?.[baseId] || up42Scenario.moduleClasses?.[baseId];
-      if (explicitClass) return explicitClass === 'Transporter';
-      return hasTransporterAttributes(baseId) && getTransporterFlows(baseId).length > 0;
+      const explicitClass = up42Scenario.moduleClassOverrides?.[baseId];
+      return explicitClass === 'Transporter' || (!explicitClass && isAssignedScenarioTransporter(baseId));
     })
     .forEach(system => {
       getTransporterFlows(system.id).forEach(flow => keys.add(String(flow).toLowerCase()));
@@ -6440,43 +6448,51 @@ function getEquationOutputName(equation) {
 
 const SCENARIO_MODULE_CLASSES = ['Source', 'Processor', 'Storage', 'Consumer', 'Transporter', 'PowerGenerator', 'Passive'];
 
-function getModuleResourcePorts(moduleId) {
+function getModulePortFlowDirections(moduleId) {
   const baseId = getBaseModuleId(moduleId);
   const part = getSysmlPartData(baseId) || {};
-  const physicalPorts = [...new Set((Array.isArray(part.ports) ? part.ports : []).flatMap(port => {
-    const items = Array.isArray(port.items) ? port.items.filter(Boolean) : [];
-    return items.length ? items : [port.name || port.id].filter(Boolean);
-  }))];
+  const resourceInputs = [];
+  const resourceOutputs = [];
+  const powerInputs = [];
+  const powerOutputs = [];
+
+  (Array.isArray(part.ports) ? part.ports : []).forEach(port => {
+    const directions = (Array.isArray(port.direction) ? port.direction : [port.direction])
+      .filter(Boolean)
+      .map(direction => String(direction).toLowerCase());
+    const items = (Array.isArray(port.items) && port.items.length ? port.items : [port.name || port.id])
+      .filter(Boolean);
+    items.forEach(item => {
+      const value = String(item);
+      const flow = value.replace(/(?:In|Out)$/i, '');
+      const isPower = /^Power/i.test(value);
+      const canInput = /In$/i.test(value) || directions.some(direction => direction.includes('in'));
+      const canOutput = /Out$/i.test(value) || directions.some(direction => direction.includes('out'));
+      if (isPower) {
+        if (canInput) powerInputs.push(flow);
+        if (canOutput) powerOutputs.push(flow);
+      } else {
+        if (canInput) resourceInputs.push(flow);
+        if (canOutput) resourceOutputs.push(flow);
+      }
+    });
+  });
+
   return {
-    inputs: physicalPorts.filter(token => /In$/i.test(token) && !/^PowerIn$/i.test(token)),
-    outputs: physicalPorts.filter(token => /Out$/i.test(token) && !/^PowerOut$/i.test(token)),
-    all: physicalPorts
+    inputs: [...new Set(resourceInputs)],
+    outputs: [...new Set(resourceOutputs)],
+    powerInputs: [...new Set(powerInputs)],
+    powerOutputs: [...new Set(powerOutputs)]
   };
 }
 
-function getModuleAttributeMap(moduleId) {
-  const attributes = getSysmlPartData(getBaseModuleId(moduleId))?.attributes || {};
-  return Object.fromEntries(Object.entries(attributes).map(([key, value]) => [
-    normalizeScenarioName(key),
-    value
-  ]));
-}
-
-function hasStorageAttributes(moduleId) {
-  const attrs = getModuleAttributeMap(moduleId);
-  return Object.keys(attrs).some(key => /storage|inventory|stored|tanklevel/.test(key));
-}
-
-function hasTransporterAttributes(moduleId) {
-  const attrs = getModuleAttributeMap(moduleId);
-  const keys = Object.keys(attrs);
-  return keys.some(key => /payload|maxcapacity|cargocapacity/.test(key)) ||
-    keys.some(key => /hoursperkm|traveltime|speed|energyperkm|energycoeff|transportenergy/.test(key));
-}
-
-function hasPowerGenerationAttributes(moduleId) {
-  const attrs = getModuleAttributeMap(moduleId);
-  return Object.keys(attrs).some(key => /powerout|poweroutput|generation|constantpowerrate|solar/.test(key));
+function getModuleResourcePorts(moduleId) {
+  const directions = getModulePortFlowDirections(moduleId);
+  return {
+    inputs: directions.inputs.map(flow => `${flow}In`),
+    outputs: directions.outputs.map(flow => `${flow}Out`),
+    all: [...directions.inputs.map(flow => `${flow}In`), ...directions.outputs.map(flow => `${flow}Out`)]
+  };
 }
 
 function isPowerFlow(flow) {
@@ -6489,9 +6505,18 @@ function isCommunicationFlow(flow) {
 
 function getModuleGraphProfile(moduleId) {
   const baseId = getBaseModuleId(moduleId);
-  const graphData = getUp42ActiveGraphData();
-  const nodeNames = getGraphActiveNodeList(graphData);
-  const connections = normalizeSysmlConnections(graphData.connections || [], nodeNames)
+  const graphData = window._currentGraphData || window._lastGraphData || {
+    parts: sysmlPartsCache || {},
+    active_nodes: Object.keys(sysmlPartsCache || {}),
+    connections: []
+  };
+  const allNodeNames = getGraphActiveNodeList(graphData);
+  const activeIds = new Set(
+    systems.length ? systems.filter(system => system.active).map(system => system.id) : allNodeNames
+  );
+  const nodeNames = allNodeNames.filter(name => activeIds.has(name));
+  const connections = normalizeSysmlConnections(graphData.connections || [], allNodeNames)
+    .filter(conn => activeIds.has(conn.fromName) && activeIds.has(conn.toName))
     .filter(conn => conn.fromName === baseId || conn.toName === baseId);
   const resourceIncoming = connections.filter(conn =>
     conn.toName === baseId && !isPowerFlow(conn.flow) && !isCommunicationFlow(conn.flow)
@@ -6523,31 +6548,29 @@ function getModuleGraphProfile(moduleId) {
 function inferModuleClass(moduleId) {
   const baseId = getBaseModuleId(moduleId);
   const profile = getModuleGraphProfile(baseId);
-  const ports = getModuleResourcePorts(baseId);
-  const equations = getModuleEquationList(baseId);
-  const outputs = new Set(equations.map(getEquationOutputName).filter(Boolean));
-  const hasProcessingTime = outputs.has('ProcessingTime');
-  const canTransportResources = hasTransporterAttributes(baseId) && getTransporterFlows(baseId).length > 0;
+  const portFlows = getModulePortFlowDirections(baseId);
 
-  if (canTransportResources) return 'Transporter';
-  if (profile.resourceIncoming.length && profile.resourceOutgoing.length && hasStorageAttributes(baseId)) return 'Storage';
-  if (profile.resourceIncoming.length && profile.resourceOutgoing.length && profile.sameResourceRelay && hasTransporterAttributes(baseId)) return 'Transporter';
-  if ((profile.powerOutgoing.length || hasPowerGenerationAttributes(baseId)) && !profile.resourceIncoming.length && !profile.resourceOutgoing.length) return 'PowerGenerator';
+  if (isAssignedScenarioTransporter(baseId)) return 'Transporter';
+  if (profile.powerOutgoing.length && !profile.resourceIncoming.length && !profile.resourceOutgoing.length) return 'PowerGenerator';
   if (!profile.resourceIncoming.length && profile.resourceOutgoing.length) return 'Source';
   if (profile.resourceIncoming.length && profile.resourceOutgoing.length) {
-    if (hasProcessingTime || profile.transformedResource) return 'Processor';
+    if (profile.transformedResource) return 'Processor';
     return 'Storage';
   }
   if (profile.resourceIncoming.length && !profile.resourceOutgoing.length) return 'Storage';
   if (profile.powerIncoming.length && !profile.resourceIncoming.length && !profile.resourceOutgoing.length) return 'Consumer';
 
-  if (ports.inputs.length && ports.outputs.length) {
-    if (hasStorageAttributes(baseId)) return 'Storage';
-    if (hasTransporterAttributes(baseId)) return 'Transporter';
-    return hasProcessingTime ? 'Processor' : 'Storage';
+  if (portFlows.inputs.length && portFlows.outputs.length) {
+    const incoming = new Set(portFlows.inputs.map(flow => flow.toLowerCase()));
+    const outgoing = new Set(portFlows.outputs.map(flow => flow.toLowerCase()));
+    const transformsResource = [...incoming].some(flow => !outgoing.has(flow)) ||
+      [...outgoing].some(flow => !incoming.has(flow));
+    return transformsResource ? 'Processor' : 'Storage';
   }
-  if (ports.outputs.length) return 'Source';
-  if (ports.inputs.length) return 'Storage';
+  if (portFlows.outputs.length) return 'Source';
+  if (portFlows.inputs.length) return 'Storage';
+  if (portFlows.powerOutputs.length) return 'PowerGenerator';
+  if (portFlows.powerInputs.length) return 'Consumer';
   return 'Passive';
 }
 
@@ -8935,6 +8958,34 @@ let up42MoonImg = null;
     return null;
   }
 
+  function resolveConnectionPort(value, ownerName) {
+    if (!value || !ownerName) return null;
+    const part = getSysmlPartData(ownerName) || {};
+    const ports = Array.isArray(part.ports) ? part.ports : [];
+    const candidates = typeof value === 'string'
+      ? [value]
+      : [value.port, value.portId, value.port_id, value.portName, value.port_name, value.name, value.id];
+    const normalizedCandidates = new Set(candidates.filter(Boolean).flatMap(candidate => {
+      const text = String(candidate);
+      return [text, ...text.split(/[:/.#]/).filter(Boolean)];
+    }));
+    return ports.find(port => [port.id, port.name, port.qualifiedName, port.path]
+      .filter(Boolean)
+      .some(name => normalizedCandidates.has(String(name)))) || null;
+  }
+
+  function connectionPortSourceScore(port) {
+    const directions = (Array.isArray(port?.direction) ? port.direction : [port?.direction])
+      .filter(Boolean)
+      .map(direction => String(direction).toLowerCase());
+    const canOutput = directions.some(direction => direction === 'out' || direction.includes('out'));
+    const canInput = directions.some(direction => direction === 'in' || direction.includes('in'));
+    if (canOutput && !canInput) return 2;
+    if (canOutput && canInput) return 1;
+    if (canInput) return -2;
+    return 0;
+  }
+
   function normalizeSysmlConnections(rawConnections, nodeNames) {
     const validNodes = new Set(nodeNames || []);
     const portOwners = buildPortOwnerMap();
@@ -8942,18 +8993,26 @@ let up42MoonImg = null;
     const normalized = [];
 
     (rawConnections || []).forEach(conn => {
-      const fromName = resolveConnectionNodeRef(
-        conn?.fromName ?? conn?.from ?? conn?.source ?? conn?.src ?? conn?.start,
+      const rawFrom = conn?.fromName ?? conn?.from ?? conn?.source ?? conn?.src ?? conn?.start;
+      const rawTo = conn?.toName ?? conn?.to ?? conn?.target ?? conn?.dst ?? conn?.end;
+      let fromName = resolveConnectionNodeRef(
+        rawFrom,
         portOwners,
         validNodes
       );
-      const toName = resolveConnectionNodeRef(
-        conn?.toName ?? conn?.to ?? conn?.target ?? conn?.dst ?? conn?.end,
+      let toName = resolveConnectionNodeRef(
+        rawTo,
         portOwners,
         validNodes
       );
 
       if (!fromName || !toName || fromName === toName) return;
+
+      const fromPort = resolveConnectionPort(rawFrom, fromName);
+      const toPort = resolveConnectionPort(rawTo, toName);
+      if (connectionPortSourceScore(toPort) > connectionPortSourceScore(fromPort)) {
+        [fromName, toName] = [toName, fromName];
+      }
 
       const flow =
         conn?.flow ||

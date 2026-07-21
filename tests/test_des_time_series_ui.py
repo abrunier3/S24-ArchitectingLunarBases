@@ -37,7 +37,10 @@ class DesTimeSeriesUiTests(unittest.TestCase):
         self.assertIn("const sliderValues = getDesSliderValues();", html)
         self.assertIn("Number(sliderValues.Num_Regolith_Rovers", html)
         self.assertIn("Number(sliderValues.Num_LOX_Rovers", html)
-        self.assertIn("energy_kwh_per_km_per_kg: Number(sliderValues.Rover_Energy_Consumption)", html)
+        self.assertIn(
+            "energy_kwh_per_km_per_kg: ignorePower ? 0 : Number(sliderValues.Rover_Energy_Consumption)",
+            html,
+        )
         self.assertIn("travel_time_hr_per_km: Number(sliderValues.Rover_Travel_Time)", html)
         self.assertIn("processing_rate_kg_hr: Number(sliderValues.ISRU_Plant_Processing_Rate)", html)
 

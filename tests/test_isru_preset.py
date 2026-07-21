@@ -39,6 +39,10 @@ class IsruPresetTests(unittest.TestCase):
             preset["scenario_logic"]["roverPayloadsKg"],
             {"regolith": 4000, "lox": 4000},
         )
+        self.assertEqual(
+            preset["scenario_logic"]["moduleClassOverrides"],
+            {"LOXRover": "Transporter", "RegolithRover": "Transporter"},
+        )
 
         required_controls = {
             "desRoverCount",
@@ -75,6 +79,25 @@ class IsruPresetTests(unittest.TestCase):
             preset["power_models"]["HabitationModule"]["spike_energy_kwh"],
             20,
         )
+
+    def test_isru_graph_classification_uses_raw_connections_and_port_directions(self):
+        html = INDEX_PATH.read_text()
+
+        self.assertIn(
+            "const graphData = window._currentGraphData || window._lastGraphData",
+            html,
+        )
+        self.assertIn("function resolveConnectionPort(value, ownerName)", html)
+        self.assertIn(
+            "connectionPortSourceScore(toPort) > connectionPortSourceScore(fromPort)",
+            html,
+        )
+        self.assertIn("function getModulePortFlowDirections(moduleId)", html)
+        self.assertIn("function isAssignedScenarioTransporter(moduleId)", html)
+        self.assertNotIn("function getModuleAttributeMap(moduleId)", html)
+        self.assertNotIn("function hasStorageAttributes(moduleId)", html)
+        self.assertNotIn("function hasTransporterAttributes(moduleId)", html)
+        self.assertNotIn("function hasPowerGenerationAttributes(moduleId)", html)
 
 
 if __name__ == "__main__":

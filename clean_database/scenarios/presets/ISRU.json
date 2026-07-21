@@ -29,6 +29,11 @@
     "moduleLogic": {},
     "sysmlInterfaces": [],
     "transportLinks": [],
+    "moduleClasses": {},
+    "moduleClassOverrides": {
+      "LOXRover": "Transporter",
+      "RegolithRover": "Transporter"
+    },
     "moduleEquations": {
       "ISRUExcavation": "RegolithOut = RequestedRegolith\nEnergyConsumed = excavationEnergyCoeff * RegolithOut",
       "RegolithRover": "RegolithOut = min(RegolithIn, RoverCapacity)\nTravelTime = Distance * hoursPerKm\nEnergyConsumed = Distance * CargoMass * energyPerKmPerKg",

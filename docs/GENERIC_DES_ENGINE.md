@@ -24,14 +24,20 @@ Rover resource types are inferred from active rover ports ending in `In` and `Ou
 
 ## Generated SimPy Behavior
 
-The compiler infers a module behavior from its routes:
+The UI infers a module behavior from resource-flow direction and passes the
+selected class to the compiler:
 
 - **Source:** has an outgoing resource route and produces when transport requests material.
-- **Processor:** receives a resource, evaluates its transformation equations, waits for `ProcessingTime`, and makes its outputs available.
-- **Storage:** retains deliveries in a dedicated `simpy.Container`; a same-resource pass-through module remains a storage module unless it defines `ProcessingTime`.
-- **Transporter:** repeatedly acquires available cargo, travels to the destination, unloads, and performs an empty return trip.
-- **Consumer:** has no resource transformation but may have a continuous, profile-based, or equation-based power demand.
-- **Generator:** is identified by a power-system type or a `PowerOut` equation.
+- **Processor:** has incoming and outgoing resource flows with different resource types; it evaluates its transformation equations, waits for `ProcessingTime`, and makes its outputs available.
+- **Storage:** is the conservative default for a same-resource relay or a resource-terminal module and retains deliveries in a dedicated `simpy.Container`.
+- **Transporter:** is identified by an explicit resource-route assignment (`rover_type` / `rover_id`) or by the class selected in Step 2; it repeatedly acquires available cargo, travels to the destination, unloads, and performs an empty return trip.
+- **Consumer:** is inferred for a power-only sink or selected explicitly in Step 2 when a resource-terminal module consumes rather than stores its input.
+- **Generator:** has an outgoing power flow.
+
+Automatic class detection does not inspect module names, attribute names, or
+equation-variable names. The Step 2 class selector resolves the two topological
+ambiguities: same-resource `Storage` versus `Transporter`, and terminal
+`Storage` versus `Consumer`. The selected value is authoritative for the DES.
 
 Each module instance owns its own inventory and processing process. Multiple instances therefore operate independently and in parallel.
 
