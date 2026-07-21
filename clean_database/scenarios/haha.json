@@ -1,0 +1,124 @@
+{
+  "schema_version": 1,
+  "id": "haha",
+  "name": "haha",
+  "scenario_slug": "haha",
+  "sysml_file": "clean_database/sysml/haha.sysml",
+  "mode": "isru",
+  "saved_at": "2026-07-21T21:25:00.208Z",
+  "site_id": null,
+  "active_nodes": [
+    "HabitationModule",
+    "ISRUPlant",
+    "LaunchLandingZone",
+    "PropellantDepot",
+    "LOXRover",
+    "SolarPowerSystem",
+    "RegolithRover",
+    "ISRUExcavation"
+  ],
+  "instance_counts": {
+    "HabitationModule": 1,
+    "ISRUPlant": 1,
+    "LaunchLandingZone": 1,
+    "PropellantDepot": 1,
+    "SolarPowerSystem": 1,
+    "ISRUExcavation": 1
+  },
+  "placements": {},
+  "orientations": {},
+  "terrain_routes": [],
+  "scenario_logic": {
+    "resourceRoutes": [],
+    "powerLinks": [],
+    "comLinks": [],
+    "moduleLogic": {},
+    "sysmlInterfaces": [],
+    "transportLinks": [],
+    "moduleEquations": {
+      "ISRUExcavation": "RegolithOut = RequestedRegolith\nEnergyConsumed = excavationEnergyCoeff * RegolithOut",
+      "RegolithRover": "RegolithOut = min(RegolithIn, RoverCapacity)\nTravelTime = Distance * hoursPerKm\nEnergyConsumed = Distance * CargoMass * energyPerKmPerKg",
+      "ISRUPlant": "LOXOut = RegolithIn * conversionEfficiency\nProcessingTime = RegolithIn / processingRate\nBeneficiatedIlmenite = RegolithIn * ilmeniteRecoveryFraction * regHeadGrade\nBeneficiatedRegolith = BeneficiatedIlmenite / (beneficiationRegolithMultiplier * regHeadGrade)\nGangueMass = RegolithIn - BeneficiatedRegolith\nWaterMass = BeneficiatedIlmenite * waterRecoveryFraction * waterMolarMass / ilmeniteMolarMass\nOxygenMass = WaterMass * oxygenMolarMass / (2 * waterMolarMass)\nExcavationEnergy = excavationEnergyCoeff * RegolithIn\nTransportEnergy = transportEnergyCoeff * RegolithIn * transportDist\nBeneficiationEnergy = RegolithIn * lunarGravity * liftHeight / joulesPerKWh + GangueMass * gangueTransportEnergyCoeff * gangueTransportDist\nReactorEnergy = reactorEnergyCoeff * BeneficiatedRegolith\nElectrolysisEnergy = electrolysisEnergyCoeff * WaterMass\nLiquefactionEnergy = liquefactionEnergyCoeff * OxygenMass\nEnergyConsumed = ExcavationEnergy + TransportEnergy + BeneficiationEnergy + ReactorEnergy + ElectrolysisEnergy + LiquefactionEnergy",
+      "LOXRover": "LOXOut = min(LOXIn, RoverCapacity)\nTravelTime = Distance * hoursPerKm\nEnergyConsumed = Distance * CargoMass * energyPerKmPerKg",
+      "PropellantDepot": "LOXStored = LOXStored + LOXIn\nPowerIn = 0",
+      "SolarPowerSystem": "PowerOut = powerOutput",
+      "HabitationModule": "PowerIn = constantPowerRate",
+      "LaunchLandingZone": "PowerIn = utilitiesPowerRate + LOXStored * chillingPowerPerKgLox"
+    },
+    "moduleClasses": {},
+    "moduleClassOverrides": {
+      "LOXRover": "Transporter",
+      "RegolithRover": "Transporter"
+    },
+    "roverCounts": {
+      "regolith": 1,
+      "lox": 1
+    },
+    "roverPayloadsKg": {
+      "regolith": 4000,
+      "lox": 4000
+    },
+    "manualIgnorePower": false
+  },
+  "power_models": {
+    "HabitationModule": {
+      "mode": "average",
+      "average_kw": 5,
+      "points": [
+        {
+          "time_hr": 0,
+          "power_kw": 5
+        },
+        {
+          "time_hr": 60,
+          "power_kw": 5
+        }
+      ],
+      "equation": "",
+      "spike_energy_kwh": 20,
+      "spike_time_hr": 10
+    },
+    "LaunchLandingZone": {
+      "mode": "equation",
+      "average_kw": 3,
+      "points": [
+        {
+          "time_hr": 0,
+          "power_kw": 3
+        },
+        {
+          "time_hr": 60,
+          "power_kw": 3
+        }
+      ],
+      "equation": "PowerIn = 3 + LOXStored * 0.31",
+      "spike_energy_kwh": 50,
+      "spike_time_hr": 25
+    }
+  },
+  "des_form": {
+    "desTimeSlider": "0",
+    "desRoverCount": "1",
+    "desLoxRoverCount": "1",
+    "desPlantCount": "1",
+    "desRegDist": "1",
+    "desLoxDist": "1",
+    "desRoverEnergy": "0.00034",
+    "desRoverTravel": "5",
+    "desProcessRate": "1600",
+    "desConversionEfficiency": "0.002527902017",
+    "desLoxThresh": "100",
+    "desSimDuration": "60",
+    "desLoxPollDt": "1",
+    "desRegolithPollDt": "0.1",
+    "desPowerDt": "1",
+    "desSolarPowerOutput": "100",
+    "desSolarBatteryCapacity": "500",
+    "desSolarInitialCharge": "500",
+    "desPlantBatch": "4000",
+    "desPlantInputCapacity": "20000",
+    "desLoxStorageCoeff": "0.31",
+    "desLoxStorageDt": "1"
+  },
+  "results": null
+}
