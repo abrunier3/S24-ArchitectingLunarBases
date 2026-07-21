@@ -483,12 +483,6 @@ def _build_original_segment_diagnostics(
             else:
                 sampled.append((point[0], point[1], z))
 
-        terrain_waypoints = []
-        for point in waypoints:
-            z = sampler.sample_height(point[0], point[1])
-            if z is not None:
-                terrain_waypoints.append(_round_point((point[0], point[1], z)))
-
         slopes, slope_segments, projected_start, projected_end = _slope_stats_from_sampled(sampled)
         max_slope = max(slopes) if slopes else None
         mean_slope = sum(slopes) / len(slopes) if slopes else None
@@ -585,6 +579,18 @@ def _build_terrain_route_diagnostics(
                 out_of_bounds += 1
             else:
                 sampled.append((point[0], point[1], z))
+
+        # Preserve each original route waypoint at its sampled terrain height.
+        # This is consumed by Omniverse to color the same route segments the
+        # user drew in the planning view.
+        terrain_waypoints = []
+        for waypoint in waypoints:
+            point = _waypoint_tuple(waypoint)
+            if point is None:
+                continue
+            z = sampler.sample_height(point[0], point[1])
+            if z is not None:
+                terrain_waypoints.append(_round_point((point[0], point[1], z)))
 
         slopes, slope_segments, _, _ = _slope_stats_from_sampled(sampled)
         valid_samples = [point for point in sampled if point is not None]

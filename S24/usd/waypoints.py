@@ -65,8 +65,10 @@ def get_connection_waypoints(
     if waypoints:
         return waypoints
 
-    src_part = connection["from"]["part"]
-    dst_part = connection["to"]["part"]
+    source = connection.get("from") or {}
+    target = connection.get("to") or {}
+    src_part = source.get("part", "Unknown")
+    dst_part = target.get("part", "Unknown")
 
     return [
         get_part_position(part_lookup, src_part),
@@ -147,17 +149,19 @@ def create_connection_curve(
     prim.CreateAttribute("connection:flow", Sdf.ValueTypeNames.String).Set(
         str(flow)
     )
+    source = connection.get("from") or {}
+    target = connection.get("to") or {}
     prim.CreateAttribute("connection:sourcePart", Sdf.ValueTypeNames.String).Set(
-        connection["from"]["part"]
+        source.get("part", "Unknown")
     )
     prim.CreateAttribute("connection:sourcePort", Sdf.ValueTypeNames.String).Set(
-        connection["from"]["port"]
+        source.get("port", "")
     )
     prim.CreateAttribute("connection:targetPart", Sdf.ValueTypeNames.String).Set(
-        connection["to"]["part"]
+        target.get("part", "Unknown")
     )
     prim.CreateAttribute("connection:targetPort", Sdf.ValueTypeNames.String).Set(
-        connection["to"]["port"]
+        target.get("port", "")
     )
 
     distance_km = connection.get("path", {}).get("distance_km")
@@ -264,8 +268,10 @@ def write_connections_usda(
 
     if verbose >= 2:
         for connection in connections:
-            src = f"{connection['from']['part']}.{connection['from']['port']}"
-            dst = f"{connection['to']['part']}.{connection['to']['port']}"
+            source = connection.get("from") or {}
+            target = connection.get("to") or {}
+            src = f"{source.get('part', 'Unknown')}.{source.get('port', '')}"
+            dst = f"{target.get('part', 'Unknown')}.{target.get('port', '')}"
             flow = connection.get("flow", "Unknown")
             path = connection.get("path", {})
             n_wp = len(path.get("waypoints_m", [])) if path else 0
