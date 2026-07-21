@@ -594,6 +594,7 @@ jobs:
           scenario_slug = os.environ.get("SCENARIO_SLUG", "ECLIPSE_Project").strip()
           sysml_path = Path(os.environ.get("SYSML_FILE", "clean_database/sysml/ECLIPSE_Project.sysml"))
           scenario_json_dir = Path("clean_database/json") / scenario_slug
+          scenario_output_dir = Path("outputs/scenarios") / scenario_slug
           assets_dir = scenario_json_dir / "assets"
           scenario_json_path = scenario_json_dir / f"{scenario_slug}.json"
 
