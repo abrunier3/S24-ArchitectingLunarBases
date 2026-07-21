@@ -3,11 +3,10 @@
   "id": "ISRU_petit",
   "name": "ISRU_petit",
   "scenario_slug": "ISRU_petit",
-  "mode": "isru",
   "sysml_file": "clean_database/sysml/ISRU_petit.sysml",
-  "template_sysml": "clean_database/sysml/ECLIPSE_Project.sysml",
-  "created_at": "2026-07-21T16:42:56.429Z",
-  "saved_at": "2026-07-21T16:42:56.431Z",
+  "mode": "isru",
+  "saved_at": "2026-07-21T16:42:58.903Z",
+  "site_id": null,
   "active_nodes": [
     "HabitationModule",
     "ISRUPlant",
@@ -36,11 +35,6 @@
     "moduleLogic": {},
     "sysmlInterfaces": [],
     "transportLinks": [],
-    "moduleClasses": {},
-    "moduleClassOverrides": {
-      "LOXRover": "Transporter",
-      "RegolithRover": "Transporter"
-    },
     "moduleEquations": {
       "ISRUExcavation": "RegolithOut = RequestedRegolith\nEnergyConsumed = excavationEnergyCoeff * RegolithOut",
       "RegolithRover": "RegolithOut = min(RegolithIn, RoverCapacity)\nTravelTime = Distance * hoursPerKm\nEnergyConsumed = Distance * CargoMass * energyPerKmPerKg",
@@ -50,6 +44,11 @@
       "SolarPowerSystem": "PowerOut = powerOutput",
       "HabitationModule": "PowerIn = constantPowerRate",
       "LaunchLandingZone": "PowerIn = utilitiesPowerRate + LOXStored * chillingPowerPerKgLox"
+    },
+    "moduleClasses": {},
+    "moduleClassOverrides": {
+      "LOXRover": "Transporter",
+      "RegolithRover": "Transporter"
     },
     "roverCounts": {
       "regolith": 1,
@@ -97,22 +96,25 @@
     }
   },
   "des_form": {
+    "desTimeSlider": "0",
     "desRoverCount": "1",
     "desLoxRoverCount": "1",
     "desPlantCount": "1",
+    "desRegDist": "1",
+    "desLoxDist": "1",
     "desRoverEnergy": "0.00034",
     "desRoverTravel": "5",
     "desProcessRate": "1600",
     "desLoxThresh": "100",
     "desSimDuration": "60",
-    "desPlantBatch": "4000",
-    "desPlantInputCapacity": "20000",
     "desLoxPollDt": "1",
-    "desLoxStorageCoeff": "0.31",
     "desPowerDt": "1",
     "desSolarPowerOutput": "100",
     "desSolarBatteryCapacity": "500",
-    "desSolarInitialCharge": "500"
+    "desSolarInitialCharge": "500",
+    "desPlantBatch": "4000",
+    "desPlantInputCapacity": "20000",
+    "desLoxStorageCoeff": "0.31"
   },
   "results": null
 }
