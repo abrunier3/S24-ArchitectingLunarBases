@@ -12,9 +12,7 @@
     "waypoints_usd": "waypoints.usda",
     "des_json": "../des_results.json"
   },
-  "warnings": [
-    "No LOX rover movements were generated from the DES output."
-  ],
+  "warnings": [],
   "playback": {
     "seconds_per_sim_time_unit": 1.0,
     "display_duration_hours": 60.0
@@ -162622,6 +162620,81 @@
     }
   },
   "actors": [
+    {
+      "id": "LOX Cargo Rover 1",
+      "label": "LOX Rover 1",
+      "prim_path": "/World/LOXRover",
+      "source_prim_path": "/World/LOXRover",
+      "dashboard_fields": [
+        {
+          "key": "current_load",
+          "label": "Load",
+          "unit": "kg"
+        },
+        {
+          "key": "battery_charge",
+          "label": "Battery",
+          "unit": "kWh"
+        },
+        {
+          "key": "total_distance_traveled",
+          "label": "Distance",
+          "unit": "km"
+        }
+      ],
+      "movements": [
+        {
+          "route_name": "ISRUPlant_1ToPropellantDepot_LOX",
+          "from_module": "ISRUPlant_1",
+          "to_module": "PropellantDepot",
+          "start_time": 11.0,
+          "end_time": 21.0,
+          "reverse": false,
+          "source": "des:LOX rover load episode"
+        },
+        {
+          "route_name": "ISRUPlant_1ToPropellantDepot_LOX",
+          "from_module": "PropellantDepot",
+          "to_module": "ISRUPlant_1",
+          "start_time": 21.0,
+          "end_time": 31.43,
+          "reverse": true,
+          "source": "des:LOX rover empty return"
+        },
+        {
+          "route_name": "ISRUPlant_1ToPropellantDepot_LOX",
+          "from_module": "ISRUPlant_1",
+          "to_module": "PropellantDepot",
+          "start_time": 35.0,
+          "end_time": 46.0,
+          "reverse": false,
+          "source": "des:LOX rover load episode"
+        },
+        {
+          "route_name": "ISRUPlant_1ToPropellantDepot_LOX",
+          "from_module": "PropellantDepot",
+          "to_module": "ISRUPlant_1",
+          "start_time": 46.0,
+          "end_time": 56.43,
+          "reverse": true,
+          "source": "des:LOX rover empty return"
+        },
+        {
+          "route_name": "ISRUPlant_1ToPropellantDepot_LOX",
+          "from_module": "ISRUPlant_1",
+          "to_module": "PropellantDepot",
+          "start_time": 60.0,
+          "end_time": 60.0,
+          "reverse": false,
+          "source": "des:LOX rover load episode"
+        }
+      ],
+      "from_module": "ISRUPlant_1",
+      "to_module": "PropellantDepot",
+      "route_name": "ISRUPlant_1ToPropellantDepot_LOX",
+      "start_time": 11.0,
+      "end_time": 21.0
+    },
     {
       "id": "Regolith Cargo Rover 1",
       "label": "Regolith Rover 1",
