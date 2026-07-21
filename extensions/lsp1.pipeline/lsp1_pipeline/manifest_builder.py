@@ -1486,6 +1486,7 @@ def build_manifest(
     scene_usd_path: str | Path,
     terrain_usd_path: str | Path,
     output_path: str | Path,
+    scenario_slug: str | None = None,
 ) -> dict[str, Any]:
     system_json_path = Path(system_json_path).resolve()
     waypoints_usd_path = Path(waypoints_usd_path).resolve()
@@ -1567,6 +1568,10 @@ def build_manifest(
         scene_cad_footprints=scene_cad_footprints,
     )
     manifest = {
+        "scenario": {
+            "slug": scenario_slug or system_json_path.stem,
+            "name": scenario_slug or system_json_path.stem,
+        },
         "scene_usd": _repo_relative(scene_usd_path, start=output_dir),
         "waypoints_usd": _repo_relative(waypoints_usd_path, start=output_dir),
         "des_log": _repo_relative(des_json_path, start=output_dir),
@@ -1617,6 +1622,7 @@ def make_parser() -> argparse.ArgumentParser:
     parser.add_argument("--scene-usd", required=True)
     parser.add_argument("--terrain-usd", required=True)
     parser.add_argument("--output", required=True)
+    parser.add_argument("--scenario-slug")
     return parser
 
 
@@ -1629,6 +1635,7 @@ def main(argv: list[str] | None = None) -> int:
         scene_usd_path=args.scene_usd,
         terrain_usd_path=args.terrain_usd,
         output_path=args.output,
+        scenario_slug=args.scenario_slug,
     )
     write_manifest(manifest, args.output)
     print(f"Wrote Omniverse manifest: {args.output}")

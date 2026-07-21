@@ -13,6 +13,7 @@ EXT_ROOT = os.path.normpath(os.path.join(THIS_DIR, ".."))
 REPO_ROOT = os.path.normpath(os.path.join(THIS_DIR, "..", "..", ".."))
 
 DEFAULT_MANIFEST_PATH = os.path.join(EXT_ROOT, "data", "manifest.json")
+SCENARIO_OUTPUTS_DIR = os.path.join(REPO_ROOT, "outputs", "scenarios")
 ROVER_FORWARD_YAW_OFFSET_DEG = -90.0
 ROVER_TERRAIN_CLEARANCE_M = 0.0
 
@@ -28,12 +29,16 @@ class LSP1PipelineExtension(omni.ext.IExt):
         self.des_log = {}
         self.des_log_times = []
         self.manifest = None
+        self.manifest_path = DEFAULT_MANIFEST_PATH
         self.actors = []
         self.is_loaded = False
         self.route_cache = {}
         self.actor_labels = {}
         self.routes_visible = False
         self.show_routes_button = None
+        self.scenario_selector = None
+        self.scenario_combo = None
+        self.scenario_manifest_paths = [None]
 
         self.window = ui.Window("LSP1 Pipeline", width=520, height=430)
 
@@ -43,7 +48,8 @@ class LSP1PipelineExtension(omni.ext.IExt):
                 self.status = ui.Label("Status: waiting")
 
                 ui.Button("Pull GitHub Omniverse", clicked_fn=self._pull_github)
-                ui.Button("Load DES Playback", clicked_fn=self._load_all)
+                ui.Label("Choose Scenario")
+                self.scenario_selector = ui.VStack(spacing=4)
                 ui.Button("Play", clicked_fn=self._play)
                 ui.Button("Pause", clicked_fn=self._pause)
                 ui.Button("Reset", clicked_fn=self._reset)
@@ -61,6 +67,8 @@ class LSP1PipelineExtension(omni.ext.IExt):
                 self.actor_dashboard = ui.VStack(spacing=4)
                 with self.actor_dashboard:
                     ui.Label("Actor telemetry: --")
+
+        self._refresh_scenario_selector()
 
     def _pull_github(self):
         log_path = os.path.join(REPO_ROOT, "lsp1_git_pull_log.txt")
@@ -123,6 +131,7 @@ class LSP1PipelineExtension(omni.ext.IExt):
 
             if pull_result.returncode == 0:
                 self.status.text = "Status: Git pull successful."
+                self._refresh_scenario_selector()
             else:
                 self.status.text = "Status: Git pull failed. See log."
 
@@ -130,9 +139,67 @@ class LSP1PipelineExtension(omni.ext.IExt):
             self.status.text = f"Status: Git pull error: {e}"
             print("[LSP1 Pipeline] Git pull error:", repr(e))
 
-    def _load_all(self):
+    def _scenario_manifest_entries(self):
+        entries = []
+        if not os.path.isdir(SCENARIO_OUTPUTS_DIR):
+            return entries
+
+        for scenario_slug in sorted(os.listdir(SCENARIO_OUTPUTS_DIR), key=str.lower):
+            manifest_path = os.path.join(
+                SCENARIO_OUTPUTS_DIR,
+                scenario_slug,
+                "omniverse",
+                "manifest.json",
+            )
+            if not os.path.isfile(manifest_path):
+                continue
+
+            label = scenario_slug
+            try:
+                with open(manifest_path, "r", encoding="utf-8") as f:
+                    manifest = json.load(f)
+                scenario = manifest.get("scenario") or {}
+                label = str(scenario.get("name") or scenario.get("slug") or scenario_slug)
+            except Exception as exc:
+                print("[LSP1 Pipeline] Invalid scenario manifest:", manifest_path, repr(exc))
+                continue
+
+            entries.append((label, manifest_path))
+
+        return entries
+
+    def _refresh_scenario_selector(self):
+        if not self.scenario_selector:
+            return
+
+        entries = self._scenario_manifest_entries()
+        self.scenario_manifest_paths = [None] + [path for _, path in entries]
+
         try:
-            self.manifest = self._load_manifest()
+            self.scenario_selector.clear()
+        except Exception:
+            pass
+
+        with self.scenario_selector:
+            labels = ["Select a scenario to load"] + [label for label, _ in entries]
+            self.scenario_combo = ui.ComboBox(0, *labels)
+            self.scenario_combo.model.get_item_value_model().add_value_changed_fn(
+                self._on_scenario_selected
+            )
+            if not entries:
+                ui.Label("No scenario-specific Omniverse packages found. Run DES first.")
+
+    def _on_scenario_selected(self, model):
+        selection = model.as_int
+        if selection <= 0 or selection >= len(self.scenario_manifest_paths):
+            return
+
+        self._load_all(self.scenario_manifest_paths[selection])
+
+    def _load_all(self, manifest_path=None):
+        try:
+            self.manifest_path = os.path.normpath(manifest_path or self.manifest_path)
+            self.manifest = self._load_manifest(self.manifest_path)
             self.actors = self.manifest.get("actors", [])
             self._build_actor_dashboard()
 
@@ -142,7 +209,7 @@ class LSP1PipelineExtension(omni.ext.IExt):
             terrain_path = self._get_terrain_path()
 
             print("[LSP1 Pipeline] REPO_ROOT:", REPO_ROOT)
-            print("[LSP1 Pipeline] MANIFEST PATH:", DEFAULT_MANIFEST_PATH)
+            print("[LSP1 Pipeline] MANIFEST PATH:", self.manifest_path)
             print("[LSP1 Pipeline] SCENE PATH:", scene_path)
             print("[LSP1 Pipeline] SCENE exists:", os.path.exists(scene_path))
             print("[LSP1 Pipeline] DES PATH:", des_path)
@@ -154,6 +221,10 @@ class LSP1PipelineExtension(omni.ext.IExt):
 
             with open(des_path, "r", encoding="utf-8") as f:
                 self.des_data = json.load(f)
+
+            if self.des_data.get("status") == "error":
+                error_text = "; ".join(self.des_data.get("errors") or ["unknown DES error"])
+                raise ValueError(f"DES run failed: {error_text}")
 
             self._normalize_des_log()
             self._open_scene_stage(scene_path)
@@ -181,7 +252,9 @@ class LSP1PipelineExtension(omni.ext.IExt):
             warning_count = int(route_projection.get("warning_count", 0) or 0)
             caution_count = int(route_projection.get("caution_count", 0) or 0)
             self.status.text = (
-                "Status: loaded manifest + scene + DES + waypoints"
+                "Status: loaded scenario "
+                f"{(self.manifest.get('scenario') or {}).get('name', 'unnamed')}"
+                " + scene + DES + waypoints"
                 f" | slope warnings: {warning_count}, cautions: {caution_count}"
             )
 
@@ -189,8 +262,9 @@ class LSP1PipelineExtension(omni.ext.IExt):
             self.status.text = f"Status: load failed: {e}"
             print("[LSP1 Pipeline] Load failed:", repr(e))
 
-    def _load_manifest(self):
-        with open(DEFAULT_MANIFEST_PATH, "r", encoding="utf-8") as f:
+    def _load_manifest(self, manifest_path=None):
+        manifest_path = manifest_path or self.manifest_path
+        with open(manifest_path, "r", encoding="utf-8") as f:
             manifest = json.load(f)
 
         if "actors" not in manifest:
@@ -205,7 +279,7 @@ class LSP1PipelineExtension(omni.ext.IExt):
         if os.path.isabs(rel_or_abs_path):
             return os.path.normpath(rel_or_abs_path)
 
-        base_dir = os.path.dirname(DEFAULT_MANIFEST_PATH)
+        base_dir = os.path.dirname(self.manifest_path)
         return os.path.normpath(os.path.join(base_dir, rel_or_abs_path))
 
     def _get_terrain_path(self):

@@ -745,7 +745,7 @@ jobs:
           try:
               from S24.usd import build_usd_scene_from_manifest
 
-              scene_dir = Path("clean_database/usd/scenes")
+              scene_dir = scenario_output_dir / "omniverse"
               scene_dir.mkdir(parents=True, exist_ok=True)
               scene_path = str(scene_dir / "scene.usda")
 
@@ -762,7 +762,7 @@ jobs:
           try:
               from S24.usd.waypoints import write_connections_usda
 
-              waypoints_dir = Path("clean_database/scenes")
+              waypoints_dir = scenario_output_dir / "omniverse"
               waypoints_dir.mkdir(parents=True, exist_ok=True)
 
               json_path = str(scenario_json_path)
@@ -799,9 +799,7 @@ jobs:
           git add "${SYSML_FILE}" || true
           git add "clean_database/json/${SCENARIO_SLUG}/${SCENARIO_SLUG}.json"
           git add "clean_database/json/${SCENARIO_SLUG}/assets/"*.json || true
-          git add clean_database/usd/scenes/scene.usda || true
-          git add clean_database/scenes/waypoints.usda || true
-          git add extensions/lsp1.pipeline/data/manifest.json || true
+          git add "outputs/scenarios/${SCENARIO_SLUG}/omniverse/" || true
           echo "=== staged files ==="
           git diff --staged --name-only
           git diff --staged --quiet || git commit -m "chore: DES results + SysML + Omniverse scene update [skip ci]"
