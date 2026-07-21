@@ -1793,8 +1793,8 @@
       "lox": 2
     },
     "rover_payloads_kg": {
-      "regolith": 4000,
-      "lox": 4000
+      "regolith": 40000,
+      "lox": 40000
     },
     "module_classes": {
       "HabitationModule": "Consumer",
@@ -1961,7 +1961,8 @@
       "PropellantDepot": "LOXStored = LOXStored + LOXIn\nPowerIn = 0\nPowerOut = 0",
       "SolarPowerSystem": "PowerOut = powerOutput\nPowerIn = 0",
       "HabitationModule": "PowerIn = constantPowerRate\nPowerOut = 0",
-      "LaunchLandingZone": "PowerIn = utilitiesPowerRate + LOXStored * chillingPowerPerKgLox\nPowerOut = 0"
+      "LaunchLandingZone": "PowerIn = utilitiesPowerRate + LOXStored * chillingPowerPerKgLox\nPowerOut = 0",
+      "ISRUPlant_1": "ProcessingTime = RegolithIn / processingRate\nEnergyConsumed = E_exc + E_trans + E_bene + E_reactor + E_electro + E_liq\nPowerOut = 0\nLOXOut= RegolithIn* processingRate"
     }
   }
 }
