@@ -233,6 +233,7 @@ class LSP1PipelineExtension(omni.ext.IExt):
             self._load_waypoints_under_world()
             self._load_terrain_model()
             self._apply_module_terrain_projection()
+            self._apply_default_rover_terrain_poses()
             self._draw_route_slope_debug()
             self.routes_visible = False
             self._set_route_slope_debug_visible(False)
@@ -531,6 +532,67 @@ class LSP1PipelineExtension(omni.ext.IExt):
         except Exception as e:
             print("[LSP1 Pipeline] Module terrain projection failed:", repr(e))
 
+    def _apply_default_rover_terrain_poses(self):
+        """Ground source rover prims before DES movement begins."""
+        try:
+            import omni.usd
+            from pxr import UsdGeom, Gf
+
+            route_projection = (
+                self.manifest.get("terrain_projection", {})
+                .get("routes", {})
+                .get("routes", {})
+            )
+            stage = omni.usd.get_context().get_stage()
+            if not stage or not route_projection:
+                return
+
+            for rover_name, flow in (("RegolithRover", "Regolith"), ("LOXRover", "LOX")):
+                route_info = next(
+                    (
+                        info for info in route_projection.values()
+                        if str(info.get("flow") or "").lower() == flow.lower()
+                        and info.get("sampled_poses")
+                    ),
+                    None,
+                )
+                if not route_info:
+                    continue
+
+                pose = route_info["sampled_poses"][0]
+                position = pose.get("position_m")
+                rotation = pose.get("rotation_deg")
+                prim = stage.GetPrimAtPath(f"/World/{rover_name}")
+                if not prim or not prim.IsValid() or not position:
+                    continue
+
+                xformable = UsdGeom.Xformable(prim)
+                translate_op = next(
+                    (
+                        op for op in xformable.GetOrderedXformOps()
+                        if op.GetOpType() == UsdGeom.XformOp.TypeTranslate
+                    ),
+                    None,
+                )
+                rotate_op = next(
+                    (
+                        op for op in xformable.GetOrderedXformOps()
+                        if op.GetOpType() == UsdGeom.XformOp.TypeRotateXYZ
+                    ),
+                    None,
+                )
+                if translate_op is None:
+                    translate_op = xformable.AddTranslateOp()
+                translate_op.Set(Gf.Vec3d(*position))
+                if rotation:
+                    if rotate_op is None:
+                        rotate_op = xformable.AddRotateXYZOp()
+                    rotate_op.Set(Gf.Vec3f(*rotation))
+
+            print("[LSP1 Pipeline] Applied default terrain poses to rover source prims.")
+        except Exception as exc:
+            print("[LSP1 Pipeline] Default rover terrain placement failed:", repr(exc))
+
     def _draw_route_slope_debug(self):
         try:
             import omni.usd
@@ -601,6 +663,23 @@ class LSP1PipelineExtension(omni.ext.IExt):
                         str(segment.get("status", ""))
                     )
                     drawn += 1
+
+                # The raw waypoint USD layer is authored in the UI's z=0
+                # frame.  Show the same route's original waypoints on the
+                # sampled terrain so they remain visible in Omniverse.
+                for waypoint_idx, point in enumerate(route_info.get("original_waypoints_m", [])):
+                    if not isinstance(point, list) or len(point) < 3:
+                        continue
+                    marker = UsdGeom.Sphere.Define(
+                        stage,
+                        f"{root_path}/{route_name}/Waypoint_{waypoint_idx:03d}",
+                    )
+                    marker.CreateRadiusAttr(7.0)
+                    marker.CreateDisplayColorAttr([Gf.Vec3f(1.0, 0.9, 0.25)])
+                    marker_xform = UsdGeom.Xformable(marker.GetPrim())
+                    marker_xform.AddTranslateOp().Set(
+                        Gf.Vec3d(float(point[0]), float(point[1]), float(point[2]) + 1.5)
+                    )
 
             print(f"[LSP1 Pipeline] Drew {drawn} slope-colored route segment(s).")
 

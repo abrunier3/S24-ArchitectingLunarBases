@@ -532,7 +532,32 @@ def _build_terrain_route_diagnostics(
 
     routes: dict[str, Any] = {}
     scene_cad_footprints = scene_cad_footprints or {}
-    for connection in system_json.get("connections", []):
+    urban_planning = system_json.get("urban_planning") or {}
+    route_geometry = urban_planning.get("route_geometry") or {}
+    route_definitions = {
+        route.get("key"): route
+        for route in urban_planning.get("routes", [])
+        if route.get("key")
+    }
+
+    # Urban planning is the authoritative source for the paths drawn on the
+    # map.  It contains every generated road, including instance-level rover
+    # routes, whereas the SysML connection list can also contain abstract
+    # functional links and legacy duplicates.
+    if isinstance(route_geometry, dict) and route_geometry:
+        route_inputs = []
+        for route_name, geometry in route_geometry.items():
+            geometry = geometry if isinstance(geometry, dict) else {}
+            definition = route_definitions.get(route_name) or {}
+            route_inputs.append({
+                "name": route_name,
+                "flow": geometry.get("flow") or definition.get("flow"),
+                "path": geometry,
+            })
+    else:
+        route_inputs = system_json.get("connections", [])
+
+    for connection in route_inputs:
         path = connection.get("path") or {}
         waypoints = path.get("waypoints_m") or []
         if not waypoints:
@@ -578,6 +603,7 @@ def _build_terrain_route_diagnostics(
             "flow": connection.get("flow"),
             "status": _slope_status(max_slope, out_of_bounds),
             "input_waypoint_count": len(waypoints),
+            "original_waypoints_m": [_round_point(point) for point in waypoints],
             "sample_count": len(dense),
             "valid_sample_count": len(valid_samples),
             "out_of_bounds_count": out_of_bounds,
