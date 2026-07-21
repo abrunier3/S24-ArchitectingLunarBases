@@ -701,6 +701,9 @@ def run_scenario(optionsDict):
         )
         p.instanceId = instance_id
         p.processingRate = scenario_config["isru"]["processing_rate_kg_hr"]
+        p.conversionEfficiency = scenario_config["isru"]["conversion_efficiency"]
+        if not 0 <= p.conversionEfficiency <= 1:
+            raise ValueError("ISRU conversion efficiency must be between 0 and 1")
         logger.add(p)
         plants.append(p)
         plant_targets.append({

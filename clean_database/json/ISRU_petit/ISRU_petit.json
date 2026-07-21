@@ -140,6 +140,7 @@
       },
       "attributes": {
         "processingRate": 1600.0,
+        "conversionEfficiency": 0.002527902017,
         "regHeadGrade": 0.1,
         "lunarGravity": 1.62,
         "LOXStored": 0.0,
@@ -1955,7 +1956,7 @@
     "module_equations": {
       "ISRUExcavation": "RegolithOut = RequestedRegolith\nEnergyConsumed = excavationEnergyCoeff * RegolithOut\nPowerOut = 0",
       "RegolithRover": "RegolithOut = min(RegolithIn, RoverCapacity)\nTravelTime = Distance * hoursPerKm\nEnergyConsumed = Distance * CargoMass * energyPerKmPerKg\nPowerOut = 0",
-      "ISRUPlant": "LOXOut = RegolithIn * extractedLOXFraction\nProcessingTime = RegolithIn / processingRate\nEnergyConsumed = E_exc + E_trans + E_bene + E_reactor + E_electro + E_liq\nPowerOut = 0",
+      "ISRUPlant": "LOXOut = RegolithIn * conversionEfficiency\nProcessingTime = RegolithIn / processingRate\nEnergyConsumed = E_exc + E_trans + E_bene + E_reactor + E_electro + E_liq\nPowerOut = 0",
       "LOXRover": "LOXOut = min(LOXIn, RoverCapacity)\nTravelTime = Distance * hoursPerKm\nEnergyConsumed = Distance * CargoMass * energyPerKmPerKg\nPowerOut = 0",
       "PropellantDepot": "LOXStored = LOXStored + LOXIn\nPowerIn = 0\nPowerOut = 0",
       "SolarPowerSystem": "PowerOut = powerOutput\nPowerIn = 0",

@@ -23,6 +23,9 @@ class ISRUPlant:
         self.processingRate = attributeDict['processingRate']
         self.sourceAttributes = dict(attributeDict)
         self.regHeadGrade = attributeDict['regHeadGrade']
+        self.conversionEfficiency = float(attributeDict.get('conversionEfficiency', 0.0))
+        if not 0 <= self.conversionEfficiency <= 1:
+            raise ValueError('conversionEfficiency must be between 0 and 1')
         self.LOXStored = attributeDict['LOXStored']
         self.lg = attributeDict['lunarGravity'] #Acceleration due to gravity on the moon, m/(s^2)
         self.totalEnergyConsumed = attributeDict['totalEnergyConsumed']
@@ -50,9 +53,8 @@ class ISRUPlant:
     #All assumptions regarding effeciencies, reactor temperatures, etc made in [1] apply to this function.
     def processRegolith(self, system, regolithMass, transportDist=1):
         #Mass Related Attributes
-        self.extractedLOXFraction = (0.51*0.47*31.999*self.regHeadGrade)/(2*151.71) #Equation 1 in [1]
-        self.kgLOXPerHour = self.extractedLOXFraction*self.processingRate
-        generatedLOX = self.extractedLOXFraction*regolithMass
+        self.kgLOXPerHour = self.conversionEfficiency*self.processingRate
+        generatedLOX = self.conversionEfficiency*regolithMass
 
         #Determine waste mass (gangue)
         m_bene_ilm = regolithMass*0.505*self.regHeadGrade #Eq 9 in [1]
@@ -86,7 +88,9 @@ class ISRUPlant:
             "RegolithIn": regolithMass,
             "LOXStored": self.LOXStored,
             "processingRate": self.processingRate,
-            "extractedLOXFraction": self.extractedLOXFraction,
+            "conversionEfficiency": self.conversionEfficiency,
+            # Compatibility input for scenarios saved before conversionEfficiency was exposed.
+            "extractedLOXFraction": self.conversionEfficiency,
             "regHeadGrade": self.regHeadGrade,
             "lunarGravity": self.lg,
             "transportDist": transportDist,
@@ -150,6 +154,7 @@ class ISRUPlant:
         attr = {
             "Name": self.name,
             "processingRate": self.processingRate,
+            "conversionEfficiency": self.conversionEfficiency,
             "regHeadGrade": self.regHeadGrade,
             "LOX_Stored": self.LOXStored,
             "total_energy_consumed": self.totalEnergyConsumed,

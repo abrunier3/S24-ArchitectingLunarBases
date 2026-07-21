@@ -38,7 +38,7 @@
     "moduleEquations": {
       "ISRUExcavation": "RegolithOut = RequestedRegolith\nEnergyConsumed = excavationEnergyCoeff * RegolithOut",
       "RegolithRover": "RegolithOut = min(RegolithIn, RoverCapacity)\nTravelTime = Distance * hoursPerKm\nEnergyConsumed = Distance * CargoMass * energyPerKmPerKg",
-      "ISRUPlant": "LOXOut = RegolithIn * extractedLOXFraction\nProcessingTime = RegolithIn / processingRate\nEnergyConsumed = E_exc + E_trans + E_bene + E_reactor + E_electro + E_liq",
+      "ISRUPlant": "LOXOut = RegolithIn * conversionEfficiency\nProcessingTime = RegolithIn / processingRate\nEnergyConsumed = E_exc + E_trans + E_bene + E_reactor + E_electro + E_liq",
       "LOXRover": "LOXOut = min(LOXIn, RoverCapacity)\nTravelTime = Distance * hoursPerKm\nEnergyConsumed = Distance * CargoMass * energyPerKmPerKg",
       "PropellantDepot": "LOXStored = LOXStored + LOXIn\nPowerIn = 0",
       "SolarPowerSystem": "PowerOut = powerOutput",
@@ -50,6 +50,7 @@
       "LOXRover": "Transporter",
       "RegolithRover": "Transporter"
     },
+    "manualIgnorePower": false,
     "roverCounts": {
       "regolith": 1,
       "lox": 1
@@ -105,6 +106,7 @@
     "desRoverEnergy": "0.00034",
     "desRoverTravel": "5",
     "desProcessRate": "1600",
+    "desConversionEfficiency": "0.002527902017",
     "desLoxThresh": "100",
     "desSimDuration": "60",
     "desLoxPollDt": "1",

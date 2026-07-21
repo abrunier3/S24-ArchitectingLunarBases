@@ -43,6 +43,7 @@ class IsruPresetTests(unittest.TestCase):
             preset["scenario_logic"]["moduleClassOverrides"],
             {"LOXRover": "Transporter", "RegolithRover": "Transporter"},
         )
+        self.assertFalse(preset["scenario_logic"]["manualIgnorePower"])
 
         required_controls = {
             "desRoverCount",
@@ -51,6 +52,7 @@ class IsruPresetTests(unittest.TestCase):
             "desRoverEnergy",
             "desRoverTravel",
             "desProcessRate",
+            "desConversionEfficiency",
             "desLoxThresh",
             "desSimDuration",
             "desPlantBatch",
@@ -79,6 +81,10 @@ class IsruPresetTests(unittest.TestCase):
             preset["power_models"]["HabitationModule"]["spike_energy_kwh"],
             20,
         )
+        self.assertEqual(
+            preset["scenario_logic"]["moduleEquations"]["ISRUPlant"].splitlines()[0],
+            "LOXOut = RegolithIn * conversionEfficiency",
+        )
 
     def test_isru_graph_classification_uses_raw_connections_and_port_directions(self):
         html = INDEX_PATH.read_text()
@@ -94,6 +100,14 @@ class IsruPresetTests(unittest.TestCase):
         )
         self.assertIn("function getModulePortFlowDirections(moduleId)", html)
         self.assertIn("function isAssignedScenarioTransporter(moduleId)", html)
+        self.assertIn("function clearAutoSyncedEventEnergyModels()", html)
+        self.assertIn('id="manualNoPowerModeToggle"', html)
+        self.assertIn("function setManualNoPowerMode(enabled)", html)
+        self.assertIn("return isManualNoPowerMode() ||", html)
+        self.assertIn(
+            "/^(PowerIn|PowerOut|EnergyGenerated)\\s*=",
+            html,
+        )
         self.assertNotIn("function getModuleAttributeMap(moduleId)", html)
         self.assertNotIn("function hasStorageAttributes(moduleId)", html)
         self.assertNotIn("function hasTransporterAttributes(moduleId)", html)

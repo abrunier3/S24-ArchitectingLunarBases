@@ -4,13 +4,31 @@ import tempfile
 import unittest
 from pathlib import Path
 
+import simpy
+
 from S24.DES_pipeline_version.ISRU_DES_Model_V5_2_PV import (
     _resource_routes_for_rover,
     run_scenario,
 )
+from S24.DES_pipeline_version.ISRUPlant import ISRUPlant
 
 
 class IsruRuntimeTests(unittest.TestCase):
+    def test_plant_uses_explicit_conversion_efficiency(self):
+        root = Path(__file__).resolve().parents[1]
+        attributes = json.loads(
+            (root / "clean_database/json/ECLIPSE_Project/assets/ISRUPlant.json").read_text()
+        )["attributes"]
+        attributes["excavationEnergyCoeff"] = 0.0
+        attributes["conversionEfficiency"] = 0.01
+        system = simpy.Environment()
+        plant = ISRUPlant(system, "plant", attributes)
+
+        system.process(plant.processRegolith(system, 4000.0))
+        system.run()
+
+        self.assertEqual(plant.totalLOXProduction, 40.0)
+
     def test_base_rover_route_applies_to_every_fleet_instance(self):
         builder = {
             "resource_routes": [

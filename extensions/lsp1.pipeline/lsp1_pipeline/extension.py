@@ -219,10 +219,21 @@ class LSP1PipelineExtension(omni.ext.IExt):
             raise ValueError("DES data must be a dict or contain a dict under 'log'")
 
         self.des_log = raw_log
-        self.des_log_times = sorted(
-            (float(k), k)
-            for k in self.des_log.keys()
-        )
+        # Current DES results wrap the time-indexed telemetry in ``log`` and
+        # keep run metadata (for example ``written_at`` and ``status``) at the
+        # root.  Older results used the time-indexed dictionary directly.
+        # Accept both formats and ignore any non-time keys defensively.
+        time_entries = []
+        for key in self.des_log:
+            try:
+                time_entries.append((float(key), key))
+            except (TypeError, ValueError):
+                continue
+
+        if not time_entries:
+            raise ValueError("DES log contains no time-indexed telemetry entries")
+
+        self.des_log_times = sorted(time_entries)
 
     def _build_actor_dashboard(self):
         self.actor_labels = {}

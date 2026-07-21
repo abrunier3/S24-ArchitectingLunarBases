@@ -1900,6 +1900,13 @@
         <div class="panel">
           <div class="panel-title">Activate Systems</div>
           <div class="mini-note" style="margin-bottom:12px;">Run Graph first to parse the SysML and build the connectivity graph. You can then toggle which modules stay active.</div>
+          <label style="display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:12px;padding:10px 12px;border:1px solid var(--border2);border-radius:8px;background:rgba(255,209,102,0.06);cursor:pointer;">
+            <span style="min-width:0;">
+              <span style="display:block;font-size:10px;font-weight:700;color:#ffd166;">Ignore power constraints</span>
+              <span id="manualNoPowerModeHint" style="display:block;margin-top:3px;font-size:9px;line-height:1.4;color:var(--text3);">Power availability can limit the simulation.</span>
+            </span>
+            <input id="manualNoPowerModeToggle" type="checkbox" onchange="setManualNoPowerMode(this.checked)" style="width:18px;height:18px;flex:0 0 auto;accent-color:#ffd166;cursor:pointer;">
+          </label>
           <div class="system-grid" id="systemGrid"></div>
 
           <!-- Run graph pipeline button -->
@@ -2385,8 +2392,12 @@ function getActivePowerGenerationSystems() {
   });
 }
 
+function isManualNoPowerMode() {
+  return typeof up42Scenario !== 'undefined' && Boolean(up42Scenario?.manualIgnorePower);
+}
+
 function isPowerIgnored() {
-  return systems.length > 0 && getActivePowerGenerationSystems().length === 0;
+  return isManualNoPowerMode() || (systems.length > 0 && getActivePowerGenerationSystems().length === 0);
 }
 
 function getPowerModeLabel() {
@@ -2396,16 +2407,38 @@ function getPowerModeLabel() {
 function updatePowerModeStatus() {
   const el = document.getElementById('powerModeStatus');
   if (!el) return;
-  if (!systems.length) {
+  const toggle = document.getElementById('manualNoPowerModeToggle');
+  const hint = document.getElementById('manualNoPowerModeHint');
+  const manual = isManualNoPowerMode();
+  if (toggle) toggle.checked = manual;
+  if (hint) {
+    hint.textContent = manual
+      ? 'Energy is treated as unlimited, even when a generator is active.'
+      : 'Power availability can limit the simulation.';
+  }
+  if (!systems.length && !manual) {
     el.textContent = '';
     return;
   }
-  if (isPowerIgnored()) {
+  if (manual) {
+    el.innerHTML = '<b style="color:#ffd166;">Energy-Unconstrained Mode</b> · manually enabled; DES ignores power demand and supply.';
+  } else if (isPowerIgnored()) {
     el.innerHTML = '<b style="color:#ffd166;">Energy-Unconstrained Mode</b> · no active power-generation asset; DES ignores power demand and supply.';
   } else {
     const names = getActivePowerGenerationSystems().map(system => escapeHtml(system.name || system.id)).join(', ');
     el.innerHTML = `<b style="color:#7ee0b1;">Power-Constrained Mode</b> · active generator: ${names}.`;
   }
+}
+
+function setManualNoPowerMode(enabled) {
+  up42Scenario.manualIgnorePower = Boolean(enabled);
+  refreshOperationsGraphFromActiveSystems();
+  syncScenarioInterfacesFromSysML();
+  updatePowerModeStatus();
+  if (typeof syncDesControlsToActiveSystems === 'function') syncDesControlsToActiveSystems();
+  if (typeof renderScenarioPowerModels === 'function') renderScenarioPowerModels();
+  renderScenarioValidation();
+  if (typeof drawUp42 === 'function') drawUp42();
 }
 
 function toggleSystem(id) {
@@ -3708,6 +3741,7 @@ let up42Scenario = {
   moduleEquations: {},
   moduleClasses: {},
   moduleClassOverrides: {},
+  manualIgnorePower: false,
   roverCounts: { regolith: 1, lox: 1 },
   roverPayloadsKg: { regolith: 4000, lox: 4000 }
 };
@@ -3956,6 +3990,7 @@ function clearScenarioBuilderState() {
   up42Scenario = {
     resourceRoutes: [], powerLinks: [], comLinks: [], moduleLogic: {},
     sysmlInterfaces: [], transportLinks: [], moduleEquations: {}, moduleClasses: {}, moduleClassOverrides: {},
+    manualIgnorePower: false,
     roverCounts: { regolith: 1, lox: 1 },
     roverPayloadsKg: { regolith: 4000, lox: 4000 }
   };
@@ -3982,7 +4017,9 @@ function applyIsruScenarioPreset(preset) {
     ...cloneScenarioValue(preset.scenario_logic || {})
   };
   scenarioPowerModels = cloneScenarioValue(preset.power_models || {});
+  clearAutoSyncedEventEnergyModels();
   restoreDesFormValues(preset.des_form || {});
+  updatePowerModeStatus();
   if (systems.length) {
     renderSystems();
     buildAssemblyTreeFromActiveSystems();
@@ -4102,6 +4139,8 @@ function restoreScenarioSnapshot(snapshot) {
   up42Routes = cloneScenarioValue(snapshot.terrain_routes || []);
   up42Scenario = cloneScenarioValue(snapshot.scenario_logic || up42Scenario);
   scenarioPowerModels = cloneScenarioValue(snapshot.power_models || {});
+  clearAutoSyncedEventEnergyModels();
+  updatePowerModeStatus();
   setInputValueIfPresent('up42RegolithRoverCount', up42Scenario.roverCounts?.regolith ?? 1);
   setInputValueIfPresent('up42LoxRoverCount', up42Scenario.roverCounts?.lox ?? 1);
   restoreDesFormValues(snapshot.des_form || {});
@@ -6376,7 +6415,7 @@ function getDefaultEquationTemplate(moduleId) {
   const baseId = getBaseModuleId(moduleId);
   if (baseId === 'ISRUPlant') {
     return [
-      'LOXOut = RegolithIn * extractedLOXFraction',
+      'LOXOut = RegolithIn * conversionEfficiency',
       'ProcessingTime = RegolithIn / processingRate',
       'EnergyConsumed = E_exc + E_trans + E_bene + E_reactor + E_electro + E_liq'
     ].join('\n');
@@ -6665,7 +6704,7 @@ function setModuleEquationList(moduleId, equations) {
 function syncStep4PowerEquationsToStep5(moduleId) {
   if (isPowerIgnored()) return;
   const powerEquations = getModuleEquationList(moduleId).filter(equation =>
-    /^(PowerIn|PowerOut|EnergyConsumed|EnergyGenerated)\s*=/i.test(equation)
+    /^(PowerIn|PowerOut|EnergyGenerated)\s*=/i.test(equation)
   ).filter(equation => {
     const output = getEquationOutputName(equation);
     const rhs = String(equation).split('=').slice(1).join('=').trim();
@@ -6682,6 +6721,18 @@ function syncStep4PowerEquationsToStep5(moduleId) {
     model.equation = '';
   }
   renderScenarioPowerModels();
+}
+
+function clearAutoSyncedEventEnergyModels() {
+  Object.entries(scenarioPowerModels || {}).forEach(([moduleId, model]) => {
+    if (model?.mode !== 'equation') return;
+    const modelEquations = splitModuleEquations(model.equation);
+    if (!modelEquations.length || !modelEquations.every(equation => /^EnergyConsumed\s*=/i.test(equation))) return;
+    const eventEquations = new Set(getModuleEquationList(moduleId));
+    if (!modelEquations.every(equation => eventEquations.has(equation))) return;
+    model.mode = 'average';
+    model.equation = '';
+  });
 }
 
 function renderModuleEquationPanel(moduleId, groups) {
@@ -7085,7 +7136,9 @@ function getScenarioValidationMessages() {
 
   if (missingPlacements.length) errors.push(`Missing placement: ${missingPlacements.join(', ')}`);
   if (ignorePower) {
-    infos.push('Energy-Unconstrained Mode: no active power-generation asset detected, so DES treats energy as unlimited and ignores power interfaces, power demand, and power supply.');
+    infos.push(isManualNoPowerMode()
+      ? 'Energy-Unconstrained Mode: manually enabled in Step 2, so DES treats energy as unlimited and ignores power interfaces, power demand, and power supply.'
+      : 'Energy-Unconstrained Mode: no active power-generation asset detected, so DES treats energy as unlimited and ignores power interfaces, power demand, and power supply.');
   }
   placedIds.forEach(id => {
     const base = getBaseModuleId(id).toLowerCase();
@@ -8007,6 +8060,11 @@ let up42MoonImg = null;
             oninput="document.getElementById('desProcessRateVal').textContent=this.value+' kg/hr'">
           <div style="font-size:9px;color:var(--text3);margin-top:2px;line-height:1.4;">Regolith mass processed per plant per hour; determines the duration of each processing batch.</div>
         </div>
+
+        <label id="desControlConversionEfficiency" style="padding:8px;border:1px solid var(--border2);border-radius:7px;font-size:10px;color:var(--text2);line-height:1.4;">Regolith-to-LOX conversion efficiency <small style="color:#ff7a8a;">[ISRUPlant]</small>
+          <input id="desConversionEfficiency" type="number" min="0" max="1" step="0.000001" value="0.002527902017" oninput="this.dataset.userEdited='1'" style="width:100%;margin-top:5px;background:#07101a;color:var(--text1);border:1px solid var(--border2);border-radius:5px;padding:6px;">
+          <span style="display:block;font-size:9px;color:var(--text3);margin-top:4px;">Kilograms of LOX produced per kilogram of regolith processed. For example, 0.002528 means 0.2528%.</span>
+        </label>
 
         <div id="desControlLoxThresh">
           <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
@@ -11257,6 +11315,11 @@ let up42MoonImg = null;
       reason: 'No active SysML module exposes a processing rate.'
     },
     {
+      controlId: 'desControlConversionEfficiency',
+      anyOf: ['processing'],
+      reason: 'No active SysML module exposes a resource conversion process.'
+    },
+    {
       controlId: 'desControlLoxThresh',
       allOf: ['processing', 'lox_rover'],
       reason: 'The active SysML graph does not contain a complete LOX production/transport loop.'
@@ -11336,7 +11399,7 @@ let up42MoonImg = null;
     const wrap = document.getElementById(containerId);
     if (!wrap) return;
 
-    const input = wrap.querySelector('input[type="range"]');
+    const input = wrap.querySelector('input, select, textarea');
     const hint = wrap.querySelector('.des-disabled-note');
     if (input) input.disabled = !enabled;
 
@@ -11389,7 +11452,12 @@ let up42MoonImg = null;
       if (element) element.style.display = ignorePower ? 'none' : '';
     });
     const notice = document.getElementById('desNoPowerNotice');
-    if (notice) notice.style.display = ignorePower ? 'block' : 'none';
+    if (notice) {
+      notice.style.display = ignorePower ? 'block' : 'none';
+      notice.textContent = isManualNoPowerMode()
+        ? 'Energy-Unconstrained Mode: manually enabled in Step 2, so DES treats energy as unlimited.'
+        : 'Energy-Unconstrained Mode: no active power-generation asset was selected in Step 2, so DES treats energy as unlimited.';
+    }
   }
 
   function getSysmlNumericAttribute(moduleId, attributeName, fallback) {
@@ -11732,7 +11800,7 @@ let up42MoonImg = null;
 
 	  function syncDesScenarioModeVisibility() {
 	    const isIsru = currentScenarioMode === 'isru';
-	    ['desControlProcessRate', 'desControlLoxThresh', 'desIsruConfigurationHeading', 'desIsruAdvancedAssumptions'].forEach(id => {
+	    ['desControlProcessRate', 'desControlConversionEfficiency', 'desControlLoxThresh', 'desIsruConfigurationHeading', 'desIsruAdvancedAssumptions'].forEach(id => {
 	      const element = document.getElementById(id);
 	      if (element) element.style.display = isIsru ? '' : 'none';
 	    });
@@ -11807,6 +11875,7 @@ let up42MoonImg = null;
       isru: {
         plant_count: plantCount,
         processing_rate_kg_hr: Number(sliderValues.ISRU_Plant_Processing_Rate),
+        conversion_efficiency: getNumberInputValue('desConversionEfficiency', 0.002527902017),
         lox_transport_threshold_kg: isIsruPreset
           ? Number(sliderValues.LOX_Transport_Threshold)
           : roverCapacity,

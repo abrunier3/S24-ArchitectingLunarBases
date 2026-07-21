@@ -74,6 +74,7 @@ package ECLIPSE_LSP1 {
                 attribute Z = 0;
             }
             attribute processingRate = 1600;
+            attribute conversionEfficiency = 0.002527902017;
             attribute regHeadGrade = 0.1;
             attribute lunarGravity = 1.62;
             attribute LOXStored = 0;

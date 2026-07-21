@@ -21,6 +21,7 @@ DEFAULT_SCENARIO_CONFIG = {
     "isru": {
         "plant_count": 1,
         "processing_rate_kg_hr": 1600.0,
+        "conversion_efficiency": 0.002527902017,
         "lox_transport_threshold_kg": 100.0,
         "lox_delivery_poll_dt_hr": 1.0,
         "lox_storage_energy_kwh_per_kg_hr": 0.31,
@@ -159,6 +160,10 @@ def _apply_legacy_options(config, options):
     config["isru"]["processing_rate_kg_hr"] = _as_float(
         options.get("ISRU_Plant_Processing_Rate"),
         config["isru"]["processing_rate_kg_hr"],
+    )
+    config["isru"]["conversion_efficiency"] = _as_float(
+        options.get("ISRU_LOX_Conversion_Efficiency"),
+        config["isru"]["conversion_efficiency"],
     )
     config["isru"]["lox_transport_threshold_kg"] = _as_float(
         options.get("LOX_Transport_Threshold"),
