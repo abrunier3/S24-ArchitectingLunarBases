@@ -118,6 +118,10 @@ class IsruPresetTests(unittest.TestCase):
         self.assertIn("Transporter: ['SimulationTime', 'TravelTime', 'Distance', 'CargoMass', 'RoverCapacity', 'EnergyConsumed']", html)
         self.assertIn("function isSimulationAttributeName(name)", html)
         self.assertIn("return !/^cad/i.test", html)
+        self.assertIn("const requiredRouteCount = Math.max(candidates.length, spec.roverCount);", html)
+        self.assertIn("if (currentScenarioMode === 'isru') ensureIsruPresetResourceRoutes();", html)
+        self.assertIn("const hasSysmlConnectivity = up42Scenario.sysmlInterfaces.length || up42Scenario.transportLinks.length;", html)
+        self.assertIn("Direct SysML interfaces:", html)
         self.assertIn("return isManualNoPowerMode() ||", html)
         self.assertIn(
             "/^(PowerIn|PowerOut|EnergyGenerated)\\s*=",

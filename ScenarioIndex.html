@@ -4642,6 +4642,7 @@ function setUp42InstanceCount(moduleId, rawValue) {
 
   if (moduleId === 'ISRUPlant') setInputValueIfPresent('desPlantCount', nextCount, 'desPlantCountVal');
   syncScenarioInterfacesFromSysML();
+  if (currentScenarioMode === 'isru') ensureIsruPresetResourceRoutes();
   renderUp42ModuleList();
   updateUp42InfoCard();
   renderScenarioPowerModels();
@@ -5314,6 +5315,7 @@ function up42OnClick(e) {
     if (!up42ActiveModule) return;
     up42Placements[up42ActiveModule] = { cx:mx, cy:my };
     refreshScenarioResourceRoutePaths();
+    if (currentScenarioMode === 'isru') ensureIsruPresetResourceRoutes();
     updateUp42InfoCard();
     renderUp42ModuleList();
     renderConfiguredResourceRoutes();
@@ -5972,8 +5974,8 @@ function ensureIsruPresetResourceRoutes() {
   up42Scenario.resourceRoutes = (up42Scenario.resourceRoutes || [])
     .filter(route => !route.preset_generated);
   const routeSpecs = [
-    { flow:'Regolith', roverType:'RegolithRover', count:Math.max(1, Number(up42Scenario.roverCounts?.regolith || 1)) },
-    { flow:'LOX', roverType:'LOXRover', count:Math.max(1, Number(up42Scenario.roverCounts?.lox || 1)) }
+    { flow:'Regolith', roverType:'RegolithRover', roverCount:Math.max(1, Number(up42Scenario.roverCounts?.regolith || 1)) },
+    { flow:'LOX', roverType:'LOXRover', roverCount:Math.max(1, Number(up42Scenario.roverCounts?.lox || 1)) }
   ];
 
   routeSpecs.forEach(spec => {
@@ -5994,8 +5996,12 @@ function ensureIsruPresetResourceRoutes() {
     const candidates = [...candidateMap.values()];
     if (!candidates.length) return;
 
-    for (let index = 0; index < spec.count; index++) {
-      const roverId = spec.count === 1 ? spec.roverType : `${spec.roverType}_${index + 1}`;
+    // Each placed plant needs its own inbound Regolith and outbound LOX route.
+    // A larger rover fleet adds assignments, but never hides a plant connection.
+    const requiredRouteCount = Math.max(candidates.length, spec.roverCount);
+    for (let index = 0; index < requiredRouteCount; index++) {
+      const roverIndex = index % spec.roverCount;
+      const roverId = spec.roverCount === 1 ? spec.roverType : `${spec.roverType}_${roverIndex + 1}`;
       const candidate = candidates[index % candidates.length];
       if ((up42Scenario.resourceRoutes || []).some(route =>
         route.flow === spec.flow &&
@@ -7214,7 +7220,8 @@ function getScenarioValidationMessages() {
       }
     });
   });
-  if (!up42Scenario.sysmlInterfaces.length) warnings.push('No SysML interface available from the active graph.');
+  const hasSysmlConnectivity = up42Scenario.sysmlInterfaces.length || up42Scenario.transportLinks.length;
+  if (!hasSysmlConnectivity) warnings.push('No SysML connection available from the active graph.');
   if (!(up42Scenario.transportLinks || []).length) warnings.push('No rover transport link inferred from SysML connection names.');
   if (!equationModules.length) warnings.push('No module equations defined yet.');
 
@@ -7260,7 +7267,7 @@ function renderScenarioValidation() {
       <div style="font-size:10px;color:var(--text3);line-height:1.6;">
         Instances: <b style="color:var(--text1);">${getScenarioInstances().length}</b><br>
         Terrain routes: <b style="color:var(--text1);">${up42Routes.length}</b><br>
-        SysML interfaces: <b style="color:var(--text1);">${up42Scenario.sysmlInterfaces.length}</b><br>
+        Direct SysML interfaces: <b style="color:var(--text1);">${up42Scenario.sysmlInterfaces.length}</b><br>
         Rover transport links: <b style="color:var(--text1);">${(up42Scenario.transportLinks || []).length}</b><br>
         Modules with equations: <b style="color:var(--text1);">${Object.values(up42Scenario.moduleEquations || {}).filter(equations => splitModuleEquations(equations).length).length}</b>
       </div>
