@@ -1,0 +1,77 @@
+{
+  "type": "Part",
+  "id": "urn:S24_PIPELINE:part:ISRUExcavation:001",
+  "name": "ISRUExcavation",
+  "dimensions": {
+    "size_m": {
+      "length": 4,
+      "width": 4,
+      "height": 2.5
+    },
+    "metersPerUnit": 1,
+    "upAxis": "Z",
+    "angleUnit": "deg",
+    "pressureUnit": "kPa",
+    "massUnit": "kg",
+    "lengthUnit": "m"
+  },
+  "transform": {
+    "position_m": [
+      0,
+      5,
+      0
+    ],
+    "rotation_deg": [
+      0,
+      0,
+      0
+    ]
+  },
+  "attributes": {
+    "ISRUExcavation_volume_m3": 40,
+    "excavationEnergyCoeff": 0.0000065,
+    "cadAreaScaleFactor": 0.374614236272,
+    "cadCenterOfMassXM": -0.131913291676,
+    "cadCenterOfMassYM": -0.0892818044328,
+    "cadCenterOfMassZM": 0.12265806199,
+    "cadLengthScaleFactor": 0.612057379885,
+    "cadMetadataScaleFactor": 0.612057379885,
+    "cadSourceCenterOfMassXM": 0.251615315939,
+    "cadSourceCenterOfMassYM": 0.20146750712,
+    "cadSourceCenterOfMassZM": 0.0135780763968,
+    "cadSourceSurfaceAreaM2": 25.663819114,
+    "cadSurfaceAreaM2": 9.61403199719,
+    "cadVolumeScaleFactor": 0.22928540792
+  },
+  "metadata": {
+    "geometryRef": "clean_database/cad_models/ISRU_Missionjjj/ISRUExcavation/ISRUExcavation.usdc",
+    "cadVolumeAvailable": "false",
+    "cadVolumeStatus": "mesh_not_watertight",
+    "sourceCadPath": "clean_database/cad_models/ISRU_Missionjjj/ISRUExcavation/ISRUExcavation.usdc",
+    "cadFileName": "ISRUExcavation.usdc",
+    "glbPreviewRef": "outputs/cad_previews/ISRU_Missionjjj/ISRUExcavation.glb",
+    "cadImportedFromScenario": "ECLIPSE_Project"
+  },
+  "materialRef": "Aluminum_2219_T87",
+  "ports": [
+    {
+      "name": "Excavation_PowerPortIn",
+      "direction": [
+        "in"
+      ],
+      "items": [
+        "PowerIn"
+      ]
+    },
+    {
+      "name": "Excavation_RegolithPortOut",
+      "direction": [
+        "out"
+      ],
+      "items": [
+        "RegolithOut"
+      ]
+    }
+  ],
+  "parent": "LSP1"
+}
