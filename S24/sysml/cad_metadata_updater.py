@@ -247,31 +247,19 @@ def _cad_path_candidates(
         if text and text not in candidates:
             candidates.append(text)
 
-    # Prefer current converted USDs in the CAD folder. Preview metadata can be
-    # stale after a cleanup/conversion pass, while this folder is what the scene
-    # builder searches when it chooses the visual CAD.
-    cad_dir = repo_root / "clean_database" / "cad_models" / module_name
-    if cad_dir.exists():
-        usd_files = [
-            path for path in cad_dir.iterdir()
-            if path.is_file() and path.suffix.lower() in {".usdc", ".usd", ".usda", ".usdz"}
-        ]
-        usd_files.sort(
-            key=lambda path: (
-                0 if path.suffix.lower() == ".usdc" else 1,
-                0 if path.stem.lower() == module_name.lower() else 1,
-                path.name.lower(),
-            )
-        )
-        for path in usd_files:
-            try:
-                add(path.relative_to(repo_root).as_posix())
-            except ValueError:
-                add(path.as_posix())
-
-    add(preview_meta.get("usd_path"))
     add(metadata.get("cadUsdPath"))
     add(metadata.get("geometryRef"))
+    add(preview_meta.get("usd_path"))
+
+    # Legacy fallback for assets created before CAD paths were scenario scoped.
+    cad_dir = repo_root / "clean_database" / "cad_models" / module_name
+    if cad_dir.exists():
+        for path in sorted(cad_dir.iterdir(), key=lambda item: item.name.lower()):
+            if path.is_file() and path.suffix.lower() in {".usdc", ".usd", ".usda", ".usdz"}:
+                try:
+                    add(path.relative_to(repo_root).as_posix())
+                except ValueError:
+                    add(path.as_posix())
     return candidates
 
 

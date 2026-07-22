@@ -695,7 +695,7 @@ jobs:
               updated_cad_metadata = update_cad_metadata_from_previews(
                   sysml_path=sysml_path,
                   assets_dir=assets_dir,
-                  previews_dir=Path("outputs/cad_previews"),
+                  previews_dir=Path("outputs/cad_previews") / scenario_slug,
                   repo_root=Path(".").resolve(),
               )
               print(f"[CAD] SysML CAD metadata update complete: {updated_cad_metadata} part(s)")

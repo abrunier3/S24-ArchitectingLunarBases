@@ -1483,8 +1483,10 @@
   }
   .node {
     position: absolute;
-    width: 118px;
-    min-height: 58px;
+    box-sizing: border-box;
+    width: 188px;
+    min-width: 0;
+    min-height: 84px;
     border-radius: 12px;
     border: 1px solid var(--border2);
     background: rgba(17,21,32,0.94);
@@ -1499,12 +1501,14 @@
     font-size: 11px;
     font-weight: 700;
     margin-bottom: 4px;
+    overflow-wrap: anywhere;
   }
   .node-tag {
     color: var(--text3);
     font-size: 9px;
     text-transform: uppercase;
     letter-spacing: 1px;
+    overflow-wrap: anywhere;
   }
   svg.link-layer {
     position: absolute;
@@ -2005,6 +2009,13 @@
               <input id="cadFileInput" type="file" accept=".usd,.usda,.usdc,.usdz,.step,.stp,.stl,.obj" style="display:none;" onchange="handleCadFile(event.target.files[0])">
             </div>
             <div id="cadUploadStatus" class="mini-note" style="margin-top:8px;">No CAD file loaded yet.</div>
+            <div style="display:flex;gap:8px;align-items:center;margin-top:10px;">
+              <select id="cadReuseSelect" style="flex:1;min-width:0;" onchange="updateCadReuseButton()">
+                <option value="">Load a published CAD from another scenario...</option>
+              </select>
+              <button id="cadReuseBtn" class="btn btn-secondary" type="button" disabled onclick="loadCadFromScenario()">Load</button>
+            </div>
+            <div id="cadReuseStatus" class="mini-note" style="margin-top:5px;">Choose a scenario CAD to copy into this scenario.</div>
           </div>
 
           <!-- Hidden metadata fields kept for Step 3 logic/state -->
@@ -9409,8 +9420,8 @@ let up42MoonImg = null;
 
     const cW = container.offsetWidth || 700;
     const cH = container.offsetHeight || 470;
-    const NODE_W = 118;
-    const NODE_H = 58;
+    const NODE_W = 188;
+    const NODE_H = 84;
     svgLayer.setAttribute('viewBox', `0 0 ${cW} ${cH}`);
     svgLayer.setAttribute('preserveAspectRatio', 'none');
 
@@ -9739,7 +9750,21 @@ let up42MoonImg = null;
   const moduleFiles = {};
   const moduleMetaCache = {};
   const cadPreviewState = Object.create(null);
+  let cadReuseOptions = [];
   let currentUsdMaterialPreview = null;
+
+  function getCadScenarioSlug() {
+    const slug = String(currentScenarioSlug || 'ECLIPSE_Project').trim();
+    return /^[A-Za-z0-9_]+$/.test(slug) ? slug : 'ECLIPSE_Project';
+  }
+
+  function cadFolderPath(moduleName, scenarioSlug = getCadScenarioSlug()) {
+    return `clean_database/cad_models/${scenarioSlug}/${moduleName}`;
+  }
+
+  function cadPreviewPath(moduleName, scenarioSlug = getCadScenarioSlug(), suffix = '') {
+    return `outputs/cad_previews/${scenarioSlug}/${moduleName}${suffix}`;
+  }
 
   function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
@@ -9775,11 +9800,220 @@ let up42MoonImg = null;
   }
 
   async function fetchCadMetaWithSha(moduleName, bust = Date.now()) {
-    return fetchGithubJson(`outputs/cad_previews/${moduleName}_meta.json`, bust);
+    return fetchGithubJson(cadPreviewPath(moduleName, getCadScenarioSlug(), '_meta.json'), bust);
   }
 
   async function fetchCadGlbMeta(moduleName, bust = Date.now()) {
-    return fetchGithubContentMeta(`outputs/cad_previews/${moduleName}.glb`, bust);
+    return fetchGithubContentMeta(cadPreviewPath(moduleName, getCadScenarioSlug(), '.glb'), bust);
+  }
+
+  async function listGithubDirectory(path) {
+    const token = sessionStorage.getItem('gh_pat');
+    if (!token) return [];
+
+    try {
+      const res = await fetch(
+        `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${path}?ref=${encodeURIComponent(GH_REF)}&ts=${Date.now()}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/vnd.github+json'
+          },
+          cache: 'no-store'
+        }
+      );
+      if (!res.ok) return [];
+      const data = await res.json();
+      return Array.isArray(data) ? data : [];
+    } catch (error) {
+      console.warn('[listGithubDirectory]', error);
+      return [];
+    }
+  }
+
+  async function putGithubContent(path, content, message) {
+    const token = sessionStorage.getItem('gh_pat');
+    if (!token) return false;
+
+    const existing = await fetchGithubContentMeta(path, Date.now());
+    const body = { message, content, branch: GH_REF };
+    if (existing?.sha) body.sha = existing.sha;
+
+    try {
+      const res = await fetch(
+        `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${path}`,
+        {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/vnd.github+json',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(body)
+        }
+      );
+      return res.ok;
+    } catch (error) {
+      console.warn('[putGithubContent]', error);
+      return false;
+    }
+  }
+
+  function setCadReuseStatus(message) {
+    const status = document.getElementById('cadReuseStatus');
+    if (status) status.textContent = message;
+  }
+
+  function updateCadReuseButton() {
+    const select = document.getElementById('cadReuseSelect');
+    const button = document.getElementById('cadReuseBtn');
+    if (button) button.disabled = !currentModuleName || !select?.value;
+  }
+
+  async function refreshCadReuseOptions(moduleName = currentModuleName) {
+    const select = document.getElementById('cadReuseSelect');
+    if (!select) return;
+
+    select.innerHTML = '<option value="">Load a published CAD from another scenario...</option>';
+    cadReuseOptions = [];
+    updateCadReuseButton();
+
+    if (!moduleName) {
+      setCadReuseStatus('Select a module to browse its CADs in other scenarios.');
+      return;
+    }
+
+    setCadReuseStatus('Looking for published CADs in other scenarios...');
+    const currentSlug = getCadScenarioSlug();
+    const scenarioFolders = await listGithubDirectory('clean_database/json');
+    const slugs = scenarioFolders
+      .filter(item => item?.type === 'dir' && /^[A-Za-z0-9_]+$/.test(item.name || ''))
+      .map(item => item.name)
+      .filter(slug => slug !== currentSlug)
+      .sort((a, b) => a.localeCompare(b));
+
+    const candidates = await Promise.all(slugs.map(async scenarioSlug => {
+      const asset = await fetchGithubJson(
+        `clean_database/json/${scenarioSlug}/assets/${moduleName}.json`,
+        Date.now()
+      );
+      const metadata = asset?.data?.metadata || {};
+      const usdPath = metadata.cadUsdPath || metadata.geometryRef || '';
+      if (!/\.usd(?:a|c|z)?$/i.test(usdPath)) return null;
+
+      return {
+        scenarioSlug,
+        usdPath,
+        glbPath: metadata.glbPreviewRef || cadPreviewPath(moduleName, scenarioSlug, '.glb'),
+        metaPath: cadPreviewPath(moduleName, scenarioSlug, '_meta.json'),
+        legacyGlbPath: `outputs/cad_previews/${moduleName}.glb`,
+        legacyMetaPath: `outputs/cad_previews/${moduleName}_meta.json`,
+        fileName: metadata.cadFileName || usdPath.split('/').pop() || `${moduleName}.usdc`,
+        asset: asset.data
+      };
+    }));
+
+    if (moduleName !== currentModuleName) return;
+    cadReuseOptions = candidates.filter(Boolean);
+    cadReuseOptions.forEach((candidate, index) => {
+      const option = document.createElement('option');
+      option.value = String(index);
+      option.textContent = `${candidate.scenarioSlug} - ${candidate.fileName}`;
+      select.appendChild(option);
+    });
+
+    setCadReuseStatus(
+      cadReuseOptions.length
+        ? `${cadReuseOptions.length} published CAD${cadReuseOptions.length === 1 ? '' : 's'} available for ${moduleName}.`
+        : `No published CAD for ${moduleName} was found in the other scenarios.`
+    );
+    updateCadReuseButton();
+  }
+
+  async function copyGithubFile(sourcePath, targetPath, message) {
+    const source = await fetchGithubContentMeta(sourcePath, Date.now());
+    if (!source?.content) return false;
+    return putGithubContent(targetPath, source.content.replace(/\n/g, ''), message);
+  }
+
+  async function loadCadFromScenario() {
+    const select = document.getElementById('cadReuseSelect');
+    const button = document.getElementById('cadReuseBtn');
+    const selectedIndex = select?.value === '' ? NaN : Number(select?.value);
+    const selected = Number.isInteger(selectedIndex) ? cadReuseOptions[selectedIndex] : null;
+    const moduleName = currentModuleName;
+    if (!selected || !moduleName) return;
+
+    if (button) button.disabled = true;
+    setCadReuseStatus(`Copying ${selected.fileName} from ${selected.scenarioSlug}...`);
+
+    const targetExtension = selected.usdPath.match(/\.usd(?:a|c|z)?$/i)?.[0] || '.usdc';
+    const targetFileName = `${moduleName}${targetExtension}`;
+    const targetUsdPath = `${cadFolderPath(moduleName)}/${targetFileName}`;
+    const targetGlbPath = cadPreviewPath(moduleName, getCadScenarioSlug(), '.glb');
+    const targetMetaPath = cadPreviewPath(moduleName, getCadScenarioSlug(), '_meta.json');
+    const copiedCad = await copyGithubFile(
+      selected.usdPath,
+      targetUsdPath,
+      `feat: import ${moduleName} CAD from ${selected.scenarioSlug} [skip ci]`
+    );
+
+    if (!copiedCad) {
+      setCadReuseStatus(`Could not copy the CAD from ${selected.scenarioSlug}.`);
+      updateCadReuseButton();
+      return;
+    }
+
+    let copiedPreview = await copyGithubFile(
+        selected.glbPath,
+        targetGlbPath,
+        `feat: copy ${moduleName} CAD preview from ${selected.scenarioSlug} [skip ci]`
+    );
+    if (!copiedPreview && selected.glbPath !== selected.legacyGlbPath) {
+      copiedPreview = await copyGithubFile(
+        selected.legacyGlbPath,
+        targetGlbPath,
+        `feat: copy legacy ${moduleName} CAD preview from ${selected.scenarioSlug} [skip ci]`
+      );
+    }
+
+    let sourceMeta = await fetchGithubJson(selected.metaPath, Date.now());
+    if (!sourceMeta?.data && selected.metaPath !== selected.legacyMetaPath) {
+      sourceMeta = await fetchGithubJson(selected.legacyMetaPath, Date.now());
+    }
+
+    const previewMeta = {
+      ...(sourceMeta?.data || {}),
+      module_name: moduleName,
+      usd_path: targetUsdPath,
+      glb_path: targetGlbPath,
+      source_cad_path: targetUsdPath,
+      imported_from_scenario: selected.scenarioSlug,
+      written_at: new Date().toISOString()
+    };
+    await putGithubContent(
+      targetMetaPath,
+      btoa(unescape(encodeURIComponent(JSON.stringify(previewMeta, null, 2)))),
+      `feat: record imported ${moduleName} CAD metadata [skip ci]`
+    );
+
+    moduleMetaCache[moduleName] = {
+      ...(moduleMetaCache[moduleName] || {}),
+      detectedUsdPath: targetUsdPath,
+      sourceCadPath: targetUsdPath,
+      cadFileName: targetFileName,
+      importedFromScenario: selected.scenarioSlug
+    };
+    const saved = await writeAssetJson(moduleName, { name: targetFileName });
+    await loadCachedCadMeta(moduleName, step3SelectionVersion);
+
+    if (moduleName !== currentModuleName) return;
+    setCadReuseStatus(
+      saved
+        ? `Imported from ${selected.scenarioSlug}. This scenario now owns its copy${copiedPreview ? ' and preview' : ''}.`
+        : `CAD copied from ${selected.scenarioSlug}, but its asset JSON could not be updated.`
+    );
+    updateCadReuseButton();
   }
 
   async function loadMaterialLibrary() {
@@ -9976,6 +10210,10 @@ let up42MoonImg = null;
 
     currentCadFile = file;
     moduleFiles[currentModuleName] = file;
+    moduleMetaCache[currentModuleName] = {
+      ...(moduleMetaCache[currentModuleName] || {}),
+      cadFileName: file.name
+    };
     invalidateCadPreview(currentModuleName, file.name);
 
     updateModuleDot(currentModuleName, 'ready');
@@ -10015,6 +10253,8 @@ let up42MoonImg = null;
       delete moduleMetaCache[moduleName].detectedUpAxis;
       delete moduleMetaCache[moduleName].detectedSizeM;
       delete moduleMetaCache[moduleName].detectedUsdPath;
+      delete moduleMetaCache[moduleName].sourceCadPath;
+      delete moduleMetaCache[moduleName].importedFromScenario;
     }
 
     if (moduleName === currentModuleName) {
@@ -10126,8 +10366,10 @@ let up42MoonImg = null;
     updateCadAxisSelector(moduleName);
 
     const cadFileForSave = moduleFiles[moduleName] ||
-      (sysmlPartsCache[moduleName]?.metadata?.cadFileName
-        ? { name: sysmlPartsCache[moduleName].metadata.cadFileName }
+      (moduleMetaCache[moduleName]?.cadFileName
+        ? { name: moduleMetaCache[moduleName].cadFileName }
+        : sysmlPartsCache[moduleName]?.metadata?.cadFileName
+          ? { name: sysmlPartsCache[moduleName].metadata.cadFileName }
         : null);
 
     if (cadFileForSave) {
@@ -10157,8 +10399,10 @@ let up42MoonImg = null;
     updateCadAxisSelector(moduleName);
 
     const cadFileForSave = moduleFiles[moduleName] ||
-      (sysmlPartsCache[moduleName]?.metadata?.cadFileName
-        ? { name: sysmlPartsCache[moduleName].metadata.cadFileName }
+      (moduleMetaCache[moduleName]?.cadFileName
+        ? { name: moduleMetaCache[moduleName].cadFileName }
+        : sysmlPartsCache[moduleName]?.metadata?.cadFileName
+          ? { name: sysmlPartsCache[moduleName].metadata.cadFileName }
         : null);
 
     if (cadFileForSave) {
@@ -10435,6 +10679,7 @@ let up42MoonImg = null;
         resetStep3View();
         loadSysmlIntoForm(name, part);
         loadCachedCadMeta(name, selectionVersion);
+        refreshCadReuseOptions(name);
 
         if (moduleFiles[name]) {
           const s = document.getElementById('cadUploadStatus');
@@ -10611,7 +10856,7 @@ let up42MoonImg = null;
       const file = moduleFiles[moduleName];
 
       const previousMeta = await fetchGithubContentMeta(
-        `outputs/cad_previews/${moduleName}_meta.json`,
+        cadPreviewPath(moduleName, getCadScenarioSlug(), '_meta.json'),
         Date.now()
       );
       const previousGlb = await fetchCadGlbMeta(moduleName, Date.now());
@@ -10632,7 +10877,7 @@ let up42MoonImg = null;
       const uploaded = await uploadCadToGitHub(file, moduleName);
 
       if (uploaded) {
-        const usdPath = `clean_database/cad_models/${moduleName}/${file.name}`;
+        const usdPath = `${cadFolderPath(moduleName)}/${file.name}`;
         conversionJobs.push({ moduleName, file, usdPath, previewRequest });
         updateModuleDot(moduleName, 'done');
       } else {
@@ -10922,11 +11167,12 @@ let up42MoonImg = null;
         ...(mass !== null ? { computed_mass_kg: mass } : {})
       },
       metadata: {
-        geometryRef: saved.detectedUsdPath || part.metadata?.geometryRef || `clean_database/cad_models/${moduleName}/${cadFile.name}`,
+        geometryRef: saved.detectedUsdPath || `${cadFolderPath(moduleName)}/${cadFile.name}`,
         cadFileName: cadFile.name,
         cadUploadedAt: new Date().toISOString(),
-        glbPreviewRef: `outputs/cad_previews/${moduleName}.glb`,
-        sourceCadPath: part.metadata?.sourceCadPath || (saved.detectedUsdPath ? `clean_database/cad_models/${moduleName}/${cadFile.name}` : null),
+        glbPreviewRef: cadPreviewPath(moduleName, getCadScenarioSlug(), '.glb'),
+        sourceCadPath: saved.sourceCadPath || part.metadata?.sourceCadPath || `${cadFolderPath(moduleName)}/${cadFile.name}`,
+        ...(saved.importedFromScenario ? { cadImportedFromScenario: saved.importedFromScenario } : {}),
         cadDetectedSizeM: cadDetectedSizeM
           ? { length: cadDetectedSizeM[0], width: cadDetectedSizeM[1], height: cadDetectedSizeM[2] }
           : null,
@@ -10955,7 +11201,7 @@ let up42MoonImg = null;
 
     const asset = buildAssetJson(moduleName, cadFile);
     const scenarioAssetRoot = currentScenarioSlug
-      ? `clean_database/json/${currentScenarioSlug}/assets`
+      ? `clean_database/json/${getCadScenarioSlug()}/assets`
       : 'clean_database/json/ECLIPSE_Project/assets';
     const path = `${scenarioAssetRoot}/${moduleName}.json`;
     const content = btoa(unescape(encodeURIComponent(JSON.stringify(asset, null, 2))));
@@ -11019,7 +11265,7 @@ let up42MoonImg = null;
     const token = sessionStorage.getItem('gh_pat');
     if (!token) return;
 
-    const folderPath = `clean_database/cad_models/${moduleName}`;
+    const folderPath = cadFolderPath(moduleName);
 
     try {
       const res = await fetch(
@@ -11070,7 +11316,7 @@ let up42MoonImg = null;
       return false;
     }
 
-    const path = `clean_database/cad_models/${moduleName}/${file.name}`;
+    const path = `${cadFolderPath(moduleName)}/${file.name}`;
 
     return new Promise(resolve => {
       const reader = new FileReader();
@@ -11960,6 +12206,24 @@ let up42MoonImg = null;
     };
   }
 
+  function getDesWorkflowSliderInputs(sliderValues) {
+    // The new rover speed controls live in scenario_config and slider_values.
+    // GitHub Actions only accepts explicitly declared top-level workflow inputs,
+    // so retain its legacy travel-time input as a compatibility value.
+    const flatSpeedKph = Math.max(0.01, Number(sliderValues.Rover_Flat_Speed) || 0.01);
+    return {
+      Num_Regolith_Rovers: sliderValues.Num_Regolith_Rovers,
+      Num_LOX_Rovers: sliderValues.Num_LOX_Rovers,
+      Num_ISRU_Plants: sliderValues.Num_ISRU_Plants,
+      Regolith_Haul_Distance: sliderValues.Regolith_Haul_Distance,
+      LOX_Haul_Distance: sliderValues.LOX_Haul_Distance,
+      Rover_Energy_Consumption: sliderValues.Rover_Energy_Consumption,
+      Rover_Travel_Time: String(1 / flatSpeedKph),
+      ISRU_Plant_Processing_Rate: sliderValues.ISRU_Plant_Processing_Rate,
+      LOX_Transport_Threshold: sliderValues.LOX_Transport_Threshold,
+    };
+  }
+
   function getNumberInputValue(id, fallback) {
     const el = document.getElementById(id);
     const value = Number(el?.value);
@@ -12289,6 +12553,7 @@ let up42MoonImg = null;
     const requestId = `${currentScenarioSlug}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     const dispatchedAt = Date.now();
     const sliderValues = getDesSliderValues();
+    const workflowSliderInputs = getDesWorkflowSliderInputs(sliderValues);
     const scenarioConfig = buildDesScenarioConfig();
     const urbanPlanning = buildUrbanPlanningPayload();
     const cadAxisOverrides = getCadAxisOverrides();
@@ -12300,7 +12565,7 @@ let up42MoonImg = null;
       active_nodes: JSON.stringify(activeNodes),
       slider_values: JSON.stringify(sliderValues),
       scenario_config: JSON.stringify(scenarioConfig),
-      ...sliderValues,
+      ...workflowSliderInputs,
       ...(urbanPlanning ? { urban_planning: JSON.stringify(urbanPlanning) } : {}),
       ...(Object.keys(cadAxisOverrides).length
         ? { cad_axis_overrides: JSON.stringify(cadAxisOverrides) }
@@ -12904,8 +13169,8 @@ let up42MoonImg = null;
     const BG = '#0d1117';
     let html = `<rect width="${W}" height="${H}" fill="${BG}"/>`;
 
-    const NODE_W = 124;
-    const NODE_H = 58;
+    const NODE_W = 188;
+    const NODE_H = 84;
     const nodes = [...new Set(activeNodes.length ? activeNodes : getActiveSysmlNodes())];
     const graphData = window._lastGraphData || {};
     const conns = normalizeSysmlConnections(graphData.connections || [], nodes)
