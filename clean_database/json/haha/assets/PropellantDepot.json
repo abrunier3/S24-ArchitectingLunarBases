@@ -4,29 +4,31 @@
   "name": "PropellantDepot",
   "dimensions": {
     "size_m": {
-      "length": 4,
-      "width": 4,
+      "length": 4.0,
+      "width": 4.0,
       "height": 2.5
     },
     "metersPerUnit": 1,
-    "upAxis": "Y",
+    "upAxis": "Z",
+    "angleUnit": "deg",
+    "pressureUnit": "kPa",
     "massUnit": "kg",
     "lengthUnit": "m"
   },
   "transform": {
     "position_m": [
-      0,
-      5,
-      0
+      0.0,
+      5.0,
+      0.0
     ],
     "rotation_deg": [
-      0,
-      0,
-      0
+      0.0,
+      0.0,
+      0.0
     ]
   },
   "attributes": {
-    "PropellantDepot_volume_m3": 40,
+    "PropellantDepot_volume_m3": 40.0,
     "cadAreaScaleFactor": 23.10300946167396,
     "cadCenterOfMassXM": 0.027613676646538465,
     "cadCenterOfMassYM": 0.23145652366838476,
@@ -42,27 +44,15 @@
     "cadVolumeAvailable": false
   },
   "metadata": {
-    "geometryRef": "clean_database/cad_models/haha/PropellantDepot/PropellantDepot.usdc",
-    "cadFileName": "PropellantDepot.usdc",
-    "cadUploadedAt": "2026-07-22T02:49:13.232Z",
-    "glbPreviewRef": "outputs/cad_previews/haha/PropellantDepot.glb",
-    "sourceCadPath": "clean_database/cad_models/haha/PropellantDepot/PropellantDepot.usdc",
-    "cadImportedFromScenario": "CAD library",
-    "cadDetectedSizeM": {
-      "length": 0.516,
-      "width": 0.52,
-      "height": 0.3
-    },
-    "cadSourceUpAxis": "Y",
-    "cadSourceFrontAxis": "+X",
-    "cadDetectedUpAxis": "Y",
-    "cadDetectedMetersPerUnit": 1,
-    "cadSourceFile": "PropellantDepot.usdc",
+    "geometryRef": "assets/geom/Propellant_Depot_geom.usda",
     "cadFormat": "USDC",
+    "cadSourceFile": "PropellantDepot.usdc",
+    "cadSourceFrontAxis": "+X",
+    "cadSourceUpAxis": "Y",
+    "cadVolumeAvailable": "false",
     "cadVolumeStatus": "mesh_not_watertight"
   },
   "materialRef": "Aluminum_2219_T87",
-  "materialProperties": null,
   "ports": [
     {
       "name": "Propellant_LOXPortIn",
@@ -82,5 +72,6 @@
         "PowerIn"
       ]
     }
-  ]
+  ],
+  "parent": "LSP1"
 }
