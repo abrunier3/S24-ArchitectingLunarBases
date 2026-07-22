@@ -139,14 +139,14 @@
       },
       "transform": {
         "position_m": [
-          0.0,
-          0.0,
-          0.0
+          -492.5,
+          45,
+          0
         ],
         "rotation_deg": [
-          0.0,
-          0.0,
-          0.0
+          0,
+          0,
+          0
         ]
       },
       "attributes": {
@@ -248,14 +248,14 @@
       },
       "transform": {
         "position_m": [
-          0.0,
-          0.0,
-          0.0
+          557.5,
+          -205,
+          0
         ],
         "rotation_deg": [
-          0.0,
-          0.0,
-          0.0
+          0,
+          0,
+          0
         ]
       },
       "attributes": {
@@ -300,14 +300,14 @@
       },
       "transform": {
         "position_m": [
-          0.0,
-          0.0,
-          0.0
+          -442.5,
+          645,
+          0
         ],
         "rotation_deg": [
-          0.0,
-          0.0,
-          0.0
+          0,
+          0,
+          0
         ]
       },
       "attributes": {
@@ -440,6 +440,640 @@
         "part": "WaterTank",
         "port": "WaterTank_PowerPortIn"
       }
+    },
+    {
+      "name": "IceExtractor_1ToWaterProcessor_Ice",
+      "type": "OperationalRoute",
+      "flow": "Ice",
+      "from": {
+        "part": "IceExtractor_1"
+      },
+      "to": {
+        "part": "WaterProcessor"
+      },
+      "rover_id": "IceRover_1",
+      "stops": [],
+      "path": {
+        "waypoints_m": [
+          [
+            -1217.5,
+            -90,
+            0
+          ],
+          [
+            -970.83,
+            -41.67,
+            0
+          ],
+          [
+            -724.17,
+            6.67,
+            0
+          ],
+          [
+            -477.5,
+            55,
+            0
+          ]
+        ],
+        "distance_km": 0.754
+      }
+    },
+    {
+      "name": "WaterProcessorToWaterTank_Water",
+      "type": "OperationalRoute",
+      "flow": "Water",
+      "from": {
+        "part": "WaterProcessor"
+      },
+      "to": {
+        "part": "WaterTank"
+      },
+      "rover_id": "WaterRover_2",
+      "stops": [],
+      "path": {
+        "waypoints_m": [
+          [
+            -477.5,
+            55,
+            0
+          ],
+          [
+            -221.25,
+            -7.5,
+            0
+          ],
+          [
+            35,
+            -70,
+            0
+          ],
+          [
+            291.25,
+            -132.5,
+            0
+          ],
+          [
+            547.5,
+            -195,
+            0
+          ]
+        ],
+        "distance_km": 1.055
+      }
+    },
+    {
+      "name": "IceExtractor_2ToWaterProcessor_Ice",
+      "type": "OperationalRoute",
+      "flow": "Ice",
+      "from": {
+        "part": "IceExtractor_2"
+      },
+      "to": {
+        "part": "WaterProcessor"
+      },
+      "rover_id": "IceRover_2",
+      "stops": [],
+      "path": {
+        "waypoints_m": [
+          [
+            -547.5,
+            -725,
+            0
+          ],
+          [
+            -524.17,
+            -465,
+            0
+          ],
+          [
+            -500.83,
+            -205,
+            0
+          ],
+          [
+            -477.5,
+            55,
+            0
+          ]
+        ],
+        "distance_km": 0.783
+      }
     }
-  ]
+  ],
+  "urban_planning": {
+    "site": "MMA",
+    "site_name": "Malapert Massif",
+    "site_lat": -85.9,
+    "site_lon": -0.5,
+    "map_frame_m": {
+      "center_m": [
+        0,
+        0,
+        0
+      ],
+      "x_min": -1395,
+      "x_max": 1395,
+      "y_min": -1395,
+      "y_max": 1395,
+      "width_m": 2790,
+      "height_m": 2790,
+      "meters_per_pixel": 5,
+      "frame_px": {
+        "x": 169.5,
+        "y": 0,
+        "size": 558
+      }
+    },
+    "module_instances": {
+      "WaterProcessor": {
+        "type": "WaterProcessor",
+        "position_m": [
+          -492.5,
+          45,
+          0
+        ],
+        "rotation_deg": [
+          0,
+          0,
+          0
+        ]
+      },
+      "WaterTank": {
+        "type": "WaterTank",
+        "position_m": [
+          557.5,
+          -205,
+          0
+        ],
+        "rotation_deg": [
+          0,
+          0,
+          0
+        ]
+      },
+      "SolarPowerSystem": {
+        "type": "SolarPowerSystem",
+        "position_m": [
+          -442.5,
+          645,
+          0
+        ],
+        "rotation_deg": [
+          0,
+          0,
+          0
+        ]
+      },
+      "IceExtractor_1": {
+        "type": "IceExtractor",
+        "position_m": [
+          -1222.73,
+          -75.17,
+          0
+        ],
+        "rotation_deg": [
+          0,
+          0,
+          0
+        ]
+      },
+      "IceExtractor_2": {
+        "type": "IceExtractor",
+        "position_m": [
+          -535.48,
+          -733.78,
+          0
+        ],
+        "rotation_deg": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    "routes": [
+      {
+        "from": "WaterProcessor",
+        "to": "SolarPowerSystem",
+        "key": "WaterProcessorToSolarPowerSystem",
+        "flow": "Power",
+        "distance_km": 0.601
+      },
+      {
+        "from": "WaterProcessor",
+        "to": "IceExtractor_1",
+        "key": "WaterProcessorToIceExtractor_1",
+        "flow": "Structural",
+        "distance_km": 0.754
+      },
+      {
+        "from": "WaterProcessor",
+        "to": "IceExtractor_2",
+        "key": "WaterProcessorToIceExtractor_2",
+        "flow": "Structural",
+        "distance_km": 0.783
+      },
+      {
+        "from": "WaterProcessor",
+        "to": "WaterTank",
+        "key": "WaterProcessorToWaterTank",
+        "flow": "Structural",
+        "distance_km": 1.055
+      }
+    ],
+    "route_geometry": {
+      "WaterProcessorToSolarPowerSystem": {
+        "flow": "Power",
+        "waypoints_m": [
+          [
+            -477.5,
+            55,
+            0
+          ],
+          [
+            -465.83,
+            255,
+            0
+          ],
+          [
+            -454.17,
+            455,
+            0
+          ],
+          [
+            -442.5,
+            655,
+            0
+          ]
+        ],
+        "distance_km": 0.601
+      },
+      "WaterProcessorToIceExtractor_1": {
+        "flow": "Structural",
+        "waypoints_m": [
+          [
+            -477.5,
+            55,
+            0
+          ],
+          [
+            -724.17,
+            6.67,
+            0
+          ],
+          [
+            -970.83,
+            -41.67,
+            0
+          ],
+          [
+            -1217.5,
+            -90,
+            0
+          ]
+        ],
+        "distance_km": 0.754
+      },
+      "WaterProcessorToIceExtractor_2": {
+        "flow": "Structural",
+        "waypoints_m": [
+          [
+            -477.5,
+            55,
+            0
+          ],
+          [
+            -500.83,
+            -205,
+            0
+          ],
+          [
+            -524.17,
+            -465,
+            0
+          ],
+          [
+            -547.5,
+            -725,
+            0
+          ]
+        ],
+        "distance_km": 0.783
+      },
+      "WaterProcessorToWaterTank": {
+        "flow": "Structural",
+        "waypoints_m": [
+          [
+            -477.5,
+            55,
+            0
+          ],
+          [
+            -221.25,
+            -7.5,
+            0
+          ],
+          [
+            35,
+            -70,
+            0
+          ],
+          [
+            291.25,
+            -132.5,
+            0
+          ],
+          [
+            547.5,
+            -195,
+            0
+          ]
+        ],
+        "distance_km": 1.055
+      },
+      "WaterProcessorToWaterTank_Water": {
+        "waypoints_m": [
+          [
+            -477.5,
+            55,
+            0
+          ],
+          [
+            -221.25,
+            -7.5,
+            0
+          ],
+          [
+            35,
+            -70,
+            0
+          ],
+          [
+            291.25,
+            -132.5,
+            0
+          ],
+          [
+            547.5,
+            -195,
+            0
+          ]
+        ],
+        "distance_km": 1.055,
+        "flow": "Water"
+      },
+      "IceExtractor_1ToWaterProcessor_Ice": {
+        "waypoints_m": [
+          [
+            -1217.5,
+            -90,
+            0
+          ],
+          [
+            -970.83,
+            -41.67,
+            0
+          ],
+          [
+            -724.17,
+            6.67,
+            0
+          ],
+          [
+            -477.5,
+            55,
+            0
+          ]
+        ],
+        "distance_km": 0.754,
+        "flow": "Ice"
+      },
+      "IceExtractor_2ToWaterProcessor_Ice": {
+        "waypoints_m": [
+          [
+            -547.5,
+            -725,
+            0
+          ],
+          [
+            -524.17,
+            -465,
+            0
+          ],
+          [
+            -500.83,
+            -205,
+            0
+          ],
+          [
+            -477.5,
+            55,
+            0
+          ]
+        ],
+        "distance_km": 0.783,
+        "flow": "Ice"
+      }
+    }
+  },
+  "scenario_logic": {
+    "scenario_mode": "new",
+    "instances": [
+      {
+        "id": "IceExtractor_1",
+        "type": "IceExtractor",
+        "placed": true,
+        "position_canvas": {
+          "cx": 203.95489395281703,
+          "cy": 294.0335106176547
+        },
+        "orientation_deg": 0
+      },
+      {
+        "id": "IceExtractor_2",
+        "type": "IceExtractor",
+        "placed": true,
+        "position_canvas": {
+          "cx": 341.4041338856599,
+          "cy": 425.75569888662915
+        },
+        "orientation_deg": 0
+      },
+      {
+        "id": "WaterProcessor",
+        "type": "WaterProcessor",
+        "placed": true,
+        "position_canvas": {
+          "cx": 350,
+          "cy": 270
+        },
+        "orientation_deg": 0
+      },
+      {
+        "id": "WaterTank",
+        "type": "WaterTank",
+        "placed": true,
+        "position_canvas": {
+          "cx": 560,
+          "cy": 320
+        },
+        "orientation_deg": 0
+      },
+      {
+        "id": "SolarPowerSystem",
+        "type": "SolarPowerSystem",
+        "placed": true,
+        "position_canvas": {
+          "cx": 360,
+          "cy": 150
+        },
+        "orientation_deg": 0
+      }
+    ],
+    "rover_counts": {
+      "ice": 2,
+      "water": 2,
+      "regolith": 1,
+      "lox": 1
+    },
+    "rover_payloads_kg": {
+      "ice": 4000,
+      "water": 4000
+    },
+    "module_classes": {
+      "IceExtractor": "Source",
+      "IceRover": "Transporter",
+      "WaterProcessor": "Processor",
+      "WaterRover": "Transporter",
+      "WaterTank": "Storage",
+      "SolarPowerSystem": "PowerGenerator"
+    },
+    "power_mode": "power_constrained",
+    "ignore_power": false,
+    "sysml_interfaces": [
+      {
+        "id": "sysml_interface_1",
+        "from_type": "SolarPowerSystem",
+        "to_type": "IceExtractor",
+        "flow": "Power",
+        "from_port": "Solar_ExtractorPowerOut",
+        "to_port": "IceExtractor_PowerPortIn",
+        "from_instances": [
+          "SolarPowerSystem"
+        ],
+        "to_instances": [
+          "IceExtractor_1",
+          "IceExtractor_2"
+        ]
+      },
+      {
+        "id": "sysml_interface_2",
+        "from_type": "SolarPowerSystem",
+        "to_type": "WaterProcessor",
+        "flow": "Power",
+        "from_port": "Solar_ProcessorPowerOut",
+        "to_port": "WaterProcessor_PowerPortIn",
+        "from_instances": [
+          "SolarPowerSystem"
+        ],
+        "to_instances": [
+          "WaterProcessor"
+        ]
+      },
+      {
+        "id": "sysml_interface_3",
+        "from_type": "SolarPowerSystem",
+        "to_type": "WaterTank",
+        "flow": "Power",
+        "from_port": "Solar_TankPowerOut",
+        "to_port": "WaterTank_PowerPortIn",
+        "from_instances": [
+          "SolarPowerSystem"
+        ],
+        "to_instances": [
+          "WaterTank"
+        ]
+      }
+    ],
+    "transport_links": [
+      {
+        "id": "ExtractorToIceRover_IceRoverToProcessor",
+        "flow": "Ice",
+        "from_type": "IceExtractor",
+        "to_type": "WaterProcessor",
+        "rover_type": "IceRover",
+        "from_instances": [
+          "IceExtractor_1",
+          "IceExtractor_2"
+        ],
+        "to_instances": [
+          "WaterProcessor"
+        ]
+      },
+      {
+        "id": "ProcessorToWaterRover_WaterRoverToTank",
+        "flow": "Water",
+        "from_type": "WaterProcessor",
+        "to_type": "WaterTank",
+        "rover_type": "WaterRover",
+        "from_instances": [
+          "WaterProcessor"
+        ],
+        "to_instances": [
+          "WaterTank"
+        ]
+      }
+    ],
+    "resource_routes": [
+      {
+        "id": "Water_WaterRover_WaterProcessor_WaterTank_1784686012224",
+        "flow": "Water",
+        "rover_type": "WaterRover",
+        "rover_id": "WaterRover_1",
+        "from": "WaterProcessor",
+        "to": "WaterTank",
+        "stops": [],
+        "distance_km": 1.055
+      },
+      {
+        "id": "Ice_IceRover_IceExtractor_1_WaterProcessor_1784686095935",
+        "flow": "Ice",
+        "rover_type": "IceRover",
+        "rover_id": "IceRover_1",
+        "from": "IceExtractor_1",
+        "to": "WaterProcessor",
+        "stops": [],
+        "distance_km": 0.754
+      },
+      {
+        "id": "Water_WaterRover_2_1784686125680_3",
+        "flow": "Water",
+        "rover_type": "WaterRover",
+        "rover_id": "WaterRover_2",
+        "from": "WaterProcessor",
+        "to": "WaterTank",
+        "stops": [],
+        "distance_km": 1.055
+      },
+      {
+        "id": "Ice_IceRover_2_IceExtractor_2_WaterProcessor_1784686296461",
+        "flow": "Ice",
+        "rover_type": "IceRover",
+        "rover_id": "IceRover_2",
+        "from": "IceExtractor_2",
+        "to": "WaterProcessor",
+        "stops": [],
+        "distance_km": 0.783
+      }
+    ],
+    "module_equations": {
+      "IceExtractor": "IceOut = min(RequestedIce, extractionRate)\nProcessingTime = IceOut / extractionRate\nEnergyConsumed = IceOut * 0.08\nPowerIn = 2\nPowerOut = 0",
+      "IceRover": "IceOut = min(IceIn, RoverCapacity)\nTravelTime = Distance * hoursPerKm\nEnergyConsumed = Distance * CargoMass * energyPerKmPerKg\nPowerOut = 0",
+      "WaterProcessor": "WaterOut = IceIn * 0.9\nProcessingTime = IceIn / processingRate\nEnergyConsumed = IceIn * 0.2\nPowerIn = 3\nPowerOut = 0",
+      "WaterRover": "WaterOut = min(WaterIn, RoverCapacity)\nTravelTime = Distance * hoursPerKm\nEnergyConsumed = Distance * CargoMass * energyPerKmPerKg\nPowerOut = 0",
+      "WaterTank": "WaterStored = WaterStored + WaterIn\nPowerIn = 0\nPowerOut = 0",
+      "SolarPowerSystem": "PowerOut = powerOutput\nPowerIn = 0"
+    }
+  }
 }
