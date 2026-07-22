@@ -398,7 +398,7 @@ package ECLIPSE_LSP1 {
             attribute cadSourceFile = "Viper Rover.STEP";
             attribute cadSourceFrontAxis = "+X";
             attribute cadSourceSurfaceAreaM2 = 19.714776743;
-            attribute cadSourceUpAxis = "Y";
+            attribute cadSourceUpAxis = "Z";
             attribute cadSourceVolumeM3 = 3.92712415182;
             attribute cadSurfaceAreaM2 = 29.5610397381;
             attribute cadVolumeAvailable = true;
