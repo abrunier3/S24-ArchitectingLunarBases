@@ -56,6 +56,13 @@ class CadScenarioStorageTests(unittest.TestCase):
         self.assertIn("await seedIsruReferenceCad({slug, preset});", html)
         self.assertIn("clean_database/cad_models/${slug}/${moduleName}/${fileName}", html)
 
+    def test_step_axis_override_survives_reselecting_a_module(self):
+        html = (Path(__file__).resolve().parents[1] / "ScenarioIndex.html").read_text()
+
+        self.assertIn("cadSourceUpAxisOverride: true", html)
+        self.assertIn("!existing.cadSourceUpAxisOverride", html)
+        self.assertIn("cadSourceUpAxisOverride: Boolean(saved.cadSourceUpAxisOverride)", html)
+
     def test_usd_stage_axis_overrides_stale_scenario_axis_metadata(self):
         html = (Path(__file__).resolve().parents[1] / "ScenarioIndex.html").read_text()
         scene_builder = (

@@ -9701,10 +9701,16 @@ let up42MoonImg = null;
       const cadSize = part.metadata?.cadDetectedSizeM;
       moduleMetaCache[name] = {
         ...existing,
-        ...(part.metadata?.cadSourceUpAxis
+        ...(part.metadata?.cadSourceUpAxisOverride
+          ? { cadSourceUpAxisOverride: true }
+          : {}),
+        ...(part.metadata?.cadSourceFrontAxisOverride
+          ? { cadSourceFrontAxisOverride: true }
+          : {}),
+        ...(part.metadata?.cadSourceUpAxis && !existing.cadSourceUpAxisOverride
           ? { cadSourceUpAxis: normalizeUpAxis(part.metadata.cadSourceUpAxis, 'Z') }
           : {}),
-        ...(part.metadata?.cadSourceFrontAxis
+        ...(part.metadata?.cadSourceFrontAxis && !existing.cadSourceFrontAxisOverride
           ? { cadSourceFrontAxis: normalizeFrontAxis(part.metadata.cadSourceFrontAxis, '+X') }
           : {}),
         ...(cadSize
@@ -10456,7 +10462,9 @@ let up42MoonImg = null;
     // Omniverse will actually reference.
     const sourceUpAxis = isSourceAxisCadMeta(data)
       ? normalizeUpAxis(
-        existing.cadSourceUpAxis || data.source_metadata?.source_up_axis || 'Z',
+        existing.cadSourceUpAxisOverride
+          ? existing.cadSourceUpAxis
+          : data.source_metadata?.source_up_axis || 'Z',
         'Z'
       )
       : upAxis;
@@ -10469,7 +10477,9 @@ let up42MoonImg = null;
       detectedUpAxis: upAxis,
       cadSourceUpAxis: sourceUpAxis,
       cadSourceFrontAxis: normalizeFrontAxis(
-        existing.cadSourceFrontAxis || data.source_metadata?.source_front_axis || '+X',
+        existing.cadSourceFrontAxisOverride
+          ? existing.cadSourceFrontAxis
+          : data.source_metadata?.source_front_axis || '+X',
         '+X'
       ),
       ...(sizeM ? { detectedSizeM: sizeM } : {}),
@@ -10499,7 +10509,8 @@ let up42MoonImg = null;
     const normalized = normalizeUpAxis(axis, 'Z');
     moduleMetaCache[moduleName] = {
       ...(moduleMetaCache[moduleName] || {}),
-      cadSourceUpAxis: normalized
+      cadSourceUpAxis: normalized,
+      cadSourceUpAxisOverride: true
     };
     updateCadAxisSelector(moduleName);
 
@@ -10532,7 +10543,8 @@ let up42MoonImg = null;
     const normalized = normalizeFrontAxis(axis, '+X');
     moduleMetaCache[moduleName] = {
       ...(moduleMetaCache[moduleName] || {}),
-      cadSourceFrontAxis: normalized
+      cadSourceFrontAxis: normalized,
+      cadSourceFrontAxisOverride: true
     };
     updateCadAxisSelector(moduleName);
 
@@ -11316,6 +11328,8 @@ let up42MoonImg = null;
           : null,
         cadSourceUpAxis: saved.cadSourceUpAxis || null,
         cadSourceFrontAxis: saved.cadSourceFrontAxis || null,
+        cadSourceUpAxisOverride: Boolean(saved.cadSourceUpAxisOverride),
+        cadSourceFrontAxisOverride: Boolean(saved.cadSourceFrontAxisOverride),
         cadDetectedUpAxis: saved.detectedUpAxis || null,
         cadDetectedMetersPerUnit: saved.detectedMetersPerUnit ? parseFloat(saved.detectedMetersPerUnit) : null
       },
