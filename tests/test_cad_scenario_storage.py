@@ -48,6 +48,14 @@ class CadScenarioStorageTests(unittest.TestCase):
         self.assertIn("...workflowSliderInputs", html)
         self.assertIn("Rover_Travel_Time: String(1 / flatSpeedKph)", html)
 
+    def test_new_isru_scenario_seeds_its_reference_cads(self):
+        html = (Path(__file__).resolve().parents[1] / "ScenarioIndex.html").read_text()
+
+        self.assertIn("const ISRU_REFERENCE_CAD_PATHS", html)
+        self.assertIn("async function seedIsruReferenceCad", html)
+        self.assertIn("await seedIsruReferenceCad({slug, preset});", html)
+        self.assertIn("clean_database/cad_models/${slug}/${moduleName}/${fileName}", html)
+
 
 if __name__ == "__main__":
     unittest.main()

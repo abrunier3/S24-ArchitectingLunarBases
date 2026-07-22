@@ -3760,6 +3760,16 @@ const SCENARIO_STORAGE_KEY = 'eclipse.savedScenarios.v1';
 const SCENARIO_SCHEMA_VERSION = 1;
 const ISRU_PRESET_PATH = 'clean_database/scenarios/presets/ISRU.json';
 const SCENARIO_INDEX_PATH = 'clean_database/scenarios/index.json';
+const ISRU_REFERENCE_CAD_PATHS = {
+  HabitationModule: 'clean_database/cad_models/HabitationModule/habitationmodule.usdc',
+  ISRUPlant: 'clean_database/cad_models/ISRUPlant/isruplant.usdc',
+  ISRUExcavation: 'clean_database/cad_models/ISRUExcavation/ISRUExcavation.usdc',
+  LOXRover: 'clean_database/cad_models/LOXRover/LOXRover.usdc',
+  RegolithRover: 'clean_database/cad_models/RegolithRover/RegolithRover.usdc',
+  SolarPowerSystem: 'clean_database/cad_models/SolarPowerSystem/solar_panels.usdc',
+  PropellantDepot: 'clean_database/cad_models/PropellantDepot/PropellantDepot.usdc',
+  LaunchLandingZone: 'clean_database/cad_models/LaunchLandingZone/launchlandingzone.usdc'
+};
 let currentScenarioMode = null;
 let currentScenarioId = null;
 let currentScenarioName = null;
@@ -5704,15 +5714,20 @@ function reconcileRoutesWithRoverCounts() {
   ]));
   const normalizedRoutes = [];
   const routeBySignature = new Map();
+  const routeIndexByFlow = new Map();
 
-  (up42Scenario.resourceRoutes || []).forEach((route, index) => {
+  (up42Scenario.resourceRoutes || []).forEach(route => {
     const key = String(route.flow || '').toLowerCase();
     const allowed = allowedByFlow.get(key);
     if (!allowed?.length) return;
+    const routeIndex = routeIndexByFlow.get(key) || 0;
+    routeIndexByFlow.set(key, routeIndex + 1);
     if (!route.rover_id || !allowed.includes(route.rover_id)) {
-      route.rover_id = allowed[index % allowed.length];
+      route.rover_id = allowed[routeIndex % allowed.length];
     }
-    const uniqueKey = `${key}:${route.from}:${route.to}:${route.rover_id}`;
+    // A route is a physical connection. Several rovers can serve it over time,
+    // so changing the fleet size must not manufacture parallel route copies.
+    const uniqueKey = `${key}:${route.from}:${(route.stops || []).join(',')}:${route.to}`;
 
     if (routeBySignature.has(uniqueKey)) {
       return;
@@ -5720,35 +5735,6 @@ function reconcileRoutesWithRoverCounts() {
 
     routeBySignature.set(uniqueKey, route);
     normalizedRoutes.push(route);
-  });
-
-  definitions.forEach(definition => {
-    const allowed = allowedByFlow.get(definition.key) || [];
-    if (!allowed.length) return;
-    const template = normalizedRoutes.find(route =>
-      String(route.flow || '').toLowerCase() === definition.key
-    );
-    if (!template) return;
-
-    allowed.forEach(roverId => {
-      const hasAssignment = normalizedRoutes.some(route =>
-        String(route.flow || '').toLowerCase() === definition.key &&
-        route.rover_id === roverId
-      );
-      if (hasAssignment) return;
-      const clone = {
-        ...template,
-        id: `${definition.flow}_${roverId}_${Date.now()}_${normalizedRoutes.length}`,
-        rover_id: roverId,
-        rover_type: definition.roverType,
-        preset_generated: false,
-        stops: [...(template.stops || [])],
-        pts: []
-      };
-      recomputeScenarioResourceRoutePath(clone);
-      routeBySignature.set(`${definition.key}:${clone.from}:${clone.to}:${roverId}`, clone);
-      normalizedRoutes.push(clone);
-    });
   });
 
   up42Scenario.resourceRoutes = normalizedRoutes;
@@ -5998,14 +5984,13 @@ function getIsruPresetRouteCandidates(flow) {
 
 function ensureIsruPresetResourceRoutes() {
   if (currentScenarioMode !== 'isru') return;
-  // Rebuild preset routes after each terrain-network calculation so moved,
-  // added, or removed plant instances cannot leave stale paths behind.
-  up42Scenario.resourceRoutes = (up42Scenario.resourceRoutes || [])
-    .filter(route => !route.preset_generated);
+  const existingRoutes = up42Scenario.resourceRoutes || [];
   const routeSpecs = [
-    { flow:'Regolith', roverType:'RegolithRover', roverCount:Math.max(1, Number(up42Scenario.roverCounts?.regolith || 1)) },
-    { flow:'LOX', roverType:'LOXRover', roverCount:Math.max(1, Number(up42Scenario.roverCounts?.lox || 1)) }
+    { flow:'Regolith', roverType:'RegolithRover' },
+    { flow:'LOX', roverType:'LOXRover' }
   ];
+  const managedRouteSignatures = new Set();
+  const refreshedPresetRoutes = [];
 
   routeSpecs.forEach(spec => {
     const candidateMap = new Map();
@@ -6024,23 +6009,41 @@ function ensureIsruPresetResourceRoutes() {
     }
     const candidates = [...candidateMap.values()];
     if (!candidates.length) return;
+    const roverIds = getRoverIdsForFlow(spec.flow);
+    if (!roverIds.length) return;
 
-    // Each placed plant needs its own inbound Regolith and outbound LOX route.
-    // A larger rover fleet adds assignments, but never hides a plant connection.
-    const requiredRouteCount = Math.max(candidates.length, spec.roverCount);
-    for (let index = 0; index < requiredRouteCount; index++) {
-      const roverIndex = index % spec.roverCount;
-      const roverId = spec.roverCount === 1 ? spec.roverType : `${spec.roverType}_${roverIndex + 1}`;
-      const candidate = candidates[index % candidates.length];
-      if ((up42Scenario.resourceRoutes || []).some(route =>
-        route.flow === spec.flow &&
-        route.rover_id === roverId &&
-        route.from === candidate.from &&
-        route.to === candidate.to
-      )) continue;
-      addScenarioResourceRoute(spec.flow, candidate.from, candidate.to, [], roverId, true);
-    }
+    // Each plant connection is one physical route. The fleet count assigns
+    // rovers to those routes; it never adds another copy of the connection.
+    candidates.forEach((candidate, index) => {
+      const signature = `${spec.flow}:${candidate.from}:${candidate.to}`;
+      managedRouteSignatures.add(signature);
+      const existing = existingRoutes.find(route =>
+        `${route.flow}:${route.from}:${route.to}` === signature
+      );
+      const route = existing || {
+        id: `${spec.flow}_${Date.now()}_${index}`,
+        flow: spec.flow,
+        from: candidate.from,
+        to: candidate.to,
+        stops: [],
+        pts: []
+      };
+      route.rover_id = roverIds[index % roverIds.length];
+      route.rover_type = spec.roverType;
+      route.preset_generated = true;
+      if (!existing) recomputeScenarioResourceRoutePath(route);
+      refreshedPresetRoutes.push(route);
+    });
   });
+
+  // Keep deliberate non-preset routes, while replacing stale or duplicated
+  // ISRU defaults with the exact set inferred from the active plant links.
+  const retainedRoutes = existingRoutes.filter(route => {
+    const signature = `${route.flow}:${route.from}:${route.to}`;
+    return !route.preset_generated && !managedRouteSignatures.has(signature);
+  });
+  up42Scenario.resourceRoutes = [...retainedRoutes, ...refreshedPresetRoutes];
+  reconcileRoutesWithRoverCounts();
   renderConfiguredResourceRoutes();
 }
 
@@ -8685,6 +8688,73 @@ let up42MoonImg = null;
     }
   }
 
+  async function seedIsruReferenceCad({slug, preset}) {
+    const modules = (preset?.active_nodes || []).filter(moduleName => ISRU_REFERENCE_CAD_PATHS[moduleName]);
+    const seeded = [];
+
+    for (const moduleName of modules) {
+      const sourceCadPath = ISRU_REFERENCE_CAD_PATHS[moduleName];
+      const fileName = sourceCadPath.split('/').pop();
+      const targetCadPath = `clean_database/cad_models/${slug}/${moduleName}/${fileName}`;
+      const targetPreviewPath = `outputs/cad_previews/${slug}/${moduleName}.glb`;
+      const targetPreviewMetaPath = `outputs/cad_previews/${slug}/${moduleName}_meta.json`;
+      const copied = await copyGithubFile(
+        sourceCadPath,
+        targetCadPath,
+        `feat: seed ISRU reference CAD for ${slug}/${moduleName} [skip ci]`
+      );
+      if (!copied) {
+        throw new Error(`Unable to copy the ISRU reference CAD for ${moduleName}.`);
+      }
+
+      const [sourceAsset, sourcePreviewMeta] = await Promise.all([
+        fetchGithubJson(`clean_database/json/ECLIPSE_Project/assets/${moduleName}.json`, Date.now()),
+        fetchGithubJson(`outputs/cad_previews/${moduleName}_meta.json`, Date.now())
+      ]);
+      await copyGithubFile(
+        `outputs/cad_previews/${moduleName}.glb`,
+        targetPreviewPath,
+        `feat: seed ISRU CAD preview for ${slug}/${moduleName} [skip ci]`
+      );
+
+      if (sourcePreviewMeta?.data) {
+        const previewMeta = {
+          ...sourcePreviewMeta.data,
+          module_name: moduleName,
+          source_cad_path: targetCadPath,
+          usd_path: targetCadPath,
+          glb_path: targetPreviewPath,
+          imported_from_scenario: 'ECLIPSE_Project',
+          written_at: new Date().toISOString()
+        };
+        await putGithubContent(
+          targetPreviewMetaPath,
+          utf8ToBase64(JSON.stringify(previewMeta, null, 2)),
+          `feat: seed ISRU CAD metadata for ${slug}/${moduleName} [skip ci]`
+        );
+      }
+
+      if (sourceAsset?.data) {
+        const asset = cloneScenarioValue(sourceAsset.data);
+        asset.metadata = {
+          ...(asset.metadata || {}),
+          geometryRef: targetCadPath,
+          sourceCadPath: targetCadPath,
+          cadFileName: fileName,
+          glbPreviewRef: targetPreviewPath,
+          cadImportedFromScenario: 'ECLIPSE_Project'
+        };
+        await putGithubContent(
+          `clean_database/json/${slug}/assets/${moduleName}.json`,
+          utf8ToBase64(JSON.stringify(asset, null, 2)),
+          `feat: seed ISRU asset metadata for ${slug}/${moduleName} [skip ci]`
+        );
+      }
+      seeded.push(moduleName);
+    }
+    return seeded;
+  }
+
   async function initializeScenarioRepositoryFiles({mode, slug, token}) {
     const sysmlPath = scenarioSysmlPath(slug);
     const configPath = scenarioConfigPath(slug);
@@ -8740,6 +8810,9 @@ let up42MoonImg = null;
         token,
         {allowOverwrite: false}
       );
+    }
+    if (mode === 'isru') {
+      await seedIsruReferenceCad({slug, preset});
     }
     await putGithubText(
       configPath,

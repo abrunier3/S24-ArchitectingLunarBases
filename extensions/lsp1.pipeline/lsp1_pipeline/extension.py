@@ -1376,22 +1376,23 @@ class LSP1PipelineExtension(omni.ext.IExt):
         self._set_camera_look_at(
             stage,
             path,
-            [center[0], center[1], center[2] + max(800.0, span * 0.95)],
+            [center[0], center[1], center[2] + max(360.0, span * 0.68)],
             center,
             10.0,
+            up=(0.0, 1.0, 0.0),
         )
         self._activate_camera(path)
         self.camera_label.text = "Camera: mission overview"
 
     @staticmethod
-    def _set_camera_look_at(stage, camera_path, eye, target, focal_length):
+    def _set_camera_look_at(stage, camera_path, eye, target, focal_length, up=(0.0, 0.0, 1.0)):
         from pxr import UsdGeom, Gf
 
         camera = UsdGeom.Camera.Define(stage, camera_path)
         xformable = UsdGeom.Xformable(camera.GetPrim())
         xformable.ClearXformOpOrder()
         view = Gf.Matrix4d(1.0)
-        view.SetLookAt(Gf.Vec3d(*eye), Gf.Vec3d(*target), Gf.Vec3d(0.0, 0.0, 1.0))
+        view.SetLookAt(Gf.Vec3d(*eye), Gf.Vec3d(*target), Gf.Vec3d(*up))
         xformable.AddTransformOp().Set(view.GetInverse())
         camera.GetFocalLengthAttr().Set(float(focal_length))
         camera.GetClippingRangeAttr().Set(Gf.Vec2f(0.1, 1000000.0))
@@ -1445,24 +1446,26 @@ class LSP1PipelineExtension(omni.ext.IExt):
         if not self.actors:
             return None
 
-        active = None
+        active = []
         for actor in self.actors:
-            movement = self._get_actor_movement(actor, des_time, include_future=False)
-            if movement:
-                return actor
+            for movement in actor.get("movements", []):
+                start_time = float(movement.get("start_time", 0.0))
+                end_time = float(movement.get("end_time", start_time))
+                if start_time <= des_time < end_time:
+                    active.append(actor)
+                    break
 
-            start_time = float(actor.get("start_time", 0.0))
+        # Several rovers may be moving simultaneously. In that case the
+        # dropdown chooses the active rover to follow instead of always taking
+        # the first actor emitted by the manifest.
+        selected = self._get_selected_actor()
+        if selected in active:
+            return selected
+        if active:
+            return active[0]
 
-            movements = actor.get("movements", [])
-            if movements:
-                end_time = float(movements[-1].get("end_time", start_time))
-            else:
-                end_time = float(actor.get("end_time", start_time))
-
-            if start_time <= des_time:
-                active = actor
-
-        return active or self.actors[0]
+        # Between movement segments, retain the selected rover when possible.
+        return selected or self.actors[0]
 
     def _get_actor_movement(self, actor, des_time, *, include_future=True):
         movements = actor.get("movements", [])
