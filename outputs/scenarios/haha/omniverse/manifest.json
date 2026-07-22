@@ -12,13 +12,10 @@
     "waypoints_usd": "waypoints.usda",
     "des_json": "../des_results.json"
   },
-  "warnings": [
-    "No regolith rover movements were generated from the DES output.",
-    "No LOX rover movements were generated from the DES output."
-  ],
+  "warnings": [],
   "playback": {
     "seconds_per_sim_time_unit": 1.0,
-    "display_duration_hours": 0.0
+    "display_duration_hours": 100.0
   },
   "waypoint_root": "/World/ConnectionWaypoints",
   "follow_camera": {
@@ -116697,5 +116694,4014 @@
       }
     }
   },
-  "actors": []
+  "actors": [
+    {
+      "id": "LOX Cargo Rover 1",
+      "label": "LOX Rover 1",
+      "prim_path": "/World/LOXRover",
+      "source_prim_path": "/World/LOXRover",
+      "dashboard_fields": [
+        {
+          "key": "current_load",
+          "label": "Load",
+          "unit": "kg"
+        },
+        {
+          "key": "battery_charge",
+          "label": "Battery",
+          "unit": "kWh"
+        },
+        {
+          "key": "total_distance_traveled",
+          "label": "Distance",
+          "unit": "km"
+        }
+      ],
+      "movements": [
+        {
+          "route_name": "ISRUPlant_1ToPropellantDepot_LOX",
+          "from_module": "ISRUPlant_1",
+          "to_module": "PropellantDepot",
+          "start_time": 10.0,
+          "end_time": 11.0,
+          "reverse": false,
+          "source": "des:LOX rover load episode"
+        },
+        {
+          "route_name": "ISRUPlant_1ToPropellantDepot_LOX",
+          "from_module": "PropellantDepot",
+          "to_module": "ISRUPlant_1",
+          "start_time": 11.0,
+          "end_time": 11.795,
+          "reverse": true,
+          "source": "des:LOX rover empty return"
+        },
+        {
+          "route_name": "ISRUPlant_1ToPropellantDepot_LOX",
+          "from_module": "ISRUPlant_1",
+          "to_module": "PropellantDepot",
+          "start_time": 14.0,
+          "end_time": 15.0,
+          "reverse": false,
+          "source": "des:LOX rover load episode"
+        },
+        {
+          "route_name": "ISRUPlant_1ToPropellantDepot_LOX",
+          "from_module": "PropellantDepot",
+          "to_module": "ISRUPlant_1",
+          "start_time": 15.0,
+          "end_time": 15.795,
+          "reverse": true,
+          "source": "des:LOX rover empty return"
+        },
+        {
+          "route_name": "ISRUPlant_1ToPropellantDepot_LOX",
+          "from_module": "ISRUPlant_1",
+          "to_module": "PropellantDepot",
+          "start_time": 18.0,
+          "end_time": 19.0,
+          "reverse": false,
+          "source": "des:LOX rover load episode"
+        },
+        {
+          "route_name": "ISRUPlant_1ToPropellantDepot_LOX",
+          "from_module": "PropellantDepot",
+          "to_module": "ISRUPlant_1",
+          "start_time": 19.0,
+          "end_time": 19.795,
+          "reverse": true,
+          "source": "des:LOX rover empty return"
+        },
+        {
+          "route_name": "ISRUPlant_1ToPropellantDepot_LOX",
+          "from_module": "ISRUPlant_1",
+          "to_module": "PropellantDepot",
+          "start_time": 22.0,
+          "end_time": 23.0,
+          "reverse": false,
+          "source": "des:LOX rover load episode"
+        },
+        {
+          "route_name": "ISRUPlant_1ToPropellantDepot_LOX",
+          "from_module": "PropellantDepot",
+          "to_module": "ISRUPlant_1",
+          "start_time": 23.0,
+          "end_time": 23.795,
+          "reverse": true,
+          "source": "des:LOX rover empty return"
+        },
+        {
+          "route_name": "ISRUPlant_1ToPropellantDepot_LOX",
+          "from_module": "ISRUPlant_1",
+          "to_module": "PropellantDepot",
+          "start_time": 31.0,
+          "end_time": 32.0,
+          "reverse": false,
+          "source": "des:LOX rover load episode"
+        },
+        {
+          "route_name": "ISRUPlant_1ToPropellantDepot_LOX",
+          "from_module": "PropellantDepot",
+          "to_module": "ISRUPlant_1",
+          "start_time": 32.0,
+          "end_time": 32.795,
+          "reverse": true,
+          "source": "des:LOX rover empty return"
+        },
+        {
+          "route_name": "ISRUPlant_1ToPropellantDepot_LOX",
+          "from_module": "ISRUPlant_1",
+          "to_module": "PropellantDepot",
+          "start_time": 35.0,
+          "end_time": 36.0,
+          "reverse": false,
+          "source": "des:LOX rover load episode"
+        },
+        {
+          "route_name": "ISRUPlant_1ToPropellantDepot_LOX",
+          "from_module": "PropellantDepot",
+          "to_module": "ISRUPlant_1",
+          "start_time": 36.0,
+          "end_time": 36.795,
+          "reverse": true,
+          "source": "des:LOX rover empty return"
+        },
+        {
+          "route_name": "ISRUPlant_1ToPropellantDepot_LOX",
+          "from_module": "ISRUPlant_1",
+          "to_module": "PropellantDepot",
+          "start_time": 39.0,
+          "end_time": 40.0,
+          "reverse": false,
+          "source": "des:LOX rover load episode"
+        },
+        {
+          "route_name": "ISRUPlant_1ToPropellantDepot_LOX",
+          "from_module": "PropellantDepot",
+          "to_module": "ISRUPlant_1",
+          "start_time": 40.0,
+          "end_time": 40.795,
+          "reverse": true,
+          "source": "des:LOX rover empty return"
+        },
+        {
+          "route_name": "ISRUPlant_1ToPropellantDepot_LOX",
+          "from_module": "ISRUPlant_1",
+          "to_module": "PropellantDepot",
+          "start_time": 43.0,
+          "end_time": 44.0,
+          "reverse": false,
+          "source": "des:LOX rover load episode"
+        },
+        {
+          "route_name": "ISRUPlant_1ToPropellantDepot_LOX",
+          "from_module": "PropellantDepot",
+          "to_module": "ISRUPlant_1",
+          "start_time": 44.0,
+          "end_time": 44.795,
+          "reverse": true,
+          "source": "des:LOX rover empty return"
+        },
+        {
+          "route_name": "ISRUPlant_1ToPropellantDepot_LOX",
+          "from_module": "ISRUPlant_1",
+          "to_module": "PropellantDepot",
+          "start_time": 47.0,
+          "end_time": 48.0,
+          "reverse": false,
+          "source": "des:LOX rover load episode"
+        },
+        {
+          "route_name": "ISRUPlant_1ToPropellantDepot_LOX",
+          "from_module": "PropellantDepot",
+          "to_module": "ISRUPlant_1",
+          "start_time": 48.0,
+          "end_time": 48.795,
+          "reverse": true,
+          "source": "des:LOX rover empty return"
+        },
+        {
+          "route_name": "ISRUPlant_1ToPropellantDepot_LOX",
+          "from_module": "ISRUPlant_1",
+          "to_module": "PropellantDepot",
+          "start_time": 56.0,
+          "end_time": 57.0,
+          "reverse": false,
+          "source": "des:LOX rover load episode"
+        },
+        {
+          "route_name": "ISRUPlant_1ToPropellantDepot_LOX",
+          "from_module": "PropellantDepot",
+          "to_module": "ISRUPlant_1",
+          "start_time": 57.0,
+          "end_time": 57.795,
+          "reverse": true,
+          "source": "des:LOX rover empty return"
+        },
+        {
+          "route_name": "ISRUPlant_1ToPropellantDepot_LOX",
+          "from_module": "ISRUPlant_1",
+          "to_module": "PropellantDepot",
+          "start_time": 60.0,
+          "end_time": 61.0,
+          "reverse": false,
+          "source": "des:LOX rover load episode"
+        },
+        {
+          "route_name": "ISRUPlant_1ToPropellantDepot_LOX",
+          "from_module": "PropellantDepot",
+          "to_module": "ISRUPlant_1",
+          "start_time": 61.0,
+          "end_time": 61.795,
+          "reverse": true,
+          "source": "des:LOX rover empty return"
+        },
+        {
+          "route_name": "ISRUPlant_1ToPropellantDepot_LOX",
+          "from_module": "ISRUPlant_1",
+          "to_module": "PropellantDepot",
+          "start_time": 64.0,
+          "end_time": 65.0,
+          "reverse": false,
+          "source": "des:LOX rover load episode"
+        },
+        {
+          "route_name": "ISRUPlant_1ToPropellantDepot_LOX",
+          "from_module": "PropellantDepot",
+          "to_module": "ISRUPlant_1",
+          "start_time": 65.0,
+          "end_time": 65.795,
+          "reverse": true,
+          "source": "des:LOX rover empty return"
+        },
+        {
+          "route_name": "ISRUPlant_1ToPropellantDepot_LOX",
+          "from_module": "ISRUPlant_1",
+          "to_module": "PropellantDepot",
+          "start_time": 68.0,
+          "end_time": 69.0,
+          "reverse": false,
+          "source": "des:LOX rover load episode"
+        },
+        {
+          "route_name": "ISRUPlant_1ToPropellantDepot_LOX",
+          "from_module": "PropellantDepot",
+          "to_module": "ISRUPlant_1",
+          "start_time": 69.0,
+          "end_time": 69.795,
+          "reverse": true,
+          "source": "des:LOX rover empty return"
+        },
+        {
+          "route_name": "ISRUPlant_1ToPropellantDepot_LOX",
+          "from_module": "ISRUPlant_1",
+          "to_module": "PropellantDepot",
+          "start_time": 72.0,
+          "end_time": 73.0,
+          "reverse": false,
+          "source": "des:LOX rover load episode"
+        },
+        {
+          "route_name": "ISRUPlant_1ToPropellantDepot_LOX",
+          "from_module": "PropellantDepot",
+          "to_module": "ISRUPlant_1",
+          "start_time": 73.0,
+          "end_time": 73.795,
+          "reverse": true,
+          "source": "des:LOX rover empty return"
+        },
+        {
+          "route_name": "ISRUPlant_1ToPropellantDepot_LOX",
+          "from_module": "ISRUPlant_1",
+          "to_module": "PropellantDepot",
+          "start_time": 81.0,
+          "end_time": 82.0,
+          "reverse": false,
+          "source": "des:LOX rover load episode"
+        },
+        {
+          "route_name": "ISRUPlant_1ToPropellantDepot_LOX",
+          "from_module": "PropellantDepot",
+          "to_module": "ISRUPlant_1",
+          "start_time": 82.0,
+          "end_time": 82.795,
+          "reverse": true,
+          "source": "des:LOX rover empty return"
+        },
+        {
+          "route_name": "ISRUPlant_1ToPropellantDepot_LOX",
+          "from_module": "ISRUPlant_1",
+          "to_module": "PropellantDepot",
+          "start_time": 85.0,
+          "end_time": 86.0,
+          "reverse": false,
+          "source": "des:LOX rover load episode"
+        },
+        {
+          "route_name": "ISRUPlant_1ToPropellantDepot_LOX",
+          "from_module": "PropellantDepot",
+          "to_module": "ISRUPlant_1",
+          "start_time": 86.0,
+          "end_time": 86.795,
+          "reverse": true,
+          "source": "des:LOX rover empty return"
+        },
+        {
+          "route_name": "ISRUPlant_1ToPropellantDepot_LOX",
+          "from_module": "ISRUPlant_1",
+          "to_module": "PropellantDepot",
+          "start_time": 89.0,
+          "end_time": 90.0,
+          "reverse": false,
+          "source": "des:LOX rover load episode"
+        },
+        {
+          "route_name": "ISRUPlant_1ToPropellantDepot_LOX",
+          "from_module": "PropellantDepot",
+          "to_module": "ISRUPlant_1",
+          "start_time": 90.0,
+          "end_time": 90.795,
+          "reverse": true,
+          "source": "des:LOX rover empty return"
+        },
+        {
+          "route_name": "ISRUPlant_1ToPropellantDepot_LOX",
+          "from_module": "ISRUPlant_1",
+          "to_module": "PropellantDepot",
+          "start_time": 93.0,
+          "end_time": 94.0,
+          "reverse": false,
+          "source": "des:LOX rover load episode"
+        },
+        {
+          "route_name": "ISRUPlant_1ToPropellantDepot_LOX",
+          "from_module": "PropellantDepot",
+          "to_module": "ISRUPlant_1",
+          "start_time": 94.0,
+          "end_time": 94.795,
+          "reverse": true,
+          "source": "des:LOX rover empty return"
+        },
+        {
+          "route_name": "ISRUPlant_1ToPropellantDepot_LOX",
+          "from_module": "ISRUPlant_1",
+          "to_module": "PropellantDepot",
+          "start_time": 97.0,
+          "end_time": 98.0,
+          "reverse": false,
+          "source": "des:LOX rover load episode"
+        },
+        {
+          "route_name": "ISRUPlant_1ToPropellantDepot_LOX",
+          "from_module": "PropellantDepot",
+          "to_module": "ISRUPlant_1",
+          "start_time": 98.0,
+          "end_time": 98.795,
+          "reverse": true,
+          "source": "des:LOX rover empty return"
+        }
+      ],
+      "from_module": "ISRUPlant_1",
+      "to_module": "PropellantDepot",
+      "route_name": "ISRUPlant_1ToPropellantDepot_LOX",
+      "start_time": 10.0,
+      "end_time": 11.0
+    },
+    {
+      "id": "LOX Cargo Rover 2",
+      "label": "LOX Rover 2",
+      "prim_path": "/World/LOXRover_2",
+      "source_prim_path": "/World/LOXRover",
+      "dashboard_fields": [
+        {
+          "key": "current_load",
+          "label": "Load",
+          "unit": "kg"
+        },
+        {
+          "key": "battery_charge",
+          "label": "Battery",
+          "unit": "kWh"
+        },
+        {
+          "key": "total_distance_traveled",
+          "label": "Distance",
+          "unit": "km"
+        }
+      ],
+      "movements": [
+        {
+          "route_name": "ISRUPlant_2ToPropellantDepot_LOX",
+          "from_module": "ISRUPlant_2",
+          "to_module": "PropellantDepot",
+          "start_time": 2.0,
+          "end_time": 3.0,
+          "reverse": false,
+          "source": "des:LOX rover load episode"
+        },
+        {
+          "route_name": "ISRUPlant_2ToPropellantDepot_LOX",
+          "from_module": "PropellantDepot",
+          "to_module": "ISRUPlant_2",
+          "start_time": 3.0,
+          "end_time": 3.882,
+          "reverse": true,
+          "source": "des:LOX rover empty return"
+        },
+        {
+          "route_name": "ISRUPlant_2ToPropellantDepot_LOX",
+          "from_module": "ISRUPlant_2",
+          "to_module": "PropellantDepot",
+          "start_time": 6.0,
+          "end_time": 7.0,
+          "reverse": false,
+          "source": "des:LOX rover load episode"
+        },
+        {
+          "route_name": "ISRUPlant_2ToPropellantDepot_LOX",
+          "from_module": "PropellantDepot",
+          "to_module": "ISRUPlant_2",
+          "start_time": 7.0,
+          "end_time": 7.883,
+          "reverse": true,
+          "source": "des:LOX rover empty return"
+        },
+        {
+          "route_name": "ISRUPlant_2ToPropellantDepot_LOX",
+          "from_module": "ISRUPlant_2",
+          "to_module": "PropellantDepot",
+          "start_time": 10.0,
+          "end_time": 11.0,
+          "reverse": false,
+          "source": "des:LOX rover load episode"
+        },
+        {
+          "route_name": "ISRUPlant_2ToPropellantDepot_LOX",
+          "from_module": "PropellantDepot",
+          "to_module": "ISRUPlant_2",
+          "start_time": 11.0,
+          "end_time": 11.883,
+          "reverse": true,
+          "source": "des:LOX rover empty return"
+        },
+        {
+          "route_name": "ISRUPlant_2ToPropellantDepot_LOX",
+          "from_module": "ISRUPlant_2",
+          "to_module": "PropellantDepot",
+          "start_time": 14.0,
+          "end_time": 15.0,
+          "reverse": false,
+          "source": "des:LOX rover load episode"
+        },
+        {
+          "route_name": "ISRUPlant_2ToPropellantDepot_LOX",
+          "from_module": "PropellantDepot",
+          "to_module": "ISRUPlant_2",
+          "start_time": 15.0,
+          "end_time": 15.883,
+          "reverse": true,
+          "source": "des:LOX rover empty return"
+        },
+        {
+          "route_name": "ISRUPlant_2ToPropellantDepot_LOX",
+          "from_module": "ISRUPlant_2",
+          "to_module": "PropellantDepot",
+          "start_time": 18.0,
+          "end_time": 19.0,
+          "reverse": false,
+          "source": "des:LOX rover load episode"
+        },
+        {
+          "route_name": "ISRUPlant_2ToPropellantDepot_LOX",
+          "from_module": "PropellantDepot",
+          "to_module": "ISRUPlant_2",
+          "start_time": 19.0,
+          "end_time": 19.883,
+          "reverse": true,
+          "source": "des:LOX rover empty return"
+        },
+        {
+          "route_name": "ISRUPlant_2ToPropellantDepot_LOX",
+          "from_module": "ISRUPlant_2",
+          "to_module": "PropellantDepot",
+          "start_time": 23.0,
+          "end_time": 24.0,
+          "reverse": false,
+          "source": "des:LOX rover load episode"
+        },
+        {
+          "route_name": "ISRUPlant_2ToPropellantDepot_LOX",
+          "from_module": "PropellantDepot",
+          "to_module": "ISRUPlant_2",
+          "start_time": 24.0,
+          "end_time": 24.883,
+          "reverse": true,
+          "source": "des:LOX rover empty return"
+        },
+        {
+          "route_name": "ISRUPlant_2ToPropellantDepot_LOX",
+          "from_module": "ISRUPlant_2",
+          "to_module": "PropellantDepot",
+          "start_time": 27.0,
+          "end_time": 28.0,
+          "reverse": false,
+          "source": "des:LOX rover load episode"
+        },
+        {
+          "route_name": "ISRUPlant_2ToPropellantDepot_LOX",
+          "from_module": "PropellantDepot",
+          "to_module": "ISRUPlant_2",
+          "start_time": 28.0,
+          "end_time": 28.883,
+          "reverse": true,
+          "source": "des:LOX rover empty return"
+        },
+        {
+          "route_name": "ISRUPlant_2ToPropellantDepot_LOX",
+          "from_module": "ISRUPlant_2",
+          "to_module": "PropellantDepot",
+          "start_time": 31.0,
+          "end_time": 32.0,
+          "reverse": false,
+          "source": "des:LOX rover load episode"
+        },
+        {
+          "route_name": "ISRUPlant_2ToPropellantDepot_LOX",
+          "from_module": "PropellantDepot",
+          "to_module": "ISRUPlant_2",
+          "start_time": 32.0,
+          "end_time": 32.883,
+          "reverse": true,
+          "source": "des:LOX rover empty return"
+        },
+        {
+          "route_name": "ISRUPlant_2ToPropellantDepot_LOX",
+          "from_module": "ISRUPlant_2",
+          "to_module": "PropellantDepot",
+          "start_time": 35.0,
+          "end_time": 36.0,
+          "reverse": false,
+          "source": "des:LOX rover load episode"
+        },
+        {
+          "route_name": "ISRUPlant_2ToPropellantDepot_LOX",
+          "from_module": "PropellantDepot",
+          "to_module": "ISRUPlant_2",
+          "start_time": 36.0,
+          "end_time": 36.883,
+          "reverse": true,
+          "source": "des:LOX rover empty return"
+        },
+        {
+          "route_name": "ISRUPlant_2ToPropellantDepot_LOX",
+          "from_module": "ISRUPlant_2",
+          "to_module": "PropellantDepot",
+          "start_time": 39.0,
+          "end_time": 40.0,
+          "reverse": false,
+          "source": "des:LOX rover load episode"
+        },
+        {
+          "route_name": "ISRUPlant_2ToPropellantDepot_LOX",
+          "from_module": "PropellantDepot",
+          "to_module": "ISRUPlant_2",
+          "start_time": 40.0,
+          "end_time": 40.883,
+          "reverse": true,
+          "source": "des:LOX rover empty return"
+        },
+        {
+          "route_name": "ISRUPlant_2ToPropellantDepot_LOX",
+          "from_module": "ISRUPlant_2",
+          "to_module": "PropellantDepot",
+          "start_time": 43.0,
+          "end_time": 44.0,
+          "reverse": false,
+          "source": "des:LOX rover load episode"
+        },
+        {
+          "route_name": "ISRUPlant_2ToPropellantDepot_LOX",
+          "from_module": "PropellantDepot",
+          "to_module": "ISRUPlant_2",
+          "start_time": 44.0,
+          "end_time": 44.883,
+          "reverse": true,
+          "source": "des:LOX rover empty return"
+        },
+        {
+          "route_name": "ISRUPlant_2ToPropellantDepot_LOX",
+          "from_module": "ISRUPlant_2",
+          "to_module": "PropellantDepot",
+          "start_time": 52.0,
+          "end_time": 53.0,
+          "reverse": false,
+          "source": "des:LOX rover load episode"
+        },
+        {
+          "route_name": "ISRUPlant_2ToPropellantDepot_LOX",
+          "from_module": "PropellantDepot",
+          "to_module": "ISRUPlant_2",
+          "start_time": 53.0,
+          "end_time": 53.883,
+          "reverse": true,
+          "source": "des:LOX rover empty return"
+        },
+        {
+          "route_name": "ISRUPlant_2ToPropellantDepot_LOX",
+          "from_module": "ISRUPlant_2",
+          "to_module": "PropellantDepot",
+          "start_time": 56.0,
+          "end_time": 57.0,
+          "reverse": false,
+          "source": "des:LOX rover load episode"
+        },
+        {
+          "route_name": "ISRUPlant_2ToPropellantDepot_LOX",
+          "from_module": "PropellantDepot",
+          "to_module": "ISRUPlant_2",
+          "start_time": 57.0,
+          "end_time": 57.883,
+          "reverse": true,
+          "source": "des:LOX rover empty return"
+        },
+        {
+          "route_name": "ISRUPlant_2ToPropellantDepot_LOX",
+          "from_module": "ISRUPlant_2",
+          "to_module": "PropellantDepot",
+          "start_time": 60.0,
+          "end_time": 61.0,
+          "reverse": false,
+          "source": "des:LOX rover load episode"
+        },
+        {
+          "route_name": "ISRUPlant_2ToPropellantDepot_LOX",
+          "from_module": "PropellantDepot",
+          "to_module": "ISRUPlant_2",
+          "start_time": 61.0,
+          "end_time": 61.883,
+          "reverse": true,
+          "source": "des:LOX rover empty return"
+        },
+        {
+          "route_name": "ISRUPlant_2ToPropellantDepot_LOX",
+          "from_module": "ISRUPlant_2",
+          "to_module": "PropellantDepot",
+          "start_time": 64.0,
+          "end_time": 65.0,
+          "reverse": false,
+          "source": "des:LOX rover load episode"
+        },
+        {
+          "route_name": "ISRUPlant_2ToPropellantDepot_LOX",
+          "from_module": "PropellantDepot",
+          "to_module": "ISRUPlant_2",
+          "start_time": 65.0,
+          "end_time": 65.882,
+          "reverse": true,
+          "source": "des:LOX rover empty return"
+        },
+        {
+          "route_name": "ISRUPlant_2ToPropellantDepot_LOX",
+          "from_module": "ISRUPlant_2",
+          "to_module": "PropellantDepot",
+          "start_time": 73.0,
+          "end_time": 74.0,
+          "reverse": false,
+          "source": "des:LOX rover load episode"
+        },
+        {
+          "route_name": "ISRUPlant_2ToPropellantDepot_LOX",
+          "from_module": "PropellantDepot",
+          "to_module": "ISRUPlant_2",
+          "start_time": 74.0,
+          "end_time": 74.882,
+          "reverse": true,
+          "source": "des:LOX rover empty return"
+        },
+        {
+          "route_name": "ISRUPlant_2ToPropellantDepot_LOX",
+          "from_module": "ISRUPlant_2",
+          "to_module": "PropellantDepot",
+          "start_time": 77.0,
+          "end_time": 78.0,
+          "reverse": false,
+          "source": "des:LOX rover load episode"
+        },
+        {
+          "route_name": "ISRUPlant_2ToPropellantDepot_LOX",
+          "from_module": "PropellantDepot",
+          "to_module": "ISRUPlant_2",
+          "start_time": 78.0,
+          "end_time": 78.882,
+          "reverse": true,
+          "source": "des:LOX rover empty return"
+        },
+        {
+          "route_name": "ISRUPlant_2ToPropellantDepot_LOX",
+          "from_module": "ISRUPlant_2",
+          "to_module": "PropellantDepot",
+          "start_time": 81.0,
+          "end_time": 82.0,
+          "reverse": false,
+          "source": "des:LOX rover load episode"
+        },
+        {
+          "route_name": "ISRUPlant_2ToPropellantDepot_LOX",
+          "from_module": "PropellantDepot",
+          "to_module": "ISRUPlant_2",
+          "start_time": 82.0,
+          "end_time": 82.882,
+          "reverse": true,
+          "source": "des:LOX rover empty return"
+        },
+        {
+          "route_name": "ISRUPlant_2ToPropellantDepot_LOX",
+          "from_module": "ISRUPlant_2",
+          "to_module": "PropellantDepot",
+          "start_time": 85.0,
+          "end_time": 86.0,
+          "reverse": false,
+          "source": "des:LOX rover load episode"
+        },
+        {
+          "route_name": "ISRUPlant_2ToPropellantDepot_LOX",
+          "from_module": "PropellantDepot",
+          "to_module": "ISRUPlant_2",
+          "start_time": 86.0,
+          "end_time": 86.882,
+          "reverse": true,
+          "source": "des:LOX rover empty return"
+        },
+        {
+          "route_name": "ISRUPlant_2ToPropellantDepot_LOX",
+          "from_module": "ISRUPlant_2",
+          "to_module": "PropellantDepot",
+          "start_time": 89.0,
+          "end_time": 90.0,
+          "reverse": false,
+          "source": "des:LOX rover load episode"
+        },
+        {
+          "route_name": "ISRUPlant_2ToPropellantDepot_LOX",
+          "from_module": "PropellantDepot",
+          "to_module": "ISRUPlant_2",
+          "start_time": 90.0,
+          "end_time": 90.882,
+          "reverse": true,
+          "source": "des:LOX rover empty return"
+        },
+        {
+          "route_name": "ISRUPlant_2ToPropellantDepot_LOX",
+          "from_module": "ISRUPlant_2",
+          "to_module": "PropellantDepot",
+          "start_time": 98.0,
+          "end_time": 99.0,
+          "reverse": false,
+          "source": "des:LOX rover load episode"
+        },
+        {
+          "route_name": "ISRUPlant_2ToPropellantDepot_LOX",
+          "from_module": "PropellantDepot",
+          "to_module": "ISRUPlant_2",
+          "start_time": 99.0,
+          "end_time": 99.882,
+          "reverse": true,
+          "source": "des:LOX rover empty return"
+        }
+      ],
+      "from_module": "ISRUPlant_2",
+      "to_module": "PropellantDepot",
+      "route_name": "ISRUPlant_2ToPropellantDepot_LOX",
+      "start_time": 2.0,
+      "end_time": 3.0
+    },
+    {
+      "id": "Regolith Cargo Rover 1",
+      "label": "Regolith Rover 1",
+      "prim_path": "/World/RegolithRover",
+      "source_prim_path": "/World/RegolithRover",
+      "dashboard_fields": [
+        {
+          "key": "current_load",
+          "label": "Load",
+          "unit": "kg"
+        },
+        {
+          "key": "battery_charge",
+          "label": "Battery",
+          "unit": "kWh"
+        },
+        {
+          "key": "total_distance_traveled",
+          "label": "Distance",
+          "unit": "km"
+        }
+      ],
+      "movements": [
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 0.0,
+          "end_time": 0.338,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 0.338,
+          "end_time": 0.675,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 0.675,
+          "end_time": 1.013,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 1.013,
+          "end_time": 1.35,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 1.35,
+          "end_time": 1.688,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 1.688,
+          "end_time": 2.025,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 2.025,
+          "end_time": 2.363,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 2.363,
+          "end_time": 2.7,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 2.7,
+          "end_time": 3.038,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 3.038,
+          "end_time": 3.375,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 3.375,
+          "end_time": 3.712,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 3.713,
+          "end_time": 4.05,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 4.05,
+          "end_time": 4.388,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 4.388,
+          "end_time": 4.725,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 4.725,
+          "end_time": 5.063,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 5.062,
+          "end_time": 5.4,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 5.4,
+          "end_time": 5.738,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 5.738,
+          "end_time": 6.075,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 6.075,
+          "end_time": 6.413,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 6.413,
+          "end_time": 6.75,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 6.75,
+          "end_time": 7.088,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 7.088,
+          "end_time": 7.425,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 7.425,
+          "end_time": 7.763,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 7.763,
+          "end_time": 8.1,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 8.1,
+          "end_time": 8.438,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 8.438,
+          "end_time": 8.775,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 8.775,
+          "end_time": 9.113,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 9.113,
+          "end_time": 9.45,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 9.45,
+          "end_time": 9.788,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 9.788,
+          "end_time": 10.125,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 10.125,
+          "end_time": 10.463,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 10.463,
+          "end_time": 10.8,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 10.8,
+          "end_time": 11.138,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 11.138,
+          "end_time": 11.475,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 11.475,
+          "end_time": 11.813,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 11.812,
+          "end_time": 12.15,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 12.15,
+          "end_time": 12.488,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 12.488,
+          "end_time": 12.825,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 12.825,
+          "end_time": 13.163,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 13.163,
+          "end_time": 13.5,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 13.5,
+          "end_time": 13.838,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 13.838,
+          "end_time": 14.175,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 14.175,
+          "end_time": 14.513,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 14.513,
+          "end_time": 14.85,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 14.85,
+          "end_time": 15.188,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 15.188,
+          "end_time": 15.525,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 15.525,
+          "end_time": 15.863,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 15.863,
+          "end_time": 16.2,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 16.2,
+          "end_time": 16.538,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 16.538,
+          "end_time": 16.875,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 16.875,
+          "end_time": 17.212,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 17.213,
+          "end_time": 17.55,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 17.55,
+          "end_time": 17.887,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 17.888,
+          "end_time": 18.225,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 18.225,
+          "end_time": 18.562,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 18.562,
+          "end_time": 18.9,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 18.9,
+          "end_time": 19.238,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 19.238,
+          "end_time": 19.575,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 19.575,
+          "end_time": 19.913,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 19.913,
+          "end_time": 20.25,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 20.25,
+          "end_time": 20.587,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 20.588,
+          "end_time": 20.925,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 20.925,
+          "end_time": 21.262,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 21.263,
+          "end_time": 21.6,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 21.6,
+          "end_time": 21.938,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 21.938,
+          "end_time": 22.275,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 22.275,
+          "end_time": 22.613,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 22.613,
+          "end_time": 22.95,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 22.95,
+          "end_time": 23.288,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 23.288,
+          "end_time": 23.625,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 23.625,
+          "end_time": 23.962,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 23.963,
+          "end_time": 24.3,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 24.3,
+          "end_time": 24.637,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 24.638,
+          "end_time": 24.975,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 24.975,
+          "end_time": 25.312,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 25.312,
+          "end_time": 25.65,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 25.65,
+          "end_time": 25.988,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 25.988,
+          "end_time": 26.325,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 26.325,
+          "end_time": 26.663,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 26.663,
+          "end_time": 27.0,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 27.0,
+          "end_time": 27.337,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 27.338,
+          "end_time": 27.675,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 27.675,
+          "end_time": 28.012,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 28.013,
+          "end_time": 28.35,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 28.35,
+          "end_time": 28.688,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 28.688,
+          "end_time": 29.025,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 29.025,
+          "end_time": 29.363,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 29.363,
+          "end_time": 29.7,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 29.7,
+          "end_time": 30.038,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 30.038,
+          "end_time": 30.375,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 30.375,
+          "end_time": 30.713,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 30.713,
+          "end_time": 31.05,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 31.05,
+          "end_time": 31.387,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 31.388,
+          "end_time": 31.725,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 31.725,
+          "end_time": 32.062,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 32.062,
+          "end_time": 32.4,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 32.4,
+          "end_time": 32.738,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 32.738,
+          "end_time": 33.075,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 33.075,
+          "end_time": 33.413,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 33.413,
+          "end_time": 33.75,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 33.75,
+          "end_time": 34.087,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 34.088,
+          "end_time": 34.425,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 34.425,
+          "end_time": 34.763,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 34.763,
+          "end_time": 35.1,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 35.1,
+          "end_time": 35.438,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 35.438,
+          "end_time": 35.775,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 35.775,
+          "end_time": 36.113,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 36.113,
+          "end_time": 36.45,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 36.45,
+          "end_time": 36.788,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 36.788,
+          "end_time": 37.125,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 37.125,
+          "end_time": 37.462,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 37.463,
+          "end_time": 37.8,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 37.8,
+          "end_time": 38.138,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 38.138,
+          "end_time": 38.475,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 38.475,
+          "end_time": 38.812,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 38.812,
+          "end_time": 39.15,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 39.15,
+          "end_time": 39.488,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 39.488,
+          "end_time": 39.825,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 39.825,
+          "end_time": 40.163,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 40.163,
+          "end_time": 40.5,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 40.5,
+          "end_time": 40.837,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 40.838,
+          "end_time": 41.175,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 41.175,
+          "end_time": 41.513,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 41.513,
+          "end_time": 41.85,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 41.85,
+          "end_time": 42.188,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 42.188,
+          "end_time": 42.525,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 42.525,
+          "end_time": 42.863,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 42.863,
+          "end_time": 43.2,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 43.2,
+          "end_time": 43.538,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 43.538,
+          "end_time": 43.875,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 43.875,
+          "end_time": 44.212,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 44.213,
+          "end_time": 44.55,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 44.55,
+          "end_time": 44.888,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 44.888,
+          "end_time": 45.225,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 45.225,
+          "end_time": 45.562,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 45.562,
+          "end_time": 45.9,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 45.9,
+          "end_time": 46.238,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 46.238,
+          "end_time": 46.575,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 46.575,
+          "end_time": 46.913,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 46.913,
+          "end_time": 47.25,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 47.25,
+          "end_time": 47.587,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 47.588,
+          "end_time": 47.925,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 47.925,
+          "end_time": 48.263,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 48.263,
+          "end_time": 48.6,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 48.6,
+          "end_time": 48.938,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 48.938,
+          "end_time": 49.275,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 49.275,
+          "end_time": 49.613,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 49.613,
+          "end_time": 49.95,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 49.95,
+          "end_time": 50.288,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 50.288,
+          "end_time": 50.625,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 50.625,
+          "end_time": 50.962,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 50.963,
+          "end_time": 51.3,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 51.3,
+          "end_time": 51.638,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 51.638,
+          "end_time": 51.975,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 51.975,
+          "end_time": 52.312,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 52.312,
+          "end_time": 52.65,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 52.65,
+          "end_time": 52.988,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 52.988,
+          "end_time": 53.325,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 53.325,
+          "end_time": 53.663,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 53.663,
+          "end_time": 54.0,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 54.0,
+          "end_time": 54.337,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 54.338,
+          "end_time": 54.675,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 54.675,
+          "end_time": 55.013,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 55.013,
+          "end_time": 55.35,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 55.35,
+          "end_time": 55.688,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 55.688,
+          "end_time": 56.025,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 56.025,
+          "end_time": 56.363,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 56.363,
+          "end_time": 56.7,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 56.7,
+          "end_time": 57.038,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 57.038,
+          "end_time": 57.375,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 57.375,
+          "end_time": 57.713,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 57.713,
+          "end_time": 58.05,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 58.05,
+          "end_time": 58.388,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 58.388,
+          "end_time": 58.725,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 58.725,
+          "end_time": 59.062,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_1",
+          "start_time": 59.063,
+          "end_time": 59.4,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        }
+      ],
+      "from_module": "ISRUExcavation",
+      "to_module": "ISRUPlant_1",
+      "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+      "start_time": 0.0,
+      "end_time": 0.338
+    },
+    {
+      "id": "Regolith Cargo Rover 2",
+      "label": "Regolith Rover 2",
+      "prim_path": "/World/RegolithRover_2",
+      "source_prim_path": "/World/RegolithRover",
+      "dashboard_fields": [
+        {
+          "key": "current_load",
+          "label": "Load",
+          "unit": "kg"
+        },
+        {
+          "key": "battery_charge",
+          "label": "Battery",
+          "unit": "kWh"
+        },
+        {
+          "key": "total_distance_traveled",
+          "label": "Distance",
+          "unit": "km"
+        }
+      ],
+      "movements": [
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 0.0,
+          "end_time": 0.425,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 0.425,
+          "end_time": 0.85,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 0.85,
+          "end_time": 1.275,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 1.275,
+          "end_time": 1.7,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 1.7,
+          "end_time": 2.125,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 2.125,
+          "end_time": 2.55,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 2.55,
+          "end_time": 2.975,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 2.975,
+          "end_time": 3.4,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 3.4,
+          "end_time": 3.825,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 3.825,
+          "end_time": 4.25,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 4.25,
+          "end_time": 4.675,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 4.675,
+          "end_time": 5.1,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 5.1,
+          "end_time": 5.525,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 5.525,
+          "end_time": 5.95,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 5.95,
+          "end_time": 6.375,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 6.375,
+          "end_time": 6.8,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 6.8,
+          "end_time": 7.225,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 7.225,
+          "end_time": 7.65,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 7.65,
+          "end_time": 8.075,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 8.075,
+          "end_time": 8.5,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 8.5,
+          "end_time": 8.925,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 8.925,
+          "end_time": 9.35,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 9.35,
+          "end_time": 9.775,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 9.775,
+          "end_time": 10.2,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 10.2,
+          "end_time": 10.625,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 10.625,
+          "end_time": 11.05,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 11.05,
+          "end_time": 11.475,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 11.475,
+          "end_time": 11.9,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 11.9,
+          "end_time": 12.325,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 12.325,
+          "end_time": 12.75,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 12.75,
+          "end_time": 13.175,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 13.175,
+          "end_time": 13.6,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 13.6,
+          "end_time": 14.025,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 14.025,
+          "end_time": 14.45,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 14.45,
+          "end_time": 14.875,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 14.875,
+          "end_time": 15.3,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 15.3,
+          "end_time": 15.725,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 15.725,
+          "end_time": 16.15,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 16.15,
+          "end_time": 16.575,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 16.575,
+          "end_time": 17.0,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 17.0,
+          "end_time": 17.425,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 17.425,
+          "end_time": 17.85,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 17.85,
+          "end_time": 18.275,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 18.275,
+          "end_time": 18.7,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 18.7,
+          "end_time": 19.125,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 19.125,
+          "end_time": 19.55,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 19.55,
+          "end_time": 19.975,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 19.975,
+          "end_time": 20.4,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 20.4,
+          "end_time": 20.825,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 20.825,
+          "end_time": 21.25,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 21.25,
+          "end_time": 21.675,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 21.675,
+          "end_time": 22.1,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 22.1,
+          "end_time": 22.525,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 22.525,
+          "end_time": 22.95,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 22.95,
+          "end_time": 23.375,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 23.375,
+          "end_time": 23.8,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 23.8,
+          "end_time": 24.225,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 24.225,
+          "end_time": 24.65,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 24.65,
+          "end_time": 25.075,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 25.075,
+          "end_time": 25.5,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 25.5,
+          "end_time": 25.925,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 25.925,
+          "end_time": 26.35,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 26.35,
+          "end_time": 26.775,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 26.775,
+          "end_time": 27.2,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 27.2,
+          "end_time": 27.625,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 27.625,
+          "end_time": 28.05,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 28.05,
+          "end_time": 28.475,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 28.475,
+          "end_time": 28.9,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 28.9,
+          "end_time": 29.325,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 29.325,
+          "end_time": 29.75,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 29.75,
+          "end_time": 30.175,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 30.175,
+          "end_time": 30.6,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 30.6,
+          "end_time": 31.025,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 31.025,
+          "end_time": 31.45,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 31.45,
+          "end_time": 31.875,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 31.875,
+          "end_time": 32.3,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 32.3,
+          "end_time": 32.725,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 32.725,
+          "end_time": 33.15,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 33.15,
+          "end_time": 33.575,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 33.575,
+          "end_time": 34.0,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 34.0,
+          "end_time": 34.425,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 34.425,
+          "end_time": 34.85,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 34.85,
+          "end_time": 35.275,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 35.275,
+          "end_time": 35.7,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 35.7,
+          "end_time": 36.125,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 36.125,
+          "end_time": 36.55,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 36.55,
+          "end_time": 36.975,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 36.975,
+          "end_time": 37.4,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 37.4,
+          "end_time": 37.825,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 37.825,
+          "end_time": 38.25,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 38.25,
+          "end_time": 38.675,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 38.675,
+          "end_time": 39.1,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 39.1,
+          "end_time": 39.525,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 39.525,
+          "end_time": 39.95,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 39.95,
+          "end_time": 40.375,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 40.375,
+          "end_time": 40.8,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 40.8,
+          "end_time": 41.225,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 41.225,
+          "end_time": 41.65,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 41.65,
+          "end_time": 42.075,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 42.075,
+          "end_time": 42.5,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 42.5,
+          "end_time": 42.925,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 42.925,
+          "end_time": 43.35,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 43.35,
+          "end_time": 43.775,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 43.775,
+          "end_time": 44.2,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 44.2,
+          "end_time": 44.625,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 44.625,
+          "end_time": 45.05,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 45.05,
+          "end_time": 45.475,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 45.475,
+          "end_time": 45.9,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 45.9,
+          "end_time": 46.325,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 46.325,
+          "end_time": 46.75,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 46.75,
+          "end_time": 47.175,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 47.175,
+          "end_time": 47.6,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 47.6,
+          "end_time": 48.025,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 48.025,
+          "end_time": 48.45,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 48.45,
+          "end_time": 48.875,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 48.875,
+          "end_time": 49.3,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 49.3,
+          "end_time": 49.725,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 49.725,
+          "end_time": 50.15,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 50.15,
+          "end_time": 50.575,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 50.575,
+          "end_time": 51.0,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 51.0,
+          "end_time": 51.425,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 51.425,
+          "end_time": 51.85,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 51.85,
+          "end_time": 52.275,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 52.275,
+          "end_time": 52.7,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 52.7,
+          "end_time": 53.125,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 53.125,
+          "end_time": 53.55,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 53.55,
+          "end_time": 53.975,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 53.975,
+          "end_time": 54.4,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 54.4,
+          "end_time": 54.825,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 54.825,
+          "end_time": 55.25,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 55.25,
+          "end_time": 55.675,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 55.675,
+          "end_time": 56.1,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 56.1,
+          "end_time": 56.525,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 56.525,
+          "end_time": 56.95,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 56.95,
+          "end_time": 57.375,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 57.375,
+          "end_time": 57.8,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 57.8,
+          "end_time": 58.225,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 58.225,
+          "end_time": 58.65,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 58.65,
+          "end_time": 59.075,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 59.075,
+          "end_time": 59.5,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 59.5,
+          "end_time": 59.925,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 59.925,
+          "end_time": 60.35,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 60.35,
+          "end_time": 60.775,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 60.775,
+          "end_time": 61.2,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 61.2,
+          "end_time": 61.625,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 61.625,
+          "end_time": 62.05,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 62.05,
+          "end_time": 62.475,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 62.475,
+          "end_time": 62.9,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 62.9,
+          "end_time": 63.325,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 63.325,
+          "end_time": 63.75,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 63.75,
+          "end_time": 64.175,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 64.175,
+          "end_time": 64.6,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 64.6,
+          "end_time": 65.025,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 65.025,
+          "end_time": 65.45,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 65.45,
+          "end_time": 65.875,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 65.875,
+          "end_time": 66.3,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 66.3,
+          "end_time": 66.725,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 66.725,
+          "end_time": 67.15,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 67.15,
+          "end_time": 67.575,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 67.575,
+          "end_time": 68.0,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 68.0,
+          "end_time": 68.425,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 68.425,
+          "end_time": 68.85,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 68.85,
+          "end_time": 69.275,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 69.275,
+          "end_time": 69.7,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 69.7,
+          "end_time": 70.125,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 70.125,
+          "end_time": 70.55,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 70.55,
+          "end_time": 70.975,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 70.975,
+          "end_time": 71.4,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 71.4,
+          "end_time": 71.825,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 71.825,
+          "end_time": 72.25,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 72.25,
+          "end_time": 72.675,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 72.675,
+          "end_time": 73.1,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 73.1,
+          "end_time": 73.525,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 73.525,
+          "end_time": 73.95,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 73.95,
+          "end_time": 74.375,
+          "reverse": false,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        },
+        {
+          "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+          "from_module": "ISRUExcavation",
+          "to_module": "ISRUPlant_2",
+          "start_time": 74.375,
+          "end_time": 74.8,
+          "reverse": true,
+          "source": "des:flat_speed_kph adjusted by route mean_slope_deg"
+        }
+      ],
+      "from_module": "ISRUExcavation",
+      "to_module": "ISRUPlant_2",
+      "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+      "start_time": 0.0,
+      "end_time": 0.425
+    }
+  ]
 }
