@@ -65,6 +65,8 @@ class CadScenarioStorageTests(unittest.TestCase):
         self.assertIn("const sourceUpAxis = isSourceAxisCadMeta(data)", html)
         self.assertIn("authored_up_axis=up_axis", scene_builder)
         self.assertIn("A USD's stage metadata is authoritative.", scene_builder)
+        self.assertIn("def _stage_has_authored_orientation", scene_builder)
+        self.assertIn("if has_authored_orientation else _source_orientation_rotation", scene_builder)
 
 
 if __name__ == "__main__":

@@ -160,6 +160,29 @@ def _source_orientation_rotation(
     return [rotate_xyz[0], rotate_xyz[1], rotate_xyz[2] + yaw_correction]
 
 
+def _stage_has_authored_orientation(stage: Usd.Stage) -> bool:
+    """Return whether the referenced USD already encodes a visual orientation."""
+    identity = Gf.Matrix4d(1.0)
+    for prim in stage.Traverse():
+        if not prim.IsA(UsdGeom.Xformable):
+            continue
+        for op in UsdGeom.Xformable(prim).GetOrderedXformOps():
+            op_name = op.GetOpName().lower()
+            value = op.Get()
+            if "rotate" in op_name:
+                if value and any(abs(float(component)) > 1e-7 for component in value):
+                    return True
+            elif op_name.endswith(":orient"):
+                if value and (
+                    abs(float(value.GetReal()) - 1.0) > 1e-7
+                    or any(abs(float(component)) > 1e-7 for component in value.GetImaginary())
+                ):
+                    return True
+            elif op_name.endswith(":transform") and value != identity:
+                return True
+    return False
+
+
 def _cad_normalization(
     cad_path: str,
     *,
@@ -196,18 +219,6 @@ def _cad_normalization(
     up_axis = str(UsdGeom.GetStageUpAxis(stage)).upper()
     meters_per_unit = float(UsdGeom.GetStageMetersPerUnit(stage) or 1.0)
 
-    # The USD stage declares its authored coordinate system. Use it as the
-    # source of truth so stale scenario metadata cannot rotate Z-up USDs again.
-    rotate_xyz = _source_orientation_rotation(
-        metadata,
-        authored_up_axis=up_axis,
-    )
-
-    unit_scale = [meters_per_unit, meters_per_unit, meters_per_unit]
-
-    default_prim = stage.GetDefaultPrim()
-    bound_prim = default_prim if default_prim else stage.GetPseudoRoot()
-
     authored_xform_ops = []
     for prim in stage.Traverse():
         if not prim.IsA(UsdGeom.Xformable):
@@ -219,6 +230,20 @@ def _cad_normalization(
         authored_xform_ops.append(
             f"{prim.GetPath()}:{','.join(op.GetOpName() for op in ops)}"
         )
+
+    has_authored_orientation = _stage_has_authored_orientation(stage)
+    # The stage axis describes the file's coordinate convention. It is not an
+    # instruction to rotate a referenced model if that file already carries
+    # the corresponding visual orientation in its own xformOps.
+    rotate_xyz = [0.0, 0.0, 0.0] if has_authored_orientation else _source_orientation_rotation(
+        metadata,
+        authored_up_axis=up_axis,
+    )
+
+    unit_scale = [meters_per_unit, meters_per_unit, meters_per_unit]
+
+    default_prim = stage.GetDefaultPrim()
+    bound_prim = default_prim if default_prim else stage.GetPseudoRoot()
 
     bbox_cache = UsdGeom.BBoxCache(Usd.TimeCode.Default(), [UsdGeom.Tokens.default_])
     bbox = bbox_cache.ComputeWorldBound(bound_prim)
@@ -296,6 +321,7 @@ def _cad_normalization(
         "oriented_bbox_size": oriented_bbox_size,
         "fitted_bbox_size": fitted_bbox_size,
         "has_authored_xforms": bool(authored_xform_ops),
+        "has_authored_orientation": has_authored_orientation,
         "authored_xform_ops": authored_xform_ops[:20],
     }
 
