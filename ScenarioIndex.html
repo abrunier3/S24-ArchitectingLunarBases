@@ -1484,9 +1484,9 @@
   .node {
     position: absolute;
     box-sizing: border-box;
-    width: 188px;
+    width: 118px;
     min-width: 0;
-    min-height: 84px;
+    min-height: 58px;
     border-radius: 12px;
     border: 1px solid var(--border2);
     background: rgba(17,21,32,0.94);
@@ -9283,103 +9283,63 @@ let up42MoonImg = null;
   function computeLiveGraphLayout(nodeNames, conns, cW, cH, nodeW, nodeH) {
     const names = [...new Set([
       ...nodeNames,
-      ...conns.map(c => c.fromName).filter(Boolean),
-      ...conns.map(c => c.toName).filter(Boolean)
-    ])];
+      ...conns.map(conn => conn.fromName).filter(Boolean),
+      ...conns.map(conn => conn.toName).filter(Boolean)
+    ])].sort((left, right) => left.localeCompare(right));
     const resourceConns = conns.filter(conn =>
       !isPowerFlow(conn.flow) && !isCommunicationFlow(conn.flow)
     );
     const resourceConnected = new Set(resourceConns.flatMap(conn => [conn.fromName, conn.toName]));
-    // Resource flow defines the left-to-right operational chain. Pure power
-    // infrastructure is placed separately so it cannot flatten that chain.
-    const chainNames = resourceConnected.size ? names.filter(name => resourceConnected.has(name)) : names;
-    const peripheralNames = resourceConnected.size ? names.filter(name => !resourceConnected.has(name)) : [];
-    const layoutConns = resourceConns.length ? resourceConns : conns;
+    const chainNames = resourceConnected.size
+      ? names.filter(name => resourceConnected.has(name))
+      : names;
+    const peripheralNames = resourceConnected.size
+      ? names.filter(name => !resourceConnected.has(name))
+      : [];
 
-    const outgoing = new Map(chainNames.map(name => [name, []]));
-    const incomingCount = new Map(chainNames.map(name => [name, 0]));
-
-    layoutConns.forEach(conn => {
-      const fromName = conn.fromName;
-      const toName = conn.toName;
-      if (!fromName || !toName || fromName === toName || !outgoing.has(fromName) || !incomingCount.has(toName)) return;
-      if (!outgoing.has(fromName)) outgoing.set(fromName, []);
-      outgoing.get(fromName).push(toName);
-      incomingCount.set(toName, (incomingCount.get(toName) || 0) + 1);
-    });
-
-    const queue = chainNames
-      .filter(name => (incomingCount.get(name) || 0) === 0)
-      .sort((a, b) => a.localeCompare(b));
-    const depth = new Map();
-
-    queue.forEach(name => depth.set(name, 0));
-
-    while (queue.length > 0) {
-      const current = queue.shift();
-      const currentDepth = depth.get(current) || 0;
-      (outgoing.get(current) || []).forEach(next => {
-        const nextDepth = Math.max(depth.get(next) ?? 0, currentDepth + 1);
-        depth.set(next, nextDepth);
-        incomingCount.set(next, (incomingCount.get(next) || 0) - 1);
-        if ((incomingCount.get(next) || 0) === 0) queue.push(next);
-      });
-    }
-
-    let fallbackDepth = Math.max(0, ...depth.values());
-    chainNames.forEach(name => {
-      if (!depth.has(name)) {
-        fallbackDepth += 1;
-        depth.set(name, fallbackDepth);
+    const marginX = 42;
+    const marginY = 38;
+    const minimumGapX = 32;
+    const usableWidth = Math.max(nodeW, cW - marginX * 2);
+    const maximumColumns = Math.max(
+      1,
+      Math.floor((usableWidth + minimumGapX) / (nodeW + minimumGapX))
+    );
+    const targetColumns = Math.max(
+      1,
+      Math.min(
+        maximumColumns,
+        resourceConnected.size
+          ? Math.max(Math.min(chainNames.length, maximumColumns), Math.min(peripheralNames.length, maximumColumns))
+          : Math.ceil(Math.sqrt(names.length))
+      )
+    );
+    const rows = [];
+    const appendRows = rowNames => {
+      for (let start = 0; start < rowNames.length; start += targetColumns) {
+        rows.push(rowNames.slice(start, start + targetColumns));
       }
-    });
+    };
 
-    const maxDepth = Math.max(0, ...depth.values());
-    const layers = Array.from({ length: maxDepth + 1 }, () => []);
-    chainNames.forEach(name => layers[depth.get(name) || 0].push(name));
-    layers.forEach(layer => layer.sort((a, b) => a.localeCompare(b)));
+    if (peripheralNames.length) appendRows(peripheralNames);
+    appendRows(chainNames);
 
-    const marginX = 44;
-    const marginY = 34;
-    const usableW = Math.max(nodeW + 20, cW - marginX * 2);
-    const usableH = Math.max(nodeH + 20, cH - marginY * 2);
     const positions = {};
+    const requiredHeight = rows.length * nodeH + Math.max(0, rows.length - 1) * 30;
+    const availableHeight = Math.max(requiredHeight, cH - marginY * 2);
+    const rowGap = rows.length > 1
+      ? Math.max(30, (availableHeight - rows.length * nodeH) / (rows.length - 1))
+      : 0;
 
-    if (layers.length === 1 && !peripheralNames.length) {
-      const cols = Math.max(1, Math.ceil(Math.sqrt(chainNames.length)));
-      const rows = Math.max(1, Math.ceil(chainNames.length / cols));
-      chainNames.forEach((name, index) => {
-        const col = index % cols;
-        const row = Math.floor(index / cols);
-        const x = marginX + (cols === 1 ? (usableW - nodeW) / 2 : (col / (cols - 1)) * (usableW - nodeW));
-        const y = marginY + (rows === 1 ? usableH / 2 : (row / (rows - 1)) * usableH) - nodeH / 2;
-        positions[name] = { x: Math.round(x), y: Math.round(y) };
-      });
-      return positions;
-    }
-
-    layers.forEach((layer, layerIndex) => {
-      const layerCount = layer.length;
-      const x = marginX + (layerIndex / Math.max(1, layers.length - 1)) * (usableW - nodeW);
-      layer.forEach((name, idx) => {
-        // Keep a centered operational chain while reserving a distinct upper
-        // row when power-only infrastructure is present.
-        const chainTop = peripheralNames.length ? 0.18 : 0.10;
-        const chainHeight = peripheralNames.length ? 0.64 : 0.80;
-        const y = marginY + usableH * (chainTop + ((idx + 1) / (layerCount + 1)) * chainHeight);
+    rows.forEach((row, rowIndex) => {
+      const y = marginY + rowIndex * (nodeH + rowGap);
+      row.forEach((name, columnIndex) => {
+        const centerX = marginX + ((columnIndex + 0.5) / row.length) * usableWidth;
         positions[name] = {
-          x: Math.round(x),
-          y: Math.round(y - nodeH / 2)
+          x: Math.round(centerX - nodeW / 2),
+          y: Math.round(y)
         };
       });
-    });
-
-    peripheralNames.forEach((name, index) => {
-      const x = marginX + ((index + 1) / (peripheralNames.length + 1)) * (usableW - nodeW);
-      positions[name] = {
-        x: Math.round(x),
-        y: Math.round(marginY)
-      };
     });
 
     return positions;
@@ -9420,8 +9380,8 @@ let up42MoonImg = null;
 
     const cW = container.offsetWidth || 700;
     const cH = container.offsetHeight || 470;
-    const NODE_W = 188;
-    const NODE_H = 84;
+    const NODE_W = 118;
+    const NODE_H = 58;
     svgLayer.setAttribute('viewBox', `0 0 ${cW} ${cH}`);
     svgLayer.setAttribute('preserveAspectRatio', 'none');
 
@@ -9487,15 +9447,27 @@ let up42MoonImg = null;
         .filter(other => other.fromName === fromName && isPowerFlow(other.flow))
         .sort((left, right) => String(left.toName || '').localeCompare(String(right.toName || '')));
       const sourcePowerIndex = Math.max(0, sameSourcePower.indexOf(c));
-      // Power uses an upper routing lane, while resource flow uses a lower
-      // lane. Parallel links receive incremental separation within that lane.
-      const laneBend = isPowerConnection
-        ? -48 - sourcePowerIndex * 20 + parallelOffset * 14
-        : 22 + parallelOffset * 18;
-      const cx1 = a.x + (b.x - a.x) * 0.35;
-      const cy1 = a.y + laneBend;
-      const cx2 = a.x + (b.x - a.x) * 0.65;
-      const cy2 = b.y + laneBend;
+      const mostlyVertical = Math.abs(b.y - a.y) > Math.abs(b.x - a.x) * 0.45;
+      let cx1;
+      let cy1;
+      let cx2;
+      let cy2;
+
+      if (mostlyVertical) {
+        // Connect the separate infrastructure/resource rows through the open
+        // centre of the graph, rather than looping above the cards.
+        const laneOffset = (sourcePowerIndex - (sameSourcePower.length - 1) / 2) * 26 + parallelOffset * 14;
+        cx1 = a.x + laneOffset;
+        cy1 = a.y + (b.y - a.y) * 0.36;
+        cx2 = b.x + laneOffset;
+        cy2 = b.y - (b.y - a.y) * 0.36;
+      } else {
+        const laneBend = 24 + parallelOffset * 16;
+        cx1 = a.x + (b.x - a.x) * 0.35;
+        cy1 = a.y + laneBend;
+        cx2 = a.x + (b.x - a.x) * 0.65;
+        cy2 = b.y + laneBend;
+      }
 
       const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
       path.setAttribute('d', `M ${a.x} ${a.y} C ${cx1} ${cy1}, ${cx2} ${cy2}, ${b.x} ${b.y}`);
@@ -9509,16 +9481,18 @@ let up42MoonImg = null;
       path.setAttribute('marker-end', `url(#${markerId})`);
       svgLayer.appendChild(path);
 
-      const txt = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-      txt.setAttribute('x', (a.x + 3 * cx1 + 3 * cx2 + b.x) / 8);
-      txt.setAttribute('y', (a.y + 3 * cy1 + 3 * cy2 + b.y) / 8 - 8);
-      txt.setAttribute('text-anchor', 'middle');
-      txt.setAttribute('fill', color);
-      txt.setAttribute('font-size', '11');
-      txt.setAttribute('font-weight', '700');
-      txt.setAttribute('opacity', '0.95');
-      txt.textContent = flow;
-      svgLayer.appendChild(txt);
+      if (!isPowerConnection || sameSourcePower.length === 1) {
+        const txt = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        txt.setAttribute('x', (a.x + 3 * cx1 + 3 * cx2 + b.x) / 8);
+        txt.setAttribute('y', (a.y + 3 * cy1 + 3 * cy2 + b.y) / 8 - 8);
+        txt.setAttribute('text-anchor', 'middle');
+        txt.setAttribute('fill', color);
+        txt.setAttribute('font-size', '11');
+        txt.setAttribute('font-weight', '700');
+        txt.setAttribute('opacity', '0.95');
+        txt.textContent = flow;
+        svgLayer.appendChild(txt);
+      }
     });
 
     nodes.forEach(name => {
@@ -13169,8 +13143,8 @@ let up42MoonImg = null;
     const BG = '#0d1117';
     let html = `<rect width="${W}" height="${H}" fill="${BG}"/>`;
 
-    const NODE_W = 188;
-    const NODE_H = 84;
+    const NODE_W = 118;
+    const NODE_H = 58;
     const nodes = [...new Set(activeNodes.length ? activeNodes : getActiveSysmlNodes())];
     const graphData = window._lastGraphData || {};
     const conns = normalizeSysmlConnections(graphData.connections || [], nodes)
