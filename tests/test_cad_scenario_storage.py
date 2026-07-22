@@ -84,6 +84,8 @@ class CadScenarioStorageTests(unittest.TestCase):
 
         self.assertIn("async function setCadSourceUpAxis", html)
         self.assertIn("Reorienting ${moduleName} as ${normalized}-up", html)
+        self.assertIn("Rebuilding USD as ${normalized}-up", html)
+        self.assertIn("data-cad-axis-status=\"${moduleName}\"", html)
         self.assertIn("source_up_axis: normalizeUpAxis(sourceUpAxis, 'Z')", html)
         self.assertIn("source_up_axis:", workflow)
         self.assertIn('"source_up_axis": _normalise_up_axis', converter)

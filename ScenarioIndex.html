@@ -10507,10 +10507,6 @@ let up42MoonImg = null;
 
   async function setCadSourceUpAxis(moduleName, axis) {
     const normalized = normalizeUpAxis(axis, 'Z');
-    const previousAxis = normalizeUpAxis(
-      moduleMetaCache[moduleName]?.cadSourceUpAxis || 'Z',
-      'Z'
-    );
     moduleMetaCache[moduleName] = {
       ...(moduleMetaCache[moduleName] || {}),
       cadSourceUpAxis: normalized,
@@ -10528,9 +10524,11 @@ let up42MoonImg = null;
     if (!cadFileForSave) return;
 
     const pubStatus = document.getElementById('publishStatus');
+    setCadAxisStatus(moduleName, `Saving ${normalized}-up selection...`, 'info');
     if (pubStatus) pubStatus.textContent = `Saving ${moduleName} source up axis: ${normalized}...`;
     const saved = await writeAssetJson(moduleName, cadFileForSave);
     if (!saved) {
+      setCadAxisStatus(moduleName, `Could not save ${normalized}-up.`, 'error');
       if (pubStatus) pubStatus.textContent = `Could not save ${moduleName} source up axis.`;
       return;
     }
@@ -10539,7 +10537,8 @@ let up42MoonImg = null;
       sysmlPartsCache[moduleName]?.metadata?.sourceCadPath ||
       `${cadFolderPath(moduleName)}/${cadFileForSave.name}`;
     const rawCadSource = /\.(step|stp|stl|obj)$/i.test(sourceCadPath);
-    if (!rawCadSource || normalized === previousAxis) {
+    if (!rawCadSource) {
+      setCadAxisStatus(moduleName, `Saved ${normalized}-up. This native USD keeps its own axes.`, 'success');
       if (pubStatus) pubStatus.textContent = `${moduleName} source up axis saved: ${normalized}.`;
       return;
     }
@@ -10555,6 +10554,7 @@ let up42MoonImg = null;
       previousGlbSha: previousGlb?.sha || cadPreviewState[moduleName]?.glbSha || null
     };
     updateModuleDot(moduleName, 'uploading');
+    setCadAxisStatus(moduleName, `Rebuilding USD as ${normalized}-up...`, 'info');
     if (pubStatus) {
       pubStatus.textContent = `Reorienting ${moduleName} as ${normalized}-up and rebuilding its USD preview...`;
     }
@@ -10566,6 +10566,7 @@ let up42MoonImg = null;
     );
     if (!runInfo) {
       updateModuleDot(moduleName, 'error');
+      setCadAxisStatus(moduleName, `Could not start the ${normalized}-up rebuild.`, 'error');
       if (pubStatus) pubStatus.textContent = `Could not start the ${moduleName} CAD reorientation.`;
       return;
     }
@@ -10573,11 +10574,13 @@ let up42MoonImg = null;
     const freshMeta = await pollForMeta(moduleName, runInfo, previewRequest);
     if (!freshMeta?.data) {
       updateModuleDot(moduleName, 'error');
+      setCadAxisStatus(moduleName, `${normalized}-up rebuild did not finish.`, 'error');
       if (pubStatus) pubStatus.textContent = `${moduleName} CAD reorientation did not finish.`;
       return;
     }
     syncDetectedCadMeta(freshMeta.data);
     await writeAssetJson(moduleName, cadFileForSave);
+    setCadAxisStatus(moduleName, `USD rebuilt as ${normalized}-up. Ready for Omniverse.`, 'success');
     if (pubStatus) {
       pubStatus.textContent = `${moduleName} rebuilt as ${normalized}-up. Omniverse will use this converted orientation.`;
     }
@@ -10637,6 +10640,22 @@ let up42MoonImg = null;
       btn.style.boxShadow = active ? `0 0 14px ${shadowColor}` : 'none';
     });
     updateCadAxisTriad(moduleName);
+  }
+
+  function setCadAxisStatus(moduleName, message, tone = 'info') {
+    const status = document.querySelector(`[data-cad-axis-status="${moduleName}"]`);
+    if (status) {
+      status.textContent = message;
+      status.style.color = tone === 'error'
+        ? '#ff8fa3'
+        : tone === 'success'
+          ? '#75e6b0'
+          : '#79c7ff';
+    }
+    if (moduleName === currentModuleName) {
+      const uploadStatus = document.getElementById('cadUploadStatus');
+      if (uploadStatus) uploadStatus.textContent = message;
+    }
   }
 
   function toRadians(value, fallback) {
@@ -11744,6 +11763,10 @@ let up42MoonImg = null;
                     ${axis}
                   </button>
                 `).join('')}
+              </div>
+              <div data-cad-axis-status="${moduleName}"
+                style="min-height:30px;margin:9px 3px 0;font-size:10px;line-height:1.35;text-align:center;color:rgba(220,226,236,0.72);">
+                Choose a source up axis to rebuild this CAD.
               </div>
               </div>
               ` : ''}
