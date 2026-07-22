@@ -121,6 +121,8 @@ class IsruPresetTests(unittest.TestCase):
         self.assertIn("A route is a physical connection.", html)
         self.assertIn("Each plant connection is one physical route.", html)
         self.assertIn("const roverIds = getRoverIdsForFlow(spec.flow);", html)
+        self.assertIn("Only an explicit edit replaces an existing route.", html)
+        self.assertIn("return !route.preset_generated;", html)
         self.assertNotIn("const requiredRouteCount = Math.max(candidates.length, spec.roverCount);", html)
         self.assertNotIn("preset_generated: false,", html)
         self.assertIn("if (currentScenarioMode === 'isru') ensureIsruPresetResourceRoutes();", html)

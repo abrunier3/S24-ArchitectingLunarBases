@@ -94,12 +94,19 @@ def _uses_source_up_axis(metadata: Dict[str, Any] | None) -> bool:
     return any(str(value or "").lower().endswith((".step", ".stp", ".stl", ".obj")) for value in values)
 
 
-def _source_up_axis_rotation(metadata: Dict[str, Any] | None) -> list[float]:
+def _source_up_axis_rotation(
+    metadata: Dict[str, Any] | None,
+    *,
+    authored_up_axis: str | None = None,
+) -> list[float]:
     metadata = metadata or {}
     if not _uses_source_up_axis(metadata):
         return [0.0, 0.0, 0.0]
 
-    axis = str(metadata.get("cadSourceUpAxis") or "Z").upper()
+    # A USD's stage metadata is authoritative. Scenario asset metadata may
+    # originate from an older CAD import and must not rotate an already Z-up
+    # USD for a second time.
+    axis = str(authored_up_axis or metadata.get("cadSourceUpAxis") or "Z").upper()
     if axis == "X":
         return [0.0, -90.0, 0.0]
     if axis == "Y":
@@ -128,13 +135,20 @@ def _axis_after_up_correction(axis: str, up_axis: str) -> list[float]:
     return [x, y, z]
 
 
-def _source_orientation_rotation(metadata: Dict[str, Any] | None) -> list[float]:
+def _source_orientation_rotation(
+    metadata: Dict[str, Any] | None,
+    *,
+    authored_up_axis: str | None = None,
+) -> list[float]:
     metadata = metadata or {}
-    rotate_xyz = _source_up_axis_rotation(metadata)
+    rotate_xyz = _source_up_axis_rotation(
+        metadata,
+        authored_up_axis=authored_up_axis,
+    )
     if not _uses_source_up_axis(metadata):
         return rotate_xyz
 
-    up_axis = str(metadata.get("cadSourceUpAxis") or "Z").upper()
+    up_axis = str(authored_up_axis or metadata.get("cadSourceUpAxis") or "Z").upper()
     front_axis = str(metadata.get("cadSourceFrontAxis") or "+X").upper()
 
     front_vector = _axis_after_up_correction(front_axis, up_axis)
@@ -182,10 +196,12 @@ def _cad_normalization(
     up_axis = str(UsdGeom.GetStageUpAxis(stage)).upper()
     meters_per_unit = float(UsdGeom.GetStageMetersPerUnit(stage) or 1.0)
 
-    # Do not rotate from stage upAxis alone. Several Sketchfab/Omniverse USDs
-    # already encode their visual orientation in authored xformOps. For converted
-    # CAD uploads, apply only the explicit source axes selected by the user.
-    rotate_xyz = _source_orientation_rotation(metadata)
+    # The USD stage declares its authored coordinate system. Use it as the
+    # source of truth so stale scenario metadata cannot rotate Z-up USDs again.
+    rotate_xyz = _source_orientation_rotation(
+        metadata,
+        authored_up_axis=up_axis,
+    )
 
     unit_scale = [meters_per_unit, meters_per_unit, meters_per_unit]
 

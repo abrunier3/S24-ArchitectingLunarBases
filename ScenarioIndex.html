@@ -5868,7 +5868,18 @@ function confirmStopRouteBuilder() {
   const to = sequence[sequence.length - 1];
   const stops = sequence.slice(1, -1);
   const roverId = document.getElementById('up42RouteRover')?.value || null;
-  addScenarioResourceRoute(flow, from, to, stops, roverId, false, editingResourceRouteId);
+  const editedRoute = editingResourceRouteId
+    ? (up42Scenario.resourceRoutes || []).find(route => route.id === editingResourceRouteId)
+    : null;
+  addScenarioResourceRoute(
+    flow,
+    from,
+    to,
+    stops,
+    roverId,
+    Boolean(editedRoute?.preset_generated),
+    editingResourceRouteId
+  );
   pendingStopRoute = null;
   editingResourceRouteId = null;
   const builder = document.getElementById('up42StopBuilder');
@@ -5917,14 +5928,11 @@ function refreshScenarioResourceRoutePaths() {
 function addScenarioResourceRoute(flow, from, to, stops = [], roverId = null, presetGenerated = false, routeId = null) {
   const definition = getRoverFlowDefinition(flow);
   const resolvedRoverId = roverId || getRoverIdsForFlow(flow)[0] || definition.roverType;
-  const existingIndex = (up42Scenario.resourceRoutes || []).findIndex(route =>
-    route.id === routeId || (
-      String(route.flow || '').toLowerCase() === String(flow || '').toLowerCase() &&
-      route.rover_id === resolvedRoverId &&
-      route.from === from &&
-      route.to === to
-    )
-  );
+  // Only an explicit edit replaces an existing route. A newly created route
+  // may intentionally use the same endpoints with a different route sequence.
+  const existingIndex = routeId
+    ? (up42Scenario.resourceRoutes || []).findIndex(route => route.id === routeId)
+    : -1;
   const nextRoute = {
     id: routeId || `${flow}_${resolvedRoverId}_${from}_${to}_${Date.now()}`.replace(/[^A-Za-z0-9_-]/g, '_'),
     flow,
@@ -5989,7 +5997,6 @@ function ensureIsruPresetResourceRoutes() {
     { flow:'Regolith', roverType:'RegolithRover' },
     { flow:'LOX', roverType:'LOXRover' }
   ];
-  const managedRouteSignatures = new Set();
   const refreshedPresetRoutes = [];
 
   routeSpecs.forEach(spec => {
@@ -6016,8 +6023,8 @@ function ensureIsruPresetResourceRoutes() {
     // rovers to those routes; it never adds another copy of the connection.
     candidates.forEach((candidate, index) => {
       const signature = `${spec.flow}:${candidate.from}:${candidate.to}`;
-      managedRouteSignatures.add(signature);
       const existing = existingRoutes.find(route =>
+        route.preset_generated &&
         `${route.flow}:${route.from}:${route.to}` === signature
       );
       const route = existing || {
@@ -6036,11 +6043,10 @@ function ensureIsruPresetResourceRoutes() {
     });
   });
 
-  // Keep deliberate non-preset routes, while replacing stale or duplicated
-  // ISRU defaults with the exact set inferred from the active plant links.
+  // Keep every deliberate route. Only the generated ISRU defaults are
+  // refreshed from the current plant connections.
   const retainedRoutes = existingRoutes.filter(route => {
-    const signature = `${route.flow}:${route.from}:${route.to}`;
-    return !route.preset_generated && !managedRouteSignatures.has(signature);
+    return !route.preset_generated;
   });
   up42Scenario.resourceRoutes = [...retainedRoutes, ...refreshedPresetRoutes];
   reconcileRoutesWithRoverCounts();
@@ -10445,6 +10451,15 @@ let up42MoonImg = null;
       : (existing.metersPerUnit || '1');
     const upAxis = normalizeUpAxis(data.up_axis, existing.upAxis || 'Z');
     const sizeM = normalizeSizeM(data.size_m);
+    // Native USD files declare their own stage axis. Ignore a copied/stale
+    // scenario override here: it would otherwise disagree with the file that
+    // Omniverse will actually reference.
+    const sourceUpAxis = isSourceAxisCadMeta(data)
+      ? normalizeUpAxis(
+        existing.cadSourceUpAxis || data.source_metadata?.source_up_axis || 'Z',
+        'Z'
+      )
+      : upAxis;
 
     moduleMetaCache[moduleName] = {
       ...existing,
@@ -10452,10 +10467,7 @@ let up42MoonImg = null;
       upAxis,
       detectedMetersPerUnit: metersPerUnit,
       detectedUpAxis: upAxis,
-      cadSourceUpAxis: normalizeUpAxis(
-        existing.cadSourceUpAxis || data.source_metadata?.source_up_axis || 'Z',
-        'Z'
-      ),
+      cadSourceUpAxis: sourceUpAxis,
       cadSourceFrontAxis: normalizeFrontAxis(
         existing.cadSourceFrontAxis || data.source_metadata?.source_front_axis || '+X',
         '+X'

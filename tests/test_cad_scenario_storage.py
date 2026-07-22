@@ -56,6 +56,16 @@ class CadScenarioStorageTests(unittest.TestCase):
         self.assertIn("await seedIsruReferenceCad({slug, preset});", html)
         self.assertIn("clean_database/cad_models/${slug}/${moduleName}/${fileName}", html)
 
+    def test_usd_stage_axis_overrides_stale_scenario_axis_metadata(self):
+        html = (Path(__file__).resolve().parents[1] / "ScenarioIndex.html").read_text()
+        scene_builder = (
+            Path(__file__).resolve().parents[1] / "S24/usd/scene_builder.py"
+        ).read_text()
+
+        self.assertIn("const sourceUpAxis = isSourceAxisCadMeta(data)", html)
+        self.assertIn("authored_up_axis=up_axis", scene_builder)
+        self.assertIn("A USD's stage metadata is authoritative.", scene_builder)
+
 
 if __name__ == "__main__":
     unittest.main()
