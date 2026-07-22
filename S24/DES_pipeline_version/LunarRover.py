@@ -32,16 +32,21 @@ class LunarRover:
         self.totalDistanceTraveled = attributeDict["totalDistanceTraveled"]
         self.totalEnergyConsumed = attributeDict["totalEnergyConsumed"]
         self.hoursPerKm = attributeDict["hoursPerKm"]
+        self.flatSpeedKph = 1.0 / self.hoursPerKm if self.hoursPerKm > 0 else 0.2
+        self.slopeSpeedPenaltyPerDeg = 0.0
         self.sourceAttributes = dict(attributeDict)
         self.scenarioEquations = equations or ""
         self.lastEquationOutputs = {}
 
-    def evaluateTransport(self, resource, cargo_mass, distance):
+    def evaluateTransport(self, resource, cargo_mass, distance, slope_deg=0.0):
         resource = str(resource)
         input_name = f"{resource}In"
         output_name = f"{resource}Out"
         baseline_energy = distance * self.energyPerKmPerKg * cargo_mass
-        baseline_time = distance * self.hoursPerKm
+        slope_deg = max(0.0, float(slope_deg or 0.0))
+        speed_factor = 1.0 / (1.0 + slope_deg * self.slopeSpeedPenaltyPerDeg)
+        effective_speed = max(0.01, self.flatSpeedKph * speed_factor)
+        baseline_time = distance / effective_speed
         context = {
             key: value for key, value in self.sourceAttributes.items()
             if isinstance(value, (int, float)) and not isinstance(value, bool)
@@ -54,16 +59,25 @@ class LunarRover:
             "maxCapacity": float(self.maxCapacity),
             "hoursPerKm": float(self.hoursPerKm),
             "energyPerKmPerKg": float(self.energyPerKmPerKg),
+            "FlatSpeedKph": float(self.flatSpeedKph),
+            "SlopeDeg": slope_deg,
+            "SlopeSpeedFactor": speed_factor,
+            "EffectiveSpeedKph": effective_speed,
             "TravelTime": baseline_time,
             "EnergyConsumed": baseline_energy,
             input_name: float(cargo_mass),
             output_name: float(cargo_mass),
         })
-        outputs = evaluate_equations(
+        outputs = {
+            output_name: float(cargo_mass),
+            "TravelTime": baseline_time,
+            "EnergyConsumed": baseline_energy,
+        }
+        outputs.update(evaluate_equations(
             self.scenarioEquations,
             context,
             effect_outputs={output_name, "TravelTime", "EnergyConsumed"},
-        )
+        ))
         self.lastEquationOutputs = outputs
         return outputs
         
@@ -119,7 +133,9 @@ class LunarRover:
             "battery_charge": self.batteryCharge,
             "total_distance_traveled": self.totalDistanceTraveled,
             "total_energy_consumed": self.totalEnergyConsumed,
-            "hours_per_km": self.hoursPerKm
+            "hours_per_km": self.hoursPerKm,
+            "flat_speed_kph": self.flatSpeedKph,
+            "slope_speed_penalty_per_deg": self.slopeSpeedPenaltyPerDeg,
         }
         return attr
 

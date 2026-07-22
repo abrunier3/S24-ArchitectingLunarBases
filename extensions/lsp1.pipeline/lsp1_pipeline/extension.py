@@ -28,6 +28,10 @@ class LSP1PipelineExtension(omni.ext.IExt):
         self.timeline_sub = None
         self.elapsed_seconds = 0.0
         self.current_des_time = 0.0
+        self.playback_rate = 1.0
+        self.is_updating_seek = False
+        self.seek_slider = None
+        self.seek_slider_model = None
         self.des_data = None
         self.des_log = {}
         self.des_log_times = []
@@ -51,7 +55,7 @@ class LSP1PipelineExtension(omni.ext.IExt):
         self.scenario_combo = None
         self.scenario_manifest_paths = [None]
 
-        self.window = ui.Window("LSP1 Mission Playback", width=560, height=760)
+        self.window = ui.Window("LSP1 Mission Playback", width=560, height=900)
 
         with self.window.frame:
             with ui.VStack(spacing=8):
@@ -62,13 +66,28 @@ class LSP1PipelineExtension(omni.ext.IExt):
                 ui.Label("Choose Scenario")
                 self.scenario_selector = ui.VStack(spacing=4)
                 with ui.HStack(spacing=6):
+                    ui.Button("Back 1 hr", clicked_fn=lambda: self._step_playback(-1.0))
                     ui.Button("Play", clicked_fn=self._play)
                     ui.Button("Pause", clicked_fn=self._pause)
+                    ui.Button("Forward 1 hr", clicked_fn=lambda: self._step_playback(1.0))
                     ui.Button("Reset", clicked_fn=self._reset)
-                    self.show_routes_button = ui.Button(
-                        "Show Routes",
-                        clicked_fn=self._toggle_routes,
+                self.show_routes_button = ui.Button(
+                    "Show Routes",
+                    clicked_fn=self._toggle_routes,
+                )
+
+                with ui.HStack(spacing=8):
+                    ui.Label("Playback rate")
+                    self.playback_rate_slider = ui.FloatSlider(min=0.25, max=8.0)
+                    self.playback_rate_slider.model.set_value(1.0)
+                    self.playback_rate_slider.model.add_value_changed_fn(
+                        self._on_playback_rate_changed
                     )
+                    self.playback_rate_label = ui.Label("1.0x")
+                ui.Label("Mission position")
+                self.seek_slider = ui.FloatSlider(min=0.0, max=1.0)
+                self.seek_slider_model = self.seek_slider.model
+                self.seek_slider_model.add_value_changed_fn(self._on_seek_changed)
 
                 self.time_label = ui.Label("Mission Time: --")
                 self.des_time_label = ui.Label("DES Playback Time: --")
@@ -709,7 +728,7 @@ class LSP1PipelineExtension(omni.ext.IExt):
                 prim_path = info.get("prim_path", f"/World/{module_name}")
                 marker_path = f"{root_path}/Modules/{self._safe_prim_name(module_name)}"
                 marker = UsdGeom.Sphere.Define(stage, marker_path)
-                marker.CreateRadiusAttr(12.0)
+                marker.CreateRadiusAttr(36.0)
                 marker.CreateDisplayColorAttr([Gf.Vec3f(*MODULE_HIGHLIGHT_COLOR)])
                 self.overlay_marker_paths["modules"][module_name] = marker_path
 
@@ -719,7 +738,7 @@ class LSP1PipelineExtension(omni.ext.IExt):
                     continue
                 marker_path = f"{root_path}/Rovers/{self._safe_prim_name(actor_id)}"
                 marker = UsdGeom.Sphere.Define(stage, marker_path)
-                marker.CreateRadiusAttr(8.0)
+                marker.CreateRadiusAttr(24.0)
                 marker.CreateDisplayColorAttr([Gf.Vec3f(*ROVER_HIGHLIGHT_COLOR)])
                 self.overlay_marker_paths["rovers"][actor_id] = marker_path
 
@@ -754,7 +773,7 @@ class LSP1PipelineExtension(omni.ext.IExt):
             )
             for module_name, marker_path in self.overlay_marker_paths.get("modules", {}).items():
                 target = modules.get(module_name, {}).get("prim_path", f"/World/{module_name}")
-                self._place_overlay_marker(stage, cache, marker_path, target, 14.0, visible)
+                self._place_overlay_marker(stage, cache, marker_path, target, 42.0, visible)
 
             for actor in self.actors:
                 actor_id = actor.get("id", "")
@@ -765,7 +784,7 @@ class LSP1PipelineExtension(omni.ext.IExt):
                         cache,
                         marker_path,
                         actor.get("prim_path", ""),
-                        10.0,
+                        28.0,
                         visible,
                     )
         except Exception as exc:
@@ -1058,6 +1077,33 @@ class LSP1PipelineExtension(omni.ext.IExt):
 
         self.status.text = "Status: reset"
 
+    def _step_playback(self, delta_des_hours):
+        if not self.is_loaded:
+            return
+        self._pause()
+        self._seek_to_des_time(self.current_des_time + float(delta_des_hours))
+
+    def _on_playback_rate_changed(self, model):
+        self.playback_rate = max(0.25, min(8.0, float(model.as_float)))
+        self.playback_rate_label.text = f"{self.playback_rate:.2g}x"
+
+    def _on_seek_changed(self, model):
+        if self.is_updating_seek or not self.is_loaded:
+            return
+        self._pause()
+        duration = self._get_des_duration()
+        self._seek_to_des_time(float(model.as_float) * duration)
+
+    def _seek_to_des_time(self, des_time):
+        duration = self._get_des_duration()
+        des_time = max(0.0, min(float(des_time), duration))
+        seconds_per_unit = float(
+            (self.manifest.get("playback") or {}).get("seconds_per_sim_time_unit", 1.0)
+        )
+        self.elapsed_seconds = des_time * max(seconds_per_unit, 1e-6)
+        self._update_all(des_time)
+        self.status.text = f"Status: positioned at DES time {des_time:.2f} hr"
+
     def _ensure_timeline(self):
         if self.timeline_sub:
             return
@@ -1073,7 +1119,7 @@ class LSP1PipelineExtension(omni.ext.IExt):
             return
 
         dt = event.payload.get("dt", 0.0)
-        self.elapsed_seconds += dt
+        self.elapsed_seconds += dt * self.playback_rate
 
         playback = self.manifest.get("playback", {})
         seconds_per_unit = float(playback.get("seconds_per_sim_time_unit", 1.0))
@@ -1087,6 +1133,7 @@ class LSP1PipelineExtension(omni.ext.IExt):
 
     def _update_all(self, des_time):
         self.current_des_time = des_time
+        self._update_seek_slider(des_time)
         represented_hours = self._des_time_to_mission_hours(des_time)
         display_duration = self._get_display_duration_hours()
 
@@ -1105,6 +1152,17 @@ class LSP1PipelineExtension(omni.ext.IExt):
         self._update_scene_highlights()
         self._update_camera(des_time)
         self._update_dashboard(snap)
+
+    def _update_seek_slider(self, des_time):
+        if not self.seek_slider_model:
+            return
+        duration = self._get_des_duration()
+        value = des_time / duration if duration > 0 else 0.0
+        self.is_updating_seek = True
+        try:
+            self.seek_slider_model.set_value(max(0.0, min(1.0, value)))
+        finally:
+            self.is_updating_seek = False
 
     def _get_des_duration(self):
         if not self.des_log_times:
@@ -1292,14 +1350,14 @@ class LSP1PipelineExtension(omni.ext.IExt):
                 float(tangent[2]) / horizontal_length,
             ]
             if self.camera_mode == "rover_chase":
-                eye = [position[0] - direction[0] * 22.0, position[1] - direction[1] * 22.0, position[2] + 10.0]
-                target = [position[0] + direction[0] * 12.0, position[1] + direction[1] * 12.0, position[2] + 3.0]
-                path, focal_length = "/World/LSP1RoverChaseCamera", 24.0
+                eye = [position[0] - direction[0] * 90.0, position[1] - direction[1] * 90.0, position[2] + 32.0]
+                target = [position[0] + direction[0] * 12.0, position[1] + direction[1] * 12.0, position[2] + 4.0]
+                path, focal_length = "/World/LSP1RoverChaseCamera", 18.0
                 label = f"Camera: chase {actor.get('label', actor_id)}"
             else:
-                eye = [position[0] - direction[0] * 55.0, position[1] - direction[1] * 55.0, position[2] + 45.0]
-                target = [position[0], position[1], position[2] + 2.0]
-                path, focal_length = "/World/LSP1FollowCamera", 18.0
+                eye = [position[0] - direction[0] * 120.0, position[1] - direction[1] * 120.0, position[2] + 65.0]
+                target = [position[0] + direction[0] * 20.0, position[1] + direction[1] * 20.0, position[2] + 6.0]
+                path, focal_length = "/World/LSP1FollowCamera", 15.0
                 label = f"Camera: following {actor.get('label', actor_id)}"
 
             self._set_camera_look_at(stage, path, eye, target, focal_length)
@@ -1315,7 +1373,13 @@ class LSP1PipelineExtension(omni.ext.IExt):
         center = [(float(minimum[i]) + float(maximum[i])) / 2.0 for i in range(3)]
         span = max(float(maximum[0]) - float(minimum[0]), float(maximum[1]) - float(minimum[1]))
         path = "/World/LSP1OverviewCamera"
-        self._set_camera_look_at(stage, path, [center[0], center[1], center[2] + max(500.0, span * 1.15)], center, 28.0)
+        self._set_camera_look_at(
+            stage,
+            path,
+            [center[0], center[1], center[2] + max(800.0, span * 0.95)],
+            center,
+            10.0,
+        )
         self._activate_camera(path)
         self.camera_label.text = "Camera: mission overview"
 

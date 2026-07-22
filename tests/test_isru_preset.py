@@ -115,7 +115,7 @@ class IsruPresetTests(unittest.TestCase):
         self.assertIn("function setManualNoPowerMode(enabled)", html)
         self.assertIn("function migrateLegacyIsruEquations()", html)
         self.assertIn("const standardByClass = {", html)
-        self.assertIn("Transporter: ['SimulationTime', 'TravelTime', 'Distance', 'CargoMass', 'RoverCapacity', 'EnergyConsumed']", html)
+        self.assertIn("'FlatSpeedKph', 'SlopeDeg', 'SlopeSpeedFactor', 'EffectiveSpeedKph'", html)
         self.assertIn("function isSimulationAttributeName(name)", html)
         self.assertIn("return !/^cad/i.test", html)
         self.assertIn("const requiredRouteCount = Math.max(candidates.length, spec.roverCount);", html)

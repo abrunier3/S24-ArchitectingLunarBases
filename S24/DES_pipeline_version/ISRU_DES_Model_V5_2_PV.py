@@ -244,7 +244,10 @@ def regolithRoverController(system, plant_targets, rover_load, rover: LunarRover
         try:
             rover.loadCargo(source_output)
             outbound_outputs = rover.evaluateTransport(
-                "Regolith", source_output, target["distance_km"]
+                "Regolith",
+                source_output,
+                target["distance_km"],
+                slope_deg=target.get("mean_slope_deg", 0.0),
             )
             yield system.process(rover.travel(target["distance_km"], outbound_outputs))
             unloaded = rover.unloadCargo()
@@ -261,7 +264,10 @@ def regolithRoverController(system, plant_targets, rover_load, rover: LunarRover
                 f"to {target['instance_id']} (input inventory: {target['buffer'].level:.2f} kg)"
             )
             return_outputs = rover.evaluateTransport(
-                "Regolith", 0.0, target["distance_km"]
+                "Regolith",
+                0.0,
+                target["distance_km"],
+                slope_deg=target.get("mean_slope_deg", 0.0),
             )
             yield system.process(rover.travel(target["distance_km"], return_outputs))
             print(
@@ -380,7 +386,7 @@ def LOXStorageEnergy(system, plant, dt=1.0, energyCoeff=0.31):
 def LOXDeliveryController(system, plant: ISRUPlant, roverStore: simpy.Store,
                           destination,
                           distance, transportThreshold, poll_dt=1.0,
-                          assignedRoverId=None):
+                          assignedRoverId=None, mean_slope_deg=0.0):
     """
     Per-plant LOX delivery controller (first-come-first-served).
 
@@ -407,7 +413,9 @@ def LOXDeliveryController(system, plant: ISRUPlant, roverStore: simpy.Store,
                 print(f"[{system.now:.2f} hr] {plant.name} acquired {rover.name}, "
                       f"beginning delivery of {LOXToTransport:.2f} kg.")
                 rover.loadCargo(LOXToTransport)
-                outbound_outputs = rover.evaluateTransport("LOX", LOXToTransport, distance)
+                outbound_outputs = rover.evaluateTransport(
+                    "LOX", LOXToTransport, distance, slope_deg=mean_slope_deg
+                )
                 yield system.process(rover.travel(distance, outbound_outputs))
                 unloaded = rover.unloadCargo()
                 delivered = outbound_outputs.get("LOXOut", unloaded)
@@ -419,7 +427,9 @@ def LOXDeliveryController(system, plant: ISRUPlant, roverStore: simpy.Store,
                       f"{delivered:.2f} kg LOX to {destination.name} "
                       f"(total there: {destination.loxStored:.2f} kg). "
                       f"{rover.name} beginning empty return.")
-                return_outputs = rover.evaluateTransport("LOX", 0.0, distance)
+                return_outputs = rover.evaluateTransport(
+                    "LOX", 0.0, distance, slope_deg=mean_slope_deg
+                )
                 yield system.process(rover.travel(distance, return_outputs))
                 print(f"[{system.now:.2f} hr] {rover.name} returned empty to {plant.name}.")
             finally:
@@ -885,7 +895,16 @@ def run_scenario(optionsDict):
         r.energyPerKmPerKg = scenario_config["rovers"]["energy_kwh_per_km_per_kg"]
         if power_ignored:
             r.energyPerKmPerKg = 0.0
-        r.hoursPerKm       = scenario_config["rovers"]["travel_time_hr_per_km"]
+        r.flatSpeedKph = float(scenario_config["rovers"].get("flat_speed_kph", 0.0) or 0.0)
+        if r.flatSpeedKph <= 0:
+            r.flatSpeedKph = 1.0 / max(
+                float(scenario_config["rovers"].get("travel_time_hr_per_km", r.hoursPerKm)),
+                0.01,
+            )
+        r.slopeSpeedPenaltyPerDeg = float(
+            scenario_config["rovers"].get("slope_speed_penalty_per_deg", 0.05)
+        )
+        r.hoursPerKm = 1.0 / max(r.flatSpeedKph, 0.01)
         r.maxCapacity      = float(
             scenario_config["rovers"].get("regolith", {}).get(
                 "max_capacity_kg",
@@ -927,7 +946,16 @@ def run_scenario(optionsDict):
             r.energyPerKmPerKg = scenario_config["rovers"]["energy_kwh_per_km_per_kg"]
             if power_ignored:
                 r.energyPerKmPerKg = 0.0
-            r.hoursPerKm       = scenario_config["rovers"]["travel_time_hr_per_km"]
+            r.flatSpeedKph = float(scenario_config["rovers"].get("flat_speed_kph", 0.0) or 0.0)
+            if r.flatSpeedKph <= 0:
+                r.flatSpeedKph = 1.0 / max(
+                    float(scenario_config["rovers"].get("travel_time_hr_per_km", r.hoursPerKm)),
+                    0.01,
+                )
+            r.slopeSpeedPenaltyPerDeg = float(
+                scenario_config["rovers"].get("slope_speed_penalty_per_deg", 0.05)
+            )
+            r.hoursPerKm = 1.0 / max(r.flatSpeedKph, 0.01)
             r.maxCapacity      = float(
                 scenario_config["rovers"].get("lox", {}).get(
                     "max_capacity_kg",
@@ -977,6 +1005,7 @@ def run_scenario(optionsDict):
             routed_target = dict(target)
             if route.get("distance_km") is not None:
                 routed_target["distance_km"] = float(route["distance_km"])
+            routed_target["mean_slope_deg"] = float(route.get("mean_slope_deg", 0.0) or 0.0)
             rover_targets.append(routed_target)
 
         if not assigned_routes and not _has_assigned_resource_routes(
@@ -1046,6 +1075,7 @@ def run_scenario(optionsDict):
                 transportThreshold=transport_threshold,
                 poll_dt=scenario_config["isru"]["lox_delivery_poll_dt_hr"],
                 assignedRoverId=assigned_rover_id,
+                mean_slope_deg=float((route or {}).get("mean_slope_deg", 0.0) or 0.0),
             ))
 
     # Power management (only when solar system is present)

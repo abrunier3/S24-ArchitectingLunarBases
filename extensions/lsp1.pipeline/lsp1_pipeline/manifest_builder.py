@@ -1372,7 +1372,11 @@ def _build_regolith_movements(
     scenario_config = des_data.get("results", {}).get("Scenario_Config", {})
     routes_config = scenario_config.get("routes", {})
     rover_config = scenario_config.get("rovers", {})
-    hours_per_km = float(rover_config.get("travel_time_hr_per_km", inputs.get("Rover_Travel_Time", 0.0)))
+    flat_speed_kph = float(rover_config.get("flat_speed_kph", 0.0) or 0.0)
+    if flat_speed_kph <= 0:
+        hours_per_km = float(rover_config.get("travel_time_hr_per_km", inputs.get("Rover_Travel_Time", 0.0)))
+        flat_speed_kph = 1.0 / hours_per_km if hours_per_km > 0 else 0.0
+    slope_penalty = float(rover_config.get("slope_speed_penalty_per_deg", 0.0) or 0.0)
     sim_end = _simulation_end_time(des_data)
 
     if sim_end <= 0:
@@ -1390,7 +1394,9 @@ def _build_regolith_movements(
             route.get("distance_km")
             or routes_config.get("regolith_distance_km", inputs.get("Regolith_Haul_Distance", 0.0))
         )
-        duration = distance * hours_per_km
+        mean_slope_deg = max(0.0, float(route.get("mean_slope_deg", 0.0) or 0.0))
+        effective_speed = flat_speed_kph / (1.0 + slope_penalty * mean_slope_deg)
+        duration = distance / effective_speed if effective_speed > 0 else 0.0
         total_distance = _final_rover_distance(des_data, rover_name)
         if total_distance <= 0 or distance <= 0 or duration <= 0:
             continue
@@ -1410,7 +1416,7 @@ def _build_regolith_movements(
                 "start_time": round(start_time, 3),
                 "end_time": round(end_time, 3),
                 "reverse": bool(leg_idx % 2),
-                "source": "des:Scenario_Config.routes.regolith_distance_km*rovers.travel_time_hr_per_km",
+                "source": "des:flat_speed_kph adjusted by route mean_slope_deg",
             })
 
     return movements
@@ -1428,7 +1434,11 @@ def _build_lox_movements(
     scenario_config = des_data.get("results", {}).get("Scenario_Config", {})
     routes_config = scenario_config.get("routes", {})
     rover_config = scenario_config.get("rovers", {})
-    hours_per_km = float(rover_config.get("travel_time_hr_per_km", inputs.get("Rover_Travel_Time", 0.0)))
+    flat_speed_kph = float(rover_config.get("flat_speed_kph", 0.0) or 0.0)
+    if flat_speed_kph <= 0:
+        hours_per_km = float(rover_config.get("travel_time_hr_per_km", 0.0))
+        flat_speed_kph = 1.0 / hours_per_km if hours_per_km > 0 else 0.0
+    slope_penalty = float(rover_config.get("slope_speed_penalty_per_deg", 0.0) or 0.0)
     sim_end = _simulation_end_time(des_data)
     movements = []
     for rover_name in _get_rover_names(des_data, "LOX Cargo Rover"):
@@ -1440,7 +1450,9 @@ def _build_lox_movements(
             route.get("distance_km")
             or routes_config.get("lox_distance_km", inputs.get("LOX_Haul_Distance", 0.0))
         )
-        return_duration = distance * hours_per_km
+        mean_slope_deg = max(0.0, float(route.get("mean_slope_deg", 0.0) or 0.0))
+        effective_speed = flat_speed_kph / (1.0 + slope_penalty * mean_slope_deg)
+        return_duration = distance / effective_speed if effective_speed > 0 else 0.0
         in_motion = False
         start_time = None
 

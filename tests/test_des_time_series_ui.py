@@ -41,7 +41,8 @@ class DesTimeSeriesUiTests(unittest.TestCase):
             "energy_kwh_per_km_per_kg: ignorePower ? 0 : Number(sliderValues.Rover_Energy_Consumption)",
             html,
         )
-        self.assertIn("travel_time_hr_per_km: Number(sliderValues.Rover_Travel_Time)", html)
+        self.assertIn("flat_speed_kph: Number(sliderValues.Rover_Flat_Speed)", html)
+        self.assertIn("slope_speed_penalty_per_deg: Number(sliderValues.Rover_Slope_Speed_Penalty)", html)
         self.assertIn("processing_rate_kg_hr: Number(sliderValues.ISRU_Plant_Processing_Rate)", html)
         self.assertIn("dispatch_poll_dt_hr: getNumberInputValue('desRegolithPollDt', 0.1)", html)
         self.assertIn("lox_storage_energy_dt_hr: getNumberInputValue('desLoxStorageDt', 1)", html)

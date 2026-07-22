@@ -5151,6 +5151,24 @@ function getRouteMaxSlope(path, GRID, maxSlope = UP42_MAX_ROUTE_SLOPE) {
   return maxSeen;
 }
 
+function getRouteSlopeStats(path, GRID = up42SyntheticTerrain?.length || 80) {
+  if (!path || path.length < 2 || !up42SyntheticTerrain) {
+    return { mean_deg: 0, max_deg: 0 };
+  }
+  const samples = [];
+  for (let i = 1; i < path.length; i++) {
+    getRouteSegmentCells(path[i - 1], path[i], GRID).forEach(({ gx, gy }) => {
+      const slope = terrainSlopeAtGrid(gx, gy);
+      if (Number.isFinite(slope)) samples.push(slope);
+    });
+  }
+  if (!samples.length) return { mean_deg: 0, max_deg: 0 };
+  return {
+    mean_deg: +(samples.reduce((sum, value) => sum + value, 0) / samples.length).toFixed(3),
+    max_deg: +Math.max(...samples).toFixed(3)
+  };
+}
+
 function drawSyntheticHeatmap(moduleId) {
   if (!up42SyntheticTerrain) return;
   const GRID = up42SyntheticTerrain.length;
@@ -6486,7 +6504,7 @@ function getEquationTokenGroups(moduleId) {
     Processor: ['SimulationTime', 'ProcessingTime', 'EnergyConsumed'],
     Storage: ['SimulationTime'],
     Consumer: ['SimulationTime', 'EnergyConsumed'],
-    Transporter: ['SimulationTime', 'TravelTime', 'Distance', 'CargoMass', 'RoverCapacity', 'EnergyConsumed'],
+    Transporter: ['SimulationTime', 'TravelTime', 'Distance', 'CargoMass', 'RoverCapacity', 'FlatSpeedKph', 'SlopeDeg', 'SlopeSpeedFactor', 'EffectiveSpeedKph', 'EnergyConsumed'],
     PowerGenerator: ['SimulationTime', 'EnergyGenerated'],
     Passive: ['SimulationTime']
   };
@@ -6647,32 +6665,6 @@ function getModuleGraphProfile(moduleId) {
   };
 }
 
-function getModuleAttributeNames(moduleId) {
-  const part = getSysmlPartData(getBaseModuleId(moduleId)) || {};
-  return Object.keys(part.attributes || {}).map(name => String(name).toLowerCase());
-}
-
-function hasTransporterAttributes(moduleId) {
-  const attributes = getModuleAttributeNames(moduleId);
-  // A transporter has an explicit carrying capability plus at least one
-  // mobility/transport-performance attribute in the SysML asset definition.
-  const hasCapacity = attributes.some(name => /(?:max|payload|cargo).*capacity|capacity.*(?:max|payload|cargo)/.test(name));
-  const hasMobility = attributes.some(name => /hoursperkm|traveltime|speed|energyperkm|transportenergy|transportdist/.test(name));
-  return hasCapacity && hasMobility;
-}
-
-function hasStorageAttributes(moduleId) {
-  return getModuleAttributeNames(moduleId).some(name =>
-    /storagecapacity|inventorycapacity|tankcapacity|buffer|stored|inventory/.test(name)
-  );
-}
-
-function hasProcessingAttributes(moduleId) {
-  return getModuleAttributeNames(moduleId).some(name =>
-    /processingrate|processingtime|conversion|efficiency|extractionrate|productionrate/.test(name)
-  );
-}
-
 function inferModuleClass(moduleId) {
   const baseId = getBaseModuleId(moduleId);
   const profile = getModuleGraphProfile(baseId);
@@ -6682,16 +6674,13 @@ function inferModuleClass(moduleId) {
   if (profile.powerOutgoing.length && !profile.resourceIncoming.length && !profile.resourceOutgoing.length) return 'PowerGenerator';
   if (!profile.resourceIncoming.length && profile.resourceOutgoing.length) return 'Source';
   if (profile.resourceIncoming.length && profile.resourceOutgoing.length) {
-    // A rover relays the same material but is distinguished from a storage
-    // asset by its SysML mobility and payload attributes.
-    if (hasTransporterAttributes(baseId) && profile.sameResourceRelay) return 'Transporter';
-    if (profile.transformedResource || hasProcessingAttributes(baseId)) return 'Processor';
+    if (profile.transformedResource) return 'Processor';
     return 'Storage';
   }
-  // An endpoint with no storage capacity is a consumer, whether it consumes
-  // material, power, or both. Storage is reserved for explicit inventory assets.
+  // A pure endpoint is a consumer. Storage versus consumer is the one
+  // deliberately ambiguous topology and remains a visible user override.
   if (profile.resourceIncoming.length && !profile.resourceOutgoing.length) {
-    return hasStorageAttributes(baseId) ? 'Storage' : 'Consumer';
+    return 'Consumer';
   }
   if (profile.powerIncoming.length && !profile.resourceIncoming.length && !profile.resourceOutgoing.length) return 'Consumer';
 
@@ -6700,12 +6689,11 @@ function inferModuleClass(moduleId) {
     const outgoing = new Set(portFlows.outputs.map(flow => flow.toLowerCase()));
     const transformsResource = [...incoming].some(flow => !outgoing.has(flow)) ||
       [...outgoing].some(flow => !incoming.has(flow));
-    if (hasTransporterAttributes(baseId) && !transformsResource) return 'Transporter';
-    if (transformsResource || hasProcessingAttributes(baseId)) return 'Processor';
+    if (transformsResource) return 'Processor';
     return 'Storage';
   }
   if (portFlows.outputs.length) return 'Source';
-  if (portFlows.inputs.length) return hasStorageAttributes(baseId) ? 'Storage' : 'Consumer';
+  if (portFlows.inputs.length) return 'Consumer';
   if (portFlows.powerOutputs.length) return 'PowerGenerator';
   if (portFlows.powerInputs.length) return 'Consumer';
   return 'Passive';
@@ -7202,16 +7190,21 @@ function buildScenarioLogicPayload() {
     ignore_power: isPowerIgnored(),
     sysml_interfaces: up42Scenario.sysmlInterfaces,
     transport_links: up42Scenario.transportLinks,
-    resource_routes: (up42Scenario.resourceRoutes || []).map(route => ({
-      id: route.id,
-      flow: route.flow,
-      rover_type: route.rover_type,
-      rover_id: route.rover_id || null,
-      from: route.from,
-      to: route.to,
-      stops: route.stops || [],
-      distance_km: +getRoutePathDistanceKm(route.pts || []).toFixed(3)
-    })),
+    resource_routes: (up42Scenario.resourceRoutes || []).map(route => {
+      const slope = getRouteSlopeStats(route.pts || []);
+      return {
+        id: route.id,
+        flow: route.flow,
+        rover_type: route.rover_type,
+        rover_id: route.rover_id || null,
+        from: route.from,
+        to: route.to,
+        stops: route.stops || [],
+        distance_km: +getRoutePathDistanceKm(route.pts || []).toFixed(3),
+        mean_slope_deg: slope.mean_deg,
+        max_slope_deg: slope.max_deg
+      };
+    }),
     module_equations: {...up42Scenario.moduleEquations}
   };
 }
@@ -8123,12 +8116,22 @@ let up42MoonImg = null;
 
         <div id="desControlRoverTravel">
           <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
-            <span style="font-size:11px;color:var(--text2);">Travel time coefficient <small style="color:#4cc9f0;">[Both rover types]</small></span>
-            <span id="desRoverTravelVal" style="font-size:11px;font-weight:600;color:var(--accent);">5 hr/km</span>
+            <span style="font-size:11px;color:var(--text2);">Flat-terrain rover speed <small style="color:#4cc9f0;">[Both rover types]</small></span>
+            <span id="desRoverTravelVal" style="font-size:11px;font-weight:600;color:var(--accent);">0.20 km/h</span>
           </div>
-          <input id="desRoverTravel" type="range" min="1" max="10" step="1" value="5" style="width:100%;"
-            oninput="document.getElementById('desRoverTravelVal').textContent=this.value+' hr/km'">
-          <div style="font-size:9px;color:var(--text3);margin-top:2px;line-height:1.4;">Hours required per kilometer. Multiplied by the selected route length for each trip.</div>
+          <input id="desRoverTravel" type="range" min="0.1" max="2" step="0.05" value="0.2" style="width:100%;"
+            oninput="document.getElementById('desRoverTravelVal').textContent=Number(this.value).toFixed(2)+' km/h'">
+          <div style="font-size:9px;color:var(--text3);margin-top:2px;line-height:1.4;">Nominal rover speed on flat ground. The DES reduces it from the measured route slope.</div>
+        </div>
+
+        <div id="desControlRoverSlopeSpeed">
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+            <span style="font-size:11px;color:var(--text2);">Slope speed reduction <small style="color:#4cc9f0;">[Both rover types]</small></span>
+            <span id="desRoverSlopeSpeedVal" style="font-size:11px;font-weight:600;color:var(--accent);">5% / deg</span>
+          </div>
+          <input id="desRoverSlopeSpeed" type="range" min="0" max="0.15" step="0.01" value="0.05" style="width:100%;"
+            oninput="document.getElementById('desRoverSlopeSpeedVal').textContent=Math.round(Number(this.value)*100)+'% / deg'">
+          <div style="font-size:9px;color:var(--text3);margin-top:2px;line-height:1.4;">Terrain penalty: effective speed = flat speed / (1 + penalty × route slope in degrees).</div>
         </div>
 
         <div id="desRoverPayloadSection" style="grid-column:1/-1;">
@@ -9272,20 +9275,29 @@ let up42MoonImg = null;
       ...conns.map(c => c.fromName).filter(Boolean),
       ...conns.map(c => c.toName).filter(Boolean)
     ])];
+    const resourceConns = conns.filter(conn =>
+      !isPowerFlow(conn.flow) && !isCommunicationFlow(conn.flow)
+    );
+    const resourceConnected = new Set(resourceConns.flatMap(conn => [conn.fromName, conn.toName]));
+    // Resource flow defines the left-to-right operational chain. Pure power
+    // infrastructure is placed separately so it cannot flatten that chain.
+    const chainNames = resourceConnected.size ? names.filter(name => resourceConnected.has(name)) : names;
+    const peripheralNames = resourceConnected.size ? names.filter(name => !resourceConnected.has(name)) : [];
+    const layoutConns = resourceConns.length ? resourceConns : conns;
 
-    const outgoing = new Map(names.map(name => [name, []]));
-    const incomingCount = new Map(names.map(name => [name, 0]));
+    const outgoing = new Map(chainNames.map(name => [name, []]));
+    const incomingCount = new Map(chainNames.map(name => [name, 0]));
 
-    conns.forEach(conn => {
+    layoutConns.forEach(conn => {
       const fromName = conn.fromName;
       const toName = conn.toName;
-      if (!fromName || !toName || fromName === toName) return;
+      if (!fromName || !toName || fromName === toName || !outgoing.has(fromName) || !incomingCount.has(toName)) return;
       if (!outgoing.has(fromName)) outgoing.set(fromName, []);
       outgoing.get(fromName).push(toName);
       incomingCount.set(toName, (incomingCount.get(toName) || 0) + 1);
     });
 
-    const queue = names
+    const queue = chainNames
       .filter(name => (incomingCount.get(name) || 0) === 0)
       .sort((a, b) => a.localeCompare(b));
     const depth = new Map();
@@ -9304,7 +9316,7 @@ let up42MoonImg = null;
     }
 
     let fallbackDepth = Math.max(0, ...depth.values());
-    names.forEach(name => {
+    chainNames.forEach(name => {
       if (!depth.has(name)) {
         fallbackDepth += 1;
         depth.set(name, fallbackDepth);
@@ -9313,19 +9325,19 @@ let up42MoonImg = null;
 
     const maxDepth = Math.max(0, ...depth.values());
     const layers = Array.from({ length: maxDepth + 1 }, () => []);
-    names.forEach(name => layers[depth.get(name) || 0].push(name));
+    chainNames.forEach(name => layers[depth.get(name) || 0].push(name));
     layers.forEach(layer => layer.sort((a, b) => a.localeCompare(b)));
 
-    const marginX = 24;
-    const marginY = 20;
+    const marginX = 44;
+    const marginY = 34;
     const usableW = Math.max(nodeW + 20, cW - marginX * 2);
     const usableH = Math.max(nodeH + 20, cH - marginY * 2);
     const positions = {};
 
-    if (layers.length === 1) {
-      const cols = Math.max(1, Math.ceil(Math.sqrt(names.length)));
-      const rows = Math.max(1, Math.ceil(names.length / cols));
-      names.forEach((name, index) => {
+    if (layers.length === 1 && !peripheralNames.length) {
+      const cols = Math.max(1, Math.ceil(Math.sqrt(chainNames.length)));
+      const rows = Math.max(1, Math.ceil(chainNames.length / cols));
+      chainNames.forEach((name, index) => {
         const col = index % cols;
         const row = Math.floor(index / cols);
         const x = marginX + (cols === 1 ? (usableW - nodeW) / 2 : (col / (cols - 1)) * (usableW - nodeW));
@@ -9339,12 +9351,24 @@ let up42MoonImg = null;
       const layerCount = layer.length;
       const x = marginX + (layerIndex / Math.max(1, layers.length - 1)) * (usableW - nodeW);
       layer.forEach((name, idx) => {
-        const y = marginY + ((idx + 1) / (layerCount + 1)) * usableH;
+        // Keep a centered operational chain while reserving a distinct upper
+        // row when power-only infrastructure is present.
+        const chainTop = peripheralNames.length ? 0.18 : 0.10;
+        const chainHeight = peripheralNames.length ? 0.64 : 0.80;
+        const y = marginY + usableH * (chainTop + ((idx + 1) / (layerCount + 1)) * chainHeight);
         positions[name] = {
           x: Math.round(x),
           y: Math.round(y - nodeH / 2)
         };
       });
+    });
+
+    peripheralNames.forEach((name, index) => {
+      const x = marginX + ((index + 1) / (peripheralNames.length + 1)) * (usableW - nodeW);
+      positions[name] = {
+        x: Math.round(x),
+        y: Math.round(marginY)
+      };
     });
 
     return positions;
@@ -9442,10 +9466,25 @@ let up42MoonImg = null;
       }
 
       const { a, b } = getAnchors(pxA, pxB);
+      const sameEndpoints = conns
+        .filter(other => other.fromName === fromName && other.toName === toName)
+        .sort((left, right) => String(left.flow || '').localeCompare(String(right.flow || '')));
+      const parallelIndex = Math.max(0, sameEndpoints.indexOf(c));
+      const parallelOffset = parallelIndex - (sameEndpoints.length - 1) / 2;
+      const isPowerConnection = isPowerFlow(flow);
+      const sameSourcePower = conns
+        .filter(other => other.fromName === fromName && isPowerFlow(other.flow))
+        .sort((left, right) => String(left.toName || '').localeCompare(String(right.toName || '')));
+      const sourcePowerIndex = Math.max(0, sameSourcePower.indexOf(c));
+      // Power uses an upper routing lane, while resource flow uses a lower
+      // lane. Parallel links receive incremental separation within that lane.
+      const laneBend = isPowerConnection
+        ? -48 - sourcePowerIndex * 20 + parallelOffset * 14
+        : 22 + parallelOffset * 18;
       const cx1 = a.x + (b.x - a.x) * 0.35;
-      const cy1 = a.y;
+      const cy1 = a.y + laneBend;
       const cx2 = a.x + (b.x - a.x) * 0.65;
-      const cy2 = b.y;
+      const cy2 = b.y + laneBend;
 
       const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
       path.setAttribute('d', `M ${a.x} ${a.y} C ${cx1} ${cy1}, ${cx2} ${cy2}, ${b.x} ${b.y}`);
@@ -9460,8 +9499,8 @@ let up42MoonImg = null;
       svgLayer.appendChild(path);
 
       const txt = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-      txt.setAttribute('x', (a.x + b.x) / 2);
-      txt.setAttribute('y', (a.y + b.y) / 2 - 10);
+      txt.setAttribute('x', (a.x + 3 * cx1 + 3 * cx2 + b.x) / 8);
+      txt.setAttribute('y', (a.y + 3 * cy1 + 3 * cy2 + b.y) / 8 - 8);
       txt.setAttribute('text-anchor', 'middle');
       txt.setAttribute('fill', color);
       txt.setAttribute('font-size', '11');
@@ -11914,7 +11953,8 @@ let up42MoonImg = null;
       Regolith_Haul_Distance: document.getElementById('desRegDist').value,
       LOX_Haul_Distance: document.getElementById('desLoxDist').value,
       Rover_Energy_Consumption: document.getElementById('desRoverEnergy').value,
-      Rover_Travel_Time: document.getElementById('desRoverTravel').value,
+      Rover_Flat_Speed: document.getElementById('desRoverTravel').value,
+      Rover_Slope_Speed_Penalty: document.getElementById('desRoverSlopeSpeed').value,
       ISRU_Plant_Processing_Rate: document.getElementById('desProcessRate').value,
       LOX_Transport_Threshold: document.getElementById('desLoxThresh').value,
     };
@@ -11958,7 +11998,10 @@ let up42MoonImg = null;
 	        lox: { count: loxRoverCount, max_capacity_kg: loxPayload },
 	        capacity_by_flow_kg: roverPayloads,
 	        energy_kwh_per_km_per_kg: ignorePower ? 0 : Number(sliderValues.Rover_Energy_Consumption),
-	        travel_time_hr_per_km: Number(sliderValues.Rover_Travel_Time),
+	        flat_speed_kph: Number(sliderValues.Rover_Flat_Speed),
+	        slope_speed_penalty_per_deg: Number(sliderValues.Rover_Slope_Speed_Penalty),
+	        // Kept for old scenario readers; the DES uses flat_speed_kph.
+	        travel_time_hr_per_km: 1 / Math.max(0.01, Number(sliderValues.Rover_Flat_Speed)),
 	        max_capacity_kg: roverCapacity,
       },
       regolith: {

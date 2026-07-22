@@ -35,6 +35,9 @@ DEFAULT_SCENARIO_CONFIG = {
             "count": 1,
         },
         "energy_kwh_per_km_per_kg": 0.00034,
+        # Zero keeps legacy travel_time_hr_per_km configurations authoritative.
+        "flat_speed_kph": 0.0,
+        "slope_speed_penalty_per_deg": 0.05,
         "travel_time_hr_per_km": 5.0,
         "max_capacity_kg": 4000.0,
         "capacity_by_flow_kg": {
