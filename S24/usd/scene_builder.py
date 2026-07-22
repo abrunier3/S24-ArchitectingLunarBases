@@ -160,6 +160,22 @@ def _source_orientation_rotation(
     return [rotate_xyz[0], rotate_xyz[1], rotate_xyz[2] + yaw_correction]
 
 
+def _source_front_yaw(metadata: Dict[str, Any] | None) -> float:
+    """Return only the horizontal front-axis alignment for a converted CAD."""
+    metadata = metadata or {}
+    if not _uses_source_up_axis(metadata):
+        return 0.0
+
+    front_vector = _axis_after_up_correction(
+        str(metadata.get("cadSourceFrontAxis") or "+X").upper(),
+        str(metadata.get("cadSourceUpAxis") or "Z").upper(),
+    )
+    vx, vy = front_vector[0], front_vector[1]
+    if math.hypot(vx, vy) < 1e-9:
+        return 0.0
+    return -math.degrees(math.atan2(vy, vx))
+
+
 def _stage_has_authored_orientation(stage: Usd.Stage) -> bool:
     """Return whether the referenced USD already encodes a visual orientation."""
     identity = Gf.Matrix4d(1.0)
@@ -181,6 +197,22 @@ def _stage_has_authored_orientation(stage: Usd.Stage) -> bool:
             elif op_name.endswith(":transform") and value != identity:
                 return True
     return False
+
+
+def _is_baked_cad_conversion(cad_path: str, metadata: Dict[str, Any] | None) -> bool:
+    """Whether a raw CAD source has already been converted into this USD layer."""
+    metadata = metadata or {}
+    source_path = str(
+        metadata.get("sourceCadPath")
+        or metadata.get("cadSourcePath")
+        or metadata.get("cadFileName")
+        or ""
+    ).lower()
+    referenced_path = str(cad_path or "").lower()
+    return (
+        source_path.endswith((".step", ".stp", ".stl", ".obj"))
+        and referenced_path.endswith((".usd", ".usda", ".usdc", ".usdz"))
+    )
 
 
 def _cad_normalization(
@@ -232,13 +264,18 @@ def _cad_normalization(
         )
 
     has_authored_orientation = _stage_has_authored_orientation(stage)
-    # The stage axis describes the file's coordinate convention. It is not an
-    # instruction to rotate a referenced model if that file already carries
-    # the corresponding visual orientation in its own xformOps.
-    rotate_xyz = [0.0, 0.0, 0.0] if has_authored_orientation else _source_orientation_rotation(
-        metadata,
-        authored_up_axis=up_axis,
-    )
+    # STEP/STL/OBJ conversion bakes the chosen source axis into the generated
+    # Z-up USD points. Applying that source-axis choice again here would rotate
+    # the model twice and can lay an upright rover on its side.
+    orientation_is_baked = _is_baked_cad_conversion(cad_path, metadata)
+    if orientation_is_baked:
+        # The source up-axis correction is baked into the converted mesh; the
+        # front-axis remains a horizontal placement choice for the scenario.
+        rotate_xyz = [0.0, 0.0, _source_front_yaw(metadata)]
+    elif has_authored_orientation:
+        rotate_xyz = [0.0, 0.0, 0.0]
+    else:
+        rotate_xyz = _source_orientation_rotation(metadata, authored_up_axis=up_axis)
 
     unit_scale = [meters_per_unit, meters_per_unit, meters_per_unit]
 
@@ -322,6 +359,7 @@ def _cad_normalization(
         "fitted_bbox_size": fitted_bbox_size,
         "has_authored_xforms": bool(authored_xform_ops),
         "has_authored_orientation": has_authored_orientation,
+        "orientation_is_baked": orientation_is_baked,
         "authored_xform_ops": authored_xform_ops[:20],
     }
 

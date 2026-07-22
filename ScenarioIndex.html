@@ -10505,8 +10505,12 @@ let up42MoonImg = null;
     );
   }
 
-  function setCadSourceUpAxis(moduleName, axis) {
+  async function setCadSourceUpAxis(moduleName, axis) {
     const normalized = normalizeUpAxis(axis, 'Z');
+    const previousAxis = normalizeUpAxis(
+      moduleMetaCache[moduleName]?.cadSourceUpAxis || 'Z',
+      'Z'
+    );
     moduleMetaCache[moduleName] = {
       ...(moduleMetaCache[moduleName] || {}),
       cadSourceUpAxis: normalized,
@@ -10521,21 +10525,61 @@ let up42MoonImg = null;
           ? { name: sysmlPartsCache[moduleName].metadata.cadFileName }
         : null);
 
-    if (cadFileForSave) {
-      const pubStatus = document.getElementById('publishStatus');
-      if (pubStatus) pubStatus.textContent = `Saving ${moduleName} source up axis: ${normalized}...`;
-      writeAssetJson(moduleName, cadFileForSave)
-        .then(ok => {
-          const status = document.getElementById('publishStatus');
-          if (status) {
-            status.textContent = ok
-              ? `${moduleName} source up axis saved: ${normalized}.`
-              : `Could not save ${moduleName} source up axis.`;
-          }
-        })
-        .catch(error => {
-          console.warn('[setCadSourceUpAxis]', error);
-        });
+    if (!cadFileForSave) return;
+
+    const pubStatus = document.getElementById('publishStatus');
+    if (pubStatus) pubStatus.textContent = `Saving ${moduleName} source up axis: ${normalized}...`;
+    const saved = await writeAssetJson(moduleName, cadFileForSave);
+    if (!saved) {
+      if (pubStatus) pubStatus.textContent = `Could not save ${moduleName} source up axis.`;
+      return;
+    }
+
+    const sourceCadPath = moduleMetaCache[moduleName]?.sourceCadPath ||
+      sysmlPartsCache[moduleName]?.metadata?.sourceCadPath ||
+      `${cadFolderPath(moduleName)}/${cadFileForSave.name}`;
+    const rawCadSource = /\.(step|stp|stl|obj)$/i.test(sourceCadPath);
+    if (!rawCadSource || normalized === previousAxis) {
+      if (pubStatus) pubStatus.textContent = `${moduleName} source up axis saved: ${normalized}.`;
+      return;
+    }
+
+    const previousMeta = await fetchGithubContentMeta(
+      cadPreviewPath(moduleName, getCadScenarioSlug(), '_meta.json'),
+      Date.now()
+    );
+    const previousGlb = await fetchCadGlbMeta(moduleName, Date.now());
+    const previewRequest = {
+      requestedAt: Date.now(),
+      previousMetaSha: previousMeta?.sha || null,
+      previousGlbSha: previousGlb?.sha || cadPreviewState[moduleName]?.glbSha || null
+    };
+    updateModuleDot(moduleName, 'uploading');
+    if (pubStatus) {
+      pubStatus.textContent = `Reorienting ${moduleName} as ${normalized}-up and rebuilding its USD preview...`;
+    }
+    const runInfo = await triggerConvertWorkflow(
+      moduleName,
+      sourceCadPath,
+      Date.now(),
+      normalized
+    );
+    if (!runInfo) {
+      updateModuleDot(moduleName, 'error');
+      if (pubStatus) pubStatus.textContent = `Could not start the ${moduleName} CAD reorientation.`;
+      return;
+    }
+
+    const freshMeta = await pollForMeta(moduleName, runInfo, previewRequest);
+    if (!freshMeta?.data) {
+      updateModuleDot(moduleName, 'error');
+      if (pubStatus) pubStatus.textContent = `${moduleName} CAD reorientation did not finish.`;
+      return;
+    }
+    syncDetectedCadMeta(freshMeta.data);
+    await writeAssetJson(moduleName, cadFileForSave);
+    if (pubStatus) {
+      pubStatus.textContent = `${moduleName} rebuilt as ${normalized}-up. Omniverse will use this converted orientation.`;
     }
   }
 
@@ -11045,7 +11089,11 @@ let up42MoonImg = null;
       const runInfo = await triggerConvertBatchWorkflow(
         conversionJobs.map(job => ({
           module_name: job.moduleName,
-          cad_path: job.usdPath
+          cad_path: job.usdPath,
+          source_up_axis: normalizeUpAxis(
+            moduleMetaCache[job.moduleName]?.cadSourceUpAxis || 'Z',
+            'Z'
+          )
         })),
         Date.now()
       );
@@ -11079,7 +11127,7 @@ let up42MoonImg = null;
     }
   }
 
-  async function triggerConvertWorkflow(moduleName, usdPath, dispatchedAt = Date.now()) {
+  async function triggerConvertWorkflow(moduleName, usdPath, dispatchedAt = Date.now(), sourceUpAxis = 'Z') {
     const token = sessionStorage.getItem('gh_pat');
     if (!token) return null;
 
@@ -11096,7 +11144,8 @@ let up42MoonImg = null;
           ref: GH_REF,
           inputs: {
             module_name: moduleName,
-            usd_path: usdPath
+            usd_path: usdPath,
+            source_up_axis: normalizeUpAxis(sourceUpAxis, 'Z')
           }
         }),
         cache: 'no-store'

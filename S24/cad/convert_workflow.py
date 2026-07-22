@@ -17,6 +17,13 @@ from S24.cad.paths import scenario_slug_from_cad_path
 from S24.cad.step_to_usd import convert_step_to_usd
 
 
+def _normalise_up_axis(value: Any) -> str:
+    axis = str(value or "Z").upper()
+    if axis not in {"X", "Y", "Z"}:
+        raise ValueError(f"Unsupported source up axis: {value}")
+    return axis
+
+
 def _workflow_jobs() -> list[dict[str, str]]:
     raw_batch = os.environ.get("BATCH_JOBS_JSON", "").strip()
     if raw_batch:
@@ -27,6 +34,7 @@ def _workflow_jobs() -> list[dict[str, str]]:
             {
                 "module_name": str(job["module_name"]),
                 "cad_path": str(job["cad_path"]),
+                "source_up_axis": _normalise_up_axis(job.get("source_up_axis", "Z")),
             }
             for job in jobs
         ]
@@ -36,7 +44,15 @@ def _workflow_jobs() -> list[dict[str, str]]:
     if not module_name or not cad_path:
         raise ValueError("Provide either BATCH_JOBS_JSON or MODULE_NAME/USD_PATH")
 
-    return [{"module_name": module_name, "cad_path": cad_path}]
+    return [
+        {
+            "module_name": module_name,
+            "cad_path": cad_path,
+            "source_up_axis": _normalise_up_axis(
+                os.environ.get("SOURCE_UP_AXIS", "Z")
+            ),
+        }
+    ]
 
 
 def _to_json_val(value: Any) -> Any:
@@ -241,7 +257,7 @@ def _write_glb(
     return glb_path
 
 
-def _convert_one(module_name: str, cad_path: str) -> None:
+def _convert_one(module_name: str, cad_path: str, *, source_up_axis: str) -> None:
     scenario_slug = scenario_slug_from_cad_path(cad_path)
     previews_dir = Path("outputs") / "cad_previews" / scenario_slug
     previews_dir.mkdir(parents=True, exist_ok=True)
@@ -257,7 +273,7 @@ def _convert_one(module_name: str, cad_path: str) -> None:
         source_metadata = convert_step_to_usd(
             cad_path,
             converted_usd_path,
-            source_up_axis=os.environ.get("STEP_SOURCE_UP_AXIS", "Z"),
+            source_up_axis=source_up_axis,
         )
         Path(source_meta_path).write_text(
             json.dumps(source_metadata, indent=2),
@@ -278,7 +294,7 @@ def _convert_one(module_name: str, cad_path: str) -> None:
             cad_path,
             converted_usd_path,
             source_unit=os.environ.get("MESH_SOURCE_UNIT", "m"),
-            source_up_axis=os.environ.get("MESH_SOURCE_UP_AXIS", "Z"),
+            source_up_axis=source_up_axis,
         )
         Path(source_meta_path).write_text(
             json.dumps(source_metadata, indent=2),
@@ -361,7 +377,11 @@ def _convert_one(module_name: str, cad_path: str) -> None:
 
 def main() -> int:
     for job in _workflow_jobs():
-        _convert_one(job["module_name"], job["cad_path"])
+        _convert_one(
+            job["module_name"],
+            job["cad_path"],
+            source_up_axis=job["source_up_axis"],
+        )
     return 0
 
 

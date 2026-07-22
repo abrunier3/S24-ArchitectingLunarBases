@@ -73,7 +73,23 @@ class CadScenarioStorageTests(unittest.TestCase):
         self.assertIn("authored_up_axis=up_axis", scene_builder)
         self.assertIn("A USD's stage metadata is authoritative.", scene_builder)
         self.assertIn("def _stage_has_authored_orientation", scene_builder)
-        self.assertIn("if has_authored_orientation else _source_orientation_rotation", scene_builder)
+        self.assertIn("has_authored_orientation", scene_builder)
+
+    def test_source_axis_choice_rebuilds_raw_cad_and_is_not_reapplied_in_scene(self):
+        root = Path(__file__).resolve().parents[1]
+        html = (root / "ScenarioIndex.html").read_text()
+        workflow = (root / ".github/workflows/convert_cad.yml").read_text()
+        converter = (root / "S24/cad/convert_workflow.py").read_text()
+        scene_builder = (root / "S24/usd/scene_builder.py").read_text()
+
+        self.assertIn("async function setCadSourceUpAxis", html)
+        self.assertIn("Reorienting ${moduleName} as ${normalized}-up", html)
+        self.assertIn("source_up_axis: normalizeUpAxis(sourceUpAxis, 'Z')", html)
+        self.assertIn("source_up_axis:", workflow)
+        self.assertIn('"source_up_axis": _normalise_up_axis', converter)
+        self.assertIn("def _is_baked_cad_conversion", scene_builder)
+        self.assertIn("if orientation_is_baked:", scene_builder)
+        self.assertIn("_source_front_yaw(metadata)", scene_builder)
 
 
 if __name__ == "__main__":
