@@ -35,8 +35,10 @@ class CadScenarioStorageTests(unittest.TestCase):
 
         self.assertIn("function refreshCadReuseOptions", html)
         self.assertIn("function loadCadFromScenario", html)
+        self.assertIn("function getCadCatalogGroups", html)
         self.assertIn("clean_database/cad_models/${scenarioSlug}/${moduleName}", html)
-        self.assertIn("This scenario now owns its copy", html)
+        self.assertIn("CAD library: clean_database/cad_models", html)
+        self.assertIn("This scenario now owns its CAD and preview", html)
         self.assertIn("cadImportedFromScenario", html)
 
     def test_new_rover_controls_are_not_sent_as_undeclared_workflow_inputs(self):

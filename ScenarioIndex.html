@@ -2011,11 +2011,11 @@
             <div id="cadUploadStatus" class="mini-note" style="margin-top:8px;">No CAD file loaded yet.</div>
             <div style="display:flex;gap:8px;align-items:center;margin-top:10px;">
               <select id="cadReuseSelect" style="flex:1;min-width:0;" onchange="updateCadReuseButton()">
-                <option value="">Load a published CAD from another scenario...</option>
+                <option value="">Load a CAD from a scenario or the CAD library...</option>
               </select>
               <button id="cadReuseBtn" class="btn btn-secondary" type="button" disabled onclick="loadCadFromScenario()">Load</button>
             </div>
-            <div id="cadReuseStatus" class="mini-note" style="margin-top:5px;">Choose a scenario CAD to copy into this scenario.</div>
+            <div id="cadReuseStatus" class="mini-note" style="margin-top:5px;">Choose a CAD to copy into this scenario.</div>
           </div>
 
           <!-- Hidden metadata fields kept for Step 3 logic/state -->
@@ -9844,70 +9844,156 @@ let up42MoonImg = null;
     if (button) button.disabled = !currentModuleName || !select?.value;
   }
 
+  const CAD_FILE_EXTENSION = /\.(?:usd|usda|usdc|usdz|step|stp|stl|obj)$/i;
+
+  function isCadFile(entry) {
+    return entry?.type === 'file' && CAD_FILE_EXTENSION.test(entry.name || '');
+  }
+
+  async function listCadFiles(path) {
+    const entries = await listGithubDirectory(path);
+    return entries.filter(isCadFile).map(entry => ({
+      fileName: entry.name,
+      cadPath: entry.path || `${path}/${entry.name}`
+    }));
+  }
+
+  async function getCadCatalogGroups() {
+    const [cadRoot, scenarioRoot] = await Promise.all([
+      listGithubDirectory('clean_database/cad_models'),
+      listGithubDirectory('clean_database/json')
+    ]);
+    const scenarioNames = new Set(
+      scenarioRoot
+        .filter(entry => entry?.type === 'dir')
+        .map(entry => entry.name)
+    );
+    const libraryItems = [];
+    const scenarioGroups = [];
+
+    cadRoot.filter(isCadFile).forEach(entry => {
+      libraryItems.push({
+        fileName: entry.name,
+        displayName: entry.name,
+        cadPath: entry.path || `clean_database/cad_models/${entry.name}`,
+        sourceLabel: 'CAD library'
+      });
+    });
+
+    for (const rootEntry of cadRoot.filter(entry => entry?.type === 'dir' && !entry.name.startsWith('.'))) {
+      const rootPath = rootEntry.path || `clean_database/cad_models/${rootEntry.name}`;
+      const rootContents = await listGithubDirectory(rootPath);
+      const directFiles = rootContents.filter(isCadFile);
+      const childDirectories = rootContents.filter(entry => entry?.type === 'dir');
+      const isScenarioFolder = scenarioNames.has(rootEntry.name) || childDirectories.length > 0;
+
+      if (isScenarioFolder) {
+        const scenarioItems = directFiles.map(entry => ({
+          fileName: entry.name,
+          displayName: entry.name,
+          cadPath: entry.path || `${rootPath}/${entry.name}`,
+          sourceLabel: rootEntry.name
+        }));
+
+        for (const child of childDirectories) {
+          const childPath = child.path || `${rootPath}/${child.name}`;
+          const childFiles = await listCadFiles(childPath);
+          childFiles.forEach(file => {
+            scenarioItems.push({
+              ...file,
+              displayName: `${child.name} / ${file.fileName}`,
+              sourceLabel: rootEntry.name
+            });
+          });
+        }
+
+        if (scenarioItems.length) {
+          scenarioGroups.push({ label: `Scenario: ${rootEntry.name}`, items: scenarioItems });
+        }
+        continue;
+      }
+
+      directFiles.forEach(entry => {
+        libraryItems.push({
+          fileName: entry.name,
+          displayName: `${rootEntry.name} / ${entry.name}`,
+          cadPath: entry.path || `${rootPath}/${entry.name}`,
+          sourceLabel: 'CAD library'
+        });
+      });
+    }
+
+    return [
+      ...scenarioGroups.sort((left, right) => left.label.localeCompare(right.label)),
+      ...(libraryItems.length ? [{ label: 'CAD library: clean_database/cad_models', items: libraryItems }] : [])
+    ];
+  }
+
   async function refreshCadReuseOptions(moduleName = currentModuleName) {
     const select = document.getElementById('cadReuseSelect');
     if (!select) return;
 
-    select.innerHTML = '<option value="">Load a published CAD from another scenario...</option>';
+    select.innerHTML = '<option value="">Load a CAD from a scenario or the CAD library...</option>';
     cadReuseOptions = [];
     updateCadReuseButton();
 
     if (!moduleName) {
-      setCadReuseStatus('Select a module to browse its CADs in other scenarios.');
+      setCadReuseStatus('Select an asset before choosing its replacement CAD.');
       return;
     }
 
-    setCadReuseStatus('Looking for published CADs in other scenarios...');
-    const currentSlug = getCadScenarioSlug();
-    const scenarioFolders = await listGithubDirectory('clean_database/json');
-    const slugs = scenarioFolders
-      .filter(item => item?.type === 'dir' && /^[A-Za-z0-9_]+$/.test(item.name || ''))
-      .map(item => item.name)
-      .filter(slug => slug !== currentSlug)
-      .sort((a, b) => a.localeCompare(b));
-
-    const candidates = await Promise.all(slugs.map(async scenarioSlug => {
-      const asset = await fetchGithubJson(
-        `clean_database/json/${scenarioSlug}/assets/${moduleName}.json`,
-        Date.now()
-      );
-      const metadata = asset?.data?.metadata || {};
-      const usdPath = metadata.cadUsdPath || metadata.geometryRef || '';
-      if (!/\.usd(?:a|c|z)?$/i.test(usdPath)) return null;
-
-      return {
-        scenarioSlug,
-        usdPath,
-        glbPath: metadata.glbPreviewRef || cadPreviewPath(moduleName, scenarioSlug, '.glb'),
-        metaPath: cadPreviewPath(moduleName, scenarioSlug, '_meta.json'),
-        legacyGlbPath: `outputs/cad_previews/${moduleName}.glb`,
-        legacyMetaPath: `outputs/cad_previews/${moduleName}_meta.json`,
-        fileName: metadata.cadFileName || usdPath.split('/').pop() || `${moduleName}.usdc`,
-        asset: asset.data
-      };
-    }));
+    setCadReuseStatus('Loading available CAD files...');
+    const groups = await getCadCatalogGroups();
 
     if (moduleName !== currentModuleName) return;
-    cadReuseOptions = candidates.filter(Boolean);
-    cadReuseOptions.forEach((candidate, index) => {
-      const option = document.createElement('option');
-      option.value = String(index);
-      option.textContent = `${candidate.scenarioSlug} - ${candidate.fileName}`;
-      select.appendChild(option);
+    groups.forEach(group => {
+      const optionGroup = document.createElement('optgroup');
+      optionGroup.label = group.label;
+      group.items
+        .sort((left, right) => left.displayName.localeCompare(right.displayName))
+        .forEach(candidate => {
+          const option = document.createElement('option');
+          const index = cadReuseOptions.push(candidate) - 1;
+          option.value = String(index);
+          option.textContent = candidate.displayName;
+          optionGroup.appendChild(option);
+        });
+      if (optionGroup.children.length) select.appendChild(optionGroup);
     });
 
     setCadReuseStatus(
       cadReuseOptions.length
-        ? `${cadReuseOptions.length} published CAD${cadReuseOptions.length === 1 ? '' : 's'} available for ${moduleName}.`
-        : `No published CAD for ${moduleName} was found in the other scenarios.`
+        ? `${cadReuseOptions.length} CAD file${cadReuseOptions.length === 1 ? '' : 's'} available for ${moduleName}.`
+        : 'No CAD file is available in clean_database/cad_models.'
     );
     updateCadReuseButton();
   }
 
   async function copyGithubFile(sourcePath, targetPath, message) {
     const source = await fetchGithubContentMeta(sourcePath, Date.now());
-    if (!source?.content) return false;
-    return putGithubContent(targetPath, source.content.replace(/\n/g, ''), message);
+    if (!source) return false;
+
+    let content = source.content || '';
+    if (!content && source.sha) {
+      const token = sessionStorage.getItem('gh_pat');
+      try {
+        const blobRes = await fetch(
+          `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/git/blobs/${source.sha}`,
+          {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Accept': 'application/vnd.github+json'
+            },
+            cache: 'no-store'
+          }
+        );
+        if (blobRes.ok) content = (await blobRes.json()).content || '';
+      } catch (error) {
+        console.warn('[copyGithubFile]', error);
+      }
+    }
+    if (!content) return false;
+    return putGithubContent(targetPath, content.replace(/\n/g, ''), message);
   }
 
   async function loadCadFromScenario() {
@@ -9919,64 +10005,57 @@ let up42MoonImg = null;
     if (!selected || !moduleName) return;
 
     if (button) button.disabled = true;
-    setCadReuseStatus(`Copying ${selected.fileName} from ${selected.scenarioSlug}...`);
+    setCadReuseStatus(`Copying ${selected.fileName} from ${selected.sourceLabel}...`);
 
-    const targetExtension = selected.usdPath.match(/\.usd(?:a|c|z)?$/i)?.[0] || '.usdc';
-    const targetFileName = `${moduleName}${targetExtension}`;
-    const targetUsdPath = `${cadFolderPath(moduleName)}/${targetFileName}`;
-    const targetGlbPath = cadPreviewPath(moduleName, getCadScenarioSlug(), '.glb');
-    const targetMetaPath = cadPreviewPath(moduleName, getCadScenarioSlug(), '_meta.json');
+    const targetFileName = selected.fileName;
+    const targetCadPath = `${cadFolderPath(moduleName)}/${targetFileName}`;
+    const previousMeta = await fetchGithubContentMeta(
+      cadPreviewPath(moduleName, getCadScenarioSlug(), '_meta.json'),
+      Date.now()
+    );
+    const previousGlb = await fetchCadGlbMeta(moduleName, Date.now());
+    const previewRequest = {
+      requestedAt: Date.now(),
+      previousMetaSha: previousMeta?.sha || null,
+      previousGlbSha: previousGlb?.sha || cadPreviewState[moduleName]?.glbSha || null
+    };
     const copiedCad = await copyGithubFile(
-      selected.usdPath,
-      targetUsdPath,
-      `feat: import ${moduleName} CAD from ${selected.scenarioSlug} [skip ci]`
+      selected.cadPath,
+      targetCadPath,
+      `feat: import ${moduleName} CAD from ${selected.sourceLabel} [skip ci]`
     );
 
     if (!copiedCad) {
-      setCadReuseStatus(`Could not copy the CAD from ${selected.scenarioSlug}.`);
+      setCadReuseStatus(`Could not copy ${selected.fileName}. The source file is unavailable or too large for the GitHub API.`);
       updateCadReuseButton();
       return;
     }
 
-    let copiedPreview = await copyGithubFile(
-        selected.glbPath,
-        targetGlbPath,
-        `feat: copy ${moduleName} CAD preview from ${selected.scenarioSlug} [skip ci]`
-    );
-    if (!copiedPreview && selected.glbPath !== selected.legacyGlbPath) {
-      copiedPreview = await copyGithubFile(
-        selected.legacyGlbPath,
-        targetGlbPath,
-        `feat: copy legacy ${moduleName} CAD preview from ${selected.scenarioSlug} [skip ci]`
-      );
+    updateModuleDot(moduleName, 'uploading');
+    setCadReuseStatus(`Converting ${selected.fileName} for ${moduleName}...`);
+    const runInfo = await triggerConvertWorkflow(moduleName, targetCadPath, Date.now());
+    if (!runInfo) {
+      updateModuleDot(moduleName, 'error');
+      setCadReuseStatus(`CAD copied, but conversion could not start for ${moduleName}.`);
+      updateCadReuseButton();
+      return;
     }
 
-    let sourceMeta = await fetchGithubJson(selected.metaPath, Date.now());
-    if (!sourceMeta?.data && selected.metaPath !== selected.legacyMetaPath) {
-      sourceMeta = await fetchGithubJson(selected.legacyMetaPath, Date.now());
+    const freshMeta = await pollForMeta(moduleName, runInfo, previewRequest);
+    if (!freshMeta?.data) {
+      updateModuleDot(moduleName, 'error');
+      setCadReuseStatus(`CAD copied, but its preview conversion did not finish for ${moduleName}.`);
+      updateCadReuseButton();
+      return;
     }
 
-    const previewMeta = {
-      ...(sourceMeta?.data || {}),
-      module_name: moduleName,
-      usd_path: targetUsdPath,
-      glb_path: targetGlbPath,
-      source_cad_path: targetUsdPath,
-      imported_from_scenario: selected.scenarioSlug,
-      written_at: new Date().toISOString()
-    };
-    await putGithubContent(
-      targetMetaPath,
-      btoa(unescape(encodeURIComponent(JSON.stringify(previewMeta, null, 2)))),
-      `feat: record imported ${moduleName} CAD metadata [skip ci]`
-    );
+    syncDetectedCadMeta(freshMeta.data);
 
     moduleMetaCache[moduleName] = {
       ...(moduleMetaCache[moduleName] || {}),
-      detectedUsdPath: targetUsdPath,
-      sourceCadPath: targetUsdPath,
+      sourceCadPath: targetCadPath,
       cadFileName: targetFileName,
-      importedFromScenario: selected.scenarioSlug
+      importedFromScenario: selected.sourceLabel
     };
     const saved = await writeAssetJson(moduleName, { name: targetFileName });
     await loadCachedCadMeta(moduleName, step3SelectionVersion);
@@ -9984,8 +10063,8 @@ let up42MoonImg = null;
     if (moduleName !== currentModuleName) return;
     setCadReuseStatus(
       saved
-        ? `Imported from ${selected.scenarioSlug}. This scenario now owns its copy${copiedPreview ? ' and preview' : ''}.`
-        : `CAD copied from ${selected.scenarioSlug}, but its asset JSON could not be updated.`
+        ? `Imported from ${selected.sourceLabel}. This scenario now owns its CAD and preview.`
+        : `CAD imported from ${selected.sourceLabel}, but its asset JSON could not be updated.`
     );
     updateCadReuseButton();
   }
