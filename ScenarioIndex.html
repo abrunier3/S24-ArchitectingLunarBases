@@ -6132,7 +6132,8 @@ function activeTransportedFlowKeys(activeIds) {
       if (!activeSet.has(system.id)) return false;
       const baseId = getBaseModuleId(system.id);
       const explicitClass = up42Scenario.moduleClassOverrides?.[baseId];
-      return explicitClass === 'Transporter' || (!explicitClass && isAssignedScenarioTransporter(baseId));
+      return explicitClass === 'Transporter' ||
+        (!explicitClass && (isAssignedScenarioTransporter(baseId) || inferModuleClass(baseId) === 'Transporter'));
     })
     .forEach(system => {
       getTransporterFlows(system.id).forEach(flow => keys.add(String(flow).toLowerCase()));
@@ -6646,6 +6647,32 @@ function getModuleGraphProfile(moduleId) {
   };
 }
 
+function getModuleAttributeNames(moduleId) {
+  const part = getSysmlPartData(getBaseModuleId(moduleId)) || {};
+  return Object.keys(part.attributes || {}).map(name => String(name).toLowerCase());
+}
+
+function hasTransporterAttributes(moduleId) {
+  const attributes = getModuleAttributeNames(moduleId);
+  // A transporter has an explicit carrying capability plus at least one
+  // mobility/transport-performance attribute in the SysML asset definition.
+  const hasCapacity = attributes.some(name => /(?:max|payload|cargo).*capacity|capacity.*(?:max|payload|cargo)/.test(name));
+  const hasMobility = attributes.some(name => /hoursperkm|traveltime|speed|energyperkm|transportenergy|transportdist/.test(name));
+  return hasCapacity && hasMobility;
+}
+
+function hasStorageAttributes(moduleId) {
+  return getModuleAttributeNames(moduleId).some(name =>
+    /storagecapacity|inventorycapacity|tankcapacity|buffer|stored|inventory/.test(name)
+  );
+}
+
+function hasProcessingAttributes(moduleId) {
+  return getModuleAttributeNames(moduleId).some(name =>
+    /processingrate|processingtime|conversion|efficiency|extractionrate|productionrate/.test(name)
+  );
+}
+
 function inferModuleClass(moduleId) {
   const baseId = getBaseModuleId(moduleId);
   const profile = getModuleGraphProfile(baseId);
@@ -6655,10 +6682,17 @@ function inferModuleClass(moduleId) {
   if (profile.powerOutgoing.length && !profile.resourceIncoming.length && !profile.resourceOutgoing.length) return 'PowerGenerator';
   if (!profile.resourceIncoming.length && profile.resourceOutgoing.length) return 'Source';
   if (profile.resourceIncoming.length && profile.resourceOutgoing.length) {
-    if (profile.transformedResource) return 'Processor';
+    // A rover relays the same material but is distinguished from a storage
+    // asset by its SysML mobility and payload attributes.
+    if (hasTransporterAttributes(baseId) && profile.sameResourceRelay) return 'Transporter';
+    if (profile.transformedResource || hasProcessingAttributes(baseId)) return 'Processor';
     return 'Storage';
   }
-  if (profile.resourceIncoming.length && !profile.resourceOutgoing.length) return 'Storage';
+  // An endpoint with no storage capacity is a consumer, whether it consumes
+  // material, power, or both. Storage is reserved for explicit inventory assets.
+  if (profile.resourceIncoming.length && !profile.resourceOutgoing.length) {
+    return hasStorageAttributes(baseId) ? 'Storage' : 'Consumer';
+  }
   if (profile.powerIncoming.length && !profile.resourceIncoming.length && !profile.resourceOutgoing.length) return 'Consumer';
 
   if (portFlows.inputs.length && portFlows.outputs.length) {
@@ -6666,10 +6700,12 @@ function inferModuleClass(moduleId) {
     const outgoing = new Set(portFlows.outputs.map(flow => flow.toLowerCase()));
     const transformsResource = [...incoming].some(flow => !outgoing.has(flow)) ||
       [...outgoing].some(flow => !incoming.has(flow));
-    return transformsResource ? 'Processor' : 'Storage';
+    if (hasTransporterAttributes(baseId) && !transformsResource) return 'Transporter';
+    if (transformsResource || hasProcessingAttributes(baseId)) return 'Processor';
+    return 'Storage';
   }
   if (portFlows.outputs.length) return 'Source';
-  if (portFlows.inputs.length) return 'Storage';
+  if (portFlows.inputs.length) return hasStorageAttributes(baseId) ? 'Storage' : 'Consumer';
   if (portFlows.powerOutputs.length) return 'PowerGenerator';
   if (portFlows.powerInputs.length) return 'Consumer';
   return 'Passive';
