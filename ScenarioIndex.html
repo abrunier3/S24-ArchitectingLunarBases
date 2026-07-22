@@ -10457,6 +10457,9 @@ let up42MoonImg = null;
       : (existing.metersPerUnit || '1');
     const upAxis = normalizeUpAxis(data.up_axis, existing.upAxis || 'Z');
     const sizeM = normalizeSizeM(data.size_m);
+    const sourceCadPath = data.source_cad_path || data.source_metadata?.source_file ||
+      existing.sourceCadPath || '';
+    const sourceCadFileName = sourceCadPath.split('/').pop() || '';
     // Native USD files declare their own stage axis. Ignore a copied/stale
     // scenario override here: it would otherwise disagree with the file that
     // Omniverse will actually reference.
@@ -10482,6 +10485,10 @@ let up42MoonImg = null;
           : data.source_metadata?.source_front_axis || '+X',
         '+X'
       ),
+      ...(sourceCadPath ? { sourceCadPath } : {}),
+      ...(!existing.cadFileName && sourceCadFileName
+        ? { cadFileName: sourceCadFileName }
+        : {}),
       ...(sizeM ? { detectedSizeM: sizeM } : {}),
       ...(data.usd_path ? { detectedUsdPath: data.usd_path } : {})
     };
@@ -10505,6 +10512,14 @@ let up42MoonImg = null;
     );
   }
 
+  function getCadFileForSave(moduleName) {
+    const cached = moduleMetaCache[moduleName] || {};
+    const metadata = sysmlPartsCache[moduleName]?.metadata || {};
+    const sourceCadPath = cached.sourceCadPath || metadata.sourceCadPath || '';
+    const fileName = cached.cadFileName || metadata.cadFileName || sourceCadPath.split('/').pop();
+    return moduleFiles[moduleName] || (fileName ? { name: fileName } : null);
+  }
+
   async function setCadSourceUpAxis(moduleName, axis) {
     const normalized = normalizeUpAxis(axis, 'Z');
     moduleMetaCache[moduleName] = {
@@ -10514,14 +10529,12 @@ let up42MoonImg = null;
     };
     updateCadAxisSelector(moduleName);
 
-    const cadFileForSave = moduleFiles[moduleName] ||
-      (moduleMetaCache[moduleName]?.cadFileName
-        ? { name: moduleMetaCache[moduleName].cadFileName }
-        : sysmlPartsCache[moduleName]?.metadata?.cadFileName
-          ? { name: sysmlPartsCache[moduleName].metadata.cadFileName }
-        : null);
+    const cadFileForSave = getCadFileForSave(moduleName);
 
-    if (!cadFileForSave) return;
+    if (!cadFileForSave) {
+      setCadAxisStatus(moduleName, 'CAD source metadata is missing; reload this module and try again.', 'error');
+      return;
+    }
 
     const pubStatus = document.getElementById('publishStatus');
     setCadAxisStatus(moduleName, `Saving ${normalized}-up selection...`, 'info');
@@ -10595,12 +10608,7 @@ let up42MoonImg = null;
     };
     updateCadAxisSelector(moduleName);
 
-    const cadFileForSave = moduleFiles[moduleName] ||
-      (moduleMetaCache[moduleName]?.cadFileName
-        ? { name: moduleMetaCache[moduleName].cadFileName }
-        : sysmlPartsCache[moduleName]?.metadata?.cadFileName
-          ? { name: sysmlPartsCache[moduleName].metadata.cadFileName }
-        : null);
+    const cadFileForSave = getCadFileForSave(moduleName);
 
     if (cadFileForSave) {
       const pubStatus = document.getElementById('publishStatus');
@@ -11813,7 +11821,10 @@ let up42MoonImg = null;
           if (kind === 'front') {
             setCadSourceFrontAxis(moduleName, axis);
           } else {
-            setCadSourceUpAxis(moduleName, axis);
+            void setCadSourceUpAxis(moduleName, axis).catch(error => {
+              console.error('[setCadSourceUpAxis]', error);
+              setCadAxisStatus(moduleName, `Could not rebuild ${axis}-up. Check the CAD source and try again.`, 'error');
+            });
           }
         });
       });

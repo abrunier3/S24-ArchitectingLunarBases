@@ -83,6 +83,8 @@ class CadScenarioStorageTests(unittest.TestCase):
         scene_builder = (root / "S24/usd/scene_builder.py").read_text()
 
         self.assertIn("async function setCadSourceUpAxis", html)
+        self.assertIn("function getCadFileForSave", html)
+        self.assertIn("data.source_cad_path || data.source_metadata?.source_file", html)
         self.assertIn("Reorienting ${moduleName} as ${normalized}-up", html)
         self.assertIn("Rebuilding USD as ${normalized}-up", html)
         self.assertIn("data-cad-axis-status=\"${moduleName}\"", html)
