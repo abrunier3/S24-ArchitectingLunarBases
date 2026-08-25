@@ -170,7 +170,9 @@ package ECLIPSE_LSP1 {
             attribute cadSourceCenterOfMassYM = 1.06048016453;
             attribute cadSourceCenterOfMassZM = 0.205796549158;
             attribute cadSourceFile = "launchlandingzone.usdc";
+            attribute cadSourceFrontAxis = "+X";
             attribute cadSourceSurfaceAreaM2 = 32.7543266808;
+            attribute cadSourceUpAxis = "Y";
             attribute cadSurfaceAreaM2 = 1890.82086835;
             attribute cadVolumeAvailable = false;
             attribute cadVolumeScaleFactor = 438.60397762;
@@ -219,7 +221,9 @@ package ECLIPSE_LSP1 {
             attribute cadSourceCenterOfMassYM = -0.799236554259;
             attribute cadSourceCenterOfMassZM = -811.985589339;
             attribute cadSourceFile = "PropellantDepot.usdc";
+            attribute cadSourceFrontAxis = "+X";
             attribute cadSourceSurfaceAreaM2 = 0.438406535711;
+            attribute cadSourceUpAxis = "Y";
             attribute cadSurfaceAreaM2 = 25.928986477;
             attribute cadVolumeAvailable = false;
             attribute cadVolumeScaleFactor = 454.844326519;
@@ -268,7 +272,9 @@ package ECLIPSE_LSP1 {
             attribute cadSourceCenterOfMassYM = 1.22520585723;
             attribute cadSourceCenterOfMassZM = 3.78834963215e-17;
             attribute cadSourceFile = "Viper Rover.STEP";
+            attribute cadSourceFrontAxis = "+X";
             attribute cadSourceSurfaceAreaM2 = 19.714776743;
+            attribute cadSourceUpAxis = "Y";
             attribute cadSourceVolumeM3 = 3.92712415182;
             attribute cadSurfaceAreaM2 = 75.7969145727;
             attribute cadVolumeAvailable = true;
