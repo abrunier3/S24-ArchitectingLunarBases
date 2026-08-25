@@ -3781,8 +3781,12 @@ let repositoryScenarioLoadMessage = '';
 let latestRunScenarioSnapshot = null;
 let savedScenarioComparisonSnapshots = [];
 let savedScenarioComparisonSelection = [];
+let savedScenarioComparisonBaselineSlug = null;
 let savedScenarioComparisonMode = 'moes';
-let savedScenarioComparisonMetric = 'lox_produced';
+let savedScenarioComparisonMetricByMode = {
+  moes: 'lox_produced',
+  history: 'lox_inventory_history',
+};
 let savedScenarioComparisonLoading = false;
 let scenarioPowerModels = {};
 let pendingStopRoute = null;
@@ -12808,14 +12812,15 @@ let up42MoonImg = null;
   function setSavedScenarioComparisonMode(mode) {
     savedScenarioComparisonMode = mode === 'history' ? 'history' : 'moes';
     const options = getSavedScenarioComparisonMetricOptions();
-    if (!options.some(option => option.id === savedScenarioComparisonMetric)) {
-      savedScenarioComparisonMetric = options[0].id;
+    const rememberedMetric = savedScenarioComparisonMetricByMode[savedScenarioComparisonMode];
+    if (!options.some(option => option.id === rememberedMetric)) {
+      savedScenarioComparisonMetricByMode[savedScenarioComparisonMode] = options[0].id;
     }
     drawSavedScenarioComparison();
   }
 
   function setSavedScenarioComparisonMetric(metric) {
-    savedScenarioComparisonMetric = metric;
+    savedScenarioComparisonMetricByMode[savedScenarioComparisonMode] = metric;
     drawSavedScenarioComparison();
   }
 
@@ -12830,8 +12835,16 @@ let up42MoonImg = null;
       selected.add(slug);
     } else {
       selected.delete(slug);
+      if (savedScenarioComparisonBaselineSlug === slug) savedScenarioComparisonBaselineSlug = null;
     }
     savedScenarioComparisonSelection = [...selected];
+    drawSavedScenarioComparison();
+  }
+
+  function setSavedScenarioComparisonBaseline(slug) {
+    if (savedScenarioComparisonSelection.includes(slug)) {
+      savedScenarioComparisonBaselineSlug = slug;
+    }
     drawSavedScenarioComparison();
   }
 
@@ -12873,25 +12886,27 @@ let up42MoonImg = null;
     </div>`;
   }
 
-  function renderScenarioComparisonMoes(selected, option, colors) {
+  function renderScenarioComparisonMoes(selected, option, colors, baselineSlug) {
     const values = selected.map(snapshot => ({snapshot, value: Number(getScenarioResultMetrics(snapshot)[option.key] || 0)}));
     const maxValue = Math.max(1, ...values.map(entry => entry.value));
-    const baseline = values[0]?.value || 0;
+    const baselineEntry = values.find(entry => entry.snapshot.scenario_slug === baselineSlug) || values[0];
+    const baseline = baselineEntry?.value || 0;
     const bars = values.map((entry, index) => {
       const y = 30 + index * 48;
       const width = (entry.value / maxValue) * 430;
       return `<text x="12" y="${y + 13}" fill="rgba(255,255,255,0.78)" font-size="11">${escapeHtml(entry.snapshot.name).slice(0, 23)}</text><rect x="170" y="${y}" width="430" height="24" rx="3" fill="rgba(255,255,255,0.07)"/><rect x="170" y="${y}" width="${width.toFixed(1)}" height="24" rx="3" fill="${colors[index % colors.length]}"/><text x="${Math.min(595, 177 + width).toFixed(1)}" y="${y + 16}" fill="#07101a" font-size="10" font-weight="700">${formatComparisonNumber(entry.value, option.unit)}</text>`;
     }).join('');
     const rows = values.map((entry, index) => {
-      const delta = index === 0 || baseline === 0 ? 'Baseline' : `${entry.value >= baseline ? '+' : ''}${((entry.value - baseline) / Math.abs(baseline) * 100).toFixed(1)}%`;
-      return `<tr><td style="padding:7px;color:${colors[index % colors.length]};font-weight:700;">${escapeHtml(entry.snapshot.name)}</td><td style="padding:7px;text-align:right;">${formatComparisonNumber(entry.value, option.unit)}</td><td style="padding:7px;text-align:right;color:${index === 0 ? 'var(--text3)' : entry.value >= baseline ? '#7ee0b1' : '#ff7a8a'};">${delta}</td></tr>`;
+      const isBaseline = entry.snapshot.scenario_slug === baselineEntry?.snapshot.scenario_slug;
+      const delta = isBaseline || baseline === 0 ? 'Baseline' : `${entry.value >= baseline ? '+' : ''}${((entry.value - baseline) / Math.abs(baseline) * 100).toFixed(1)}%`;
+      return `<tr><td style="padding:7px;color:${colors[index % colors.length]};font-weight:700;">${escapeHtml(entry.snapshot.name)}</td><td style="padding:7px;text-align:right;">${formatComparisonNumber(entry.value, option.unit)}</td><td style="padding:7px;text-align:right;color:${isBaseline ? 'var(--text3)' : entry.value >= baseline ? '#7ee0b1' : '#ff7a8a'};">${delta}</td></tr>`;
     }).join('');
     return `<div style="display:grid;grid-template-columns:minmax(420px,1fr) minmax(230px,0.42fr);gap:14px;align-items:start;">
       <div>
         <div style="font-size:10px;color:var(--text2);font-weight:700;margin-bottom:6px;">${option.label}</div>
         <svg viewBox="0 0 620 ${Math.max(126, values.length * 48 + 28)}" role="img" aria-label="${escapeHtml(option.label)} comparison" style="width:100%;height:auto;min-height:150px;background:#07101a;border:1px solid var(--border2);border-radius:8px;">${bars}</svg>
       </div>
-      <div style="overflow:auto;"><table style="width:100%;border-collapse:collapse;font-size:9px;color:var(--text2);"><thead><tr style="border-bottom:1px solid var(--border2);"><th style="padding:7px;text-align:left;">Scenario</th><th style="padding:7px;text-align:right;">Value</th><th style="padding:7px;text-align:right;">vs first</th></tr></thead><tbody>${rows}</tbody></table></div>
+      <div style="overflow:auto;"><table style="width:100%;border-collapse:collapse;font-size:9px;color:var(--text2);"><thead><tr style="border-bottom:1px solid var(--border2);"><th style="padding:7px;text-align:left;">Scenario</th><th style="padding:7px;text-align:right;">Value</th><th style="padding:7px;text-align:right;">vs baseline</th></tr></thead><tbody>${rows}</tbody></table></div>
     </div>`;
   }
 
@@ -12909,24 +12924,37 @@ let up42MoonImg = null;
     }
     savedScenarioComparisonSelection = savedScenarioComparisonSelection.filter(slug => scenarios.some(snapshot => snapshot.scenario_slug === slug));
     if (savedScenarioComparisonSelection.length < 2) savedScenarioComparisonSelection = scenarios.slice(0, 2).map(snapshot => snapshot.scenario_slug);
-    const selected = scenarios.filter(snapshot => savedScenarioComparisonSelection.includes(snapshot.scenario_slug));
+    const selected = savedScenarioComparisonSelection
+      .map(slug => scenarios.find(snapshot => snapshot.scenario_slug === slug))
+      .filter(Boolean);
+    if (!selected.some(snapshot => snapshot.scenario_slug === savedScenarioComparisonBaselineSlug)) {
+      savedScenarioComparisonBaselineSlug = selected[0]?.scenario_slug || null;
+    }
     const colors = ['#4cc9f0','#ffd166','#7ee0b1','#ff7a8a','#a78bfa','#f4a261'];
     const options = getSavedScenarioComparisonMetricOptions();
-    if (!options.some(option => option.id === savedScenarioComparisonMetric)) savedScenarioComparisonMetric = options[0].id;
-    const option = options.find(entry => entry.id === savedScenarioComparisonMetric);
+    let selectedMetric = savedScenarioComparisonMetricByMode[savedScenarioComparisonMode];
+    if (!options.some(option => option.id === selectedMetric)) {
+      selectedMetric = options[0].id;
+      savedScenarioComparisonMetricByMode[savedScenarioComparisonMode] = selectedMetric;
+    }
+    const option = options.find(entry => entry.id === selectedMetric);
     const scenarioChoices = scenarios.map(snapshot => {
       const checked = savedScenarioComparisonSelection.includes(snapshot.scenario_slug);
       const stamp = snapshot.results?.written_at || snapshot.saved_at;
       return `<label style="display:flex;align-items:center;gap:7px;padding:7px 8px;border:1px solid ${checked ? 'rgba(76,201,240,0.7)' : 'var(--border2)'};border-radius:5px;background:${checked ? 'rgba(76,201,240,0.08)' : 'transparent'};cursor:pointer;font-size:9px;color:var(--text2);"><input type="checkbox" ${checked ? 'checked' : ''} onchange="toggleSavedScenarioComparisonSelection('${escapeHtml(snapshot.scenario_slug)}', this.checked)"><span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(snapshot.name)}</span><span style="margin-left:auto;color:var(--text3);font-size:8px;white-space:nowrap;">${stamp ? new Date(stamp).toLocaleDateString() : 'completed'}</span></label>`;
     }).join('');
+    const baselineOptions = selected.map(snapshot =>
+      `<option value="${escapeHtml(snapshot.scenario_slug)}" ${snapshot.scenario_slug === savedScenarioComparisonBaselineSlug ? 'selected' : ''}>${escapeHtml(snapshot.name)}</option>`
+    ).join('');
     const metricOptions = options.map(entry => `<option value="${entry.id}" ${entry.id === option.id ? 'selected' : ''}>${entry.label}</option>`).join('');
     const visual = savedScenarioComparisonMode === 'history'
       ? renderScenarioComparisonHistory(selected, option, colors)
-      : renderScenarioComparisonMoes(selected, option, colors);
+      : renderScenarioComparisonMoes(selected, option, colors, savedScenarioComparisonBaselineSlug);
     wrap.innerHTML = `<div style="display:flex;flex-direction:column;gap:13px;">
-      <div style="display:grid;grid-template-columns:minmax(320px,1fr) auto auto;gap:10px;align-items:end;border-bottom:1px solid var(--border2);padding-bottom:12px;">
+      <div style="display:grid;grid-template-columns:minmax(320px,1fr) auto auto auto;gap:10px;align-items:end;border-bottom:1px solid var(--border2);padding-bottom:12px;">
         <div><div style="font-size:9px;color:var(--text3);margin-bottom:6px;">Completed scenarios (select 2-4)</div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:6px;">${scenarioChoices}</div></div>
         <div><div style="font-size:9px;color:var(--text3);margin-bottom:6px;">View</div><div style="display:flex;gap:4px;"><button type="button" class="btn" onclick="setSavedScenarioComparisonMode('moes')" style="padding:7px 9px;font-size:9px;${savedScenarioComparisonMode === 'moes' ? 'border-color:#4cc9f0;color:#4cc9f0;' : ''}">Final MoEs</button><button type="button" class="btn" onclick="setSavedScenarioComparisonMode('history')" style="padding:7px 9px;font-size:9px;${savedScenarioComparisonMode === 'history' ? 'border-color:#4cc9f0;color:#4cc9f0;' : ''}">Time histories</button></div></div>
+        <label style="font-size:9px;color:var(--text3);">Baseline<select onchange="setSavedScenarioComparisonBaseline(this.value)" style="display:block;margin-top:6px;min-width:155px;padding:7px;background:#07101a;color:var(--text1);border:1px solid var(--border2);border-radius:4px;font-size:10px;">${baselineOptions}</select></label>
         <label style="font-size:9px;color:var(--text3);">Metric<select onchange="setSavedScenarioComparisonMetric(this.value)" style="display:block;margin-top:6px;min-width:185px;padding:7px;background:#07101a;color:var(--text1);border:1px solid var(--border2);border-radius:4px;font-size:10px;">${metricOptions}</select></label>
       </div>
       ${visual}
