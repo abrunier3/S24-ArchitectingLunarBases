@@ -3779,6 +3779,11 @@ let pendingScenarioEntryMode = null;
 let repositoryScenarioCache = [];
 let repositoryScenarioLoadMessage = '';
 let latestRunScenarioSnapshot = null;
+let savedScenarioComparisonSnapshots = [];
+let savedScenarioComparisonSelection = [];
+let savedScenarioComparisonMode = 'moes';
+let savedScenarioComparisonMetric = 'lox_produced';
+let savedScenarioComparisonLoading = false;
 let scenarioPowerModels = {};
 let pendingStopRoute = null;
 let editingResourceRouteId = null;
@@ -8318,7 +8323,7 @@ let up42MoonImg = null;
           <div style="font-size:12px;font-weight:600;color:var(--text1);">Saved Scenario Comparison</div>
           <div style="font-size:9px;color:var(--text3);margin-top:2px;">Compare resource histories and final MoEs from saved configurations.</div>
         </div>
-        <button type="button" class="btn" onclick="renderSavedScenarioComparison()" style="padding:7px 10px;font-size:9px;">Refresh</button>
+        <button type="button" class="btn" onclick="renderSavedScenarioComparison()" style="padding:7px 10px;font-size:9px;">Refresh results</button>
       </div>
       <div id="savedScenarioComparison" style="flex:1;padding:12px 14px;overflow:auto;">
         <div style="color:var(--text3);font-size:11px;text-align:center;margin-top:40px;">Save at least two completed configurations to compare them.</div>
@@ -12698,6 +12703,7 @@ let up42MoonImg = null;
         delivered_lox_kg: Number(moes.Total_Resource_Delivered_To_Terminals || 0),
         energy_kwh: Number(moes.Total_System_Demand_kWh || 0),
         duration_hr: Number(results.Sim_Metrics?.Simulation_Duration_hr || snapshot?.des_form?.desSimDuration || 0),
+        regolith_kg: Number(moes.Total_Resource_Delivered_To_Terminals || 0),
       };
     }
     const fleet = results.ISRU_Plants?.Fleet_Totals || {};
@@ -12709,13 +12715,14 @@ let up42MoonImg = null;
       sum + Number(rover?.Energy_Consumed_kWh || 0), 0
     );
     return {
-      lox_kg: Number(fleet.Total_LOX_Production_kg || 0),
-      delivered_lox_kg: Number(landing.LOX_Stored_kg || 0) + depotLox,
+      lox_kg: Number(moes.Total_LOX_Produced_kg ?? fleet.Total_LOX_Production_kg ?? 0),
+      delivered_lox_kg: Number(moes.Total_LOX_Delivered_kg ?? (Number(landing.LOX_Stored_kg || 0) + depotLox)),
       energy_kwh: Number(
         moes.Total_System_Demand_kWh
         ?? (Number(fleet.Energy_Consumed_kWh || 0) + roverEnergy)
       ),
       duration_hr: Number(results.Sim_Metrics?.Simulation_Duration_hr || snapshot?.des_form?.desSimDuration || 0),
+      regolith_kg: Number(moes.Total_Regolith_Received_kg ?? fleet.Regolith_Received_kg ?? 0),
     };
   }
 
@@ -12723,58 +12730,233 @@ let up42MoonImg = null;
     const log = snapshot?.results?.log || {};
     const results = snapshot?.results?.results || snapshot?.results || {};
     const generic = results.Engine === 'GenericScenario';
-    return Object.keys(log).map(Number).sort((a, b) => a - b).map(time => {
-      const snap = log[String(time)] || log[time] || {};
-      let lox = 0;
-      let regolith = 0;
-      Object.values(snap).forEach(attrs => {
-        if (generic) {
-          lox += Object.values(attrs.Inventory || {}).reduce((sum, value) => sum + Number(value || 0), 0);
-          regolith += Object.values(attrs.Delivered || {}).reduce((sum, value) => sum + Number(value || 0), 0);
-          return;
-        }
-        lox += Number(attrs.LOX_Stored ?? attrs.LOX_Stored_kg ?? 0);
-        regolith += Number(attrs.regolith_recieved ?? attrs.regolith_received ?? 0);
+    return Object.entries(log)
+      .map(([rawTime, snap]) => ({time: Number(rawTime), snap: snap || {}}))
+      .filter(entry => Number.isFinite(entry.time))
+      .sort((left, right) => left.time - right.time)
+      .map(({time, snap}) => {
+        let lox = 0;
+        let regolith = 0;
+        let producedLox = 0;
+        let energy = 0;
+        Object.values(snap).forEach(attrs => {
+          if (generic) {
+            lox += Object.values(attrs.Inventory || {}).reduce((sum, value) => sum + Number(value || 0), 0);
+            regolith += Object.values(attrs.Delivered || {}).reduce((sum, value) => sum + Number(value || 0), 0);
+            energy += Number(attrs.Energy_Consumed_kWh ?? attrs.total_energy_consumed ?? 0);
+            return;
+          }
+          lox += Number(attrs.LOX_Stored ?? attrs.LOX_Stored_kg ?? 0);
+          regolith += Number(attrs.regolith_recieved ?? attrs.regolith_received ?? 0);
+          producedLox += Number(attrs.total_LOX_production ?? attrs.Total_LOX_Production_kg ?? 0);
+          energy += Number(attrs.total_energy_consumed ?? attrs.Energy_Consumed_kWh ?? 0);
+        });
+        return {time, lox, regolith, producedLox: generic ? lox : producedLox, energy};
       });
-      return {time, lox, regolith};
-    });
   }
 
-  function renderSavedScenarioComparison() {
-    const wrap = document.getElementById('savedScenarioComparison');
-    if (!wrap) return;
-    const scenarios = getSavedScenarios().filter(snapshot => snapshot.results);
-    if (scenarios.length < 2) {
-      wrap.innerHTML = '<div style="color:var(--text3);font-size:11px;text-align:center;margin-top:40px;">Save at least two completed configurations to compare them.</div>';
-      return;
+  function hasScenarioComparisonResults(snapshot) {
+    const payload = snapshot?.results;
+    if (!payload || typeof payload !== 'object' || payload.status === 'error') return false;
+    const results = payload.results || payload;
+    return results && typeof results === 'object' && Object.keys(results).length > 0;
+  }
+
+  async function loadScenarioComparisonResults(snapshot) {
+    const slug = snapshot?.scenario_slug || snapshot?.id;
+    if (!slug) return null;
+    const path = `outputs/scenarios/${slug}/des_results.json`;
+    try {
+      const token = sessionStorage.getItem('gh_pat');
+      const meta = await getGithubContent(path, token);
+      if (meta?.content) return JSON.parse(githubContentToText(meta));
+    } catch (error) {
+      console.warn(`[COMPARE] GitHub result load failed for ${slug}; trying local file.`, error);
     }
-    const colors = ['#4cc9f0','#ffd166','#7ee0b1','#ff7a8a','#a78bfa','#f4a261'];
-    const allSeries = scenarios.map(getScenarioResourceSeries);
-    const maxTime = Math.max(1, ...allSeries.flatMap(series => series.map(point => point.time)));
-    const maxLox = Math.max(1, ...allSeries.flatMap(series => series.map(point => point.lox)));
-    const maxRegolith = Math.max(1, ...allSeries.flatMap(series => series.map(point => point.regolith)));
-    const pathFor = (series, key, maxValue) => series.map((point, index) => {
-      const x = 38 + point.time / maxTime * 442;
-      const y = 145 - point[key] / maxValue * 116;
+    try {
+      const response = await fetch(`${path}?ts=${Date.now()}`, {cache: 'no-store'});
+      if (!response.ok) return null;
+      return await response.json();
+    } catch (error) {
+      console.warn(`[COMPARE] Result file unavailable for ${slug}.`, error);
+      return null;
+    }
+  }
+
+  function formatComparisonNumber(value, unit = '') {
+    const number = Number(value || 0);
+    return `${number.toLocaleString(undefined, {maximumFractionDigits: 1})}${unit ? ` ${unit}` : ''}`;
+  }
+
+  function getSavedScenarioComparisonMetricOptions() {
+    return savedScenarioComparisonMode === 'moes'
+      ? [
+          {id: 'lox_produced', label: 'Primary resource output', key: 'lox_kg', unit: 'kg'},
+          {id: 'lox_delivered', label: 'Resource delivered to terminals', key: 'delivered_lox_kg', unit: 'kg'},
+          {id: 'energy_demand', label: 'System energy demand', key: 'energy_kwh', unit: 'kWh'},
+          {id: 'regolith_received', label: 'Regolith received', key: 'regolith_kg', unit: 'kg'},
+          {id: 'duration', label: 'Simulation duration', key: 'duration_hr', unit: 'hr'},
+        ]
+      : [
+          {id: 'lox_inventory_history', label: 'Primary resource inventory', key: 'lox', unit: 'kg'},
+          {id: 'lox_produced_history', label: 'Cumulative primary resource output', key: 'producedLox', unit: 'kg'},
+          {id: 'regolith_received_history', label: 'Regolith received', key: 'regolith', unit: 'kg'},
+          {id: 'energy_history', label: 'Cumulative energy consumed', key: 'energy', unit: 'kWh'},
+        ];
+  }
+
+  function setSavedScenarioComparisonMode(mode) {
+    savedScenarioComparisonMode = mode === 'history' ? 'history' : 'moes';
+    const options = getSavedScenarioComparisonMetricOptions();
+    if (!options.some(option => option.id === savedScenarioComparisonMetric)) {
+      savedScenarioComparisonMetric = options[0].id;
+    }
+    drawSavedScenarioComparison();
+  }
+
+  function setSavedScenarioComparisonMetric(metric) {
+    savedScenarioComparisonMetric = metric;
+    drawSavedScenarioComparison();
+  }
+
+  function toggleSavedScenarioComparisonSelection(slug, checked) {
+    const selected = new Set(savedScenarioComparisonSelection);
+    if (checked) {
+      if (selected.size >= 4) {
+        alert('Choose up to four completed scenarios at a time.');
+        drawSavedScenarioComparison();
+        return;
+      }
+      selected.add(slug);
+    } else {
+      selected.delete(slug);
+    }
+    savedScenarioComparisonSelection = [...selected];
+    drawSavedScenarioComparison();
+  }
+
+  function comparisonSvgPath(series, key, maxTime, maxValue, width = 620, height = 230) {
+    const left = 48;
+    const right = width - 16;
+    const top = 20;
+    const bottom = height - 34;
+    return series.map((point, index) => {
+      const x = left + (Number(point.time || 0) / maxTime) * (right - left);
+      const y = bottom - (Number(point[key] || 0) / maxValue) * (bottom - top);
       return `${index ? 'L' : 'M'} ${x.toFixed(1)} ${y.toFixed(1)}`;
     }).join(' ');
-    const rows = scenarios.map((snapshot, index) => {
-      const metric = getScenarioResultMetrics(snapshot);
-      return `<tr><td style="padding:7px;color:${colors[index % colors.length]};font-weight:700;">${escapeHtml(snapshot.name)}</td><td style="padding:7px;text-align:right;">${metric.lox_kg.toFixed(1)} kg</td><td style="padding:7px;text-align:right;">${metric.delivered_lox_kg.toFixed(1)} kg</td><td style="padding:7px;text-align:right;">${metric.energy_kwh.toFixed(1)} kWh</td><td style="padding:7px;text-align:right;">${metric.duration_hr.toFixed(1)} hr</td></tr>`;
+  }
+
+  function renderScenarioComparisonHistory(selected, option, colors) {
+    const seriesByScenario = selected.map(snapshot => ({snapshot, series: getScenarioResourceSeries(snapshot)}));
+    const maxTime = Math.max(1, ...seriesByScenario.flatMap(entry => entry.series.map(point => Number(point.time || 0))));
+    const maxValue = Math.max(1, ...seriesByScenario.flatMap(entry => entry.series.map(point => Number(point[option.key] || 0))));
+    const legend = seriesByScenario.map((entry, index) =>
+      `<span style="display:inline-flex;align-items:center;gap:5px;color:var(--text2);"><span style="width:8px;height:8px;border-radius:50%;background:${colors[index % colors.length]};display:inline-block;"></span>${escapeHtml(entry.snapshot.name)}</span>`
+    ).join('');
+    const finalRows = seriesByScenario.map((entry, index) => {
+      const last = entry.series[entry.series.length - 1];
+      return `<tr><td style="padding:7px;color:${colors[index % colors.length]};font-weight:700;">${escapeHtml(entry.snapshot.name)}</td><td style="padding:7px;text-align:right;">${formatComparisonNumber(last?.[option.key], option.unit)}</td><td style="padding:7px;text-align:right;color:var(--text3);">${formatComparisonNumber(last?.time, 'hr')}</td></tr>`;
     }).join('');
-    const resourceChart = (title, key, maxValue) => `<div>
-      <div style="font-size:9px;color:var(--text3);margin-bottom:5px;">${title}</div>
-      <svg viewBox="0 0 500 165" style="width:100%;height:220px;background:#07101a;border:1px solid var(--border2);border-radius:8px;">
-        <line x1="38" y1="145" x2="480" y2="145" stroke="rgba(255,255,255,0.25)"/><line x1="38" y1="29" x2="38" y2="145" stroke="rgba(255,255,255,0.25)"/>
-        ${allSeries.map((series, index) => `<path d="${pathFor(series,key,maxValue)}" fill="none" stroke="${colors[index % colors.length]}" stroke-width="2.5"/>`).join('')}
-        <text x="38" y="159" fill="rgba(255,255,255,0.5)" font-size="8">0 hr</text><text x="452" y="159" fill="rgba(255,255,255,0.5)" font-size="8">${maxTime} hr</text><text x="41" y="24" fill="rgba(255,255,255,0.5)" font-size="8">${maxValue.toFixed(1)} kg</text>
-      </svg>
+    return `<div style="display:grid;grid-template-columns:minmax(420px,1fr) minmax(230px,0.42fr);gap:14px;align-items:start;">
+      <div>
+        <div style="font-size:10px;color:var(--text2);font-weight:700;margin-bottom:6px;">${option.label} over mission time</div>
+        <svg viewBox="0 0 620 230" role="img" aria-label="${escapeHtml(option.label)} comparison" style="width:100%;height:auto;min-height:210px;background:#07101a;border:1px solid var(--border2);border-radius:8px;">
+          <line x1="48" y1="196" x2="604" y2="196" stroke="rgba(255,255,255,0.24)"/><line x1="48" y1="20" x2="48" y2="196" stroke="rgba(255,255,255,0.24)"/>
+          <line x1="48" y1="108" x2="604" y2="108" stroke="rgba(255,255,255,0.09)"/>
+          ${seriesByScenario.map((entry, index) => `<path d="${comparisonSvgPath(entry.series, option.key, maxTime, maxValue)}" fill="none" stroke="${colors[index % colors.length]}" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>`).join('')}
+          <text x="48" y="216" fill="rgba(255,255,255,0.55)" font-size="10">0 hr</text><text x="550" y="216" fill="rgba(255,255,255,0.55)" font-size="10">${formatComparisonNumber(maxTime, 'hr')}</text><text x="54" y="16" fill="rgba(255,255,255,0.55)" font-size="10">${formatComparisonNumber(maxValue, option.unit)}</text>
+        </svg>
+        <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:8px;font-size:9px;">${legend}</div>
+      </div>
+      <div style="overflow:auto;"><table style="width:100%;border-collapse:collapse;font-size:9px;color:var(--text2);"><thead><tr style="border-bottom:1px solid var(--border2);"><th style="padding:7px;text-align:left;">Scenario</th><th style="padding:7px;text-align:right;">Final value</th><th style="padding:7px;text-align:right;">Last sample</th></tr></thead><tbody>${finalRows}</tbody></table></div>
     </div>`;
-    wrap.innerHTML = `<div style="display:grid;grid-template-columns:repeat(2,minmax(380px,1fr));gap:12px;align-items:start;">
-      ${resourceChart('Total resource inventory over simulation time', 'lox', maxLox)}
-      ${resourceChart('Cumulative transported resources', 'regolith', maxRegolith)}
-      <div style="grid-column:1/-1;overflow:auto;"><table style="width:100%;border-collapse:collapse;font-size:9px;color:var(--text2);"><thead><tr style="border-bottom:1px solid var(--border2);"><th style="padding:7px;text-align:left;">Scenario</th><th style="padding:7px;text-align:right;">Resource transported</th><th style="padding:7px;text-align:right;">Terminal delivery</th><th style="padding:7px;text-align:right;">Energy</th><th style="padding:7px;text-align:right;">Duration</th></tr></thead><tbody>${rows}</tbody></table></div>
+  }
+
+  function renderScenarioComparisonMoes(selected, option, colors) {
+    const values = selected.map(snapshot => ({snapshot, value: Number(getScenarioResultMetrics(snapshot)[option.key] || 0)}));
+    const maxValue = Math.max(1, ...values.map(entry => entry.value));
+    const baseline = values[0]?.value || 0;
+    const bars = values.map((entry, index) => {
+      const y = 30 + index * 48;
+      const width = (entry.value / maxValue) * 430;
+      return `<text x="12" y="${y + 13}" fill="rgba(255,255,255,0.78)" font-size="11">${escapeHtml(entry.snapshot.name).slice(0, 23)}</text><rect x="170" y="${y}" width="430" height="24" rx="3" fill="rgba(255,255,255,0.07)"/><rect x="170" y="${y}" width="${width.toFixed(1)}" height="24" rx="3" fill="${colors[index % colors.length]}"/><text x="${Math.min(595, 177 + width).toFixed(1)}" y="${y + 16}" fill="#07101a" font-size="10" font-weight="700">${formatComparisonNumber(entry.value, option.unit)}</text>`;
+    }).join('');
+    const rows = values.map((entry, index) => {
+      const delta = index === 0 || baseline === 0 ? 'Baseline' : `${entry.value >= baseline ? '+' : ''}${((entry.value - baseline) / Math.abs(baseline) * 100).toFixed(1)}%`;
+      return `<tr><td style="padding:7px;color:${colors[index % colors.length]};font-weight:700;">${escapeHtml(entry.snapshot.name)}</td><td style="padding:7px;text-align:right;">${formatComparisonNumber(entry.value, option.unit)}</td><td style="padding:7px;text-align:right;color:${index === 0 ? 'var(--text3)' : entry.value >= baseline ? '#7ee0b1' : '#ff7a8a'};">${delta}</td></tr>`;
+    }).join('');
+    return `<div style="display:grid;grid-template-columns:minmax(420px,1fr) minmax(230px,0.42fr);gap:14px;align-items:start;">
+      <div>
+        <div style="font-size:10px;color:var(--text2);font-weight:700;margin-bottom:6px;">${option.label}</div>
+        <svg viewBox="0 0 620 ${Math.max(126, values.length * 48 + 28)}" role="img" aria-label="${escapeHtml(option.label)} comparison" style="width:100%;height:auto;min-height:150px;background:#07101a;border:1px solid var(--border2);border-radius:8px;">${bars}</svg>
+      </div>
+      <div style="overflow:auto;"><table style="width:100%;border-collapse:collapse;font-size:9px;color:var(--text2);"><thead><tr style="border-bottom:1px solid var(--border2);"><th style="padding:7px;text-align:left;">Scenario</th><th style="padding:7px;text-align:right;">Value</th><th style="padding:7px;text-align:right;">vs first</th></tr></thead><tbody>${rows}</tbody></table></div>
     </div>`;
+  }
+
+  function drawSavedScenarioComparison() {
+    const wrap = document.getElementById('savedScenarioComparison');
+    if (!wrap) return;
+    if (savedScenarioComparisonLoading) {
+      wrap.innerHTML = '<div style="color:var(--text3);font-size:11px;text-align:center;margin-top:40px;">Loading completed scenario results...</div>';
+      return;
+    }
+    const scenarios = savedScenarioComparisonSnapshots;
+    if (scenarios.length < 2) {
+      wrap.innerHTML = '<div style="color:var(--text3);font-size:11px;text-align:center;margin-top:40px;">No comparison yet. Run at least two scenarios, then refresh their DES results.</div>';
+      return;
+    }
+    savedScenarioComparisonSelection = savedScenarioComparisonSelection.filter(slug => scenarios.some(snapshot => snapshot.scenario_slug === slug));
+    if (savedScenarioComparisonSelection.length < 2) savedScenarioComparisonSelection = scenarios.slice(0, 2).map(snapshot => snapshot.scenario_slug);
+    const selected = scenarios.filter(snapshot => savedScenarioComparisonSelection.includes(snapshot.scenario_slug));
+    const colors = ['#4cc9f0','#ffd166','#7ee0b1','#ff7a8a','#a78bfa','#f4a261'];
+    const options = getSavedScenarioComparisonMetricOptions();
+    if (!options.some(option => option.id === savedScenarioComparisonMetric)) savedScenarioComparisonMetric = options[0].id;
+    const option = options.find(entry => entry.id === savedScenarioComparisonMetric);
+    const scenarioChoices = scenarios.map(snapshot => {
+      const checked = savedScenarioComparisonSelection.includes(snapshot.scenario_slug);
+      const stamp = snapshot.results?.written_at || snapshot.saved_at;
+      return `<label style="display:flex;align-items:center;gap:7px;padding:7px 8px;border:1px solid ${checked ? 'rgba(76,201,240,0.7)' : 'var(--border2)'};border-radius:5px;background:${checked ? 'rgba(76,201,240,0.08)' : 'transparent'};cursor:pointer;font-size:9px;color:var(--text2);"><input type="checkbox" ${checked ? 'checked' : ''} onchange="toggleSavedScenarioComparisonSelection('${escapeHtml(snapshot.scenario_slug)}', this.checked)"><span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(snapshot.name)}</span><span style="margin-left:auto;color:var(--text3);font-size:8px;white-space:nowrap;">${stamp ? new Date(stamp).toLocaleDateString() : 'completed'}</span></label>`;
+    }).join('');
+    const metricOptions = options.map(entry => `<option value="${entry.id}" ${entry.id === option.id ? 'selected' : ''}>${entry.label}</option>`).join('');
+    const visual = savedScenarioComparisonMode === 'history'
+      ? renderScenarioComparisonHistory(selected, option, colors)
+      : renderScenarioComparisonMoes(selected, option, colors);
+    wrap.innerHTML = `<div style="display:flex;flex-direction:column;gap:13px;">
+      <div style="display:grid;grid-template-columns:minmax(320px,1fr) auto auto;gap:10px;align-items:end;border-bottom:1px solid var(--border2);padding-bottom:12px;">
+        <div><div style="font-size:9px;color:var(--text3);margin-bottom:6px;">Completed scenarios (select 2-4)</div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:6px;">${scenarioChoices}</div></div>
+        <div><div style="font-size:9px;color:var(--text3);margin-bottom:6px;">View</div><div style="display:flex;gap:4px;"><button type="button" class="btn" onclick="setSavedScenarioComparisonMode('moes')" style="padding:7px 9px;font-size:9px;${savedScenarioComparisonMode === 'moes' ? 'border-color:#4cc9f0;color:#4cc9f0;' : ''}">Final MoEs</button><button type="button" class="btn" onclick="setSavedScenarioComparisonMode('history')" style="padding:7px 9px;font-size:9px;${savedScenarioComparisonMode === 'history' ? 'border-color:#4cc9f0;color:#4cc9f0;' : ''}">Time histories</button></div></div>
+        <label style="font-size:9px;color:var(--text3);">Metric<select onchange="setSavedScenarioComparisonMetric(this.value)" style="display:block;margin-top:6px;min-width:185px;padding:7px;background:#07101a;color:var(--text1);border:1px solid var(--border2);border-radius:4px;font-size:10px;">${metricOptions}</select></label>
+      </div>
+      ${visual}
+    </div>`;
+  }
+
+  async function renderSavedScenarioComparison() {
+    if (savedScenarioComparisonLoading) return;
+    savedScenarioComparisonLoading = true;
+    drawSavedScenarioComparison();
+    try {
+      await fetchRepositoryScenarios();
+      const scenarioSnapshots = getAvailableScenarios();
+      const completed = await Promise.all(scenarioSnapshots.map(async snapshot => {
+        if (hasScenarioComparisonResults(snapshot)) return snapshot;
+        const result = await loadScenarioComparisonResults(snapshot);
+        if (!result || result.status === 'error' || !result.results) return null;
+        return {...snapshot, results: result};
+      }));
+      savedScenarioComparisonSnapshots = completed.filter(Boolean).sort((left, right) => {
+        const leftStamp = left.results?.written_at || left.saved_at || '';
+        const rightStamp = right.results?.written_at || right.saved_at || '';
+        return String(rightStamp).localeCompare(String(leftStamp));
+      });
+    } catch (error) {
+      console.error('[COMPARE] Unable to refresh completed scenario results.', error);
+    } finally {
+      savedScenarioComparisonLoading = false;
+      drawSavedScenarioComparison();
+    }
   }
 
   function resetDesResultsForRun() {
