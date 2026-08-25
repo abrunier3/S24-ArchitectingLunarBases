@@ -261,13 +261,13 @@ package ECLIPSE_LSP1 {
             satisfy requirement loxRoverEnergyTest :> LSP1_3::LSP1_3_3;
 
             // BEGIN AUTO CAD METADATA: LOXRover
-            attribute cadAreaScaleFactor = 3.84467526874;
-            attribute cadCenterOfMassXM = -3.42837077193e-17;
-            attribute cadCenterOfMassYM = 0.490551239096;
-            attribute cadCenterOfMassZM = 1.5;
+            attribute cadAreaScaleFactor = 1.49943568337;
+            attribute cadCenterOfMassXM = -2.14102566277e-17;
+            attribute cadCenterOfMassYM = 1.50028229897;
+            attribute cadCenterOfMassZM = 0.306068111089;
             attribute cadFormat = "STEP";
-            attribute cadLengthScaleFactor = 1.96078435039;
-            attribute cadMetadataScaleFactor = 1.96078435039;
+            attribute cadLengthScaleFactor = 1.22451446842;
+            attribute cadMetadataScaleFactor = 1.22451446842;
             attribute cadSourceCenterOfMassXM = -1.74846906099e-17;
             attribute cadSourceCenterOfMassYM = 1.22520585723;
             attribute cadSourceCenterOfMassZM = 3.78834963215e-17;
@@ -276,10 +276,10 @@ package ECLIPSE_LSP1 {
             attribute cadSourceSurfaceAreaM2 = 19.714776743;
             attribute cadSourceUpAxis = "Y";
             attribute cadSourceVolumeM3 = 3.92712415182;
-            attribute cadSurfaceAreaM2 = 75.7969145727;
+            attribute cadSurfaceAreaM2 = 29.5610397381;
             attribute cadVolumeAvailable = true;
-            attribute cadVolumeM3 = 29.6049360512;
-            attribute cadVolumeScaleFactor = 7.53857909928;
+            attribute cadVolumeM3 = 7.21051681747;
+            attribute cadVolumeScaleFactor = 1.83608068875;
             attribute cadVolumeStatus = "available";
             // END AUTO CAD METADATA: LOXRover
 
@@ -337,7 +337,9 @@ package ECLIPSE_LSP1 {
             attribute cadSourceCenterOfMassYM = 0.0194416118803;
             attribute cadSourceCenterOfMassZM = 0.0565630057093;
             attribute cadSourceFile = "solar_panels.usdc";
+            attribute cadSourceFrontAxis = "+X";
             attribute cadSourceSurfaceAreaM2 = 1.37934411445;
+            attribute cadSourceUpAxis = "Y";
             attribute cadSurfaceAreaM2 = 245.216736791;
             attribute cadVolumeAvailable = false;
             attribute cadVolumeScaleFactor = 2370.37044771;
