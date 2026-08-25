@@ -20,6 +20,7 @@ class SavedScenarioComparisonUiTests(unittest.TestCase):
         self.assertIn("Completed scenarios (select 2-4)", self.html)
         self.assertIn("savedScenarioComparisonMetricByMode", self.html)
         self.assertIn("setSavedScenarioComparisonBaseline", self.html)
+        self.assertIn('name="savedScenarioComparisonBaseline"', self.html)
         self.assertIn("vs baseline", self.html)
 
     def test_comparison_supports_final_moes_and_time_histories(self):
