@@ -240,7 +240,10 @@ def _write_glb(
         return None
 
     scene = trimesh.Scene(meshes_data)
-    if str(up_axis) == "Y":
+    # GLB viewers are Y-up while the generated USD is always Z-up. Convert
+    # the preview into the same convention the browser uses, otherwise a
+    # rover can look upright in Step 3 while lying down in Omniverse.
+    if str(up_axis).upper() == "Z":
         scene.apply_transform(tf.rotation_matrix(-np.pi / 2, [1, 0, 0]))
 
     bounds = scene.bounds

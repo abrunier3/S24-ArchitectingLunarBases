@@ -81,10 +81,16 @@ class CadScenarioStorageTests(unittest.TestCase):
         workflow = (root / ".github/workflows/convert_cad.yml").read_text()
         converter = (root / "S24/cad/convert_workflow.py").read_text()
         scene_builder = (root / "S24/usd/scene_builder.py").read_text()
+        submission = (root / "S24/usd/model_submission.py").read_text()
 
         self.assertIn("async function setCadSourceUpAxis", html)
         self.assertIn("function getCadFileForSave", html)
+        self.assertIn("cached.cadSourceFile || metadata.cadSourceFile", html)
         self.assertIn("data.source_cad_path || data.source_metadata?.source_file", html)
+        self.assertIn("data.source_metadata?.file_name", html)
+        self.assertIn("part.metadata?.cadSourceFile", html)
+        self.assertIn("function getRawCadAxisSource", html)
+        self.assertIn("Copying the raw CAD into this scenario", html)
         self.assertIn("Reorienting ${moduleName} as ${normalized}-up", html)
         self.assertIn("Rebuilding USD as ${normalized}-up", html)
         self.assertIn("data-cad-axis-status=\"${moduleName}\"", html)
@@ -94,6 +100,15 @@ class CadScenarioStorageTests(unittest.TestCase):
         self.assertIn("def _is_baked_cad_conversion", scene_builder)
         self.assertIn("if orientation_is_baked:", scene_builder)
         self.assertIn("_source_front_yaw(metadata)", scene_builder)
+        self.assertIn("def _find_scenario_cad_file", submission)
+
+    def test_glb_preview_converts_generated_z_up_usd_to_y_up(self):
+        converter = (
+            Path(__file__).resolve().parents[1] / "S24/cad/convert_workflow.py"
+        ).read_text()
+
+        self.assertIn('if str(up_axis).upper() == "Z"', converter)
+        self.assertIn("GLB viewers are Y-up", converter)
 
 
 if __name__ == "__main__":

@@ -9713,6 +9713,9 @@ let up42MoonImg = null;
         ...(part.metadata?.cadSourceFrontAxis && !existing.cadSourceFrontAxisOverride
           ? { cadSourceFrontAxis: normalizeFrontAxis(part.metadata.cadSourceFrontAxis, '+X') }
           : {}),
+        ...(part.metadata?.sourceCadPath ? { sourceCadPath: part.metadata.sourceCadPath } : {}),
+        ...(part.metadata?.cadFileName ? { cadFileName: part.metadata.cadFileName } : {}),
+        ...(part.metadata?.cadSourceFile ? { cadSourceFile: part.metadata.cadSourceFile } : {}),
         ...(cadSize
           ? { detectedSizeM: [cadSize.length, cadSize.width, cadSize.height] }
           : {}),
@@ -10460,6 +10463,7 @@ let up42MoonImg = null;
     const sourceCadPath = data.source_cad_path || data.source_metadata?.source_file ||
       existing.sourceCadPath || '';
     const sourceCadFileName = sourceCadPath.split('/').pop() || '';
+    const sourceCadFile = data.source_metadata?.file_name || sourceCadFileName;
     // Native USD files declare their own stage axis. Ignore a copied/stale
     // scenario override here: it would otherwise disagree with the file that
     // Omniverse will actually reference.
@@ -10486,6 +10490,7 @@ let up42MoonImg = null;
         '+X'
       ),
       ...(sourceCadPath ? { sourceCadPath } : {}),
+      ...(sourceCadFile ? { cadSourceFile: sourceCadFile } : {}),
       ...(!existing.cadFileName && sourceCadFileName
         ? { cadFileName: sourceCadFileName }
         : {}),
@@ -10516,8 +10521,31 @@ let up42MoonImg = null;
     const cached = moduleMetaCache[moduleName] || {};
     const metadata = sysmlPartsCache[moduleName]?.metadata || {};
     const sourceCadPath = cached.sourceCadPath || metadata.sourceCadPath || '';
-    const fileName = cached.cadFileName || metadata.cadFileName || sourceCadPath.split('/').pop();
+    const fileName = cached.cadFileName || metadata.cadFileName ||
+      cached.cadSourceFile || metadata.cadSourceFile || sourceCadPath.split('/').pop();
     return moduleFiles[moduleName] || (fileName ? { name: fileName } : null);
+  }
+
+  function getRawCadAxisSource(moduleName) {
+    const cached = moduleMetaCache[moduleName] || {};
+    const metadata = sysmlPartsCache[moduleName]?.metadata || {};
+    const paths = [cached.sourceCadPath, metadata.sourceCadPath]
+      .filter(Boolean)
+      .map(String);
+    const rawPath = paths.find(path => /\.(step|stp|stl|obj)$/i.test(path));
+    if (rawPath) return { sourcePath: rawPath, needsScenarioCopy: false };
+
+    const sourceFile = String(
+      cached.cadSourceFile || metadata.cadSourceFile || ''
+    ).split('/').pop();
+    if (!/\.(step|stp|stl|obj)$/i.test(sourceFile)) return null;
+
+    const scenarioPath = `${cadFolderPath(moduleName)}/${sourceFile}`;
+    return {
+      sourcePath: scenarioPath,
+      copyFromPath: `clean_database/cad_models/${moduleName}/${sourceFile}`,
+      needsScenarioCopy: getCadScenarioSlug() !== 'ECLIPSE_Project'
+    };
   }
 
   async function setCadSourceUpAxis(moduleName, axis) {
@@ -10546,15 +10574,32 @@ let up42MoonImg = null;
       return;
     }
 
-    const sourceCadPath = moduleMetaCache[moduleName]?.sourceCadPath ||
-      sysmlPartsCache[moduleName]?.metadata?.sourceCadPath ||
-      `${cadFolderPath(moduleName)}/${cadFileForSave.name}`;
-    const rawCadSource = /\.(step|stp|stl|obj)$/i.test(sourceCadPath);
-    if (!rawCadSource) {
-      setCadAxisStatus(moduleName, `Saved ${normalized}-up. This native USD keeps its own axes.`, 'success');
-      if (pubStatus) pubStatus.textContent = `${moduleName} source up axis saved: ${normalized}.`;
+    const rawCad = getRawCadAxisSource(moduleName);
+    if (!rawCad) {
+      setCadAxisStatus(moduleName, 'No editable STEP/STL/OBJ source is available for this CAD.', 'error');
+      if (pubStatus) pubStatus.textContent = `Could not find a raw CAD source for ${moduleName}.`;
       return;
     }
+
+    if (rawCad.needsScenarioCopy) {
+      setCadAxisStatus(moduleName, 'Copying the raw CAD into this scenario...', 'info');
+      const copied = await copyGithubFile(
+        rawCad.copyFromPath,
+        rawCad.sourcePath,
+        `feat: scope ${moduleName} raw CAD to ${getCadScenarioSlug()} [skip ci]`
+      );
+      if (!copied) {
+        setCadAxisStatus(moduleName, 'Could not copy the raw CAD source into this scenario.', 'error');
+        if (pubStatus) pubStatus.textContent = `Could not prepare ${moduleName} for reorientation.`;
+        return;
+      }
+    }
+    moduleMetaCache[moduleName] = {
+      ...(moduleMetaCache[moduleName] || {}),
+      sourceCadPath: rawCad.sourcePath,
+      cadFileName: rawCad.sourcePath.split('/').pop()
+    };
+    await writeAssetJson(moduleName, { name: rawCad.sourcePath.split('/').pop() });
 
     const previousMeta = await fetchGithubContentMeta(
       cadPreviewPath(moduleName, getCadScenarioSlug(), '_meta.json'),
@@ -10573,7 +10618,7 @@ let up42MoonImg = null;
     }
     const runInfo = await triggerConvertWorkflow(
       moduleName,
-      sourceCadPath,
+      rawCad.sourcePath,
       Date.now(),
       normalized
     );
