@@ -13,22 +13,22 @@ class SavedScenarioComparisonUiTests(unittest.TestCase):
         self.assertIn("await fetchRepositoryScenarios();", self.html)
         self.assertIn("savedScenarioComparisonSnapshots", self.html)
 
-    def test_comparison_offers_scenario_selection_and_both_views(self):
-        self.assertIn("toggleSavedScenarioComparisonSelection", self.html)
+    def test_comparison_offers_only_the_two_views(self):
         self.assertIn("setSavedScenarioComparisonMode('moes')", self.html)
         self.assertIn("setSavedScenarioComparisonMode('history')", self.html)
-        self.assertIn("Completed scenarios (select 2-4)", self.html)
-        self.assertIn("savedScenarioComparisonMetricByMode", self.html)
-        self.assertIn("setSavedScenarioComparisonBaseline", self.html)
-        self.assertIn('name="savedScenarioComparisonBaseline"', self.html)
-        self.assertIn("vs baseline", self.html)
+        self.assertNotIn("toggleSavedScenarioComparisonSelection", self.html)
+        self.assertNotIn("savedScenarioComparisonBaseline", self.html)
+        self.assertNotIn("setSavedScenarioComparisonMetric", self.html)
 
     def test_comparison_supports_final_moes_and_time_histories(self):
         self.assertIn("renderScenarioComparisonMoes", self.html)
         self.assertIn("renderScenarioComparisonHistory", self.html)
         self.assertIn("Total_LOX_Produced_kg", self.html)
         self.assertIn("Total_LOX_Delivered_kg", self.html)
-        self.assertIn("Cumulative primary resource output", self.html)
+        self.assertIn("Primary resource output", self.html)
+        self.assertIn("Regolith received", self.html)
+        self.assertIn("Energy consumed", self.html)
+        self.assertIn("grid-template-columns:repeat(auto-fit,minmax(300px,1fr))", self.html)
         self.assertIn("Object.entries(log)", self.html)
 
 
