@@ -109,6 +109,7 @@ class CadScenarioStorageTests(unittest.TestCase):
         self.assertIn("def _is_baked_cad_conversion", scene_builder)
         self.assertIn("if orientation_is_baked:", scene_builder)
         self.assertIn("_source_front_yaw(metadata)", scene_builder)
+        self.assertIn("Preserve a USD's authored upright orientation", scene_builder)
         self.assertIn("def _find_scenario_cad_file", submission)
 
     def test_glb_preview_converts_generated_z_up_usd_to_y_up(self):

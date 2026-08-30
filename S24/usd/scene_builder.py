@@ -273,7 +273,9 @@ def _cad_normalization(
         # front-axis remains a horizontal placement choice for the scenario.
         rotate_xyz = [0.0, 0.0, _source_front_yaw(metadata)]
     elif has_authored_orientation:
-        rotate_xyz = [0.0, 0.0, 0.0]
+        # Preserve a USD's authored upright orientation, while still applying
+        # the user-selected horizontal front direction at scene placement.
+        rotate_xyz = [0.0, 0.0, _source_front_yaw(metadata)]
     else:
         rotate_xyz = _source_orientation_rotation(metadata, authored_up_axis=up_axis)
 
