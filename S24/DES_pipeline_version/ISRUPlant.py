@@ -1,5 +1,10 @@
 import simpy
 
+from S24.DES_pipeline_version.scenario_equations import (
+    ScenarioEquationError,
+    evaluate_equations,
+)
+
 """
 Models an ISRU Plant that uses Hydrogen Reduction to generate LOX from lunar regolith.
 
@@ -11,15 +16,30 @@ References:
 # -------------------------------------------------
 
 class ISRUPlant:
-    def __init__(self, system, name, attributeDict):
+    def __init__(self, system, name, attributeDict, equations=None):
         #self.processingRate = processingRate #kg/hr
         #self.regHeadGrade = regHeadGrade # wt% Ilmenite
         #self.energyConsumptionRate = energyConsumptionRate
         self.processingRate = attributeDict['processingRate']
+        self.sourceAttributes = dict(attributeDict)
         self.regHeadGrade = attributeDict['regHeadGrade']
+        self.ilmeniteRecoveryFraction = attributeDict['ilmeniteRecoveryFraction']
+        self.beneficiationRegolithMultiplier = attributeDict['beneficiationRegolithMultiplier']
+        self.waterRecoveryFraction = attributeDict['waterRecoveryFraction']
+        self.waterMolarMass = attributeDict['waterMolarMass']
+        self.ilmeniteMolarMass = attributeDict['ilmeniteMolarMass']
+        self.oxygenMolarMass = attributeDict['oxygenMolarMass']
+        self.joulesPerKWh = attributeDict['joulesPerKWh']
+        self.gangueTransportEnergyCoeff = attributeDict['gangueTransportEnergyCoeff']
+        self.conversionEfficiency = float(attributeDict.get('conversionEfficiency', 0.0))
+        if not 0 <= self.conversionEfficiency <= 1:
+            raise ValueError('conversionEfficiency must be between 0 and 1')
         self.LOXStored = attributeDict['LOXStored']
         self.lg = attributeDict['lunarGravity'] #Acceleration due to gravity on the moon, m/(s^2)
         self.totalEnergyConsumed = attributeDict['totalEnergyConsumed']
+        self.scenarioEquations = equations or ""
+        self.lastEquationOutputs = {}
+        self.pendingPowerDemand = 0.0
 
         #Setup Energy Coeffecients / Constants for later
         self.excavationEnergyCoeff = attributeDict['excavationEnergyCoeff']
@@ -41,21 +61,22 @@ class ISRUPlant:
     #All assumptions regarding effeciencies, reactor temperatures, etc made in [1] apply to this function.
     def processRegolith(self, system, regolithMass, transportDist=1):
         #Mass Related Attributes
-        self.extractedLOXFraction = (0.51*0.47*31.999*self.regHeadGrade)/(2*151.71) #Equation 1 in [1]
-        self.kgLOXPerHour = self.extractedLOXFraction*self.processingRate
-        generatedLOX = self.extractedLOXFraction*regolithMass
-        self.LOXStored += generatedLOX
-        self.totalLOXProduction += generatedLOX
-        self.regolithRecieved += regolithMass
+        self.kgLOXPerHour = self.conversionEfficiency*self.processingRate
+        generatedLOX = self.conversionEfficiency*regolithMass
 
         #Determine waste mass (gangue)
-        m_bene_ilm = regolithMass*0.505*self.regHeadGrade #Eq 9 in [1]
-        m_bene_reg = m_bene_ilm/(6*self.regHeadGrade) #Eq 10 in [1]
+        m_bene_ilm = regolithMass * self.ilmeniteRecoveryFraction * self.regHeadGrade
+        m_bene_reg = m_bene_ilm / (
+            self.beneficiationRegolithMultiplier * self.regHeadGrade
+        )
         m_gangue = regolithMass - m_bene_reg
 
         #Calculate mass of water and oxygen
-        m_H2O = m_bene_ilm*0.47*(18.01528/151.71) #Eq 13 in [1]
-        m_O2 = (m_H2O*31.999)/(2*18.01528) # Eq 16 in [1]
+        m_H2O = (
+            m_bene_ilm * self.waterRecoveryFraction
+            * (self.waterMolarMass / self.ilmeniteMolarMass)
+        )
+        m_O2 = (m_H2O * self.oxygenMolarMass) / (2 * self.waterMolarMass)
 
         #Get simulation to yield for however long is required to process the amount of regolith given to the plant. Assume that the plant has the capability to hold any amount of regolith that could reasonably be given to it.
         yieldLength = regolithMass/self.processingRate
@@ -64,7 +85,10 @@ class ISRUPlant:
         E_exc = self.excavationEnergyCoeff*regolithMass #Excavation Energy, kWh, Eq 5 in [1]
         E_trans = self.transportEnergyCoeff*regolithMass*transportDist #Transportation Energy, kWh, Eq 8 in [1]
 
-        E_bene = ((regolithMass*self.lg*self.liftHeight)/3600000) + m_gangue*(3.6*10**-4)*self.gangueTransportDist #Beneficiation Energy, kWh, Eq 11 in [1], note that the first cosntant of 1 represents the height that the regolith needs to be lifted for beneficiation in meters, the second constant of 1 represents the distance that the waste material (gangue) is transported in km
+        E_bene = (
+            (regolithMass * self.lg * self.liftHeight) / self.joulesPerKWh
+            + m_gangue * self.gangueTransportEnergyCoeff * self.gangueTransportDist
+        )
         E_reactor =  self.reactorEnergyCoeff * m_bene_reg #Energy Required By Reactor, kWh, Eq 14 in [1] (took the mean value of 0.385)
         E_electro = self.electrolysisEnergyCoeff*m_H2O #Energy for Electrolysis, kWh, Eq 18 in [1]
         E_liq = self.liquefactionEnergyCoeff*m_O2 #Liquefaction, kWh, Eq. 21 in [1]
@@ -72,19 +96,81 @@ class ISRUPlant:
         E_storage = 0 #Storage Energy
 
         processingEnergyRequired = E_exc+E_trans+E_bene+E_reactor+E_electro+E_liq
-        self.totalEnergyConsumed += processingEnergyRequired
-        #print("Total Energy Required: " + str(totalEnergyRequired))
-        #print("LOX Produced: " + str(self.LOXStored))
+        equationContext = {
+            key: value for key, value in self.sourceAttributes.items()
+            if isinstance(value, (int, float)) and not isinstance(value, bool)
+        }
+        equationContext.update({
+            "RegolithIn": regolithMass,
+            "LOXStored": self.LOXStored,
+            "processingRate": self.processingRate,
+            "conversionEfficiency": self.conversionEfficiency,
+            # Compatibility input for scenarios saved before conversionEfficiency was exposed.
+            "extractedLOXFraction": self.conversionEfficiency,
+            "regHeadGrade": self.regHeadGrade,
+            "lunarGravity": self.lg,
+            "transportDist": transportDist,
+            "E_exc": E_exc,
+            "E_trans": E_trans,
+            "E_bene": E_bene,
+            "E_reactor": E_reactor,
+            "E_electro": E_electro,
+            "E_liq": E_liq,
+            "PowerIn": processingEnergyRequired / yieldLength,
+            "EnergyConsumed": processingEnergyRequired,
+            "ProcessingTime": yieldLength,
+            "LOXOut": generatedLOX,
+        })
+        try:
+            equationOutputs = evaluate_equations(
+                self.scenarioEquations,
+                equationContext,
+                effect_outputs={"LOXOut", "ProcessingTime", "EnergyConsumed", "PowerIn"},
+            )
+        except ScenarioEquationError as exc:
+            raise RuntimeError(f"{self.name}: invalid scenario equation: {exc}") from exc
+
+        generatedLOX = equationOutputs.get("LOXOut", generatedLOX)
+        yieldLength = equationOutputs.get("ProcessingTime", yieldLength)
+        if "EnergyConsumed" in equationOutputs:
+            processingEnergyRequired = equationOutputs["EnergyConsumed"]
+        elif "PowerIn" in equationOutputs:
+            processingEnergyRequired = equationOutputs["PowerIn"] * yieldLength
+        if generatedLOX < 0:
+            raise RuntimeError(f"{self.name}: LOXOut cannot be negative")
+        if yieldLength <= 0:
+            raise RuntimeError(f"{self.name}: ProcessingTime must be greater than zero")
+        if processingEnergyRequired < 0:
+            raise RuntimeError(f"{self.name}: EnergyConsumed cannot be negative")
+
+        self.lastEquationOutputs = equationOutputs
+        self.LOXStored += generatedLOX
+        self.totalLOXProduction += generatedLOX
+        self.regolithRecieved += regolithMass
+        self.recordEnergyDemand(processingEnergyRequired)
 
         self.processingUptime += yieldLength #Add processing time to total hours the plant is running.
 
         yield system.timeout(yieldLength)
         print(f"[{system.now:.2f} hr] ISRU Plant produced {generatedLOX} kg of LOX from {regolithMass} kg of Regolith using {processingEnergyRequired} kWh of Energy. There is now {self.LOXStored} kg of LOX stored, and {self.totalEnergyConsumed} kWh has been consumed.")
 
+    def recordEnergyDemand(self, energy_kwh):
+        """Account energy and expose it to the next power-manager update."""
+        energy_kwh = float(energy_kwh)
+        self.totalEnergyConsumed += energy_kwh
+        self.pendingPowerDemand += energy_kwh
+
+    def getCurrentPowerDemand(self, dt):
+        """Return event energy accumulated since the previous grid update."""
+        demand = self.pendingPowerDemand
+        self.pendingPowerDemand = 0.0
+        return demand
+
     def getLoggingAttributes(self):
         attr = {
             "Name": self.name,
             "processingRate": self.processingRate,
+            "conversionEfficiency": self.conversionEfficiency,
             "regHeadGrade": self.regHeadGrade,
             "LOX_Stored": self.LOXStored,
             "total_energy_consumed": self.totalEnergyConsumed,
@@ -101,4 +187,6 @@ class ISRUPlant:
             "total_LOX_production": self.totalLOXProduction, 
             "regolith_recieved": self.regolithRecieved
         }
+        if self.lastEquationOutputs:
+            attr["scenario_equation_outputs"] = self.lastEquationOutputs
         return attr

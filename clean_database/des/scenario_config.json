@@ -1,0 +1,59 @@
+{
+  "simulation": {
+    "duration_hr": 60
+  },
+  "regolith": {
+    "rover_load_kg": 4000,
+    "plant_batch_kg": 4000,
+    "plant_input_capacity_kg": 20000,
+    "dispatch_policy": "least_fill_ratio",
+    "dispatch_poll_dt_hr": 0.1
+  },
+  "isru": {
+    "plant_count": 1,
+    "processing_rate_kg_hr": 1600,
+    "lox_transport_threshold_kg": 100,
+    "lox_delivery_poll_dt_hr": 1,
+    "lox_storage_energy_kwh_per_kg_hr": 0.31,
+    "lox_storage_energy_dt_hr": 1
+  },
+  "rovers": {
+    "regolith": {
+      "count": 1
+    },
+    "lox": {
+      "count": 1
+    },
+    "energy_kwh_per_km_per_kg": 0.00034,
+    "travel_time_hr_per_km": 5
+  },
+  "routes": {
+    "use_sysml_distances": true,
+    "regolith_distance_km": 1,
+    "lox_distance_km": 1,
+    "distance_source": "defaults"
+  },
+  "power": {
+    "management_dt_hr": 1,
+    "spikes": {
+      "habitation": [
+        {
+          "time_hr": 10,
+          "energy_kwh": 20
+        }
+      ],
+      "communications": [
+        {
+          "time_hr": 15,
+          "energy_kwh": 10
+        }
+      ],
+      "landing_zone": [
+        {
+          "time_hr": 25,
+          "energy_kwh": 50
+        }
+      ]
+    }
+  }
+}

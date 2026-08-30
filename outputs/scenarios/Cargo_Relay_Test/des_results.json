@@ -1,0 +1,1638 @@
+{
+  "written_at": 1784481753058,
+  "status": "success",
+  "warnings": [
+    "[INFO] ForwardDepot uses additive storage when no ResourceStored equation is defined.",
+    "[INFO] HabitatConsumer uses additive storage when no ResourceStored equation is defined.",
+    "[INFO] Energy-Unconstrained Mode: power demand and supply are ignored."
+  ],
+  "inputs": {
+    "active_nodes": [
+      "CargoSource",
+      "CargoRover",
+      "ForwardDepot",
+      "HabitatConsumer"
+    ],
+    "sysml_active_nodes": [
+      "CargoSource",
+      "CargoRover",
+      "ForwardDepot",
+      "HabitatConsumer"
+    ],
+    "sysml_json_path": "clean_database/json/Cargo_Relay_Test/Cargo_Relay_Test.json",
+    "Num_Regolith_Rovers": 1,
+    "Num_LOX_Rovers": 1,
+    "Num_ISRU_Plants": 1,
+    "Regolith_Haul_Distance": 1.0,
+    "LOX_Haul_Distance": 1.0,
+    "Rover_Energy_Consumption": 0.001,
+    "Rover_Travel_Time": 1.0,
+    "ISRU_Plant_Processing_Rate": 1600.0,
+    "LOX_Transport_Threshold": 100.0,
+    "scenario_config": "{\"engine\":{\"mode\":\"generic\",\"schema_version\":1},\"scenario\":{\"name\":\"Cargo_Relay_Test\",\"slug\":\"Cargo_Relay_Test\",\"sysml_file\":\"clean_database/sysml/Cargo_Relay_Test.sysml\",\"json_asset_root\":\"clean_database/json/Cargo_Relay_Test/assets\"},\"simulation\":{\"duration_hr\":16},\"rovers\":{\"regolith\":{\"count\":1,\"max_capacity_kg\":4000},\"lox\":{\"count\":1,\"max_capacity_kg\":4000},\"capacity_by_flow_kg\":{\"cargo\":4000},\"energy_kwh_per_km_per_kg\":0,\"travel_time_hr_per_km\":1,\"max_capacity_kg\":4000},\"regolith\":{\"rover_load_kg\":4000,\"plant_batch_kg\":4000,\"plant_input_capacity_kg\":4000,\"dispatch_policy\":\"least_fill_ratio\",\"dispatch_poll_dt_hr\":0.1},\"isru\":{\"plant_count\":1,\"processing_rate_kg_hr\":1600,\"lox_transport_threshold_kg\":4000,\"lox_delivery_poll_dt_hr\":1,\"lox_storage_energy_kwh_per_kg_hr\":0,\"lox_storage_energy_dt_hr\":1},\"power\":{\"ignore_power\":true,\"mode\":\"energy_unconstrained\",\"management_dt_hr\":0.25,\"supply\":{\"power_output_kw\":100,\"battery_capacity_kwh\":500,\"initial_battery_charge_kwh\":500},\"continuous_load_kw\":{\"habitation\":null,\"communications\":null,\"landing_zone_utilities\":null},\"landing_zone_chilling_kw_per_kg\":null,\"spikes\":{\"habitation\":[],\"communications\":[],\"landing_zone\":[]},\"charging_station\":{\"enabled_when_lox_rover_active\":false,\"charging_power_kw\":20,\"efficiency\":0.85},\"module_models\":{}},\"scenario_builder\":{\"scenario_mode\":\"new\",\"instances\":[{\"id\":\"CargoSource\",\"type\":\"CargoSource\",\"placed\":true,\"position_canvas\":{\"cx\":130,\"cy\":290},\"orientation_deg\":0},{\"id\":\"ForwardDepot\",\"type\":\"ForwardDepot\",\"placed\":true,\"position_canvas\":{\"cx\":350,\"cy\":230},\"orientation_deg\":0},{\"id\":\"HabitatConsumer\",\"type\":\"HabitatConsumer\",\"placed\":true,\"position_canvas\":{\"cx\":560,\"cy\":310},\"orientation_deg\":0}],\"rover_counts\":{\"cargo\":1},\"rover_payloads_kg\":{\"cargo\":4000},\"module_classes\":{\"CargoSource\":\"Source\",\"CargoRover\":\"Transporter\",\"ForwardDepot\":\"Storage\",\"HabitatConsumer\":\"Storage\"},\"power_mode\":\"energy_unconstrained\",\"ignore_power\":true,\"sysml_interfaces\":[],\"transport_links\":[{\"id\":\"ForwardDepotToHabitat\",\"flow\":\"Cargo\",\"from_type\":\"ForwardDepot\",\"to_type\":\"HabitatConsumer\",\"rover_type\":\"CargoRover\",\"from_instances\":[\"ForwardDepot\"],\"to_instances\":[\"HabitatConsumer\"]},{\"id\":\"SourceToRover_RoverToForwardDepot\",\"flow\":\"Cargo\",\"from_type\":\"CargoSource\",\"to_type\":\"ForwardDepot\",\"rover_type\":\"CargoRover\",\"from_instances\":[\"CargoSource\"],\"to_instances\":[\"ForwardDepot\"]}],\"resource_routes\":[{\"id\":\"Cargo_CargoRover_ForwardDepot_HabitatConsumer_1784481672813\",\"flow\":\"Cargo\",\"rover_type\":\"CargoRover\",\"rover_id\":\"CargoRover\",\"from\":\"ForwardDepot\",\"to\":\"HabitatConsumer\",\"stops\":[],\"distance_km\":1.097},{\"id\":\"Cargo_CargoRover_CargoSource_ForwardDepot_1784481672823\",\"flow\":\"Cargo\",\"rover_type\":\"CargoRover\",\"rover_id\":\"CargoRover\",\"from\":\"CargoSource\",\"to\":\"ForwardDepot\",\"stops\":[],\"distance_km\":0.958}],\"module_equations\":{\"CargoSource\":\"CargoOut = min(RequestedCargo, supplyRate)\\nProcessingTime = CargoOut / supplyRate\\nPowerOut = 0\",\"CargoRover\":\"CargoOut = min(CargoIn, RoverCapacity)\\nTravelTime = Distance * hoursPerKm\\nEnergyConsumed = Distance * CargoMass * energyPerKmPerKg\\nPowerOut = 0\",\"ForwardDepot\":\"CargoStored = CargoStored + CargoIn\\nPowerOut = 0\",\"HabitatConsumer\":\"CargoStored = CargoStored + CargoIn\\nPowerOut = 0\"}}}"
+  },
+  "sysml_active_nodes": [
+    "CargoSource",
+    "CargoRover",
+    "ForwardDepot",
+    "HabitatConsumer"
+  ],
+  "des_active_nodes": [
+    "CargoSource",
+    "CargoRover",
+    "ForwardDepot",
+    "HabitatConsumer"
+  ],
+  "results": {
+    "Engine": "GenericScenario",
+    "Sim_Metrics": {
+      "Simulation_Run_Time": 0.0044,
+      "Simulation_Duration_hr": 16.0,
+      "Active_Nodes": [
+        "CargoSource",
+        "ForwardDepot",
+        "HabitatConsumer"
+      ]
+    },
+    "Modules": {
+      "CargoSource": {
+        "Name": "CargoSource",
+        "Module_Type": "CargoSource",
+        "Role": "source",
+        "Inventory": {
+          "Cargo": 0.0
+        },
+        "Received": {},
+        "Produced": {
+          "Cargo": 36.0
+        },
+        "Energy_Consumed_kWh": 0.0,
+        "Processing_Time_hr": 3.0,
+        "Cycles": 3,
+        "Equation_Outputs": {
+          "CargoOut": 12.0,
+          "ProcessingTime": 1.0
+        }
+      },
+      "ForwardDepot": {
+        "Name": "ForwardDepot",
+        "Module_Type": "ForwardDepot",
+        "Role": "storage",
+        "Inventory": {
+          "Cargo": 0.0
+        },
+        "Received": {
+          "Cargo": 36.0
+        },
+        "Produced": {},
+        "Energy_Consumed_kWh": 0.0,
+        "Processing_Time_hr": 0.0,
+        "Cycles": 0,
+        "Equation_Outputs": {
+          "CargoStored": 12.0
+        }
+      },
+      "HabitatConsumer": {
+        "Name": "HabitatConsumer",
+        "Module_Type": "HabitatConsumer",
+        "Role": "storage",
+        "Inventory": {
+          "Cargo": 36.0
+        },
+        "Received": {
+          "Cargo": 36.0
+        },
+        "Produced": {},
+        "Energy_Consumed_kWh": 0.0,
+        "Processing_Time_hr": 0.0,
+        "Cycles": 0,
+        "Equation_Outputs": {
+          "CargoStored": 36.0
+        }
+      }
+    },
+    "Rovers": {
+      "CargoRover": {
+        "Name": "CargoRover",
+        "Module_Type": "CargoRover",
+        "Role": "transporter",
+        "Trips": 6,
+        "Distance_Traveled_km": 12.33,
+        "Energy_Consumed_kWh": 0.0,
+        "Delivered": {
+          "Cargo": 72.0
+        },
+        "Delivered_By_Route": {
+          "Cargo_CargoRover_CargoSource_ForwardDepot_1784481672823": 36.0,
+          "Cargo_CargoRover_ForwardDepot_HabitatConsumer_1784481672813": 36.0
+        }
+      }
+    },
+    "Resource_Flows": {
+      "Cargo": {
+        "Unit": "kg",
+        "Transported": 72.0,
+        "Delivered_To_Terminal": 36.0
+      }
+    },
+    "Power": {
+      "Mode": "Energy-Unconstrained",
+      "Power_Ignored": true,
+      "Total_Generated_kWh": 0.0,
+      "Total_Demand_kWh": 0.0,
+      "Unserved_Energy_kWh": 0.0,
+      "Battery_Charge_kWh": null,
+      "Battery_Capacity_kWh": null,
+      "Energy_Generated_Time_Array_kWh": [],
+      "Total_Demand_Time_Array_kWh": []
+    },
+    "MoEs": {
+      "Total_Resource_Transported": 72.0,
+      "Total_Resource_Delivered_To_Terminals": 36.0,
+      "Total_System_Demand_kWh": 0.0,
+      "Total_Energy_Generated_kWh": 0.0,
+      "Unserved_Energy_kWh": 0.0,
+      "Total_Transport_Distance_km": 12.33
+    },
+    "Events": [
+      {
+        "time_hr": 1.0,
+        "type": "production",
+        "module": "CargoSource",
+        "flow": "Cargo",
+        "amount": 12.0
+      },
+      {
+        "time_hr": 1.958,
+        "type": "delivery",
+        "module": "ForwardDepot",
+        "flow": "Cargo",
+        "amount": 12.0
+      },
+      {
+        "time_hr": 2.916,
+        "type": "transport_complete",
+        "rover": "CargoRover",
+        "route": "Cargo_CargoRover_CargoSource_ForwardDepot_1784481672823",
+        "flow": "Cargo",
+        "amount": 12.0,
+        "distance_km_round_trip": 1.916
+      },
+      {
+        "time_hr": 4.013,
+        "type": "delivery",
+        "module": "HabitatConsumer",
+        "flow": "Cargo",
+        "amount": 12.0
+      },
+      {
+        "time_hr": 5.109999999999999,
+        "type": "transport_complete",
+        "rover": "CargoRover",
+        "route": "Cargo_CargoRover_ForwardDepot_HabitatConsumer_1784481672813",
+        "flow": "Cargo",
+        "amount": 12.0,
+        "distance_km_round_trip": 2.194
+      },
+      {
+        "time_hr": 6.109999999999999,
+        "type": "production",
+        "module": "CargoSource",
+        "flow": "Cargo",
+        "amount": 12.0
+      },
+      {
+        "time_hr": 7.068,
+        "type": "delivery",
+        "module": "ForwardDepot",
+        "flow": "Cargo",
+        "amount": 12.0
+      },
+      {
+        "time_hr": 8.026,
+        "type": "transport_complete",
+        "rover": "CargoRover",
+        "route": "Cargo_CargoRover_CargoSource_ForwardDepot_1784481672823",
+        "flow": "Cargo",
+        "amount": 12.0,
+        "distance_km_round_trip": 1.916
+      },
+      {
+        "time_hr": 9.123,
+        "type": "delivery",
+        "module": "HabitatConsumer",
+        "flow": "Cargo",
+        "amount": 12.0
+      },
+      {
+        "time_hr": 10.219999999999999,
+        "type": "transport_complete",
+        "rover": "CargoRover",
+        "route": "Cargo_CargoRover_ForwardDepot_HabitatConsumer_1784481672813",
+        "flow": "Cargo",
+        "amount": 12.0,
+        "distance_km_round_trip": 2.194
+      },
+      {
+        "time_hr": 11.219999999999999,
+        "type": "production",
+        "module": "CargoSource",
+        "flow": "Cargo",
+        "amount": 12.0
+      },
+      {
+        "time_hr": 12.177999999999999,
+        "type": "delivery",
+        "module": "ForwardDepot",
+        "flow": "Cargo",
+        "amount": 12.0
+      },
+      {
+        "time_hr": 13.136,
+        "type": "transport_complete",
+        "rover": "CargoRover",
+        "route": "Cargo_CargoRover_CargoSource_ForwardDepot_1784481672823",
+        "flow": "Cargo",
+        "amount": 12.0,
+        "distance_km_round_trip": 1.916
+      },
+      {
+        "time_hr": 14.232999999999999,
+        "type": "delivery",
+        "module": "HabitatConsumer",
+        "flow": "Cargo",
+        "amount": 12.0
+      },
+      {
+        "time_hr": 15.329999999999998,
+        "type": "transport_complete",
+        "rover": "CargoRover",
+        "route": "Cargo_CargoRover_ForwardDepot_HabitatConsumer_1784481672813",
+        "flow": "Cargo",
+        "amount": 12.0,
+        "distance_km_round_trip": 2.194
+      }
+    ]
+  },
+  "log": {
+    "0": {
+      "CargoSource": {
+        "Name": "CargoSource",
+        "Module_Type": "CargoSource",
+        "Role": "source",
+        "Inventory": {
+          "Cargo": 0.0
+        },
+        "Received": {},
+        "Produced": {},
+        "Energy_Consumed_kWh": 0.0,
+        "Processing_Time_hr": 0.0,
+        "Cycles": 0,
+        "Equation_Outputs": {}
+      },
+      "ForwardDepot": {
+        "Name": "ForwardDepot",
+        "Module_Type": "ForwardDepot",
+        "Role": "storage",
+        "Inventory": {
+          "Cargo": 0.0
+        },
+        "Received": {},
+        "Produced": {},
+        "Energy_Consumed_kWh": 0.0,
+        "Processing_Time_hr": 0.0,
+        "Cycles": 0,
+        "Equation_Outputs": {}
+      },
+      "HabitatConsumer": {
+        "Name": "HabitatConsumer",
+        "Module_Type": "HabitatConsumer",
+        "Role": "storage",
+        "Inventory": {
+          "Cargo": 0.0
+        },
+        "Received": {},
+        "Produced": {},
+        "Energy_Consumed_kWh": 0.0,
+        "Processing_Time_hr": 0.0,
+        "Cycles": 0,
+        "Equation_Outputs": {}
+      },
+      "CargoRover": {
+        "Name": "CargoRover",
+        "Module_Type": "CargoRover",
+        "Role": "transporter",
+        "Trips": 0,
+        "Distance_Traveled_km": 0.0,
+        "Energy_Consumed_kWh": 0.0,
+        "Delivered": {},
+        "Delivered_By_Route": {}
+      },
+      "Power_Manager": {
+        "Mode": "Energy-Unconstrained",
+        "Power_Ignored": true,
+        "Total_Generated_kWh": 0.0,
+        "Total_Demand_kWh": 0.0,
+        "Unserved_Energy_kWh": 0.0,
+        "Battery_Charge_kWh": null,
+        "Battery_Capacity_kWh": null,
+        "Energy_Generated_Time_Array_kWh": [],
+        "Total_Demand_Time_Array_kWh": []
+      }
+    },
+    "1.0": {
+      "CargoSource": {
+        "Name": "CargoSource",
+        "Module_Type": "CargoSource",
+        "Role": "source",
+        "Inventory": {
+          "Cargo": 0.0
+        },
+        "Received": {},
+        "Produced": {},
+        "Energy_Consumed_kWh": 0.0,
+        "Processing_Time_hr": 0.0,
+        "Cycles": 0,
+        "Equation_Outputs": {}
+      },
+      "ForwardDepot": {
+        "Name": "ForwardDepot",
+        "Module_Type": "ForwardDepot",
+        "Role": "storage",
+        "Inventory": {
+          "Cargo": 0.0
+        },
+        "Received": {},
+        "Produced": {},
+        "Energy_Consumed_kWh": 0.0,
+        "Processing_Time_hr": 0.0,
+        "Cycles": 0,
+        "Equation_Outputs": {}
+      },
+      "HabitatConsumer": {
+        "Name": "HabitatConsumer",
+        "Module_Type": "HabitatConsumer",
+        "Role": "storage",
+        "Inventory": {
+          "Cargo": 0.0
+        },
+        "Received": {},
+        "Produced": {},
+        "Energy_Consumed_kWh": 0.0,
+        "Processing_Time_hr": 0.0,
+        "Cycles": 0,
+        "Equation_Outputs": {}
+      },
+      "CargoRover": {
+        "Name": "CargoRover",
+        "Module_Type": "CargoRover",
+        "Role": "transporter",
+        "Trips": 0,
+        "Distance_Traveled_km": 0.0,
+        "Energy_Consumed_kWh": 0.0,
+        "Delivered": {},
+        "Delivered_By_Route": {}
+      },
+      "Power_Manager": {
+        "Mode": "Energy-Unconstrained",
+        "Power_Ignored": true,
+        "Total_Generated_kWh": 0.0,
+        "Total_Demand_kWh": 0.0,
+        "Unserved_Energy_kWh": 0.0,
+        "Battery_Charge_kWh": null,
+        "Battery_Capacity_kWh": null,
+        "Energy_Generated_Time_Array_kWh": [],
+        "Total_Demand_Time_Array_kWh": []
+      }
+    },
+    "2.0": {
+      "CargoSource": {
+        "Name": "CargoSource",
+        "Module_Type": "CargoSource",
+        "Role": "source",
+        "Inventory": {
+          "Cargo": 0.0
+        },
+        "Received": {},
+        "Produced": {
+          "Cargo": 12.0
+        },
+        "Energy_Consumed_kWh": 0.0,
+        "Processing_Time_hr": 1.0,
+        "Cycles": 1,
+        "Equation_Outputs": {
+          "CargoOut": 12.0,
+          "ProcessingTime": 1.0
+        }
+      },
+      "ForwardDepot": {
+        "Name": "ForwardDepot",
+        "Module_Type": "ForwardDepot",
+        "Role": "storage",
+        "Inventory": {
+          "Cargo": 12.0
+        },
+        "Received": {
+          "Cargo": 12.0
+        },
+        "Produced": {},
+        "Energy_Consumed_kWh": 0.0,
+        "Processing_Time_hr": 0.0,
+        "Cycles": 0,
+        "Equation_Outputs": {
+          "CargoStored": 12.0
+        }
+      },
+      "HabitatConsumer": {
+        "Name": "HabitatConsumer",
+        "Module_Type": "HabitatConsumer",
+        "Role": "storage",
+        "Inventory": {
+          "Cargo": 0.0
+        },
+        "Received": {},
+        "Produced": {},
+        "Energy_Consumed_kWh": 0.0,
+        "Processing_Time_hr": 0.0,
+        "Cycles": 0,
+        "Equation_Outputs": {}
+      },
+      "CargoRover": {
+        "Name": "CargoRover",
+        "Module_Type": "CargoRover",
+        "Role": "transporter",
+        "Trips": 0,
+        "Distance_Traveled_km": 0.0,
+        "Energy_Consumed_kWh": 0.0,
+        "Delivered": {},
+        "Delivered_By_Route": {}
+      },
+      "Power_Manager": {
+        "Mode": "Energy-Unconstrained",
+        "Power_Ignored": true,
+        "Total_Generated_kWh": 0.0,
+        "Total_Demand_kWh": 0.0,
+        "Unserved_Energy_kWh": 0.0,
+        "Battery_Charge_kWh": null,
+        "Battery_Capacity_kWh": null,
+        "Energy_Generated_Time_Array_kWh": [],
+        "Total_Demand_Time_Array_kWh": []
+      }
+    },
+    "3.0": {
+      "CargoSource": {
+        "Name": "CargoSource",
+        "Module_Type": "CargoSource",
+        "Role": "source",
+        "Inventory": {
+          "Cargo": 0.0
+        },
+        "Received": {},
+        "Produced": {
+          "Cargo": 12.0
+        },
+        "Energy_Consumed_kWh": 0.0,
+        "Processing_Time_hr": 1.0,
+        "Cycles": 1,
+        "Equation_Outputs": {
+          "CargoOut": 12.0,
+          "ProcessingTime": 1.0
+        }
+      },
+      "ForwardDepot": {
+        "Name": "ForwardDepot",
+        "Module_Type": "ForwardDepot",
+        "Role": "storage",
+        "Inventory": {
+          "Cargo": 0.0
+        },
+        "Received": {
+          "Cargo": 12.0
+        },
+        "Produced": {},
+        "Energy_Consumed_kWh": 0.0,
+        "Processing_Time_hr": 0.0,
+        "Cycles": 0,
+        "Equation_Outputs": {
+          "CargoStored": 12.0
+        }
+      },
+      "HabitatConsumer": {
+        "Name": "HabitatConsumer",
+        "Module_Type": "HabitatConsumer",
+        "Role": "storage",
+        "Inventory": {
+          "Cargo": 0.0
+        },
+        "Received": {},
+        "Produced": {},
+        "Energy_Consumed_kWh": 0.0,
+        "Processing_Time_hr": 0.0,
+        "Cycles": 0,
+        "Equation_Outputs": {}
+      },
+      "CargoRover": {
+        "Name": "CargoRover",
+        "Module_Type": "CargoRover",
+        "Role": "transporter",
+        "Trips": 1,
+        "Distance_Traveled_km": 1.916,
+        "Energy_Consumed_kWh": 0.0,
+        "Delivered": {
+          "Cargo": 12.0
+        },
+        "Delivered_By_Route": {
+          "Cargo_CargoRover_CargoSource_ForwardDepot_1784481672823": 12.0
+        }
+      },
+      "Power_Manager": {
+        "Mode": "Energy-Unconstrained",
+        "Power_Ignored": true,
+        "Total_Generated_kWh": 0.0,
+        "Total_Demand_kWh": 0.0,
+        "Unserved_Energy_kWh": 0.0,
+        "Battery_Charge_kWh": null,
+        "Battery_Capacity_kWh": null,
+        "Energy_Generated_Time_Array_kWh": [],
+        "Total_Demand_Time_Array_kWh": []
+      }
+    },
+    "4.0": {
+      "CargoSource": {
+        "Name": "CargoSource",
+        "Module_Type": "CargoSource",
+        "Role": "source",
+        "Inventory": {
+          "Cargo": 0.0
+        },
+        "Received": {},
+        "Produced": {
+          "Cargo": 12.0
+        },
+        "Energy_Consumed_kWh": 0.0,
+        "Processing_Time_hr": 1.0,
+        "Cycles": 1,
+        "Equation_Outputs": {
+          "CargoOut": 12.0,
+          "ProcessingTime": 1.0
+        }
+      },
+      "ForwardDepot": {
+        "Name": "ForwardDepot",
+        "Module_Type": "ForwardDepot",
+        "Role": "storage",
+        "Inventory": {
+          "Cargo": 0.0
+        },
+        "Received": {
+          "Cargo": 12.0
+        },
+        "Produced": {},
+        "Energy_Consumed_kWh": 0.0,
+        "Processing_Time_hr": 0.0,
+        "Cycles": 0,
+        "Equation_Outputs": {
+          "CargoStored": 12.0
+        }
+      },
+      "HabitatConsumer": {
+        "Name": "HabitatConsumer",
+        "Module_Type": "HabitatConsumer",
+        "Role": "storage",
+        "Inventory": {
+          "Cargo": 0.0
+        },
+        "Received": {},
+        "Produced": {},
+        "Energy_Consumed_kWh": 0.0,
+        "Processing_Time_hr": 0.0,
+        "Cycles": 0,
+        "Equation_Outputs": {}
+      },
+      "CargoRover": {
+        "Name": "CargoRover",
+        "Module_Type": "CargoRover",
+        "Role": "transporter",
+        "Trips": 1,
+        "Distance_Traveled_km": 1.916,
+        "Energy_Consumed_kWh": 0.0,
+        "Delivered": {
+          "Cargo": 12.0
+        },
+        "Delivered_By_Route": {
+          "Cargo_CargoRover_CargoSource_ForwardDepot_1784481672823": 12.0
+        }
+      },
+      "Power_Manager": {
+        "Mode": "Energy-Unconstrained",
+        "Power_Ignored": true,
+        "Total_Generated_kWh": 0.0,
+        "Total_Demand_kWh": 0.0,
+        "Unserved_Energy_kWh": 0.0,
+        "Battery_Charge_kWh": null,
+        "Battery_Capacity_kWh": null,
+        "Energy_Generated_Time_Array_kWh": [],
+        "Total_Demand_Time_Array_kWh": []
+      }
+    },
+    "5.0": {
+      "CargoSource": {
+        "Name": "CargoSource",
+        "Module_Type": "CargoSource",
+        "Role": "source",
+        "Inventory": {
+          "Cargo": 0.0
+        },
+        "Received": {},
+        "Produced": {
+          "Cargo": 12.0
+        },
+        "Energy_Consumed_kWh": 0.0,
+        "Processing_Time_hr": 1.0,
+        "Cycles": 1,
+        "Equation_Outputs": {
+          "CargoOut": 12.0,
+          "ProcessingTime": 1.0
+        }
+      },
+      "ForwardDepot": {
+        "Name": "ForwardDepot",
+        "Module_Type": "ForwardDepot",
+        "Role": "storage",
+        "Inventory": {
+          "Cargo": 0.0
+        },
+        "Received": {
+          "Cargo": 12.0
+        },
+        "Produced": {},
+        "Energy_Consumed_kWh": 0.0,
+        "Processing_Time_hr": 0.0,
+        "Cycles": 0,
+        "Equation_Outputs": {
+          "CargoStored": 12.0
+        }
+      },
+      "HabitatConsumer": {
+        "Name": "HabitatConsumer",
+        "Module_Type": "HabitatConsumer",
+        "Role": "storage",
+        "Inventory": {
+          "Cargo": 12.0
+        },
+        "Received": {
+          "Cargo": 12.0
+        },
+        "Produced": {},
+        "Energy_Consumed_kWh": 0.0,
+        "Processing_Time_hr": 0.0,
+        "Cycles": 0,
+        "Equation_Outputs": {
+          "CargoStored": 12.0
+        }
+      },
+      "CargoRover": {
+        "Name": "CargoRover",
+        "Module_Type": "CargoRover",
+        "Role": "transporter",
+        "Trips": 1,
+        "Distance_Traveled_km": 1.916,
+        "Energy_Consumed_kWh": 0.0,
+        "Delivered": {
+          "Cargo": 12.0
+        },
+        "Delivered_By_Route": {
+          "Cargo_CargoRover_CargoSource_ForwardDepot_1784481672823": 12.0
+        }
+      },
+      "Power_Manager": {
+        "Mode": "Energy-Unconstrained",
+        "Power_Ignored": true,
+        "Total_Generated_kWh": 0.0,
+        "Total_Demand_kWh": 0.0,
+        "Unserved_Energy_kWh": 0.0,
+        "Battery_Charge_kWh": null,
+        "Battery_Capacity_kWh": null,
+        "Energy_Generated_Time_Array_kWh": [],
+        "Total_Demand_Time_Array_kWh": []
+      }
+    },
+    "6.0": {
+      "CargoSource": {
+        "Name": "CargoSource",
+        "Module_Type": "CargoSource",
+        "Role": "source",
+        "Inventory": {
+          "Cargo": 0.0
+        },
+        "Received": {},
+        "Produced": {
+          "Cargo": 12.0
+        },
+        "Energy_Consumed_kWh": 0.0,
+        "Processing_Time_hr": 1.0,
+        "Cycles": 1,
+        "Equation_Outputs": {
+          "CargoOut": 12.0,
+          "ProcessingTime": 1.0
+        }
+      },
+      "ForwardDepot": {
+        "Name": "ForwardDepot",
+        "Module_Type": "ForwardDepot",
+        "Role": "storage",
+        "Inventory": {
+          "Cargo": 0.0
+        },
+        "Received": {
+          "Cargo": 12.0
+        },
+        "Produced": {},
+        "Energy_Consumed_kWh": 0.0,
+        "Processing_Time_hr": 0.0,
+        "Cycles": 0,
+        "Equation_Outputs": {
+          "CargoStored": 12.0
+        }
+      },
+      "HabitatConsumer": {
+        "Name": "HabitatConsumer",
+        "Module_Type": "HabitatConsumer",
+        "Role": "storage",
+        "Inventory": {
+          "Cargo": 12.0
+        },
+        "Received": {
+          "Cargo": 12.0
+        },
+        "Produced": {},
+        "Energy_Consumed_kWh": 0.0,
+        "Processing_Time_hr": 0.0,
+        "Cycles": 0,
+        "Equation_Outputs": {
+          "CargoStored": 12.0
+        }
+      },
+      "CargoRover": {
+        "Name": "CargoRover",
+        "Module_Type": "CargoRover",
+        "Role": "transporter",
+        "Trips": 2,
+        "Distance_Traveled_km": 4.11,
+        "Energy_Consumed_kWh": 0.0,
+        "Delivered": {
+          "Cargo": 24.0
+        },
+        "Delivered_By_Route": {
+          "Cargo_CargoRover_CargoSource_ForwardDepot_1784481672823": 12.0,
+          "Cargo_CargoRover_ForwardDepot_HabitatConsumer_1784481672813": 12.0
+        }
+      },
+      "Power_Manager": {
+        "Mode": "Energy-Unconstrained",
+        "Power_Ignored": true,
+        "Total_Generated_kWh": 0.0,
+        "Total_Demand_kWh": 0.0,
+        "Unserved_Energy_kWh": 0.0,
+        "Battery_Charge_kWh": null,
+        "Battery_Capacity_kWh": null,
+        "Energy_Generated_Time_Array_kWh": [],
+        "Total_Demand_Time_Array_kWh": []
+      }
+    },
+    "7.0": {
+      "CargoSource": {
+        "Name": "CargoSource",
+        "Module_Type": "CargoSource",
+        "Role": "source",
+        "Inventory": {
+          "Cargo": 0.0
+        },
+        "Received": {},
+        "Produced": {
+          "Cargo": 24.0
+        },
+        "Energy_Consumed_kWh": 0.0,
+        "Processing_Time_hr": 2.0,
+        "Cycles": 2,
+        "Equation_Outputs": {
+          "CargoOut": 12.0,
+          "ProcessingTime": 1.0
+        }
+      },
+      "ForwardDepot": {
+        "Name": "ForwardDepot",
+        "Module_Type": "ForwardDepot",
+        "Role": "storage",
+        "Inventory": {
+          "Cargo": 0.0
+        },
+        "Received": {
+          "Cargo": 12.0
+        },
+        "Produced": {},
+        "Energy_Consumed_kWh": 0.0,
+        "Processing_Time_hr": 0.0,
+        "Cycles": 0,
+        "Equation_Outputs": {
+          "CargoStored": 12.0
+        }
+      },
+      "HabitatConsumer": {
+        "Name": "HabitatConsumer",
+        "Module_Type": "HabitatConsumer",
+        "Role": "storage",
+        "Inventory": {
+          "Cargo": 12.0
+        },
+        "Received": {
+          "Cargo": 12.0
+        },
+        "Produced": {},
+        "Energy_Consumed_kWh": 0.0,
+        "Processing_Time_hr": 0.0,
+        "Cycles": 0,
+        "Equation_Outputs": {
+          "CargoStored": 12.0
+        }
+      },
+      "CargoRover": {
+        "Name": "CargoRover",
+        "Module_Type": "CargoRover",
+        "Role": "transporter",
+        "Trips": 2,
+        "Distance_Traveled_km": 4.11,
+        "Energy_Consumed_kWh": 0.0,
+        "Delivered": {
+          "Cargo": 24.0
+        },
+        "Delivered_By_Route": {
+          "Cargo_CargoRover_CargoSource_ForwardDepot_1784481672823": 12.0,
+          "Cargo_CargoRover_ForwardDepot_HabitatConsumer_1784481672813": 12.0
+        }
+      },
+      "Power_Manager": {
+        "Mode": "Energy-Unconstrained",
+        "Power_Ignored": true,
+        "Total_Generated_kWh": 0.0,
+        "Total_Demand_kWh": 0.0,
+        "Unserved_Energy_kWh": 0.0,
+        "Battery_Charge_kWh": null,
+        "Battery_Capacity_kWh": null,
+        "Energy_Generated_Time_Array_kWh": [],
+        "Total_Demand_Time_Array_kWh": []
+      }
+    },
+    "8.0": {
+      "CargoSource": {
+        "Name": "CargoSource",
+        "Module_Type": "CargoSource",
+        "Role": "source",
+        "Inventory": {
+          "Cargo": 0.0
+        },
+        "Received": {},
+        "Produced": {
+          "Cargo": 24.0
+        },
+        "Energy_Consumed_kWh": 0.0,
+        "Processing_Time_hr": 2.0,
+        "Cycles": 2,
+        "Equation_Outputs": {
+          "CargoOut": 12.0,
+          "ProcessingTime": 1.0
+        }
+      },
+      "ForwardDepot": {
+        "Name": "ForwardDepot",
+        "Module_Type": "ForwardDepot",
+        "Role": "storage",
+        "Inventory": {
+          "Cargo": 12.0
+        },
+        "Received": {
+          "Cargo": 24.0
+        },
+        "Produced": {},
+        "Energy_Consumed_kWh": 0.0,
+        "Processing_Time_hr": 0.0,
+        "Cycles": 0,
+        "Equation_Outputs": {
+          "CargoStored": 12.0
+        }
+      },
+      "HabitatConsumer": {
+        "Name": "HabitatConsumer",
+        "Module_Type": "HabitatConsumer",
+        "Role": "storage",
+        "Inventory": {
+          "Cargo": 12.0
+        },
+        "Received": {
+          "Cargo": 12.0
+        },
+        "Produced": {},
+        "Energy_Consumed_kWh": 0.0,
+        "Processing_Time_hr": 0.0,
+        "Cycles": 0,
+        "Equation_Outputs": {
+          "CargoStored": 12.0
+        }
+      },
+      "CargoRover": {
+        "Name": "CargoRover",
+        "Module_Type": "CargoRover",
+        "Role": "transporter",
+        "Trips": 2,
+        "Distance_Traveled_km": 4.11,
+        "Energy_Consumed_kWh": 0.0,
+        "Delivered": {
+          "Cargo": 24.0
+        },
+        "Delivered_By_Route": {
+          "Cargo_CargoRover_CargoSource_ForwardDepot_1784481672823": 12.0,
+          "Cargo_CargoRover_ForwardDepot_HabitatConsumer_1784481672813": 12.0
+        }
+      },
+      "Power_Manager": {
+        "Mode": "Energy-Unconstrained",
+        "Power_Ignored": true,
+        "Total_Generated_kWh": 0.0,
+        "Total_Demand_kWh": 0.0,
+        "Unserved_Energy_kWh": 0.0,
+        "Battery_Charge_kWh": null,
+        "Battery_Capacity_kWh": null,
+        "Energy_Generated_Time_Array_kWh": [],
+        "Total_Demand_Time_Array_kWh": []
+      }
+    },
+    "9.0": {
+      "CargoSource": {
+        "Name": "CargoSource",
+        "Module_Type": "CargoSource",
+        "Role": "source",
+        "Inventory": {
+          "Cargo": 0.0
+        },
+        "Received": {},
+        "Produced": {
+          "Cargo": 24.0
+        },
+        "Energy_Consumed_kWh": 0.0,
+        "Processing_Time_hr": 2.0,
+        "Cycles": 2,
+        "Equation_Outputs": {
+          "CargoOut": 12.0,
+          "ProcessingTime": 1.0
+        }
+      },
+      "ForwardDepot": {
+        "Name": "ForwardDepot",
+        "Module_Type": "ForwardDepot",
+        "Role": "storage",
+        "Inventory": {
+          "Cargo": 0.0
+        },
+        "Received": {
+          "Cargo": 24.0
+        },
+        "Produced": {},
+        "Energy_Consumed_kWh": 0.0,
+        "Processing_Time_hr": 0.0,
+        "Cycles": 0,
+        "Equation_Outputs": {
+          "CargoStored": 12.0
+        }
+      },
+      "HabitatConsumer": {
+        "Name": "HabitatConsumer",
+        "Module_Type": "HabitatConsumer",
+        "Role": "storage",
+        "Inventory": {
+          "Cargo": 12.0
+        },
+        "Received": {
+          "Cargo": 12.0
+        },
+        "Produced": {},
+        "Energy_Consumed_kWh": 0.0,
+        "Processing_Time_hr": 0.0,
+        "Cycles": 0,
+        "Equation_Outputs": {
+          "CargoStored": 12.0
+        }
+      },
+      "CargoRover": {
+        "Name": "CargoRover",
+        "Module_Type": "CargoRover",
+        "Role": "transporter",
+        "Trips": 3,
+        "Distance_Traveled_km": 6.026,
+        "Energy_Consumed_kWh": 0.0,
+        "Delivered": {
+          "Cargo": 36.0
+        },
+        "Delivered_By_Route": {
+          "Cargo_CargoRover_CargoSource_ForwardDepot_1784481672823": 24.0,
+          "Cargo_CargoRover_ForwardDepot_HabitatConsumer_1784481672813": 12.0
+        }
+      },
+      "Power_Manager": {
+        "Mode": "Energy-Unconstrained",
+        "Power_Ignored": true,
+        "Total_Generated_kWh": 0.0,
+        "Total_Demand_kWh": 0.0,
+        "Unserved_Energy_kWh": 0.0,
+        "Battery_Charge_kWh": null,
+        "Battery_Capacity_kWh": null,
+        "Energy_Generated_Time_Array_kWh": [],
+        "Total_Demand_Time_Array_kWh": []
+      }
+    },
+    "10.0": {
+      "CargoSource": {
+        "Name": "CargoSource",
+        "Module_Type": "CargoSource",
+        "Role": "source",
+        "Inventory": {
+          "Cargo": 0.0
+        },
+        "Received": {},
+        "Produced": {
+          "Cargo": 24.0
+        },
+        "Energy_Consumed_kWh": 0.0,
+        "Processing_Time_hr": 2.0,
+        "Cycles": 2,
+        "Equation_Outputs": {
+          "CargoOut": 12.0,
+          "ProcessingTime": 1.0
+        }
+      },
+      "ForwardDepot": {
+        "Name": "ForwardDepot",
+        "Module_Type": "ForwardDepot",
+        "Role": "storage",
+        "Inventory": {
+          "Cargo": 0.0
+        },
+        "Received": {
+          "Cargo": 24.0
+        },
+        "Produced": {},
+        "Energy_Consumed_kWh": 0.0,
+        "Processing_Time_hr": 0.0,
+        "Cycles": 0,
+        "Equation_Outputs": {
+          "CargoStored": 12.0
+        }
+      },
+      "HabitatConsumer": {
+        "Name": "HabitatConsumer",
+        "Module_Type": "HabitatConsumer",
+        "Role": "storage",
+        "Inventory": {
+          "Cargo": 24.0
+        },
+        "Received": {
+          "Cargo": 24.0
+        },
+        "Produced": {},
+        "Energy_Consumed_kWh": 0.0,
+        "Processing_Time_hr": 0.0,
+        "Cycles": 0,
+        "Equation_Outputs": {
+          "CargoStored": 24.0
+        }
+      },
+      "CargoRover": {
+        "Name": "CargoRover",
+        "Module_Type": "CargoRover",
+        "Role": "transporter",
+        "Trips": 3,
+        "Distance_Traveled_km": 6.026,
+        "Energy_Consumed_kWh": 0.0,
+        "Delivered": {
+          "Cargo": 36.0
+        },
+        "Delivered_By_Route": {
+          "Cargo_CargoRover_CargoSource_ForwardDepot_1784481672823": 24.0,
+          "Cargo_CargoRover_ForwardDepot_HabitatConsumer_1784481672813": 12.0
+        }
+      },
+      "Power_Manager": {
+        "Mode": "Energy-Unconstrained",
+        "Power_Ignored": true,
+        "Total_Generated_kWh": 0.0,
+        "Total_Demand_kWh": 0.0,
+        "Unserved_Energy_kWh": 0.0,
+        "Battery_Charge_kWh": null,
+        "Battery_Capacity_kWh": null,
+        "Energy_Generated_Time_Array_kWh": [],
+        "Total_Demand_Time_Array_kWh": []
+      }
+    },
+    "11.0": {
+      "CargoSource": {
+        "Name": "CargoSource",
+        "Module_Type": "CargoSource",
+        "Role": "source",
+        "Inventory": {
+          "Cargo": 0.0
+        },
+        "Received": {},
+        "Produced": {
+          "Cargo": 24.0
+        },
+        "Energy_Consumed_kWh": 0.0,
+        "Processing_Time_hr": 2.0,
+        "Cycles": 2,
+        "Equation_Outputs": {
+          "CargoOut": 12.0,
+          "ProcessingTime": 1.0
+        }
+      },
+      "ForwardDepot": {
+        "Name": "ForwardDepot",
+        "Module_Type": "ForwardDepot",
+        "Role": "storage",
+        "Inventory": {
+          "Cargo": 0.0
+        },
+        "Received": {
+          "Cargo": 24.0
+        },
+        "Produced": {},
+        "Energy_Consumed_kWh": 0.0,
+        "Processing_Time_hr": 0.0,
+        "Cycles": 0,
+        "Equation_Outputs": {
+          "CargoStored": 12.0
+        }
+      },
+      "HabitatConsumer": {
+        "Name": "HabitatConsumer",
+        "Module_Type": "HabitatConsumer",
+        "Role": "storage",
+        "Inventory": {
+          "Cargo": 24.0
+        },
+        "Received": {
+          "Cargo": 24.0
+        },
+        "Produced": {},
+        "Energy_Consumed_kWh": 0.0,
+        "Processing_Time_hr": 0.0,
+        "Cycles": 0,
+        "Equation_Outputs": {
+          "CargoStored": 24.0
+        }
+      },
+      "CargoRover": {
+        "Name": "CargoRover",
+        "Module_Type": "CargoRover",
+        "Role": "transporter",
+        "Trips": 4,
+        "Distance_Traveled_km": 8.22,
+        "Energy_Consumed_kWh": 0.0,
+        "Delivered": {
+          "Cargo": 48.0
+        },
+        "Delivered_By_Route": {
+          "Cargo_CargoRover_CargoSource_ForwardDepot_1784481672823": 24.0,
+          "Cargo_CargoRover_ForwardDepot_HabitatConsumer_1784481672813": 24.0
+        }
+      },
+      "Power_Manager": {
+        "Mode": "Energy-Unconstrained",
+        "Power_Ignored": true,
+        "Total_Generated_kWh": 0.0,
+        "Total_Demand_kWh": 0.0,
+        "Unserved_Energy_kWh": 0.0,
+        "Battery_Charge_kWh": null,
+        "Battery_Capacity_kWh": null,
+        "Energy_Generated_Time_Array_kWh": [],
+        "Total_Demand_Time_Array_kWh": []
+      }
+    },
+    "12.0": {
+      "CargoSource": {
+        "Name": "CargoSource",
+        "Module_Type": "CargoSource",
+        "Role": "source",
+        "Inventory": {
+          "Cargo": 0.0
+        },
+        "Received": {},
+        "Produced": {
+          "Cargo": 36.0
+        },
+        "Energy_Consumed_kWh": 0.0,
+        "Processing_Time_hr": 3.0,
+        "Cycles": 3,
+        "Equation_Outputs": {
+          "CargoOut": 12.0,
+          "ProcessingTime": 1.0
+        }
+      },
+      "ForwardDepot": {
+        "Name": "ForwardDepot",
+        "Module_Type": "ForwardDepot",
+        "Role": "storage",
+        "Inventory": {
+          "Cargo": 0.0
+        },
+        "Received": {
+          "Cargo": 24.0
+        },
+        "Produced": {},
+        "Energy_Consumed_kWh": 0.0,
+        "Processing_Time_hr": 0.0,
+        "Cycles": 0,
+        "Equation_Outputs": {
+          "CargoStored": 12.0
+        }
+      },
+      "HabitatConsumer": {
+        "Name": "HabitatConsumer",
+        "Module_Type": "HabitatConsumer",
+        "Role": "storage",
+        "Inventory": {
+          "Cargo": 24.0
+        },
+        "Received": {
+          "Cargo": 24.0
+        },
+        "Produced": {},
+        "Energy_Consumed_kWh": 0.0,
+        "Processing_Time_hr": 0.0,
+        "Cycles": 0,
+        "Equation_Outputs": {
+          "CargoStored": 24.0
+        }
+      },
+      "CargoRover": {
+        "Name": "CargoRover",
+        "Module_Type": "CargoRover",
+        "Role": "transporter",
+        "Trips": 4,
+        "Distance_Traveled_km": 8.22,
+        "Energy_Consumed_kWh": 0.0,
+        "Delivered": {
+          "Cargo": 48.0
+        },
+        "Delivered_By_Route": {
+          "Cargo_CargoRover_CargoSource_ForwardDepot_1784481672823": 24.0,
+          "Cargo_CargoRover_ForwardDepot_HabitatConsumer_1784481672813": 24.0
+        }
+      },
+      "Power_Manager": {
+        "Mode": "Energy-Unconstrained",
+        "Power_Ignored": true,
+        "Total_Generated_kWh": 0.0,
+        "Total_Demand_kWh": 0.0,
+        "Unserved_Energy_kWh": 0.0,
+        "Battery_Charge_kWh": null,
+        "Battery_Capacity_kWh": null,
+        "Energy_Generated_Time_Array_kWh": [],
+        "Total_Demand_Time_Array_kWh": []
+      }
+    },
+    "13.0": {
+      "CargoSource": {
+        "Name": "CargoSource",
+        "Module_Type": "CargoSource",
+        "Role": "source",
+        "Inventory": {
+          "Cargo": 0.0
+        },
+        "Received": {},
+        "Produced": {
+          "Cargo": 36.0
+        },
+        "Energy_Consumed_kWh": 0.0,
+        "Processing_Time_hr": 3.0,
+        "Cycles": 3,
+        "Equation_Outputs": {
+          "CargoOut": 12.0,
+          "ProcessingTime": 1.0
+        }
+      },
+      "ForwardDepot": {
+        "Name": "ForwardDepot",
+        "Module_Type": "ForwardDepot",
+        "Role": "storage",
+        "Inventory": {
+          "Cargo": 12.0
+        },
+        "Received": {
+          "Cargo": 36.0
+        },
+        "Produced": {},
+        "Energy_Consumed_kWh": 0.0,
+        "Processing_Time_hr": 0.0,
+        "Cycles": 0,
+        "Equation_Outputs": {
+          "CargoStored": 12.0
+        }
+      },
+      "HabitatConsumer": {
+        "Name": "HabitatConsumer",
+        "Module_Type": "HabitatConsumer",
+        "Role": "storage",
+        "Inventory": {
+          "Cargo": 24.0
+        },
+        "Received": {
+          "Cargo": 24.0
+        },
+        "Produced": {},
+        "Energy_Consumed_kWh": 0.0,
+        "Processing_Time_hr": 0.0,
+        "Cycles": 0,
+        "Equation_Outputs": {
+          "CargoStored": 24.0
+        }
+      },
+      "CargoRover": {
+        "Name": "CargoRover",
+        "Module_Type": "CargoRover",
+        "Role": "transporter",
+        "Trips": 4,
+        "Distance_Traveled_km": 8.22,
+        "Energy_Consumed_kWh": 0.0,
+        "Delivered": {
+          "Cargo": 48.0
+        },
+        "Delivered_By_Route": {
+          "Cargo_CargoRover_CargoSource_ForwardDepot_1784481672823": 24.0,
+          "Cargo_CargoRover_ForwardDepot_HabitatConsumer_1784481672813": 24.0
+        }
+      },
+      "Power_Manager": {
+        "Mode": "Energy-Unconstrained",
+        "Power_Ignored": true,
+        "Total_Generated_kWh": 0.0,
+        "Total_Demand_kWh": 0.0,
+        "Unserved_Energy_kWh": 0.0,
+        "Battery_Charge_kWh": null,
+        "Battery_Capacity_kWh": null,
+        "Energy_Generated_Time_Array_kWh": [],
+        "Total_Demand_Time_Array_kWh": []
+      }
+    },
+    "14.0": {
+      "CargoSource": {
+        "Name": "CargoSource",
+        "Module_Type": "CargoSource",
+        "Role": "source",
+        "Inventory": {
+          "Cargo": 0.0
+        },
+        "Received": {},
+        "Produced": {
+          "Cargo": 36.0
+        },
+        "Energy_Consumed_kWh": 0.0,
+        "Processing_Time_hr": 3.0,
+        "Cycles": 3,
+        "Equation_Outputs": {
+          "CargoOut": 12.0,
+          "ProcessingTime": 1.0
+        }
+      },
+      "ForwardDepot": {
+        "Name": "ForwardDepot",
+        "Module_Type": "ForwardDepot",
+        "Role": "storage",
+        "Inventory": {
+          "Cargo": 0.0
+        },
+        "Received": {
+          "Cargo": 36.0
+        },
+        "Produced": {},
+        "Energy_Consumed_kWh": 0.0,
+        "Processing_Time_hr": 0.0,
+        "Cycles": 0,
+        "Equation_Outputs": {
+          "CargoStored": 12.0
+        }
+      },
+      "HabitatConsumer": {
+        "Name": "HabitatConsumer",
+        "Module_Type": "HabitatConsumer",
+        "Role": "storage",
+        "Inventory": {
+          "Cargo": 24.0
+        },
+        "Received": {
+          "Cargo": 24.0
+        },
+        "Produced": {},
+        "Energy_Consumed_kWh": 0.0,
+        "Processing_Time_hr": 0.0,
+        "Cycles": 0,
+        "Equation_Outputs": {
+          "CargoStored": 24.0
+        }
+      },
+      "CargoRover": {
+        "Name": "CargoRover",
+        "Module_Type": "CargoRover",
+        "Role": "transporter",
+        "Trips": 5,
+        "Distance_Traveled_km": 10.136,
+        "Energy_Consumed_kWh": 0.0,
+        "Delivered": {
+          "Cargo": 60.0
+        },
+        "Delivered_By_Route": {
+          "Cargo_CargoRover_CargoSource_ForwardDepot_1784481672823": 36.0,
+          "Cargo_CargoRover_ForwardDepot_HabitatConsumer_1784481672813": 24.0
+        }
+      },
+      "Power_Manager": {
+        "Mode": "Energy-Unconstrained",
+        "Power_Ignored": true,
+        "Total_Generated_kWh": 0.0,
+        "Total_Demand_kWh": 0.0,
+        "Unserved_Energy_kWh": 0.0,
+        "Battery_Charge_kWh": null,
+        "Battery_Capacity_kWh": null,
+        "Energy_Generated_Time_Array_kWh": [],
+        "Total_Demand_Time_Array_kWh": []
+      }
+    },
+    "15.0": {
+      "CargoSource": {
+        "Name": "CargoSource",
+        "Module_Type": "CargoSource",
+        "Role": "source",
+        "Inventory": {
+          "Cargo": 0.0
+        },
+        "Received": {},
+        "Produced": {
+          "Cargo": 36.0
+        },
+        "Energy_Consumed_kWh": 0.0,
+        "Processing_Time_hr": 3.0,
+        "Cycles": 3,
+        "Equation_Outputs": {
+          "CargoOut": 12.0,
+          "ProcessingTime": 1.0
+        }
+      },
+      "ForwardDepot": {
+        "Name": "ForwardDepot",
+        "Module_Type": "ForwardDepot",
+        "Role": "storage",
+        "Inventory": {
+          "Cargo": 0.0
+        },
+        "Received": {
+          "Cargo": 36.0
+        },
+        "Produced": {},
+        "Energy_Consumed_kWh": 0.0,
+        "Processing_Time_hr": 0.0,
+        "Cycles": 0,
+        "Equation_Outputs": {
+          "CargoStored": 12.0
+        }
+      },
+      "HabitatConsumer": {
+        "Name": "HabitatConsumer",
+        "Module_Type": "HabitatConsumer",
+        "Role": "storage",
+        "Inventory": {
+          "Cargo": 36.0
+        },
+        "Received": {
+          "Cargo": 36.0
+        },
+        "Produced": {},
+        "Energy_Consumed_kWh": 0.0,
+        "Processing_Time_hr": 0.0,
+        "Cycles": 0,
+        "Equation_Outputs": {
+          "CargoStored": 36.0
+        }
+      },
+      "CargoRover": {
+        "Name": "CargoRover",
+        "Module_Type": "CargoRover",
+        "Role": "transporter",
+        "Trips": 5,
+        "Distance_Traveled_km": 10.136,
+        "Energy_Consumed_kWh": 0.0,
+        "Delivered": {
+          "Cargo": 60.0
+        },
+        "Delivered_By_Route": {
+          "Cargo_CargoRover_CargoSource_ForwardDepot_1784481672823": 36.0,
+          "Cargo_CargoRover_ForwardDepot_HabitatConsumer_1784481672813": 24.0
+        }
+      },
+      "Power_Manager": {
+        "Mode": "Energy-Unconstrained",
+        "Power_Ignored": true,
+        "Total_Generated_kWh": 0.0,
+        "Total_Demand_kWh": 0.0,
+        "Unserved_Energy_kWh": 0.0,
+        "Battery_Charge_kWh": null,
+        "Battery_Capacity_kWh": null,
+        "Energy_Generated_Time_Array_kWh": [],
+        "Total_Demand_Time_Array_kWh": []
+      }
+    },
+    "16.0": {
+      "CargoSource": {
+        "Name": "CargoSource",
+        "Module_Type": "CargoSource",
+        "Role": "source",
+        "Inventory": {
+          "Cargo": 0.0
+        },
+        "Received": {},
+        "Produced": {
+          "Cargo": 36.0
+        },
+        "Energy_Consumed_kWh": 0.0,
+        "Processing_Time_hr": 3.0,
+        "Cycles": 3,
+        "Equation_Outputs": {
+          "CargoOut": 12.0,
+          "ProcessingTime": 1.0
+        }
+      },
+      "ForwardDepot": {
+        "Name": "ForwardDepot",
+        "Module_Type": "ForwardDepot",
+        "Role": "storage",
+        "Inventory": {
+          "Cargo": 0.0
+        },
+        "Received": {
+          "Cargo": 36.0
+        },
+        "Produced": {},
+        "Energy_Consumed_kWh": 0.0,
+        "Processing_Time_hr": 0.0,
+        "Cycles": 0,
+        "Equation_Outputs": {
+          "CargoStored": 12.0
+        }
+      },
+      "HabitatConsumer": {
+        "Name": "HabitatConsumer",
+        "Module_Type": "HabitatConsumer",
+        "Role": "storage",
+        "Inventory": {
+          "Cargo": 36.0
+        },
+        "Received": {
+          "Cargo": 36.0
+        },
+        "Produced": {},
+        "Energy_Consumed_kWh": 0.0,
+        "Processing_Time_hr": 0.0,
+        "Cycles": 0,
+        "Equation_Outputs": {
+          "CargoStored": 36.0
+        }
+      },
+      "CargoRover": {
+        "Name": "CargoRover",
+        "Module_Type": "CargoRover",
+        "Role": "transporter",
+        "Trips": 6,
+        "Distance_Traveled_km": 12.33,
+        "Energy_Consumed_kWh": 0.0,
+        "Delivered": {
+          "Cargo": 72.0
+        },
+        "Delivered_By_Route": {
+          "Cargo_CargoRover_CargoSource_ForwardDepot_1784481672823": 36.0,
+          "Cargo_CargoRover_ForwardDepot_HabitatConsumer_1784481672813": 36.0
+        }
+      },
+      "Power_Manager": {
+        "Mode": "Energy-Unconstrained",
+        "Power_Ignored": true,
+        "Total_Generated_kWh": 0.0,
+        "Total_Demand_kWh": 0.0,
+        "Unserved_Energy_kWh": 0.0,
+        "Battery_Charge_kWh": null,
+        "Battery_Capacity_kWh": null,
+        "Energy_Generated_Time_Array_kWh": [],
+        "Total_Demand_Time_Array_kWh": []
+      }
+    }
+  },
+  "scenario_name": "Cargo_Relay_Test",
+  "scenario_slug": "Cargo_Relay_Test",
+  "request_id": "Cargo_Relay_Test-1784481731769-d4acl0",
+  "sysml_file": "clean_database/sysml/Cargo_Relay_Test.sysml"
+}

@@ -16,6 +16,9 @@ class ISRUPlant:
         #self.regHeadGrade = regHeadGrade # wt% Ilmenite
         #self.energyConsumptionRate = energyConsumptionRate
         self.processingRate = attributeDict['processingRate']
+        self.conversionEfficiency = float(attributeDict.get('conversionEfficiency', 0.0))
+        if not 0 <= self.conversionEfficiency <= 1:
+            raise ValueError('conversionEfficiency must be between 0 and 1')
         self.regHeadGrade = attributeDict['regHeadGrade']
         self.LOXStored = attributeDict['LOXStored']
         self.lg = attributeDict['lunarGravity'] #Acceleration due to gravity on the moon, m/(s^2)
@@ -41,9 +44,8 @@ class ISRUPlant:
     #All assumptions regarding effeciencies, reactor temperatures, etc made in [1] apply to this function.
     def processRegolith(self, system, regolithMass, transportDist=1):
         #Mass Related Attributes
-        self.extractedLOXFraction = (0.51*0.47*31.999*self.regHeadGrade)/(2*151.71) #Equation 1 in [1]
-        self.kgLOXPerHour = self.extractedLOXFraction*self.processingRate
-        generatedLOX = self.extractedLOXFraction*regolithMass
+        self.kgLOXPerHour = self.conversionEfficiency*self.processingRate
+        generatedLOX = self.conversionEfficiency*regolithMass
         self.LOXStored += generatedLOX
         self.totalLOXProduction += generatedLOX
         self.regolithRecieved += regolithMass
@@ -85,6 +87,7 @@ class ISRUPlant:
         attr = {
             "Name": self.name,
             "processingRate": self.processingRate,
+            "conversionEfficiency": self.conversionEfficiency,
             "regHeadGrade": self.regHeadGrade,
             "LOX_Stored": self.LOXStored,
             "total_energy_consumed": self.totalEnergyConsumed,

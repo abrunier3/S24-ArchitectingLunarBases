@@ -94,12 +94,19 @@ def _uses_source_up_axis(metadata: Dict[str, Any] | None) -> bool:
     return any(str(value or "").lower().endswith((".step", ".stp", ".stl", ".obj")) for value in values)
 
 
-def _source_up_axis_rotation(metadata: Dict[str, Any] | None) -> list[float]:
+def _source_up_axis_rotation(
+    metadata: Dict[str, Any] | None,
+    *,
+    authored_up_axis: str | None = None,
+) -> list[float]:
     metadata = metadata or {}
     if not _uses_source_up_axis(metadata):
         return [0.0, 0.0, 0.0]
 
-    axis = str(metadata.get("cadSourceUpAxis") or "Z").upper()
+    # A USD's stage metadata is authoritative. Scenario asset metadata may
+    # originate from an older CAD import and must not rotate an already Z-up
+    # USD for a second time.
+    axis = str(authored_up_axis or metadata.get("cadSourceUpAxis") or "Z").upper()
     if axis == "X":
         return [0.0, -90.0, 0.0]
     if axis == "Y":
@@ -128,13 +135,20 @@ def _axis_after_up_correction(axis: str, up_axis: str) -> list[float]:
     return [x, y, z]
 
 
-def _source_orientation_rotation(metadata: Dict[str, Any] | None) -> list[float]:
+def _source_orientation_rotation(
+    metadata: Dict[str, Any] | None,
+    *,
+    authored_up_axis: str | None = None,
+) -> list[float]:
     metadata = metadata or {}
-    rotate_xyz = _source_up_axis_rotation(metadata)
+    rotate_xyz = _source_up_axis_rotation(
+        metadata,
+        authored_up_axis=authored_up_axis,
+    )
     if not _uses_source_up_axis(metadata):
         return rotate_xyz
 
-    up_axis = str(metadata.get("cadSourceUpAxis") or "Z").upper()
+    up_axis = str(authored_up_axis or metadata.get("cadSourceUpAxis") or "Z").upper()
     front_axis = str(metadata.get("cadSourceFrontAxis") or "+X").upper()
 
     front_vector = _axis_after_up_correction(front_axis, up_axis)
@@ -144,6 +158,61 @@ def _source_orientation_rotation(metadata: Dict[str, Any] | None) -> list[float]
 
     yaw_correction = -math.degrees(math.atan2(vy, vx))
     return [rotate_xyz[0], rotate_xyz[1], rotate_xyz[2] + yaw_correction]
+
+
+def _source_front_yaw(metadata: Dict[str, Any] | None) -> float:
+    """Return only the horizontal front-axis alignment for a converted CAD."""
+    metadata = metadata or {}
+    if not _uses_source_up_axis(metadata):
+        return 0.0
+
+    front_vector = _axis_after_up_correction(
+        str(metadata.get("cadSourceFrontAxis") or "+X").upper(),
+        str(metadata.get("cadSourceUpAxis") or "Z").upper(),
+    )
+    vx, vy = front_vector[0], front_vector[1]
+    if math.hypot(vx, vy) < 1e-9:
+        return 0.0
+    return -math.degrees(math.atan2(vy, vx))
+
+
+def _stage_has_authored_orientation(stage: Usd.Stage) -> bool:
+    """Return whether the referenced USD already encodes a visual orientation."""
+    identity = Gf.Matrix4d(1.0)
+    for prim in stage.Traverse():
+        if not prim.IsA(UsdGeom.Xformable):
+            continue
+        for op in UsdGeom.Xformable(prim).GetOrderedXformOps():
+            op_name = op.GetOpName().lower()
+            value = op.Get()
+            if "rotate" in op_name:
+                if value and any(abs(float(component)) > 1e-7 for component in value):
+                    return True
+            elif op_name.endswith(":orient"):
+                if value and (
+                    abs(float(value.GetReal()) - 1.0) > 1e-7
+                    or any(abs(float(component)) > 1e-7 for component in value.GetImaginary())
+                ):
+                    return True
+            elif op_name.endswith(":transform") and value != identity:
+                return True
+    return False
+
+
+def _is_baked_cad_conversion(cad_path: str, metadata: Dict[str, Any] | None) -> bool:
+    """Whether a raw CAD source has already been converted into this USD layer."""
+    metadata = metadata or {}
+    source_path = str(
+        metadata.get("sourceCadPath")
+        or metadata.get("cadSourcePath")
+        or metadata.get("cadFileName")
+        or ""
+    ).lower()
+    referenced_path = str(cad_path or "").lower()
+    return (
+        source_path.endswith((".step", ".stp", ".stl", ".obj"))
+        and referenced_path.endswith((".usd", ".usda", ".usdc", ".usdz"))
+    )
 
 
 def _cad_normalization(
@@ -182,16 +251,6 @@ def _cad_normalization(
     up_axis = str(UsdGeom.GetStageUpAxis(stage)).upper()
     meters_per_unit = float(UsdGeom.GetStageMetersPerUnit(stage) or 1.0)
 
-    # Do not rotate from stage upAxis alone. Several Sketchfab/Omniverse USDs
-    # already encode their visual orientation in authored xformOps. For converted
-    # CAD uploads, apply only the explicit source axes selected by the user.
-    rotate_xyz = _source_orientation_rotation(metadata)
-
-    unit_scale = [meters_per_unit, meters_per_unit, meters_per_unit]
-
-    default_prim = stage.GetDefaultPrim()
-    bound_prim = default_prim if default_prim else stage.GetPseudoRoot()
-
     authored_xform_ops = []
     for prim in stage.Traverse():
         if not prim.IsA(UsdGeom.Xformable):
@@ -203,6 +262,25 @@ def _cad_normalization(
         authored_xform_ops.append(
             f"{prim.GetPath()}:{','.join(op.GetOpName() for op in ops)}"
         )
+
+    has_authored_orientation = _stage_has_authored_orientation(stage)
+    # STEP/STL/OBJ conversion bakes the chosen source axis into the generated
+    # Z-up USD points. Applying that source-axis choice again here would rotate
+    # the model twice and can lay an upright rover on its side.
+    orientation_is_baked = _is_baked_cad_conversion(cad_path, metadata)
+    if orientation_is_baked:
+        # The source up-axis correction is baked into the converted mesh; the
+        # front-axis remains a horizontal placement choice for the scenario.
+        rotate_xyz = [0.0, 0.0, _source_front_yaw(metadata)]
+    elif has_authored_orientation:
+        rotate_xyz = [0.0, 0.0, 0.0]
+    else:
+        rotate_xyz = _source_orientation_rotation(metadata, authored_up_axis=up_axis)
+
+    unit_scale = [meters_per_unit, meters_per_unit, meters_per_unit]
+
+    default_prim = stage.GetDefaultPrim()
+    bound_prim = default_prim if default_prim else stage.GetPseudoRoot()
 
     bbox_cache = UsdGeom.BBoxCache(Usd.TimeCode.Default(), [UsdGeom.Tokens.default_])
     bbox = bbox_cache.ComputeWorldBound(bound_prim)
@@ -280,6 +358,8 @@ def _cad_normalization(
         "oriented_bbox_size": oriented_bbox_size,
         "fitted_bbox_size": fitted_bbox_size,
         "has_authored_xforms": bool(authored_xform_ops),
+        "has_authored_orientation": has_authored_orientation,
+        "orientation_is_baked": orientation_is_baked,
         "authored_xform_ops": authored_xform_ops[:20],
     }
 

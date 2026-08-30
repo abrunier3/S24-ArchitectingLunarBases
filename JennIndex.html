@@ -1104,7 +1104,7 @@
   height: 100vh;
   width: 100%;
 
-  background-image: url("https://raw.githubusercontent.com/abrunier3/S24-ArchitectingLunarBases/main/S24_AE6394_Landscape_Badge.png");
+  background-image: url("https://raw.githubusercontent.com/abrunier3/S24-ArchitectingLunarBases/main/clean_database/LDEM_Image.jpeg");
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -5343,6 +5343,16 @@ let up42MoonImg = null;
           <div style="font-size:9px;color:var(--text3);margin-top:2px;line-height:1.4;">Parallel haul capacity to regolith loop.</div>
         </div>
 
+        <div id="desControlLoxRoverCount">
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+            <span style="font-size:11px;color:var(--text2);"># of LOX rovers</span>
+            <span id="desLoxRoverCountVal" style="font-size:11px;font-weight:600;color:var(--accent);">1</span>
+          </div>
+          <input id="desLoxRoverCount" type="range" min="1" max="10" step="1" value="1" style="width:100%;"
+            oninput="document.getElementById('desLoxRoverCountVal').textContent=this.value">
+          <div style="font-size:9px;color:var(--text3);margin-top:2px;line-height:1.4;">Parallel haul capacity to LOX transport loop.</div>
+        </div>
+
         <div id="desControlPlantCount">
           <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
             <span style="font-size:11px;color:var(--text2);"># of ISRU plants</span>
@@ -5409,6 +5419,54 @@ let up42MoonImg = null;
             oninput="document.getElementById('desLoxThreshVal').textContent=this.value+' kg'">
           <div style="font-size:9px;color:var(--text3);margin-top:2px;line-height:1.4;">Triggers LOX rover pickup.</div>
         </div>
+
+        <details open style="background:rgba(255,255,255,0.03);border:1px solid var(--border2);border-radius:8px;padding:10px;">
+          <summary style="font-size:10px;color:var(--accent);font-weight:700;letter-spacing:0.8px;cursor:pointer;">ADVANCED SCENARIO ASSUMPTIONS</summary>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;">
+            <label style="font-size:10px;color:var(--text3);line-height:1.4;">Duration hr
+              <input id="desSimDuration" type="number" min="1" step="1" value="60" style="width:100%;margin-top:3px;">
+            </label>
+            <label style="font-size:10px;color:var(--text3);line-height:1.4;">Regolith batch kg
+              <input id="desRegolithBatch" type="number" min="1" step="100" value="4000" style="width:100%;margin-top:3px;">
+            </label>
+            <label style="font-size:10px;color:var(--text3);line-height:1.4;">Buffer/rover kg
+              <input id="desRegolithBufferPerRover" type="number" min="1" step="1000" value="20000" style="width:100%;margin-top:3px;">
+            </label>
+            <label style="font-size:10px;color:var(--text3);line-height:1.4;">LOX check dt hr
+              <input id="desLoxPollDt" type="number" min="0.1" step="0.1" value="1" style="width:100%;margin-top:3px;">
+            </label>
+            <label style="font-size:10px;color:var(--text3);line-height:1.4;">LOX storage kWh/kg/hr
+              <input id="desLoxStorageCoeff" type="number" min="0" step="0.01" value="0.31" style="width:100%;margin-top:3px;">
+            </label>
+            <label style="font-size:10px;color:var(--text3);line-height:1.4;">Power dt hr
+              <input id="desPowerDt" type="number" min="0.1" step="0.1" value="1" style="width:100%;margin-top:3px;">
+            </label>
+            <label style="font-size:10px;color:var(--text3);line-height:1.4;">Hab spike kWh
+              <input id="desHabSpikeEnergy" type="number" min="0" step="1" value="20" style="width:100%;margin-top:3px;">
+            </label>
+            <label style="font-size:10px;color:var(--text3);line-height:1.4;">Hab spike hr
+              <input id="desHabSpikeTime" type="number" min="0" step="1" value="10" style="width:100%;margin-top:3px;">
+            </label>
+            <label style="font-size:10px;color:var(--text3);line-height:1.4;">Comms spike kWh
+              <input id="desCommsSpikeEnergy" type="number" min="0" step="1" value="10" style="width:100%;margin-top:3px;">
+            </label>
+            <label style="font-size:10px;color:var(--text3);line-height:1.4;">Comms spike hr
+              <input id="desCommsSpikeTime" type="number" min="0" step="1" value="15" style="width:100%;margin-top:3px;">
+            </label>
+            <label style="font-size:10px;color:var(--text3);line-height:1.4;">LZ spike kWh
+              <input id="desLzSpikeEnergy" type="number" min="0" step="1" value="50" style="width:100%;margin-top:3px;">
+            </label>
+            <label style="font-size:10px;color:var(--text3);line-height:1.4;">LZ spike hr
+              <input id="desLzSpikeTime" type="number" min="0" step="1" value="25" style="width:100%;margin-top:3px;">
+            </label>
+            <label style="font-size:10px;color:var(--text3);line-height:1.4;">Charge power kW
+              <input id="desChargePower" type="number" min="0" step="1" value="20" style="width:100%;margin-top:3px;">
+            </label>
+            <label style="font-size:10px;color:var(--text3);line-height:1.4;">Charge efficiency
+              <input id="desChargeEfficiency" type="number" min="0" max="1" step="0.01" value="0.85" style="width:100%;margin-top:3px;">
+            </label>
+          </div>
+        </details>
 
       </div>
       <!-- Run button pinned at bottom -->
@@ -6887,7 +6945,8 @@ let up42MoonImg = null;
   }
 
   function updateCadAxisSelector(moduleName) {
-    const showUpAxis = triad.getAttribute('data-cad-show-up') === '1';
+    const triad = document.querySelector(`[data-cad-axis-triad="${moduleName}"]`);
+    const showUpAxis = triad?.getAttribute('data-cad-show-up') === '1';
     const selectedUp = showUpAxis
       ? normalizeUpAxis(moduleMetaCache[moduleName]?.cadSourceUpAxis || 'Z', 'Z')
       : null;
@@ -8107,6 +8166,11 @@ let up42MoonImg = null;
       reason: 'No active SysML module provides regolith rover capability.'
     },
     {
+      controlId: 'desControlLoxRoverCount',
+      allOf: ['lox_rover'],
+      reason: 'No active SysML module provides LOX rover capability.'
+    },
+    {
       controlId: 'desControlRegDist',
       allOf: ['excavation', 'regolith_rover', 'processing'],
       reason: 'The active SysML graph does not contain a complete regolith loop.'
@@ -8293,6 +8357,7 @@ let up42MoonImg = null;
   function getDesSliderValues() {
     return {
       Num_Regolith_Rovers: document.getElementById('desRoverCount').value,
+      Num_LOX_Rovers: document.getElementById('desLoxRoverCount').value,
       Num_ISRU_Plants: document.getElementById('desPlantCount').value,
       Regolith_Haul_Distance: document.getElementById('desRegDist').value,
       LOX_Haul_Distance: document.getElementById('desLoxDist').value,
@@ -8300,6 +8365,51 @@ let up42MoonImg = null;
       Rover_Travel_Time: document.getElementById('desRoverTravel').value,
       ISRU_Plant_Processing_Rate: document.getElementById('desProcessRate').value,
       LOX_Transport_Threshold: document.getElementById('desLoxThresh').value,
+    };
+  }
+
+  function getNumberInputValue(id, fallback) {
+    const el = document.getElementById(id);
+    const value = Number(el?.value);
+    return Number.isFinite(value) ? value : fallback;
+  }
+
+  function buildDesScenarioConfig() {
+    const spike = (timeId, energyId, fallbackTime, fallbackEnergy) => {
+      const energy = getNumberInputValue(energyId, fallbackEnergy);
+      if (energy <= 0) return [];
+      return [{
+        time_hr: getNumberInputValue(timeId, fallbackTime),
+        energy_kwh: energy,
+      }];
+    };
+
+    return {
+      simulation: {
+        duration_hr: getNumberInputValue('desSimDuration', 60),
+      },
+      regolith: {
+        batch_kg: getNumberInputValue('desRegolithBatch', 4000),
+        buffer_capacity_per_rover_kg: getNumberInputValue('desRegolithBufferPerRover', 20000),
+      },
+      isru: {
+        lox_delivery_poll_dt_hr: getNumberInputValue('desLoxPollDt', 1),
+        lox_storage_energy_kwh_per_kg_hr: getNumberInputValue('desLoxStorageCoeff', 0.31),
+        lox_storage_energy_dt_hr: 1,
+      },
+      power: {
+        management_dt_hr: getNumberInputValue('desPowerDt', 1),
+        spikes: {
+          habitation: spike('desHabSpikeTime', 'desHabSpikeEnergy', 10, 20),
+          communications: spike('desCommsSpikeTime', 'desCommsSpikeEnergy', 15, 10),
+          landing_zone: spike('desLzSpikeTime', 'desLzSpikeEnergy', 25, 50),
+        },
+        charging_station: {
+          enabled_when_lox_rover_active: true,
+          charging_power_kw: getNumberInputValue('desChargePower', 20),
+          efficiency: getNumberInputValue('desChargeEfficiency', 0.85),
+        },
+      },
     };
   }
 
@@ -8358,11 +8468,13 @@ let up42MoonImg = null;
     setDesStatus('Dispatching to GitHub Actions...', 'var(--text2)');
 
     const sliderValues = getDesSliderValues();
+    const scenarioConfig = buildDesScenarioConfig();
     const urbanPlanning = buildUrbanPlanningPayload();
     const cadAxisOverrides = getCadAxisOverrides();
     const inputs = {
       active_nodes: JSON.stringify(activeNodes),
       slider_values: JSON.stringify(sliderValues),
+      scenario_config: JSON.stringify(scenarioConfig),
       ...sliderValues,
       ...(urbanPlanning ? { urban_planning: JSON.stringify(urbanPlanning) } : {}),
       ...(Object.keys(cadAxisOverrides).length
@@ -8373,6 +8485,7 @@ let up42MoonImg = null;
     const bodyStr = JSON.stringify({ ref: GH_REF, inputs });
     console.log('[DES DISPATCH] payload size:', bodyStr.length, 'bytes');
     console.log('[DES DISPATCH] urban_planning size:', urbanPlanning ? JSON.stringify(urbanPlanning).length : 0, 'bytes');
+    console.log('[DES DISPATCH] scenario config:', scenarioConfig);
     console.log('[DES DISPATCH] CAD axis overrides:', cadAxisOverrides);
 
     try {
@@ -8641,6 +8754,9 @@ let up42MoonImg = null;
     }
 
     const numPlants  = parseInt(desData?.inputs?.Num_ISRU_Plants || 1);
+    const numRegRovers = parseInt(desData?.inputs?.Num_Regolith_Rovers || 1);
+    const numLoxRovers = parseInt(desData?.inputs?.Num_LOX_Rovers || 1);
+    const simDuration = Number(desData?.results?.Sim_Metrics?.Simulation_Duration_hr || 60);
     const avgUptime  = numPlants > 0 && uptime > 0 ? uptime / numPlants : uptime;
     const totalLox   = loxAtPlants + loxAtLZ;
 
@@ -8668,7 +8784,7 @@ let up42MoonImg = null;
     interp.innerHTML = `
       <div style="font-size:10px;color:var(--text3);font-weight:600;margin-bottom:4px;">Interpretation:</div>
       <div style="font-size:11px;color:var(--text2);line-height:1.5;">
-        Final state at t = 60 hr, using ${desData?.inputs?.Num_Regolith_Rovers || 1} rover(s) and ${numPlants} ISRU plant(s),
+        Final state at t = ${simDuration.toFixed(0)} hr, using ${numRegRovers} regolith rover(s), ${numLoxRovers} LOX rover(s), and ${numPlants} ISRU plant(s),
         the system has produced ${totalLox.toFixed(1)} kg LOX total,
         with ${loxAtLZ.toFixed(1)} kg delivered to the landing zone.
         Final power demand is ${Number(finalPowerDemand).toFixed(0)} kW.

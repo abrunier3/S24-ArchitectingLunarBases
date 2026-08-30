@@ -88,13 +88,7 @@ def parse_sysml(sysml_text: str) -> Model:
             src = m.group(3)
             dst = m.group(4)
 
-            flow = None
-            if "LOX" in iface_type.upper():
-                flow = "LOX"
-            elif "POWER" in iface_type.upper():
-                flow = "Power"
-            elif "REGOLITH" in iface_type.upper():
-                flow = "Regolith"
+            flow = _infer_interface_flow(iface_type)
 
             model.interfaces.append({
                 "name": iface_name,
@@ -194,6 +188,34 @@ def _strip_comment(line: str) -> str:
     Remove // comments from a line.
     """
     return line.split("//", 1)[0].rstrip()
+
+
+def _infer_interface_flow(interface_type: str) -> Optional[str]:
+    """Infer a resource name from a SysML interface definition name.
+
+    Existing models use names such as ``LOXMovement`` and ``PowerMovement``.
+    Generic scenarios follow the same convention with names such as
+    ``WaterMovement`` or ``CargoFlow``. Keeping the resource in the interface
+    type avoids an ISRU-only lookup table in the parser.
+    """
+    token = str(interface_type or "").split("::")[-1].strip()
+    if not token:
+        return None
+
+    for suffix in ("Movement", "Transfer", "Interface", "Flow"):
+        if token.lower().endswith(suffix.lower()) and len(token) > len(suffix):
+            token = token[:-len(suffix)]
+            break
+
+    known = {
+        "power": "Power",
+        "lox": "LOX",
+        "regolith": "Regolith",
+        "com": "Com",
+        "communication": "Com",
+        "communications": "Com",
+    }
+    return known.get(token.lower(), token[:1].upper() + token[1:])
 
 
 def _print_model_un(model: Model):

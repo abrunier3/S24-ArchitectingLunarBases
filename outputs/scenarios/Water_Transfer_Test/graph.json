@@ -1,0 +1,65 @@
+{
+  "written_at": 1784684546323,
+  "scenario_name": "Water_Transfer_Test",
+  "scenario_slug": "Water_Transfer_Test",
+  "sysml_file": "clean_database/sysml/Water_Transfer_Test.sysml",
+  "active_nodes": [
+    "SolarPowerSystem"
+  ],
+  "active_nodes_count": 1,
+  "connections": [],
+  "parts": {
+    "SolarPowerSystem": {
+      "id": "urn:S24_PIPELINE:part:SolarPowerSystem:001",
+      "type": "Part",
+      "dimensions": {
+        "size_m": {
+          "length": 12.0,
+          "width": 10.0,
+          "height": 2.0
+        },
+        "metersPerUnit": 1,
+        "upAxis": "Z"
+      },
+      "transform": {
+        "position_m": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_deg": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "attributes": {
+        "powerOutput": 50.0,
+        "batteryCapacity": 100.0,
+        "batteryCharge": 100.0
+      },
+      "materialRef": null,
+      "ports": [
+        {
+          "name": "Solar_WaterExtractorPowerOut",
+          "direction": [
+            "out"
+          ],
+          "items": [
+            "PowerOut"
+          ]
+        },
+        {
+          "name": "Solar_WaterTankPowerOut",
+          "direction": [
+            "out"
+          ],
+          "items": [
+            "PowerOut"
+          ]
+        }
+      ],
+      "metadata": {}
+    }
+  }
+}

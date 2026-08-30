@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "id": "Water_Transfer_Test",
+  "name": "Water_Transfer_Test",
+  "scenario_slug": "Water_Transfer_Test",
+  "mode": "new",
+  "sysml_file": "clean_database/sysml/Water_Transfer_Test.sysml",
+  "saved_at": "2026-07-14T00:00:00Z",
+  "site_id": "MMA",
+  "active_nodes": [
+    "WaterExtractor",
+    "WaterRover",
+    "WaterTank",
+    "SolarPowerSystem"
+  ],
+  "instance_counts": {
+    "WaterExtractor": 1,
+    "WaterTank": 1,
+    "SolarPowerSystem": 1
+  },
+  "placements": {
+    "WaterExtractor": {"cx": 190, "cy": 260},
+    "WaterTank": {"cx": 470, "cy": 300},
+    "SolarPowerSystem": {"cx": 360, "cy": 170}
+  },
+  "orientations": {},
+  "terrain_routes": [],
+  "scenario_logic": {
+    "resourceRoutes": [
+      {
+        "id": "water_transfer",
+        "flow": "Water",
+        "rover_type": "WaterRover",
+        "rover_id": "WaterRover",
+        "from": "WaterExtractor",
+        "to": "WaterTank",
+        "stops": [],
+        "pts": [{"x": 190, "y": 260}, {"x": 330, "y": 270}, {"x": 470, "y": 300}],
+        "distance_km": 1.45
+      }
+    ],
+    "powerLinks": [],
+    "comLinks": [],
+    "moduleLogic": {},
+    "sysmlInterfaces": [],
+    "transportLinks": [],
+    "moduleEquations": {
+      "WaterExtractor": "WaterOut = min(RequestedWater, productionRate)\nProcessingTime = WaterOut / productionRate\nEnergyConsumed = WaterOut * 0.05\nPowerIn = 1",
+      "WaterRover": "WaterOut = min(WaterIn, RoverCapacity)\nTravelTime = Distance * hoursPerKm\nEnergyConsumed = Distance * CargoMass * energyPerKmPerKg",
+      "WaterTank": "WaterStored = WaterStored + WaterIn\nPowerIn = 0",
+      "SolarPowerSystem": "PowerOut = powerOutput"
+    },
+    "roverCounts": {"water": 1}
+  },
+  "power_models": {},
+  "des_form": {
+    "desSimDuration": "8",
+    "desRoverCapacity": "10",
+    "desRoverTravel": "0.5",
+    "desRoverEnergy": "0.01",
+    "desPowerDt": "0.25"
+  },
+  "results": null
+}

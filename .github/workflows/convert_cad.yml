@@ -9,8 +9,12 @@ on:
       usd_path:
         description: 'Path to CAD file in repo (USD/STEP/STL/OBJ)'
         required: false
+      source_up_axis:
+        description: 'Source CAD up axis for STEP/STL/OBJ (X, Y, or Z)'
+        required: false
+        default: 'Z'
       batch_jobs_json:
-        description: 'Optional JSON list of CAD jobs: [{"module_name":"RegolithRover","cad_path":"clean_database/..."}]'
+        description: 'Optional JSON list of CAD jobs, each with module_name, cad_path, and optional source_up_axis'
         required: false
 
 jobs:
@@ -55,6 +59,7 @@ jobs:
         env:
           MODULE_NAME: ${{ github.event.inputs.module_name }}
           USD_PATH: ${{ github.event.inputs.usd_path }}
+          SOURCE_UP_AXIS: ${{ github.event.inputs.source_up_axis }}
           BATCH_JOBS_JSON: ${{ github.event.inputs.batch_jobs_json }}
         run: |
           python -m S24.cad.convert_workflow

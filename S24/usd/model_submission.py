@@ -110,6 +110,22 @@ def _resolve_metadata_cad_file(
     return None
 
 
+def _find_scenario_cad_file(
+    json_path: Path,
+    *,
+    cad_dir: Path,
+    part_name: str,
+) -> Optional[Path]:
+    """Use the CAD owned by a saved scenario before falling back to global CAD."""
+    if json_path.parent.name != "assets" or json_path.parent.parent.parent.name != "json":
+        return None
+
+    scenario_slug = json_path.parent.parent.name
+    if scenario_slug == "ECLIPSE_Project":
+        return None
+    return _find_cad_file(cad_dir / scenario_slug, part_name)
+
+
 def build_submission_manifest(
     asset_paths: List[str],
     *,
@@ -176,6 +192,10 @@ def build_submission_manifest(
             cad_dir=cad_dir,
             part_name=part_name,
             repo_root=root,
+        ) or _find_scenario_cad_file(
+            json_path_abs,
+            cad_dir=cad_dir,
+            part_name=part_name,
         ) or _find_cad_file(cad_dir, part_name)
         cad_found = cad_file_abs is not None
 

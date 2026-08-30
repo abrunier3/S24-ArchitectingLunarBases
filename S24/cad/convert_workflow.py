@@ -13,7 +13,15 @@ import trimesh.transformations as tf
 from pxr import Usd, UsdGeom, UsdShade
 
 from S24.cad.mesh_to_usd import convert_mesh_to_usd
+from S24.cad.paths import scenario_slug_from_cad_path
 from S24.cad.step_to_usd import convert_step_to_usd
+
+
+def _normalise_up_axis(value: Any) -> str:
+    axis = str(value or "Z").upper()
+    if axis not in {"X", "Y", "Z"}:
+        raise ValueError(f"Unsupported source up axis: {value}")
+    return axis
 
 
 def _workflow_jobs() -> list[dict[str, str]]:
@@ -26,6 +34,7 @@ def _workflow_jobs() -> list[dict[str, str]]:
             {
                 "module_name": str(job["module_name"]),
                 "cad_path": str(job["cad_path"]),
+                "source_up_axis": _normalise_up_axis(job.get("source_up_axis", "Z")),
             }
             for job in jobs
         ]
@@ -35,7 +44,15 @@ def _workflow_jobs() -> list[dict[str, str]]:
     if not module_name or not cad_path:
         raise ValueError("Provide either BATCH_JOBS_JSON or MODULE_NAME/USD_PATH")
 
-    return [{"module_name": module_name, "cad_path": cad_path}]
+    return [
+        {
+            "module_name": module_name,
+            "cad_path": cad_path,
+            "source_up_axis": _normalise_up_axis(
+                os.environ.get("SOURCE_UP_AXIS", "Z")
+            ),
+        }
+    ]
 
 
 def _to_json_val(value: Any) -> Any:
@@ -215,6 +232,7 @@ def _source_metadata_for_native_usd(
 def _write_glb(
     *,
     module_name: str,
+    scenario_slug: str,
     meshes_data: list[trimesh.Trimesh],
     up_axis: str,
 ) -> str | None:
@@ -222,7 +240,10 @@ def _write_glb(
         return None
 
     scene = trimesh.Scene(meshes_data)
-    if str(up_axis) == "Y":
+    # GLB viewers are Y-up while the generated USD is always Z-up. Convert
+    # the preview into the same convention the browser uses, otherwise a
+    # rover can look upright in Step 3 while lying down in Omniverse.
+    if str(up_axis).upper() == "Z":
         scene.apply_transform(tf.rotation_matrix(-np.pi / 2, [1, 0, 0]))
 
     bounds = scene.bounds
@@ -230,7 +251,8 @@ def _write_glb(
         center = (bounds[0] + bounds[1]) / 2
         scene.apply_translation(-center)
 
-    glb_path = f"outputs/cad_previews/{module_name}.glb"
+    glb_path = f"outputs/cad_previews/{scenario_slug}/{module_name}.glb"
+    Path(glb_path).parent.mkdir(parents=True, exist_ok=True)
     glb_bytes = scene.export(file_type="glb")
     with open(glb_path, "wb") as file:
         file.write(glb_bytes)
@@ -238,21 +260,23 @@ def _write_glb(
     return glb_path
 
 
-def _convert_one(module_name: str, cad_path: str) -> None:
-    os.makedirs("outputs/cad_previews", exist_ok=True)
+def _convert_one(module_name: str, cad_path: str, *, source_up_axis: str) -> None:
+    scenario_slug = scenario_slug_from_cad_path(cad_path)
+    previews_dir = Path("outputs") / "cad_previews" / scenario_slug
+    previews_dir.mkdir(parents=True, exist_ok=True)
 
     source_cad_path = cad_path
     usd_path = cad_path
     lower_path = cad_path.lower()
 
     if lower_path.endswith((".step", ".stp")):
-        converted_usd_path = f"clean_database/cad_models/{module_name}/{module_name}.usdc"
-        source_meta_path = f"outputs/cad_previews/{module_name}_source_meta.json"
+        converted_usd_path = str(Path(cad_path).parent / f"{module_name}.usdc")
+        source_meta_path = str(previews_dir / f"{module_name}_source_meta.json")
         print(f"[CONVERT] STEP detected. Converting {cad_path} -> {converted_usd_path}")
         source_metadata = convert_step_to_usd(
             cad_path,
             converted_usd_path,
-            source_up_axis=os.environ.get("STEP_SOURCE_UP_AXIS", "Z"),
+            source_up_axis=source_up_axis,
         )
         Path(source_meta_path).write_text(
             json.dumps(source_metadata, indent=2),
@@ -266,14 +290,14 @@ def _convert_one(module_name: str, cad_path: str) -> None:
         )
         usd_path = converted_usd_path
     elif lower_path.endswith((".stl", ".obj")):
-        converted_usd_path = f"clean_database/cad_models/{module_name}/{module_name}.usdc"
-        source_meta_path = f"outputs/cad_previews/{module_name}_source_meta.json"
+        converted_usd_path = str(Path(cad_path).parent / f"{module_name}.usdc")
+        source_meta_path = str(previews_dir / f"{module_name}_source_meta.json")
         print(f"[CONVERT] Mesh CAD detected. Converting {cad_path} -> {converted_usd_path}")
         source_metadata = convert_mesh_to_usd(
             cad_path,
             converted_usd_path,
             source_unit=os.environ.get("MESH_SOURCE_UNIT", "m"),
-            source_up_axis=os.environ.get("MESH_SOURCE_UP_AXIS", "Z"),
+            source_up_axis=source_up_axis,
         )
         Path(source_meta_path).write_text(
             json.dumps(source_metadata, indent=2),
@@ -311,11 +335,12 @@ def _convert_one(module_name: str, cad_path: str) -> None:
     print(f"[CONVERT] Extracted {len(meshes_data)} mesh(es) for {module_name}")
     glb_path = _write_glb(
         module_name=module_name,
+        scenario_slug=scenario_slug,
         meshes_data=meshes_data,
         up_axis=up_axis,
     )
 
-    source_meta_path = Path(f"outputs/cad_previews/{module_name}_source_meta.json")
+    source_meta_path = previews_dir / f"{module_name}_source_meta.json"
     source_metadata = None
     if source_meta_path.exists():
         source_metadata = json.loads(source_meta_path.read_text(encoding="utf-8"))
@@ -348,14 +373,18 @@ def _convert_one(module_name: str, cad_path: str) -> None:
         "source_metadata": source_metadata,
     }
 
-    out_path = Path(f"outputs/cad_previews/{module_name}_meta.json")
+    out_path = previews_dir / f"{module_name}_meta.json"
     out_path.write_text(json.dumps(metadata, indent=2), encoding="utf-8")
     print(f"[CONVERT] Done - {out_path}")
 
 
 def main() -> int:
     for job in _workflow_jobs():
-        _convert_one(job["module_name"], job["cad_path"])
+        _convert_one(
+            job["module_name"],
+            job["cad_path"],
+            source_up_axis=job["source_up_axis"],
+        )
     return 0
 
 

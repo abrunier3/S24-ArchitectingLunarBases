@@ -47,8 +47,9 @@ def generate_json_from_sysml(sysml_filename, json_filename):
 
     return vetted_parts
 
-# NOTE: Runtime DES assets are read from clean_database/json/ECLIPSE_Project/assets/.
-def data_from_json(json_filename):
+# Runtime DES assets default to the ECLIPSE reference, but a scenario can supply
+# its own exported asset directory through scenario.json_asset_root.
+def data_from_json(json_filename, asset_root=None):
     NAME_MAP = {
         'ISRUV2.json':                'ISRUPlant.json',
         'SolarPowerSystemV1.json':    'SolarPowerSystem.json',
@@ -58,7 +59,19 @@ def data_from_json(json_filename):
         'CommunicationModuleV1.json': 'CommunicationModule.json',
     }
     actual_filename = NAME_MAP.get(json_filename, json_filename)
-    DATA_JSON = Path(__file__).resolve().parent.parent.parent / "clean_database" / "json" / "ECLIPSE_Project" / "assets"
+    repo_root = Path(__file__).resolve().parent.parent.parent
+    DATA_JSON = repo_root / "clean_database" / "json" / "ECLIPSE_Project" / "assets"
+    if asset_root:
+        requested_root = Path(asset_root)
+        if not requested_root.is_absolute():
+            requested_root = repo_root / requested_root
+        requested_root = requested_root.resolve()
+        try:
+            requested_root.relative_to(repo_root.resolve())
+        except ValueError as exc:
+            raise ValueError("Scenario asset root must be inside the repository") from exc
+        if requested_root.is_dir():
+            DATA_JSON = requested_root
     JSON_FILE = DATA_JSON / actual_filename
 
     with open(JSON_FILE, 'r', encoding='utf-8') as f:

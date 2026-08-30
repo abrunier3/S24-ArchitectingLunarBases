@@ -1,8 +1,25 @@
 name: Step 4 — Run DES Simulation
+run-name: DES — ${{ github.event.inputs.scenario_slug || 'ECLIPSE_Project' }} — ${{ github.event.inputs.request_id || 'manual' }}
 
 on:
   workflow_dispatch:
     inputs:
+      request_id:
+        description: 'Unique UI request identifier used to correlate results'
+        required: false
+        default: 'manual'
+      scenario_name:
+        description: 'Scenario display identifier'
+        required: false
+        default: 'ECLIPSE_Project'
+      scenario_slug:
+        description: 'Repository-safe scenario identifier'
+        required: false
+        default: 'ECLIPSE_Project'
+      sysml_file:
+        description: 'Scenario SysML path in the repository'
+        required: false
+        default: 'clean_database/sysml/ECLIPSE_Project.sysml'
       active_nodes:
         description: 'JSON array of DES active nodes'
         required: true
@@ -11,9 +28,17 @@ on:
         description: 'JSON object of DES slider values'
         required: false
         default: '{}'
+      scenario_config:
+        description: 'JSON object of DES scenario assumptions'
+        required: false
+        default: '{}'
       Num_Regolith_Rovers:
         description: 'Number of regolith rovers'
         required: true
+        default: '1'
+      Num_LOX_Rovers:
+        description: 'Number of LOX rovers'
+        required: false
         default: '1'
       Num_ISRU_Plants:
         description: 'Number of ISRU plants'
@@ -82,9 +107,15 @@ jobs:
 
       - name: Run DES simulation
         env:
+          SCENARIO_NAME:              ${{ github.event.inputs.scenario_name || 'ECLIPSE_Project' }}
+          SCENARIO_SLUG:              ${{ github.event.inputs.scenario_slug || 'ECLIPSE_Project' }}
+          DES_REQUEST_ID:             ${{ github.event.inputs.request_id || 'manual' }}
+          SYSML_FILE:                 ${{ github.event.inputs.sysml_file || 'clean_database/sysml/ECLIPSE_Project.sysml' }}
           ACTIVE_NODES:               ${{ github.event.inputs.active_nodes }}
           SLIDER_VALUES_JSON:         ${{ github.event.inputs.slider_values }}
+          SCENARIO_CONFIG_JSON:       ${{ github.event.inputs.scenario_config }}
           NUM_REGOLITH_ROVERS:        ${{ github.event.inputs.Num_Regolith_Rovers }}
+          NUM_LOX_ROVERS:             ${{ github.event.inputs.Num_LOX_Rovers }}
           NUM_ISRU_PLANTS:            ${{ github.event.inputs.Num_ISRU_Plants }}
           REGOLITH_HAUL_DISTANCE:     ${{ github.event.inputs.Regolith_Haul_Distance }}
           LOX_HAUL_DISTANCE:          ${{ github.event.inputs.LOX_Haul_Distance }}
@@ -98,25 +129,48 @@ jobs:
           mkdir -p outputs
           python - <<'EOF'
           import json, os, time, sys
+          from pathlib import Path
           sys.path.insert(0, '.')
+
+          scenario_name = os.environ.get("SCENARIO_NAME", "ECLIPSE_Project").strip()
+          scenario_slug = os.environ.get("SCENARIO_SLUG", scenario_name).strip()
+          request_id = os.environ.get("DES_REQUEST_ID", "manual").strip() or "manual"
+          sysml_file = Path(os.environ.get(
+              "SYSML_FILE", "clean_database/sysml/ECLIPSE_Project.sysml"
+          ).strip())
+          if not scenario_slug or any(ch not in "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_" for ch in scenario_slug):
+              raise ValueError(f"Invalid scenario identifier: {scenario_slug!r}")
+          expected_sysml = Path("clean_database/sysml") / f"{scenario_slug}.sysml"
+          if sysml_file != expected_sysml:
+              raise ValueError(
+                  f"SysML/config naming mismatch: expected {expected_sysml}, got {sysml_file}"
+              )
+          scenario_json_dir = Path("clean_database/json") / scenario_slug
+          scenario_assets_dir = scenario_json_dir / "assets"
+          scenario_json_path = scenario_json_dir / f"{scenario_slug}.json"
+          scenario_output_dir = Path("outputs/scenarios") / scenario_slug
+          scenario_output_dir.mkdir(parents=True, exist_ok=True)
 
           sysml_active_nodes = json.loads(os.environ['ACTIVE_NODES'])
           if not sysml_active_nodes:
               try:
-                  with open("outputs/graph.json") as f:
+                  with (scenario_output_dir / "graph.json").open() as f:
                       graph_data = json.load(f)
                   sysml_active_nodes = graph_data.get("active_nodes") or []
-                  print(f"[DES] Loaded {len(sysml_active_nodes)} active node(s) from outputs/graph.json.")
+                  print(f"[DES] Loaded {len(sysml_active_nodes)} active node(s) from {scenario_output_dir / 'graph.json'}.")
               except FileNotFoundError:
-                  print("[DES] No active_nodes input and no outputs/graph.json found.")
+                  print(f"[DES] No active_nodes input and no graph found for {scenario_slug}.")
 
           def normalize_name(value):
               return "".join(ch for ch in str(value or "").lower() if ch.isalnum())
 
           def load_sysml_part(node_name):
-              from pathlib import Path
-
-              for assets_dir in Path("clean_database/json").glob("*/assets"):
+              asset_dirs = [scenario_assets_dir]
+              asset_dirs.extend(
+                  path for path in Path("clean_database/json").glob("*/assets")
+                  if path != scenario_assets_dir
+              )
+              for assets_dir in asset_dirs:
                   asset_path = assets_dir / f"{node_name}.json"
                   if asset_path.exists():
                       with asset_path.open() as f:
@@ -162,8 +216,22 @@ jobs:
 
               return sorted(engine_nodes)
 
-          active_nodes = infer_des_engine_nodes(sysml_active_nodes)
+          scenario_config_raw = os.environ.get("SCENARIO_CONFIG_JSON", "{}").strip() or "{}"
+          try:
+              scenario_config_payload = json.loads(scenario_config_raw)
+          except json.JSONDecodeError as exc:
+              raise ValueError(f"Invalid scenario_config JSON: {exc}") from exc
+          engine_mode = str(
+              (scenario_config_payload.get("engine") or {}).get("mode", "isru")
+          ).strip().lower()
+
+          active_nodes = (
+              list(sysml_active_nodes)
+              if engine_mode == "generic"
+              else infer_des_engine_nodes(sysml_active_nodes)
+          )
           print(f"[DES] SysML active nodes: {sysml_active_nodes}")
+          print(f"[DES] Engine mode: {engine_mode}")
           print(f"[DES] DES engine active nodes: {active_nodes}")
 
           slider_values = json.loads(os.environ.get("SLIDER_VALUES_JSON") or "{}")
@@ -177,7 +245,9 @@ jobs:
           slider_value_dict = {
               "active_nodes":               active_nodes,
               "sysml_active_nodes":         sysml_active_nodes,
+              "sysml_json_path":            str(scenario_json_path),
               "Num_Regolith_Rovers":        slider_number("Num_Regolith_Rovers", "NUM_REGOLITH_ROVERS", int),
+              "Num_LOX_Rovers":             slider_number("Num_LOX_Rovers", "NUM_LOX_ROVERS", int),
               "Num_ISRU_Plants":            slider_number("Num_ISRU_Plants", "NUM_ISRU_PLANTS", int),
               "Regolith_Haul_Distance":     slider_number("Regolith_Haul_Distance", "REGOLITH_HAUL_DISTANCE"),
               "LOX_Haul_Distance":          slider_number("LOX_Haul_Distance", "LOX_HAUL_DISTANCE"),
@@ -186,15 +256,15 @@ jobs:
               "ISRU_Plant_Processing_Rate": slider_number("ISRU_Plant_Processing_Rate", "ISRU_PLANT_PROCESSING_RATE"),
               "LOX_Transport_Threshold":    slider_number("LOX_Transport_Threshold", "LOX_TRANSPORT_THRESHOLD"),
           }
+          if scenario_config_raw != "{}":
+              slider_value_dict["scenario_config"] = scenario_config_raw
           slider_value_dict.update({
               key: value for key, value in slider_values.items()
               if key not in slider_value_dict
           })
 
           def normalize_des_asset_attributes():
-              from pathlib import Path
-
-              asset_dirs = list(Path("clean_database/json").glob("*/assets"))
+              asset_dirs = [scenario_assets_dir] if scenario_assets_dir.exists() else []
               if not asset_dirs:
                   print("[DES] Asset normalization skipped: no clean_database/json/*/assets directory found.")
                   return
@@ -230,11 +300,9 @@ jobs:
 
           # ── Update SysML JSON with urban planning data ─────────────────────
           def update_sysml_with_urban_planning(urban_planning):
-              from pathlib import Path
-
-              sysml_path = Path("clean_database/json/ECLIPSE_Project/ECLIPSE_Project.json")
+              sysml_path = scenario_json_path
               if not sysml_path.exists():
-                  print("[UP] ECLIPSE_Project.json not found — skipping SysML update.")
+                  print(f"[UP] {sysml_path} not found — skipping SysML update.")
                   return
 
               with sysml_path.open() as f:
@@ -306,6 +374,26 @@ jobs:
                       return None
                   return {"waypoints_m": all_waypoints, "distance_km": round(total_dist, 3)}
 
+              def concat_operational_path(start, end, stops=None):
+                  """Resolve a rover assignment along the physical terrain network."""
+                  nodes = [start, *(stops or []), end]
+                  all_waypoints = []
+                  total_dist = 0.0
+                  for source, destination in zip(nodes, nodes[1:]):
+                      leg = concat_path(source, destination)
+                      if not leg:
+                          return None
+                      waypoints = leg["waypoints_m"]
+                      if all_waypoints and waypoints:
+                          all_waypoints.extend(waypoints[1:])
+                      else:
+                          all_waypoints.extend(waypoints)
+                      total_dist += leg["distance_km"]
+                  return {
+                      "waypoints_m": all_waypoints,
+                      "distance_km": round(total_dist, 3),
+                  } if all_waypoints else None
+
               # Build the two physical routes:
               # 1. Regolith: ISRUExcavation → ISRUPlant
               # 2. LOX: ISRUPlant → PropellantDepot → LaunchLandingZone
@@ -371,6 +459,58 @@ jobs:
                   if c["name"] not in seen_dedup and not seen_dedup.add(c["name"])
               ]
 
+              # Add every instance-level operational rover route selected in
+              # Step 4.2. These named paths are consumed by both the manifest
+              # builder and the Omniverse extension, so visualization follows
+              # the same assigned rover, stops, and distance as the DES.
+              scenario_logic = urban_planning.get("scenario_logic", {})
+              existing_connection_names = {
+                  connection.get("name") for connection in sysml["connections"]
+              }
+              for route in scenario_logic.get("resource_routes", []):
+                  flow = route.get("flow")
+                  source = route.get("from")
+                  destination = route.get("to")
+                  route_name = route.get("route_name") or f"{source}To{destination}_{flow}"
+                  geometry = concat_operational_path(
+                      source,
+                      destination,
+                      route.get("stops", []),
+                  )
+                  if geometry:
+                      geometry["flow"] = flow
+                      conns[route_name] = geometry
+                  else:
+                      # Keep the explicit Step 4 path only as a compatibility
+                      # fallback when the physical terrain graph is disconnected.
+                      geometry = conns.get(route_name)
+                  if not geometry:
+                      print(f"[UP] Operational route geometry missing: {route_name}")
+                      continue
+
+                  operational_connection = {
+                      "name": route_name,
+                      "type": "OperationalRoute",
+                      "flow": flow,
+                      "from": {"part": source},
+                      "to": {"part": destination},
+                      "rover_id": route.get("rover_id"),
+                      "stops": route.get("stops", []),
+                      "path": {
+                          "waypoints_m": geometry.get("waypoints_m", []),
+                          "distance_km": geometry.get(
+                              "distance_km", route.get("distance_km", 0.0)
+                          ),
+                      },
+                  }
+                  if route_name in existing_connection_names:
+                      sysml["connections"] = [
+                          connection for connection in sysml["connections"]
+                          if connection.get("name") != route_name
+                      ]
+                  sysml["connections"].append(operational_connection)
+                  existing_connection_names.add(route_name)
+
               # Store urban planning metadata at root level
               sysml["urban_planning"] = {
                   "site":      site_id,
@@ -380,6 +520,15 @@ jobs:
               }
               if urban_planning.get("map_frame_m"):
                   sysml["urban_planning"]["map_frame_m"] = urban_planning["map_frame_m"]
+              sysml["urban_planning"]["module_instances"] = modules
+              sysml["urban_planning"]["routes"] = mst_edges
+              sysml["urban_planning"]["route_geometry"] = conns
+
+              # Preserve the instance-level operational architecture selected
+              # in Step 4.2. The DES consumes the same payload directly, while
+              # the authoritative JSON keeps an auditable copy of destinations,
+              # stops, interfaces, rover counts, and user equations.
+              sysml["scenario_logic"] = scenario_logic
 
               with sysml_path.open("w") as f:
                   json.dump(sysml, f, indent=2)
@@ -400,10 +549,10 @@ jobs:
               print("[UP] No urban_planning data — skipping SysML update.")
 
           # ── Run DES ────────────────────────────────────────────────────────
-          from S24.DES_pipeline_version.ISRU_DES_Model_V5_2_PV import run_scenario, check_scenario_validity
+          from S24.DES_pipeline_version.scenario_runner import run_scenario, check_scenario_validity
 
           print("[DES] Checking scenario validity...")
-          messages = check_scenario_validity(active_nodes, raiseError=False)
+          messages = check_scenario_validity(slider_value_dict, raiseError=False)
           errors   = [m for m in messages if m.startswith('[ERROR]')]
           warnings = [m for m in messages if m.startswith('[WARNING]') or m.startswith('[INFO]')]
 
@@ -419,38 +568,66 @@ jobs:
               }
           else:
               print("[DES] Running scenario...")
-              run_scenario(slider_value_dict)
+              try:
+                  run_scenario(slider_value_dict)
+              except Exception as exc:
+                  result = {
+                      "written_at": int(time.time() * 1000),
+                      "status": "error",
+                      "warnings": warnings,
+                      "inputs": slider_value_dict,
+                      "sysml_active_nodes": sysml_active_nodes,
+                      "des_active_nodes": active_nodes,
+                      "errors": [str(exc)],
+                      "error_type": type(exc).__name__,
+                  }
+                  print(f"[DES] Scenario failed — results file will still be written: {exc}")
+              else:
+                  with open('lunar_spaceport_results.json') as f:
+                      sim_results = json.load(f)
 
-              with open('lunar_spaceport_results.json') as f:
-                  sim_results = json.load(f)
+                  with open('lunar_spaceport_log.json') as f:
+                      sim_log = json.load(f)
 
-              with open('lunar_spaceport_log.json') as f:
-                  sim_log = json.load(f)
+                  result = {
+                      "written_at": int(time.time() * 1000),
+                      "status": "success",
+                      "warnings": warnings,
+                      "inputs": slider_value_dict,
+                      "sysml_active_nodes": sysml_active_nodes,
+                      "des_active_nodes": active_nodes,
+                      "results": sim_results,
+                      "log": sim_log,
+                  }
 
-              result = {
-                  "written_at": int(time.time() * 1000),
-                  "status": "success",
-                  "warnings": warnings,
-                  "inputs": slider_value_dict,
-                  "sysml_active_nodes": sysml_active_nodes,
-                  "des_active_nodes": active_nodes,
-                  "results": sim_results,
-                  "log": sim_log,
-              }
-
+          result["scenario_name"] = scenario_name
+          result["scenario_slug"] = scenario_slug
+          result["request_id"] = request_id
+          result["sysml_file"] = str(sysml_file)
           with open('outputs/des_results.json', 'w') as f:
               json.dump(result, f, indent=2)
+          with (scenario_output_dir / 'des_results.json').open('w') as f:
+              json.dump(result, f, indent=2)
 
-          print(f"[DES] Done — outputs/des_results.json written")
+          print(f"[DES] Done — {scenario_output_dir / 'des_results.json'} written")
           EOF
 
       - name: Run USD Scene Generation (Steps 3, 5, 6)
         env:
+          SCENARIO_SLUG: ${{ github.event.inputs.scenario_slug || 'ECLIPSE_Project' }}
+          SYSML_FILE: ${{ github.event.inputs.sysml_file || 'clean_database/sysml/ECLIPSE_Project.sysml' }}
           CAD_AXIS_OVERRIDES_JSON: ${{ github.event.inputs.cad_axis_overrides }}
         run: |
           python - <<'EOF'
           import sys, os, json
           from pathlib import Path
+
+          scenario_slug = os.environ.get("SCENARIO_SLUG", "ECLIPSE_Project").strip()
+          sysml_path = Path(os.environ.get("SYSML_FILE", "clean_database/sysml/ECLIPSE_Project.sysml"))
+          scenario_json_dir = Path("clean_database/json") / scenario_slug
+          scenario_output_dir = Path("outputs/scenarios") / scenario_slug
+          assets_dir = scenario_json_dir / "assets"
+          scenario_json_path = scenario_json_dir / f"{scenario_slug}.json"
 
           def normalize_axis(value, allowed, fallback):
               axis = str(value or fallback).strip().upper()
@@ -470,7 +647,6 @@ jobs:
                   print("[USD] No CAD axis overrides provided.")
                   return
 
-              assets_dir = Path("clean_database/json/ECLIPSE_Project/assets")
               applied = 0
               for module_name, values in overrides.items():
                   if not isinstance(values, dict):
@@ -517,9 +693,9 @@ jobs:
               from S24.sysml.cad_metadata_updater import update_cad_metadata_from_previews
 
               updated_cad_metadata = update_cad_metadata_from_previews(
-                  sysml_path=Path("clean_database/sysml/ECLIPSE_Project.sysml"),
-                  assets_dir=Path("clean_database/json/ECLIPSE_Project/assets"),
-                  previews_dir=Path("outputs/cad_previews"),
+                  sysml_path=sysml_path,
+                  assets_dir=assets_dir,
+                  previews_dir=Path("outputs/cad_previews") / scenario_slug,
                   repo_root=Path(".").resolve(),
               )
               print(f"[CAD] SysML CAD metadata update complete: {updated_cad_metadata} part(s)")
@@ -531,10 +707,10 @@ jobs:
               from S24.usd.model_submission import build_submission_manifest
 
               all_asset_paths = sorted(
-                  Path("clean_database/json/ECLIPSE_Project/assets").glob("*.json"),
+                  assets_dir.glob("*.json"),
                   key=lambda p: p.name.lower(),
               )
-              eclipse_path = Path("clean_database/json/ECLIPSE_Project/ECLIPSE_Project.json")
+              eclipse_path = scenario_json_path
               active_part_names = set()
               if eclipse_path.exists():
                   with eclipse_path.open() as f:
@@ -572,7 +748,7 @@ jobs:
 
           # ── Inject positions/rotations from ECLIPSE_Project.json ──────────
           try:
-              eclipse_path = Path("clean_database/json/ECLIPSE_Project/ECLIPSE_Project.json")
+              eclipse_path = scenario_json_path
               if eclipse_path.exists():
                   with eclipse_path.open() as f:
                       eclipse = json.load(f)
@@ -593,7 +769,7 @@ jobs:
                           if "scale" in transforms[name]:
                               part["scale"] = transforms[name]["scale"]
                           injected += 1
-                  print(f"[USD] Injected positions for {injected} part(s) from ECLIPSE_Project.json")
+              print(f"[USD] Injected positions for {injected} part(s) from {scenario_json_path.name}")
           except Exception as e:
               print(f"[USD] Position injection failed: {e}")
 
@@ -601,7 +777,7 @@ jobs:
           try:
               from S24.usd import build_usd_scene_from_manifest
 
-              scene_dir = Path("clean_database/usd/scenes")
+              scene_dir = scenario_output_dir / "omniverse"
               scene_dir.mkdir(parents=True, exist_ok=True)
               scene_path = str(scene_dir / "scene.usda")
 
@@ -618,10 +794,10 @@ jobs:
           try:
               from S24.usd.waypoints import write_connections_usda
 
-              waypoints_dir = Path("clean_database/scenes")
+              waypoints_dir = scenario_output_dir / "omniverse"
               waypoints_dir.mkdir(parents=True, exist_ok=True)
 
-              json_path = "clean_database/json/ECLIPSE_Project/ECLIPSE_Project.json"
+              json_path = str(scenario_json_path)
               waypoints_path = str(waypoints_dir / "waypoints.usda")
 
               connections_usda = write_connections_usda(
@@ -641,6 +817,9 @@ jobs:
           echo "[OMNI] Manifest build complete."
 
       - name: Commit results
+        env:
+          SCENARIO_SLUG: ${{ github.event.inputs.scenario_slug || 'ECLIPSE_Project' }}
+          SYSML_FILE: ${{ github.event.inputs.sysml_file || 'clean_database/sysml/ECLIPSE_Project.sysml' }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
@@ -648,12 +827,11 @@ jobs:
           git pull --rebase origin "${GITHUB_REF_NAME}"
           echo "$STASHED" | grep -q "No local changes" || git stash pop
           git add outputs/des_results.json
-          git add clean_database/sysml/ECLIPSE_Project.sysml || true
-          git add clean_database/json/ECLIPSE_Project/ECLIPSE_Project.json
-          git add clean_database/json/ECLIPSE_Project/assets/*.json || true
-          git add clean_database/usd/scenes/scene.usda || true
-          git add clean_database/scenes/waypoints.usda || true
-          git add extensions/lsp1.pipeline/data/manifest.json || true
+          git add "outputs/scenarios/${SCENARIO_SLUG}/des_results.json"
+          git add "${SYSML_FILE}" || true
+          git add "clean_database/json/${SCENARIO_SLUG}/${SCENARIO_SLUG}.json"
+          git add "clean_database/json/${SCENARIO_SLUG}/assets/"*.json || true
+          git add "outputs/scenarios/${SCENARIO_SLUG}/omniverse/" || true
           echo "=== staged files ==="
           git diff --staged --name-only
           git diff --staged --quiet || git commit -m "chore: DES results + SysML + Omniverse scene update [skip ci]"

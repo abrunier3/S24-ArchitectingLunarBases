@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "id": "Cargo_Relay_Test",
+  "name": "Cargo_Relay_Test",
+  "scenario_slug": "Cargo_Relay_Test",
+  "mode": "new",
+  "sysml_file": "clean_database/sysml/Cargo_Relay_Test.sysml",
+  "saved_at": "2026-07-14T00:00:00Z",
+  "site_id": "MMA",
+  "active_nodes": [
+    "CargoSource",
+    "CargoRover",
+    "ForwardDepot",
+    "HabitatConsumer"
+  ],
+  "instance_counts": {
+    "CargoSource": 1,
+    "ForwardDepot": 1,
+    "HabitatConsumer": 1
+  },
+  "placements": {
+    "CargoSource": {"cx": 130, "cy": 290},
+    "ForwardDepot": {"cx": 350, "cy": 230},
+    "HabitatConsumer": {"cx": 560, "cy": 310}
+  },
+  "orientations": {},
+  "terrain_routes": [],
+  "scenario_logic": {
+    "resourceRoutes": [
+      {
+        "id": "cargo_to_depot",
+        "flow": "Cargo",
+        "rover_type": "CargoRover",
+        "rover_id": "CargoRover",
+        "from": "CargoSource",
+        "to": "ForwardDepot",
+        "stops": [],
+        "pts": [{"x": 130, "y": 290}, {"x": 240, "y": 250}, {"x": 350, "y": 230}],
+        "distance_km": 1.15
+      },
+      {
+        "id": "depot_to_habitat",
+        "flow": "Cargo",
+        "rover_type": "CargoRover",
+        "rover_id": "CargoRover",
+        "from": "ForwardDepot",
+        "to": "HabitatConsumer",
+        "stops": [],
+        "pts": [{"x": 350, "y": 230}, {"x": 455, "y": 260}, {"x": 560, "y": 310}],
+        "distance_km": 1.2
+      }
+    ],
+    "powerLinks": [],
+    "comLinks": [],
+    "moduleLogic": {},
+    "sysmlInterfaces": [],
+    "transportLinks": [],
+    "moduleEquations": {
+      "CargoSource": "CargoOut = min(RequestedCargo, supplyRate)\nProcessingTime = CargoOut / supplyRate",
+      "CargoRover": "CargoOut = min(CargoIn, RoverCapacity)\nTravelTime = Distance * hoursPerKm\nEnergyConsumed = Distance * CargoMass * energyPerKmPerKg",
+      "ForwardDepot": "CargoStored = CargoStored + CargoIn",
+      "HabitatConsumer": "CargoStored = CargoStored + CargoIn"
+    },
+    "roverCounts": {"cargo": 1}
+  },
+  "power_models": {},
+  "des_form": {
+    "desSimDuration": "16",
+    "desRoverCapacity": "8",
+    "desRoverTravel": "0.75",
+    "desRoverEnergy": "0.008",
+    "desPowerDt": "0.25"
+  },
+  "results": null
+}
