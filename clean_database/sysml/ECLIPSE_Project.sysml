@@ -276,7 +276,7 @@ package ECLIPSE_LSP1 {
             attribute cadSourceCenterOfMassYM = -0.0414928341309;
             attribute cadSourceCenterOfMassZM = 0.15234095205;
             attribute cadSourceFile = "LOXRover.usdc";
-            attribute cadSourceFrontAxis = "+X";
+            attribute cadSourceFrontAxis = "-Y";
             attribute cadSourceSurfaceAreaM2 = 4.4549865837;
             attribute cadSourceUpAxis = "Y";
             attribute cadSurfaceAreaM2 = 45.0640107708;
@@ -394,7 +394,7 @@ package ECLIPSE_LSP1 {
             attribute cadSourceCenterOfMassYM = 1.22523817605;
             attribute cadSourceCenterOfMassZM = -7.06784573164e-18;
             attribute cadSourceFile = "RegolithRover.usdc";
-            attribute cadSourceFrontAxis = "+X";
+            attribute cadSourceFrontAxis = "-Y";
             attribute cadSourceSurfaceAreaM2 = 19.7143625822;
             attribute cadSourceUpAxis = "Y";
             attribute cadSourceVolumeM3 = 3.92702057592;
