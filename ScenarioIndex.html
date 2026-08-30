@@ -8913,7 +8913,9 @@ let up42MoonImg = null;
       return repositoryScenarioCache;
     } catch (error) {
       console.warn('[SCENARIO] Unable to load repository scenarios:', error);
-      repositoryScenarioLoadMessage = 'Repository list unavailable; showing local scenario index and browser-saved scenarios.';
+      repositoryScenarioLoadMessage = indexedScenarios.length
+        ? ''
+        : 'Repository list unavailable; showing browser-saved scenarios.';
       repositoryScenarioCache = mergeScenarioSnapshots(repositoryScenarioCache, indexedScenarios);
       refreshSavedScenarioSummary();
       return repositoryScenarioCache;

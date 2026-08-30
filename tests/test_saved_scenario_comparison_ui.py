@@ -34,6 +34,10 @@ class SavedScenarioComparisonUiTests(unittest.TestCase):
         self.assertIn("BASELINE", self.html)
         self.assertIn("Object.entries(log)", self.html)
 
+    def test_saved_scenario_fallback_stays_quiet_when_local_index_is_available(self):
+        self.assertIn("repositoryScenarioLoadMessage = indexedScenarios.length", self.html)
+        self.assertIn("? ''", self.html)
+
 
 if __name__ == "__main__":
     unittest.main()
