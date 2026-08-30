@@ -12853,16 +12853,17 @@ let up42MoonImg = null;
       {label: 'Regolith received', key: 'regolith', unit: 'kg', color: '#ffd166'},
       {label: 'Energy consumed', key: 'energy', unit: 'kWh', color: '#ff7a8a'},
     ];
+    const colors = ['#4cc9f0', '#ffd166', '#7ee0b1', '#ff7a8a'];
     const seriesByScenario = scenarios.map(snapshot => ({snapshot, series: getScenarioResourceSeries(snapshot)}));
     const maxTime = Math.max(1, ...seriesByScenario.flatMap(entry => entry.series.map(point => Number(point.time || 0))));
-    return historyMetrics.map(metric => {
+    const legend = seriesByScenario.map((entry, index) =>
+      `<span style="display:inline-flex;align-items:center;gap:5px;color:var(--text2);"><span style="width:8px;height:8px;border-radius:50%;background:${colors[index % colors.length]};display:inline-block;"></span>${escapeHtml(entry.snapshot.name)}</span>`
+    ).join('');
+    const charts = historyMetrics.map(metric => {
       const maxValue = Math.max(1, ...seriesByScenario.flatMap(entry => entry.series.map(point => Number(point[metric.key] || 0))));
-      const cards = seriesByScenario.map(entry => {
-        const finalPoint = entry.series[entry.series.length - 1];
-        return `<div style="border:1px solid var(--border2);border-radius:8px;padding:10px;background:#07101a;"><div style="display:flex;justify-content:space-between;gap:8px;font-size:10px;font-weight:700;color:var(--text1);"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(entry.snapshot.name)}</span><span style="color:${metric.color};white-space:nowrap;">${formatComparisonNumber(finalPoint?.[metric.key], metric.unit)}</span></div><svg viewBox="0 0 360 180" role="img" aria-label="${escapeHtml(metric.label)} for ${escapeHtml(entry.snapshot.name)}" style="width:100%;height:auto;margin-top:7px;display:block;"><line x1="42" y1="150" x2="346" y2="150" stroke="rgba(255,255,255,0.24)"/><line x1="42" y1="18" x2="42" y2="150" stroke="rgba(255,255,255,0.24)"/><line x1="42" y1="84" x2="346" y2="84" stroke="rgba(255,255,255,0.08)"/><path d="${comparisonSvgPath(entry.series, metric.key, maxTime, maxValue, 360, 180)}" fill="none" stroke="${metric.color}" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/><text x="42" y="170" fill="rgba(255,255,255,0.55)" font-size="9">0 hr</text><text x="304" y="170" fill="rgba(255,255,255,0.55)" font-size="9">${formatComparisonNumber(maxTime, 'hr')}</text><text x="47" y="14" fill="rgba(255,255,255,0.55)" font-size="9">${formatComparisonNumber(maxValue, metric.unit)}</text></svg></div>`;
-      }).join('');
-      return `<section style="display:flex;flex-direction:column;gap:8px;"><div style="font-size:11px;font-weight:700;color:var(--text2);">${metric.label}</div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px;">${cards}</div></section>`;
+      return `<div style="border:1px solid var(--border2);border-radius:8px;padding:10px;background:#07101a;"><div style="display:flex;justify-content:space-between;gap:8px;font-size:10px;font-weight:700;color:var(--text1);"><span>${metric.label}</span><span style="color:var(--text3);font-size:8px;">0-${formatComparisonNumber(maxValue, metric.unit)}</span></div><svg viewBox="0 0 480 230" role="img" aria-label="${escapeHtml(metric.label)} comparison" style="width:100%;height:auto;margin-top:7px;display:block;"><line x1="48" y1="196" x2="464" y2="196" stroke="rgba(255,255,255,0.24)"/><line x1="48" y1="18" x2="48" y2="196" stroke="rgba(255,255,255,0.24)"/><line x1="48" y1="107" x2="464" y2="107" stroke="rgba(255,255,255,0.08)"/>${seriesByScenario.map((entry, index) => `<path d="${comparisonSvgPath(entry.series, metric.key, maxTime, maxValue, 480, 230)}" fill="none" stroke="${colors[index % colors.length]}" stroke-width="${entry.snapshot.scenario_slug === savedScenarioComparisonBaselineSlug ? '4' : '2.5'}" stroke-linejoin="round" stroke-linecap="round"/>`).join('')}<text x="48" y="217" fill="rgba(255,255,255,0.55)" font-size="9">0 hr</text><text x="420" y="217" fill="rgba(255,255,255,0.55)" font-size="9">${formatComparisonNumber(maxTime, 'hr')}</text><text x="54" y="14" fill="rgba(255,255,255,0.55)" font-size="9">${formatComparisonNumber(maxValue, metric.unit)}</text></svg></div>`;
     }).join('');
+    return `<div style="display:flex;flex-direction:column;gap:10px;"><div style="display:flex;flex-wrap:wrap;gap:10px;font-size:9px;">${legend}</div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(360px,1fr));gap:12px;">${charts}</div></div>`;
   }
 
   function drawSavedScenarioComparison() {

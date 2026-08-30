@@ -29,7 +29,8 @@ class SavedScenarioComparisonUiTests(unittest.TestCase):
         self.assertIn("Primary resource output", self.html)
         self.assertIn("Regolith received", self.html)
         self.assertIn("Energy consumed", self.html)
-        self.assertIn("grid-template-columns:repeat(auto-fit,minmax(300px,1fr))", self.html)
+        self.assertIn("grid-template-columns:repeat(auto-fit,minmax(360px,1fr))", self.html)
+        self.assertIn("aria-label=\"${escapeHtml(metric.label)} comparison\"", self.html)
         self.assertIn("BASELINE", self.html)
         self.assertIn("Object.entries(log)", self.html)
 
