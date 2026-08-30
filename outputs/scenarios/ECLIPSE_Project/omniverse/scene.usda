@@ -9,12 +9,12 @@ def Xform "World"
 {
     def Xform "HabitationModule"
     {
-        custom string attributes = "{'constantPowerRate': 5, 'totalEnergyConsumed': 0, 'HabitationModule_volume_m3': 1600, 'cadAreaScaleFactor': 403.5800635738535, 'cadCenterOfMassXM': 0.6856750502827403, 'cadCenterOfMassYM': 3.2855394656658685, 'cadCenterOfMassZM': 0.9549787302811494, 'cadLengthScaleFactor': 20.089302217196433, 'cadMetadataScaleFactor': 20.089302217196433, 'cadSourceCenterOfMassXM': -0.04503271386690474, 'cadSourceCenterOfMassYM': 0.378740915459828, 'cadSourceCenterOfMassZM': 0.037302444185441784, 'cadSourceSurfaceAreaM2': 1.6037485239356744, 'cadSurfaceAreaM2': 647.2409312464332, 'cadVolumeScaleFactor': 8107.641865970493, 'cadVolumeAvailable': False}"
-        custom string dimensions = "{'size_m': {'length': 20, 'width': 10, 'height': 8}, 'metersPerUnit': 1, 'upAxis': 'Y', 'massUnit': 'kg', 'lengthUnit': 'm'}"
+        custom string attributes = "{'constantPowerRate': 5.0, 'totalEnergyConsumed': 0.0, 'HabitationModule_volume_m3': 1600.0, 'cadAreaScaleFactor': 403.5800635738535, 'cadCenterOfMassXM': 0.6856750502827403, 'cadCenterOfMassYM': 3.2855394656658685, 'cadCenterOfMassZM': 0.9549787302811494, 'cadLengthScaleFactor': 20.089302217196433, 'cadMetadataScaleFactor': 20.089302217196433, 'cadSourceCenterOfMassXM': -0.04503271386690474, 'cadSourceCenterOfMassYM': 0.378740915459828, 'cadSourceCenterOfMassZM': 0.037302444185441784, 'cadSourceSurfaceAreaM2': 1.6037485239356744, 'cadSurfaceAreaM2': 647.2409312464332, 'cadVolumeScaleFactor': 8107.641865970493, 'cadVolumeAvailable': False}"
+        custom string dimensions = "{'size_m': {'length': 20.0, 'width': 10.0, 'height': 8.0}, 'metersPerUnit': 1, 'upAxis': 'Z'}"
         custom string part:name = "HabitationModule"
         float3 xformOp:rotateXYZ = (0, 0, 0)
         float3 xformOp:scale = (1, 1, 1)
-        double3 xformOp:translate = (-362.5, 264.38, 0)
+        double3 xformOp:translate = (-412.5, 381.88, 0)
         uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
 
         def Xform "Geometry"
@@ -43,7 +43,7 @@ def Xform "World"
             uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
 
             def Xform "Model" (
-                prepend references = @../../../../clean_database/cad_models/ECLIPSE_Project/HabitationModule/habitationmodule.usdc@
+                prepend references = @../../../../clean_database/cad_models/HabitationModule/habitationmodule.usdc@
             )
             {
             }
@@ -52,13 +52,13 @@ def Xform "World"
 
     def Xform "ISRUExcavation"
     {
-        custom string attributes = "{'ISRUExcavation_volume_m3': 40, 'excavationEnergyCoeff': 6.5e-06, 'cadAreaScaleFactor': 0.37461423627160134, 'cadCenterOfMassXM': -0.13191329167588697, 'cadCenterOfMassYM': -0.08928180443282985, 'cadCenterOfMassZM': 0.12265806198996274, 'cadLengthScaleFactor': 0.6120573798849266, 'cadMetadataScaleFactor': 0.6120573798849266, 'cadSourceCenterOfMassXM': 0.25161531593939407, 'cadSourceCenterOfMassYM': 0.20146750712048325, 'cadSourceCenterOfMassZM': 0.01357807639679412, 'cadSourceSurfaceAreaM2': 25.663819113963893, 'cadSurfaceAreaM2': 9.614031997190109, 'cadVolumeScaleFactor': 0.22928540791998914, 'cadVolumeAvailable': False}"
-        custom string dimensions = "{'size_m': {'length': 4, 'width': 4, 'height': 2.5}, 'metersPerUnit': 1, 'upAxis': 'Y', 'massUnit': 'kg', 'lengthUnit': 'm'}"
+        custom string attributes = "{'ISRUExcavation_volume_m3': 40.0, 'excavationEnergyCoeff': 6.5e-06, 'cadAreaScaleFactor': 0.37461423627160134, 'cadCenterOfMassXM': -0.13191329167588697, 'cadCenterOfMassYM': -0.08928180443282985, 'cadCenterOfMassZM': 0.12265806198996274, 'cadLengthScaleFactor': 0.6120573798849266, 'cadMetadataScaleFactor': 0.6120573798849266, 'cadSourceCenterOfMassXM': 0.25161531593939407, 'cadSourceCenterOfMassYM': 0.20146750712048325, 'cadSourceCenterOfMassZM': 0.01357807639679412, 'cadSourceSurfaceAreaM2': 25.663819113963893, 'cadSurfaceAreaM2': 9.614031997190109, 'cadVolumeScaleFactor': 0.22928540791998914, 'cadVolumeAvailable': False}"
+        custom string dimensions = "{'size_m': {'length': 4.0, 'width': 4.0, 'height': 2.5}, 'metersPerUnit': 1, 'upAxis': 'Z', 'angleUnit': 'deg', 'pressureUnit': 'kPa', 'massUnit': 'kg', 'lengthUnit': 'm'}"
         custom string material = "Aluminum_2219_T87"
         custom string part:name = "ISRUExcavation"
         float3 xformOp:rotateXYZ = (0, 0, 0)
         float3 xformOp:scale = (1, 1, 1)
-        double3 xformOp:translate = (1107.5, -705.63, 0)
+        double3 xformOp:translate = (-662.5, -893.13, 0)
         uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
 
         def Xform "Geometry"
@@ -87,7 +87,7 @@ def Xform "World"
             uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
 
             def Xform "Model" (
-                prepend references = @../../../../clean_database/cad_models/ECLIPSE_Project/ISRUExcavation/ISRUExcavation.usdc@
+                prepend references = @../../../../clean_database/cad_models/ISRUExcavation/ISRUExcavation.usdc@
             )
             {
             }
@@ -96,12 +96,12 @@ def Xform "World"
 
     def Xform "ISRUPlant"
     {
-        custom string attributes = "{'processingRate': 1600, 'conversionEfficiency': 0.002527902017, 'regHeadGrade': 0.1, 'ilmeniteRecoveryFraction': 0.505, 'beneficiationRegolithMultiplier': 6, 'waterRecoveryFraction': 0.47, 'waterMolarMass': 18.01528, 'ilmeniteMolarMass': 151.71, 'oxygenMolarMass': 31.999, 'joulesPerKWh': 3600000, 'lunarGravity': 1.62, 'LOXStored': 0, 'totalEnergyConsumed': 0, 'excavationEnergyCoeff': 6.5e-06, 'ISRUPlant_volume_m3': 2400, 'transportEnergyCoeff': 0.00036, 'gangueTransportEnergyCoeff': 0.00036, 'liftHeight': 1, 'gangueTransportDist': 1, 'reactorEnergyCoeff': 0.385, 'electrolysisEnergyCoeff': 8.26, 'liquefactionEnergyCoeff': 1.17, 'cadAreaScaleFactor': 19.645082990736874, 'cadCenterOfMassXM': 0.007736177302558378, 'cadCenterOfMassYM': 0.2589322622268767, 'cadCenterOfMassZM': 1.4909596956254547, 'cadLengthScaleFactor': 4.432277404533348, 'cadMetadataScaleFactor': 4.432277404533348, 'cadSourceCenterOfMassXM': 0.3108706757438577, 'cadSourceCenterOfMassYM': 0.1850939548437272, 'cadSourceCenterOfMassZM': 0.2241782810654395, 'cadSourceSurfaceAreaM2': 21.300626685828387, 'cadSurfaceAreaM2': 418.4525789978032, 'cadVolumeScaleFactor': 87.07245745002545, 'cadVolumeAvailable': False}"
-        custom string dimensions = "{'size_m': {'length': 20, 'width': 15, 'height': 8}, 'metersPerUnit': 1, 'upAxis': 'Y', 'massUnit': 'kg', 'lengthUnit': 'm'}"
+        custom string attributes = "{'processingRate': 1600.0, 'conversionEfficiency': 0.002527902017, 'regHeadGrade': 0.1, 'ilmeniteRecoveryFraction': 0.505, 'beneficiationRegolithMultiplier': 6.0, 'waterRecoveryFraction': 0.47, 'waterMolarMass': 18.01528, 'ilmeniteMolarMass': 151.71, 'oxygenMolarMass': 31.999, 'joulesPerKWh': 3600000.0, 'lunarGravity': 1.62, 'LOXStored': 0.0, 'totalEnergyConsumed': 0.0, 'excavationEnergyCoeff': 6.5e-06, 'ISRUPlant_volume_m3': 2400.0, 'transportEnergyCoeff': 0.00036, 'gangueTransportEnergyCoeff': 0.00036, 'liftHeight': 1.0, 'gangueTransportDist': 1.0, 'reactorEnergyCoeff': 0.385, 'electrolysisEnergyCoeff': 8.26, 'liquefactionEnergyCoeff': 1.17, 'cadAreaScaleFactor': 19.645082990736874, 'cadCenterOfMassXM': 0.007736177302558378, 'cadCenterOfMassYM': 0.2589322622268767, 'cadCenterOfMassZM': 1.4909596956254547, 'cadLengthScaleFactor': 4.432277404533348, 'cadMetadataScaleFactor': 4.432277404533348, 'cadSourceCenterOfMassXM': 0.3108706757438577, 'cadSourceCenterOfMassYM': 0.1850939548437272, 'cadSourceCenterOfMassZM': 0.2241782810654395, 'cadSourceSurfaceAreaM2': 21.300626685828387, 'cadSurfaceAreaM2': 418.4525789978032, 'cadVolumeScaleFactor': 87.07245745002545, 'cadVolumeAvailable': False}"
+        custom string dimensions = "{'size_m': {'length': 20.0, 'width': 15.0, 'height': 8.0}, 'metersPerUnit': 1, 'upAxis': 'Z'}"
         custom string part:name = "ISRUPlant"
         float3 xformOp:rotateXYZ = (0, 0, 0)
         float3 xformOp:scale = (1, 1, 1)
-        double3 xformOp:translate = (-1372.5, 1064.38, 0)
+        double3 xformOp:translate = (-1312.5, 936.88, 0)
         uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
 
         def Xform "Geometry"
@@ -130,7 +130,7 @@ def Xform "World"
             uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
 
             def Xform "Model" (
-                prepend references = @../../../../clean_database/cad_models/ECLIPSE_Project/ISRUPlant/isruplant.usdc@
+                prepend references = @../../../../clean_database/cad_models/ISRUPlant/isruplant.usdc@
             )
             {
             }
@@ -139,12 +139,12 @@ def Xform "World"
 
     def Xform "LaunchLandingZone"
     {
-        custom string attributes = "{'loxCapacity': 50000, 'loxStored': 0, 'utilitiesPowerRate': 3, 'totalEnergyConsumed': 0, 'chillingPowerPerKgLox': 0.31, 'LaunchLandingZone_volume_m3': 25000, 'cadAreaScaleFactor': 57.72736184682528, 'cadCenterOfMassXM': 0.6092053358218976, 'cadCenterOfMassYM': 0.8443167226881254, 'cadCenterOfMassZM': 1.5671814238001611, 'cadLengthScaleFactor': 7.59785244966137, 'cadMetadataScaleFactor': 7.59785244966137, 'cadSourceCenterOfMassXM': 0.08018125382904055, 'cadSourceCenterOfMassYM': 1.060480164531163, 'cadSourceCenterOfMassZM': 0.20579654915816037, 'cadSourceSurfaceAreaM2': 32.75432668084237, 'cadSurfaceAreaM2': 1890.820868354111, 'cadVolumeScaleFactor': 438.60397762038974, 'cadVolumeAvailable': False}"
-        custom string dimensions = "{'size_m': {'length': 50, 'width': 50, 'height': 10}, 'metersPerUnit': 1, 'upAxis': 'Y', 'massUnit': 'kg', 'lengthUnit': 'm'}"
+        custom string attributes = "{'loxCapacity': 50000.0, 'loxStored': 0.0, 'utilitiesPowerRate': 3.0, 'totalEnergyConsumed': 0.0, 'chillingPowerPerKgLox': 0.31, 'LaunchLandingZone_volume_m3': 25000.0, 'cadAreaScaleFactor': 57.72736184682528, 'cadCenterOfMassXM': 0.6092053358218976, 'cadCenterOfMassYM': 0.8443167226881254, 'cadCenterOfMassZM': 1.5671814238001611, 'cadLengthScaleFactor': 7.59785244966137, 'cadMetadataScaleFactor': 7.59785244966137, 'cadSourceCenterOfMassXM': 0.08018125382904055, 'cadSourceCenterOfMassYM': 1.060480164531163, 'cadSourceCenterOfMassZM': 0.20579654915816037, 'cadSourceSurfaceAreaM2': 32.75432668084237, 'cadSurfaceAreaM2': 1890.820868354111, 'cadVolumeScaleFactor': 438.60397762038974, 'cadVolumeAvailable': False}"
+        custom string dimensions = "{'size_m': {'length': 50.0, 'width': 50.0, 'height': 10.0}, 'metersPerUnit': 1, 'upAxis': 'Z'}"
         custom string part:name = "LaunchLandingZone"
         float3 xformOp:rotateXYZ = (0, 0, 0)
         float3 xformOp:scale = (1, 1, 1)
-        double3 xformOp:translate = (-1112.5, 59.38, 0)
+        double3 xformOp:translate = (-1042.5, 236.88, 0)
         uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
 
         def Xform "Geometry"
@@ -173,7 +173,7 @@ def Xform "World"
             uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
 
             def Xform "Model" (
-                prepend references = @../../../../clean_database/cad_models/ECLIPSE_Project/LaunchLandingZone/launchlandingzone.usdc@
+                prepend references = @../../../../clean_database/cad_models/LaunchLandingZone/launchlandingzone.usdc@
             )
             {
             }
@@ -182,7 +182,7 @@ def Xform "World"
 
     def Xform "LOXRover"
     {
-        custom string attributes = "{'batteryCapacity': 100, 'maxCapacity': 5000, 'energyPerKmPerKg': 0.00034, 'batteryCharge': 100, 'totalDistanceTraveled': 0, 'totalEnergyConsumed': 0, 'hoursPerKm': 5, 'LOXRover_volume_m3': 45, 'cadAreaScaleFactor': 10.115408862432707, 'cadCenterOfMassXM': -2.4936133526610364e-08, 'cadCenterOfMassYM': -0.12987112675790208, 'cadCenterOfMassZM': 0.4845214496187235, 'cadLengthScaleFactor': 3.1804730563915657, 'cadMetadataScaleFactor': 3.1804730563915657, 'cadSourceCenterOfMassXM': -7.840385088783578e-09, 'cadSourceCenterOfMassYM': -0.04149283413090417, 'cadSourceCenterOfMassZM': 0.15234095204984757, 'cadSourceSurfaceAreaM2': 4.454986583704249, 'cadSourceVolumeM3': 3.92702057592, 'cadSurfaceAreaM2': 45.06401077082077, 'cadVolumeM3': 29.6041552361, 'cadVolumeScaleFactor': 32.171785341351686, 'cadVolumeAvailable': False}"
+        custom string attributes = "{'batteryCapacity': 100, 'maxCapacity': 5000, 'energyPerKmPerKg': 0.00034, 'batteryCharge': 100, 'totalDistanceTraveled': 0, 'totalEnergyConsumed': 0, 'hoursPerKm': 5, 'LOXRover_volume_m3': 45, 'cadAreaScaleFactor': 10.115408862432707, 'cadCenterOfMassXM': -2.4936133526610364e-08, 'cadCenterOfMassYM': -0.12987112675790208, 'cadCenterOfMassZM': 0.4845214496187235, 'cadLengthScaleFactor': 3.1804730563915657, 'cadMetadataScaleFactor': 3.1804730563915657, 'cadSourceCenterOfMassXM': -7.840385088783578e-09, 'cadSourceCenterOfMassYM': -0.04149283413090417, 'cadSourceCenterOfMassZM': 0.15234095204984757, 'cadSourceSurfaceAreaM2': 4.454986583704249, 'cadSurfaceAreaM2': 45.06401077082077, 'cadVolumeScaleFactor': 32.171785341351686, 'cadVolumeAvailable': False}"
         custom string dimensions = "{'size_m': {'length': 5, 'width': 3, 'height': 3}, 'metersPerUnit': 1, 'upAxis': 'Y', 'massUnit': 'kg', 'lengthUnit': 'm'}"
         custom string part:name = "LOXRover"
         float3 xformOp:rotateXYZ = (0, 0, 0)
@@ -236,13 +236,13 @@ def Xform "World"
 
     def Xform "PropellantDepot"
     {
-        custom string attributes = "{'PropellantDepot_volume_m3': 40, 'cadAreaScaleFactor': 59.14370422188536, 'cadCenterOfMassXM': 0.044181882634447334, 'cadCenterOfMassYM': 0.09882660647502739, 'cadCenterOfMassZM': 0.783243752504859, 'cadLengthScaleFactor': 7.690494406856126, 'cadMetadataScaleFactor': 7.690494406856126, 'cadSourceCenterOfMassXM': -14.243009495947415, 'cadSourceCenterOfMassYM': -0.7992365542586575, 'cadSourceCenterOfMassZM': -811.9855893386346, 'cadSourceSurfaceAreaM2': 0.4384065357107239, 'cadSurfaceAreaM2': 25.928986477016476, 'cadVolumeScaleFactor': 454.84432651916234, 'cadVolumeAvailable': False}"
-        custom string dimensions = "{'size_m': {'length': 4, 'width': 4, 'height': 2.5}, 'metersPerUnit': 1, 'upAxis': 'Y', 'massUnit': 'kg', 'lengthUnit': 'm'}"
+        custom string attributes = "{'PropellantDepot_volume_m3': 40.0, 'cadAreaScaleFactor': 59.14370422188536, 'cadCenterOfMassXM': 0.044181882634447334, 'cadCenterOfMassYM': 0.09882660647502739, 'cadCenterOfMassZM': 0.783243752504859, 'cadLengthScaleFactor': 7.690494406856126, 'cadMetadataScaleFactor': 7.690494406856126, 'cadSourceCenterOfMassXM': -14.243009495947415, 'cadSourceCenterOfMassYM': -0.7992365542586575, 'cadSourceCenterOfMassZM': -811.9855893386346, 'cadSourceSurfaceAreaM2': 0.4384065357107239, 'cadSurfaceAreaM2': 25.928986477016476, 'cadVolumeScaleFactor': 454.84432651916234, 'cadVolumeAvailable': False}"
+        custom string dimensions = "{'size_m': {'length': 4.0, 'width': 4.0, 'height': 2.5}, 'metersPerUnit': 1, 'upAxis': 'Z', 'angleUnit': 'deg', 'pressureUnit': 'kPa', 'massUnit': 'kg', 'lengthUnit': 'm'}"
         custom string material = "Aluminum_2219_T87"
         custom string part:name = "PropellantDepot"
         float3 xformOp:rotateXYZ = (0, 0, 0)
         float3 xformOp:scale = (1, 1, 1)
-        double3 xformOp:translate = (112.5, 974.38, 0)
+        double3 xformOp:translate = (77.5, 881.88, 0)
         uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
 
         def Xform "Geometry"
@@ -271,7 +271,7 @@ def Xform "World"
             uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
 
             def Xform "Model" (
-                prepend references = @../../../../clean_database/cad_models/ECLIPSE_Project/PropellantDepot/PropellantDepot.usdc@
+                prepend references = @../../../../clean_database/cad_models/PropellantDepot/PropellantDepot.usdc@
             )
             {
             }
@@ -323,12 +323,12 @@ def Xform "World"
 
     def Xform "SolarPowerSystem"
     {
-        custom string attributes = "{'powerOutput': 100, 'powerDegradationFactor': 1, 'batteryCapacity': 500, 'batteryDegradationFactor': 1, 'batteryCharge': 500, 'totalEnergyGenerated': 0, 'totalEnergyFromBattery': 0, 'SolarPowerSystem_volume_m3': 2500, 'cadAreaScaleFactor': 177.77778164479426, 'cadCenterOfMassXM': 0.4543956524880871, 'cadCenterOfMassYM': 0.24878518306600833, 'cadCenterOfMassZM': 0.7541744700463536, 'cadLengthScaleFactor': 13.33333347834645, 'cadMetadataScaleFactor': 13.33333347834645, 'cadSourceCenterOfMassXM': 0.007909507549718064, 'cadSourceCenterOfMassYM': 0.01944161188027248, 'cadSourceCenterOfMassZM': 0.05656300570927111, 'cadSourceSurfaceAreaM2': 1.3793441144455252, 'cadSurfaceAreaM2': 245.21673679092868, 'cadVolumeScaleFactor': 2370.3704477107003, 'cadVolumeAvailable': False}"
-        custom string dimensions = "{'size_m': {'length': 25, 'width': 25, 'height': 4}, 'metersPerUnit': 1, 'upAxis': 'Y', 'massUnit': 'kg', 'lengthUnit': 'm'}"
+        custom string attributes = "{'powerOutput': 100.0, 'powerDegradationFactor': 1.0, 'batteryCapacity': 500.0, 'batteryDegradationFactor': 1.0, 'batteryCharge': 500.0, 'totalEnergyGenerated': 0.0, 'totalEnergyFromBattery': 0.0, 'SolarPowerSystem_volume_m3': 2500.0, 'cadAreaScaleFactor': 177.77778164479426, 'cadCenterOfMassXM': 0.4543956524880871, 'cadCenterOfMassYM': 0.24878518306600833, 'cadCenterOfMassZM': 0.7541744700463536, 'cadLengthScaleFactor': 13.33333347834645, 'cadMetadataScaleFactor': 13.33333347834645, 'cadSourceCenterOfMassXM': 0.007909507549718064, 'cadSourceCenterOfMassYM': 0.01944161188027248, 'cadSourceCenterOfMassZM': 0.05656300570927111, 'cadSourceSurfaceAreaM2': 1.3793441144455252, 'cadSurfaceAreaM2': 245.21673679092868, 'cadVolumeScaleFactor': 2370.3704477107003, 'cadVolumeAvailable': False}"
+        custom string dimensions = "{'size_m': {'length': 25.0, 'width': 25.0, 'height': 4.0}, 'metersPerUnit': 1, 'upAxis': 'Z'}"
         custom string part:name = "SolarPowerSystem"
         float3 xformOp:rotateXYZ = (0, 0, 0)
         float3 xformOp:scale = (1, 1, 1)
-        double3 xformOp:translate = (987.5, 549.38, 0)
+        double3 xformOp:translate = (932.5, -313.13, 0)
         uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
 
         def Xform "Geometry"
@@ -357,7 +357,7 @@ def Xform "World"
             uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
 
             def Xform "Model" (
-                prepend references = @../../../../clean_database/cad_models/ECLIPSE_Project/SolarPowerSystem/solar_panels.usdc@
+                prepend references = @../../../../clean_database/cad_models/SolarPowerSystem/solar_panels.usdc@
             )
             {
             }
