@@ -58,11 +58,11 @@ class IsruRuntimeTests(unittest.TestCase):
         root = Path(__file__).resolve().parents[1]
         asset = data_from_json(
             "ISRUV2.json",
-            asset_root="clean_database/json/ISRU_petit/assets",
+            asset_root="clean_database/json/ISRU_Missionjjj/assets",
         )["ISRUPlant"]
 
         expected = json.loads(
-            (root / "clean_database/json/ISRU_petit/assets/ISRUPlant.json").read_text()
+            (root / "clean_database/json/ISRU_Missionjjj/assets/ISRUPlant.json").read_text()
         )["attributes"]
         self.assertEqual(asset.raw["attributes"], expected)
 

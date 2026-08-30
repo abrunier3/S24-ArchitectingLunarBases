@@ -7,8 +7,8 @@ from S24.sysml.cad_metadata_updater import _cad_path_candidates
 
 class CadScenarioStorageTests(unittest.TestCase):
     def test_converter_extracts_scenario_from_scoped_cad_path(self):
-        path = "clean_database/cad_models/ISRU_petit/LOXRover/LOXRover.step"
-        self.assertEqual(scenario_slug_from_cad_path(path), "ISRU_petit")
+        path = "clean_database/cad_models/ISRU_Missionjjj/LOXRover/LOXRover.step"
+        self.assertEqual(scenario_slug_from_cad_path(path), "ISRU_Missionjjj")
 
     def test_converter_keeps_legacy_cad_in_default_scenario(self):
         path = "clean_database/cad_models/LOXRover/LOXRover.step"
