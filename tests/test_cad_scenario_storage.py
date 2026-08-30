@@ -112,6 +112,16 @@ class CadScenarioStorageTests(unittest.TestCase):
         self.assertIn("Preserve a USD's authored upright orientation", scene_builder)
         self.assertIn("def _find_scenario_cad_file", submission)
 
+    def test_front_axis_is_persisted_before_des_and_cannot_match_up_axis(self):
+        html = (Path(__file__).resolve().parents[1] / "ScenarioIndex.html").read_text()
+
+        self.assertIn("function isCompatibleCadFrontAxis", html)
+        self.assertIn("cadAxisBase(axis) !== getCadSourceUpAxis(moduleName)", html)
+        self.assertIn("const cadAxisSavePromises = new Map()", html)
+        self.assertIn("async function waitForCadAxisSaves", html)
+        self.assertIn("await waitForCadAxisSaves()", html)
+        self.assertIn("Omniverse placement yaw", html)
+
     def test_glb_preview_converts_generated_z_up_usd_to_y_up(self):
         converter = (
             Path(__file__).resolve().parents[1] / "S24/cad/convert_workflow.py"

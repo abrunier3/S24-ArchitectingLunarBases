@@ -10467,6 +10467,31 @@ let up42MoonImg = null;
     return String(axis || '').replace(/^[+-]/, '').toUpperCase();
   }
 
+  function getCadSourceUpAxis(moduleName) {
+    const cached = moduleMetaCache[moduleName] || {};
+    const metadata = sysmlPartsCache[moduleName]?.metadata || {};
+    return normalizeUpAxis(cached.cadSourceUpAxis || metadata.cadSourceUpAxis || 'Z', 'Z');
+  }
+
+  function isCompatibleCadFrontAxis(moduleName, axis) {
+    return cadAxisBase(axis) !== getCadSourceUpAxis(moduleName);
+  }
+
+  function cadFrontPlacementYaw(moduleName, axis) {
+    const sourceAxis = cadAxisBase(axis);
+    const sign = String(axis || '').trim().startsWith('-') ? -1 : 1;
+    const upAxis = getCadSourceUpAxis(moduleName);
+    const vectors = { X: [1, 0, 0], Y: [0, 1, 0], Z: [0, 0, 1] };
+    let [x, y, z] = vectors[sourceAxis] || vectors.X;
+    x *= sign;
+    y *= sign;
+    z *= sign;
+    if (upAxis === 'Y') [x, y, z] = [x, -z, y];
+    if (upAxis === 'X') [x, y, z] = [-z, y, x];
+    if (Math.hypot(x, y) < 1e-9) return null;
+    return Math.round(-Math.atan2(y, x) * 180 / Math.PI);
+  }
+
   function normalizeSizeM(value) {
     if (!Array.isArray(value) || value.length < 3) return null;
     const size = value.slice(0, 3).map(Number);
@@ -10688,8 +10713,19 @@ let up42MoonImg = null;
     }
   }
 
-  function setCadSourceFrontAxis(moduleName, axis) {
+  const cadAxisSavePromises = new Map();
+
+  async function setCadSourceFrontAxis(moduleName, axis) {
     const normalized = normalizeFrontAxis(axis, '+X');
+    if (!isCompatibleCadFrontAxis(moduleName, normalized)) {
+      const upAxis = getCadSourceUpAxis(moduleName);
+      setCadAxisStatus(
+        moduleName,
+        `Cannot use ${normalized} as front: it is parallel to the ${upAxis}-up axis.`,
+        'error'
+      );
+      return false;
+    }
     moduleMetaCache[moduleName] = {
       ...(moduleMetaCache[moduleName] || {}),
       cadSourceFrontAxis: normalized,
@@ -10702,19 +10738,36 @@ let up42MoonImg = null;
     if (cadFileForSave) {
       const pubStatus = document.getElementById('publishStatus');
       if (pubStatus) pubStatus.textContent = `Saving ${moduleName} source front axis: ${normalized}...`;
-      writeAssetJson(moduleName, cadFileForSave)
-        .then(ok => {
-          const status = document.getElementById('publishStatus');
-          if (status) {
-            status.textContent = ok
-              ? `${moduleName} source front axis saved: ${normalized}.`
-              : `Could not save ${moduleName} source front axis.`;
-          }
-        })
-        .catch(error => {
-          console.warn('[setCadSourceFrontAxis]', error);
-        });
+      const save = (cadAxisSavePromises.get(moduleName) || Promise.resolve())
+        .catch(() => false)
+        .then(() => writeAssetJson(moduleName, cadFileForSave));
+      cadAxisSavePromises.set(moduleName, save);
+      const ok = await save;
+      const yaw = cadFrontPlacementYaw(moduleName, normalized);
+      const rotationText = yaw === 0 ? 'no additional yaw' : `${yaw > 0 ? '+' : ''}${yaw} degrees yaw`;
+      const status = document.getElementById('publishStatus');
+      if (status) {
+        status.textContent = ok
+          ? `${moduleName} source front saved: ${normalized} (${rotationText} in Omniverse).`
+          : `Could not save ${moduleName} source front axis.`;
+      }
+      setCadAxisStatus(
+        moduleName,
+        ok
+          ? `Front ${normalized} saved. Omniverse placement yaw: ${rotationText}.`
+          : `Could not save source front ${normalized}.`,
+        ok ? 'success' : 'error'
+      );
+      return ok;
     }
+    return true;
+  }
+
+  async function waitForCadAxisSaves() {
+    const pending = [...cadAxisSavePromises.values()];
+    if (!pending.length) return true;
+    const results = await Promise.all(pending);
+    return results.every(Boolean);
   }
 
   function updateCadAxisSelector(moduleName) {
@@ -11886,17 +11939,22 @@ let up42MoonImg = null;
                 Source front
               </div>
               <div style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap;">
-                ${['+X', '-X', '+Y', '-Y', '+Z', '-Z'].map(axis => `
+                ${['+X', '-X', '+Y', '-Y', '+Z', '-Z'].map(axis => {
+                  const compatible = isCompatibleCadFrontAxis(moduleName, axis);
+                  return `
                   <button type="button" data-cad-axis-module="${moduleName}" data-axis-kind="front" data-axis="${axis}"
-                    title="Use ${axis} as source front axis"
+                    title="${compatible ? `Use ${axis} as source front axis` : `${axis} is parallel to source up and cannot be used as front` }"
+                    ${compatible ? '' : 'disabled'}
                     style="width:30px;height:30px;border-radius:50%;border:1px solid rgba(210,220,235,0.35);
                       background:${axis === selectedFrontAxis ? '#f7c948' : 'rgba(120,132,150,0.35)'};
                       color:${axis === selectedFrontAxis ? '#fff' : 'rgba(230,236,245,0.82)'};
-                      font-weight:800;font-size:11px;cursor:pointer;
+                      font-weight:800;font-size:11px;cursor:${compatible ? 'pointer' : 'not-allowed'};
+                      opacity:${compatible ? '1' : '0.35'};
                       box-shadow:${axis === selectedFrontAxis ? '0 0 14px rgba(247,201,72,0.45)' : 'none'};">
                     ${axis}
                   </button>
-                `).join('')}
+                `;
+                }).join('')}
               </div>
               </div>
               ` : ''}
@@ -11921,7 +11979,10 @@ let up42MoonImg = null;
           const kind = btn.getAttribute('data-axis-kind') || 'up';
           const axis = btn.getAttribute('data-axis') || (kind === 'front' ? 'X' : 'Z');
           if (kind === 'front') {
-            setCadSourceFrontAxis(moduleName, axis);
+            void setCadSourceFrontAxis(moduleName, axis).catch(error => {
+              console.error('[setCadSourceFrontAxis]', error);
+              setCadAxisStatus(moduleName, `Could not save front axis ${axis}.`, 'error');
+            });
           } else {
             void setCadSourceUpAxis(moduleName, axis).catch(error => {
               console.error('[setCadSourceUpAxis]', error);
@@ -13034,6 +13095,14 @@ let up42MoonImg = null;
     btn.disabled = true;
     btn.textContent = 'Submitting...';
     resetDesResultsForRun();
+    setDesStatus('Saving CAD orientation selections...', 'var(--text2)');
+    const savedCadAxes = await waitForCadAxisSaves();
+    if (!savedCadAxes) {
+      btn.disabled = false;
+      btn.textContent = 'Run DES';
+      setDesStatus('Cannot run: one or more CAD orientation selections could not be saved.', '#ff7a8a');
+      return;
+    }
     setDesStatus('Dispatching to GitHub Actions...', 'var(--text2)');
 
     const requestId = `${currentScenarioSlug}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
