@@ -41,6 +41,15 @@ class CadScenarioStorageTests(unittest.TestCase):
         self.assertIn("This scenario now owns its CAD and preview", html)
         self.assertIn("cadImportedFromScenario", html)
 
+    def test_step_three_remembers_catalog_choices_and_can_publish_one_cad(self):
+        html = (Path(__file__).resolve().parents[1] / "ScenarioIndex.html").read_text()
+
+        self.assertIn("function rememberCadReuseSelection", html)
+        self.assertIn("pendingCadCatalogPath", html)
+        self.assertIn("option.value = candidate.cadPath", html)
+        self.assertIn("function publishCurrentCad", html)
+        self.assertIn("Upload &amp; Publish this CAD", html)
+
     def test_new_rover_controls_are_not_sent_as_undeclared_workflow_inputs(self):
         html = (Path(__file__).resolve().parents[1] / "ScenarioIndex.html").read_text()
 

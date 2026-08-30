@@ -2006,11 +2006,12 @@
               <div style="font-size:24px;margin-bottom:6px;">📦</div>
               <div style="font-size:13px;color:var(--text2);">Drag & drop a USD/USDA/USDC/USDZ/STEP/STP/STL/OBJ file here</div>
               <div style="font-size:11px;color:var(--text3);margin-top:3px;">or click to browse</div>
-              <input id="cadFileInput" type="file" accept=".usd,.usda,.usdc,.usdz,.step,.stp,.stl,.obj" style="display:none;" onchange="handleCadFile(event.target.files[0])">
+              <input id="cadFileInput" type="file" accept=".usd,.usda,.usdc,.usdz,.step,.stp,.stl,.obj" style="display:none;" onchange="handleCadFile(event.target.files[0]); event.target.value = ''">
             </div>
             <div id="cadUploadStatus" class="mini-note" style="margin-top:8px;">No CAD file loaded yet.</div>
+            <button id="publishCurrentCadBtn" class="btn btn-primary" type="button" disabled style="width:100%;margin-top:10px;" onclick="publishCurrentCad()">Upload &amp; Publish this CAD</button>
             <div style="display:flex;gap:8px;align-items:center;margin-top:10px;">
-              <select id="cadReuseSelect" style="flex:1;min-width:0;" onchange="updateCadReuseButton()">
+              <select id="cadReuseSelect" style="flex:1;min-width:0;" onchange="rememberCadReuseSelection(this.value)">
                 <option value="">Load a CAD from a scenario or the CAD library...</option>
               </select>
               <button id="cadReuseBtn" class="btn btn-secondary" type="button" disabled onclick="loadCadFromScenario()">Load</button>
@@ -3756,7 +3757,9 @@ let up42Scenario = {
   roverCounts: { regolith: 1, lox: 1 },
   roverPayloadsKg: { regolith: 4000, lox: 4000 }
 };
-const SCENARIO_STORAGE_KEY = 'eclipse.savedScenarios.v1';
+// v1 contains scenarios removed during the repository cleanup. Keep it untouched
+// in the browser, but do not merge those stale snapshots into the active list.
+const SCENARIO_STORAGE_KEY = 'eclipse.savedScenarios.v2';
 const SCENARIO_SCHEMA_VERSION = 1;
 const ISRU_PRESET_PATH = 'clean_database/scenarios/presets/ISRU.json';
 const SCENARIO_INDEX_PATH = 'clean_database/scenarios/index.json';
@@ -9939,6 +9942,30 @@ let up42MoonImg = null;
     if (button) button.disabled = !currentModuleName || !select?.value;
   }
 
+  function rememberCadReuseSelection(cadPath) {
+    if (!currentModuleName) return;
+    const selected = cadReuseOptions.find(candidate => candidate.cadPath === cadPath);
+    const existing = moduleMetaCache[currentModuleName] || {};
+    moduleMetaCache[currentModuleName] = {
+      ...existing,
+      pendingCadCatalogPath: selected?.cadPath || '',
+      pendingCadCatalogName: selected?.fileName || '',
+      pendingCadCatalogSource: selected?.sourceLabel || ''
+    };
+    updateCadReuseButton();
+    if (selected) {
+      setCadReuseStatus(`Selected ${selected.fileName} from ${selected.sourceLabel}. Click Load to import it.`);
+    }
+  }
+
+  function updateCurrentCadPublishButton() {
+    const button = document.getElementById('publishCurrentCadBtn');
+    if (!button) return;
+    const file = currentModuleName ? moduleFiles[currentModuleName] : null;
+    button.disabled = !file;
+    button.textContent = file ? 'Upload & Publish selected CAD' : 'Upload & Publish this CAD';
+  }
+
   const CAD_FILE_EXTENSION = /\.(?:usd|usda|usdc|usdz|step|stp|stl|obj)$/i;
 
   function isCadFile(entry) {
@@ -10041,6 +10068,7 @@ let up42MoonImg = null;
     const groups = await getCadCatalogGroups();
 
     if (moduleName !== currentModuleName) return;
+    const rememberedPath = moduleMetaCache[moduleName]?.pendingCadCatalogPath || '';
     groups.forEach(group => {
       const optionGroup = document.createElement('optgroup');
       optionGroup.label = group.label;
@@ -10048,19 +10076,25 @@ let up42MoonImg = null;
         .sort((left, right) => left.displayName.localeCompare(right.displayName))
         .forEach(candidate => {
           const option = document.createElement('option');
-          const index = cadReuseOptions.push(candidate) - 1;
-          option.value = String(index);
+          cadReuseOptions.push(candidate);
+          option.value = candidate.cadPath;
           option.textContent = candidate.displayName;
           optionGroup.appendChild(option);
         });
       if (optionGroup.children.length) select.appendChild(optionGroup);
     });
 
-    setCadReuseStatus(
-      cadReuseOptions.length
-        ? `${cadReuseOptions.length} CAD file${cadReuseOptions.length === 1 ? '' : 's'} available for ${moduleName}.`
-        : 'No CAD file is available in clean_database/cad_models.'
-    );
+    if (rememberedPath && cadReuseOptions.some(candidate => candidate.cadPath === rememberedPath)) {
+      select.value = rememberedPath;
+      const remembered = cadReuseOptions.find(candidate => candidate.cadPath === rememberedPath);
+      setCadReuseStatus(`Selected ${remembered.fileName} from ${remembered.sourceLabel}. Click Load to import it.`);
+    } else {
+      setCadReuseStatus(
+        cadReuseOptions.length
+          ? `${cadReuseOptions.length} CAD file${cadReuseOptions.length === 1 ? '' : 's'} available for ${moduleName}.`
+          : 'No CAD file is available in clean_database/cad_models.'
+      );
+    }
     updateCadReuseButton();
   }
 
@@ -10094,8 +10128,7 @@ let up42MoonImg = null;
   async function loadCadFromScenario() {
     const select = document.getElementById('cadReuseSelect');
     const button = document.getElementById('cadReuseBtn');
-    const selectedIndex = select?.value === '' ? NaN : Number(select?.value);
-    const selected = Number.isInteger(selectedIndex) ? cadReuseOptions[selectedIndex] : null;
+    const selected = cadReuseOptions.find(candidate => candidate.cadPath === select?.value) || null;
     const moduleName = currentModuleName;
     if (!selected || !moduleName) return;
 
@@ -10150,7 +10183,10 @@ let up42MoonImg = null;
       ...(moduleMetaCache[moduleName] || {}),
       sourceCadPath: targetCadPath,
       cadFileName: targetFileName,
-      importedFromScenario: selected.sourceLabel
+      importedFromScenario: selected.sourceLabel,
+      pendingCadCatalogPath: '',
+      pendingCadCatalogName: '',
+      pendingCadCatalogSource: ''
     };
     const saved = await writeAssetJson(moduleName, { name: targetFileName });
     await loadCachedCadMeta(moduleName, step3SelectionVersion);
@@ -10366,6 +10402,7 @@ let up42MoonImg = null;
 
     updateModuleDot(currentModuleName, 'ready');
     updatePublishCounter();
+    updateCurrentCadPublishButton();
 
     const nameEl = document.getElementById('sourceFileName');
     if (nameEl) nameEl.value = file.name;
@@ -10960,9 +10997,13 @@ let up42MoonImg = null;
 
           const n = document.getElementById('sourceFileName');
           if (n) n.value = moduleFiles[name].name;
+        } else if (moduleMetaCache[name]?.sourceCadPath) {
+          const s = document.getElementById('cadUploadStatus');
+          if (s) s.textContent = `CAD assigned: ${moduleMetaCache[name].cadFileName || moduleMetaCache[name].sourceCadPath.split('/').pop()}`;
         }
 
         restoreModuleMeta(name);
+        updateCurrentCadPublishButton();
       };
 
       box.appendChild(row);
@@ -11025,6 +11066,7 @@ let up42MoonImg = null;
     }
 
     window._cadSizeM = null;
+    updateCurrentCadPublishButton();
   }
 
   async function loadCachedCadMeta(moduleName, selectionVersion = step3SelectionVersion) {
@@ -11113,14 +11155,21 @@ let up42MoonImg = null;
     return true;
   }
 
-  async function publishAll() {
+  function publishCurrentCad() {
+    if (!currentModuleName || !moduleFiles[currentModuleName]) return;
+    return publishAll([currentModuleName]);
+  }
+
+  async function publishAll(moduleNames = Object.keys(moduleFiles)) {
     const btn = document.getElementById('publishAllBtn');
+    const currentBtn = document.getElementById('publishCurrentCadBtn');
     const pubStatus = document.getElementById('publishStatus');
-    const modules = Object.keys(moduleFiles);
+    const modules = [...new Set(moduleNames)].filter(moduleName => moduleFiles[moduleName]);
     if (modules.length === 0) return;
 
     btn.disabled = true;
     btn.textContent = 'Publishing...';
+    if (currentBtn) currentBtn.disabled = true;
 
     let done = 0;
     const conversionJobs = [];
@@ -11193,6 +11242,7 @@ let up42MoonImg = null;
 
     btn.textContent = 'Save & Publish All';
     btn.disabled = false;
+    updateCurrentCadPublishButton();
 
     if (pubStatus) {
       pubStatus.textContent = `${done} module(s) submitted.`;

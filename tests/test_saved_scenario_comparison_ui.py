@@ -38,6 +38,9 @@ class SavedScenarioComparisonUiTests(unittest.TestCase):
         self.assertIn("repositoryScenarioLoadMessage = indexedScenarios.length", self.html)
         self.assertIn("? ''", self.html)
 
+    def test_saved_scenarios_use_the_post_cleanup_browser_storage(self):
+        self.assertIn("const SCENARIO_STORAGE_KEY = 'eclipse.savedScenarios.v2';", self.html)
+
 
 if __name__ == "__main__":
     unittest.main()
