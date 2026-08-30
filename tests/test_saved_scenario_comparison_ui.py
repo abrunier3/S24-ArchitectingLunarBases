@@ -13,11 +13,12 @@ class SavedScenarioComparisonUiTests(unittest.TestCase):
         self.assertIn("await fetchRepositoryScenarios();", self.html)
         self.assertIn("savedScenarioComparisonSnapshots", self.html)
 
-    def test_comparison_offers_only_the_two_views(self):
+    def test_comparison_keeps_selection_baseline_and_the_two_views(self):
         self.assertIn("setSavedScenarioComparisonMode('moes')", self.html)
         self.assertIn("setSavedScenarioComparisonMode('history')", self.html)
-        self.assertNotIn("toggleSavedScenarioComparisonSelection", self.html)
-        self.assertNotIn("savedScenarioComparisonBaseline", self.html)
+        self.assertIn("toggleSavedScenarioComparisonSelection", self.html)
+        self.assertIn("savedScenarioComparisonBaseline", self.html)
+        self.assertIn("Completed scenarios (select 2-4)", self.html)
         self.assertNotIn("setSavedScenarioComparisonMetric", self.html)
 
     def test_comparison_supports_final_moes_and_time_histories(self):
@@ -29,6 +30,7 @@ class SavedScenarioComparisonUiTests(unittest.TestCase):
         self.assertIn("Regolith received", self.html)
         self.assertIn("Energy consumed", self.html)
         self.assertIn("grid-template-columns:repeat(auto-fit,minmax(300px,1fr))", self.html)
+        self.assertIn("BASELINE", self.html)
         self.assertIn("Object.entries(log)", self.html)
 
 

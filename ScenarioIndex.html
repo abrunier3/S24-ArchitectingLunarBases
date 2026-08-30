@@ -3780,6 +3780,8 @@ let repositoryScenarioCache = [];
 let repositoryScenarioLoadMessage = '';
 let latestRunScenarioSnapshot = null;
 let savedScenarioComparisonSnapshots = [];
+let savedScenarioComparisonSelection = [];
+let savedScenarioComparisonBaselineSlug = null;
 let savedScenarioComparisonMode = 'moes';
 let savedScenarioComparisonLoading = false;
 let scenarioPowerModels = {};
@@ -8319,7 +8321,7 @@ let up42MoonImg = null;
       <div style="padding:12px 14px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:10px;">
         <div>
           <div style="font-size:12px;font-weight:600;color:var(--text1);">Saved Scenario Comparison</div>
-          <div style="font-size:9px;color:var(--text3);margin-top:2px;">Compare final MoEs and time histories from every completed scenario.</div>
+          <div style="font-size:9px;color:var(--text3);margin-top:2px;">Compare final MoEs and time histories from selected completed scenarios.</div>
         </div>
         <button type="button" class="btn" onclick="renderSavedScenarioComparison()" style="padding:7px 10px;font-size:9px;">Refresh results</button>
       </div>
@@ -12791,6 +12793,30 @@ let up42MoonImg = null;
     drawSavedScenarioComparison();
   }
 
+  function toggleSavedScenarioComparisonSelection(slug, checked) {
+    const selected = new Set(savedScenarioComparisonSelection);
+    if (checked) {
+      if (selected.size >= 4) {
+        alert('Choose up to four completed scenarios at a time.');
+        drawSavedScenarioComparison();
+        return;
+      }
+      selected.add(slug);
+    } else {
+      selected.delete(slug);
+      if (savedScenarioComparisonBaselineSlug === slug) savedScenarioComparisonBaselineSlug = null;
+    }
+    savedScenarioComparisonSelection = [...selected];
+    drawSavedScenarioComparison();
+  }
+
+  function setSavedScenarioComparisonBaseline(slug) {
+    if (savedScenarioComparisonSelection.includes(slug)) {
+      savedScenarioComparisonBaselineSlug = slug;
+    }
+    drawSavedScenarioComparison();
+  }
+
   function comparisonSvgPath(series, key, maxTime, maxValue, width = 360, height = 180) {
     const left = 42;
     const right = width - 14;
@@ -12803,7 +12829,7 @@ let up42MoonImg = null;
     }).join(' ');
   }
 
-  function renderScenarioComparisonMoes(scenarios) {
+  function renderScenarioComparisonMoes(scenarios, baselineSlug) {
     const rows = [
       {label: 'Regolith received', key: 'regolith_kg', unit: 'kg', color: '#ffd166'},
       {label: 'Primary resource output', key: 'lox_kg', unit: 'kg', color: '#4cc9f0'},
@@ -12811,10 +12837,13 @@ let up42MoonImg = null;
       {label: 'Energy consumed', key: 'energy_kwh', unit: 'kWh', color: '#ff7a8a'},
       {label: 'Simulation duration', key: 'duration_hr', unit: 'hr', color: '#a78bfa'},
     ];
+    const baselineSnapshot = scenarios.find(snapshot => snapshot.scenario_slug === baselineSlug) || scenarios[0];
+    const baselineMetrics = getScenarioResultMetrics(baselineSnapshot);
     return `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:12px;">${scenarios.map(snapshot => {
       const metrics = getScenarioResultMetrics(snapshot);
       const stamp = snapshot.results?.written_at || snapshot.saved_at;
-      return `<div style="border:1px solid var(--border2);border-radius:8px;padding:12px;background:#07101a;"><div style="font-size:12px;font-weight:700;color:var(--text1);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(snapshot.name)}</div><div style="font-size:8px;color:var(--text3);margin:3px 0 10px;">${stamp ? `Completed ${new Date(stamp).toLocaleDateString()}` : 'Completed DES run'}</div><div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;">${rows.map(row => `<div><div style="font-size:8px;color:var(--text3);">${row.label}</div><div style="font-size:15px;font-weight:700;color:${row.color};margin-top:2px;">${formatComparisonNumber(metrics[row.key], row.unit)}</div></div>`).join('')}</div></div>`;
+      const isBaseline = snapshot.scenario_slug === baselineSnapshot?.scenario_slug;
+      return `<div style="border:1px solid ${isBaseline ? 'rgba(255,209,102,0.65)' : 'var(--border2)'};border-radius:8px;padding:12px;background:#07101a;"><div style="display:flex;justify-content:space-between;gap:8px;font-size:12px;font-weight:700;color:var(--text1);"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(snapshot.name)}</span>${isBaseline ? '<span style="color:#ffd166;font-size:8px;white-space:nowrap;">BASELINE</span>' : ''}</div><div style="font-size:8px;color:var(--text3);margin:3px 0 10px;">${stamp ? `Completed ${new Date(stamp).toLocaleDateString()}` : 'Completed DES run'}</div><div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;">${rows.map(row => { const value = Number(metrics[row.key] || 0); const reference = Number(baselineMetrics[row.key] || 0); const delta = isBaseline || reference === 0 ? 'Baseline' : `${value >= reference ? '+' : ''}${((value - reference) / Math.abs(reference) * 100).toFixed(1)}%`; const deltaColor = isBaseline ? '#ffd166' : value >= reference ? '#7ee0b1' : '#ff7a8a'; return `<div><div style="font-size:8px;color:var(--text3);">${row.label}</div><div style="font-size:15px;font-weight:700;color:${row.color};margin-top:2px;">${formatComparisonNumber(value, row.unit)}</div><div style="font-size:8px;color:${deltaColor};margin-top:2px;">${delta}</div></div>`; }).join('')}</div></div>`;
     }).join('')}</div>`;
   }
 
@@ -12848,11 +12877,29 @@ let up42MoonImg = null;
       wrap.innerHTML = '<div style="color:var(--text3);font-size:11px;text-align:center;margin-top:40px;">No comparison yet. Run at least two scenarios, then refresh their DES results.</div>';
       return;
     }
+    savedScenarioComparisonSelection = savedScenarioComparisonSelection.filter(slug =>
+      scenarios.some(snapshot => snapshot.scenario_slug === slug)
+    );
+    if (savedScenarioComparisonSelection.length < 2) {
+      savedScenarioComparisonSelection = scenarios.slice(0, 2).map(snapshot => snapshot.scenario_slug);
+    }
+    const selected = savedScenarioComparisonSelection
+      .map(slug => scenarios.find(snapshot => snapshot.scenario_slug === slug))
+      .filter(Boolean);
+    if (!selected.some(snapshot => snapshot.scenario_slug === savedScenarioComparisonBaselineSlug)) {
+      savedScenarioComparisonBaselineSlug = selected[0]?.scenario_slug || null;
+    }
+    const scenarioChoices = scenarios.map(snapshot => {
+      const checked = savedScenarioComparisonSelection.includes(snapshot.scenario_slug);
+      const isBaseline = snapshot.scenario_slug === savedScenarioComparisonBaselineSlug;
+      const stamp = snapshot.results?.written_at || snapshot.saved_at;
+      return `<div style="display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center;padding:7px 8px;border:1px solid ${checked ? 'rgba(76,201,240,0.7)' : 'var(--border2)'};border-radius:5px;background:${checked ? 'rgba(76,201,240,0.08)' : 'transparent'};font-size:9px;color:var(--text2);"><label style="display:flex;align-items:center;gap:7px;min-width:0;cursor:pointer;"><input type="checkbox" ${checked ? 'checked' : ''} onchange="toggleSavedScenarioComparisonSelection('${escapeHtml(snapshot.scenario_slug)}', this.checked)"><span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(snapshot.name)}</span><span style="margin-left:auto;color:var(--text3);font-size:8px;white-space:nowrap;">${stamp ? new Date(stamp).toLocaleDateString() : 'completed'}</span></label><label title="Set as comparison baseline" style="display:flex;align-items:center;gap:4px;color:${isBaseline ? '#ffd166' : 'var(--text3)'};font-size:8px;white-space:nowrap;cursor:${checked ? 'pointer' : 'default'};"><input type="radio" name="savedScenarioComparisonBaseline" ${checked ? '' : 'disabled'} ${isBaseline ? 'checked' : ''} onchange="setSavedScenarioComparisonBaseline('${escapeHtml(snapshot.scenario_slug)}')">Baseline</label></div>`;
+    }).join('');
     const visual = savedScenarioComparisonMode === 'history'
-      ? renderScenarioComparisonHistory(scenarios)
-      : renderScenarioComparisonMoes(scenarios);
+      ? renderScenarioComparisonHistory(selected)
+      : renderScenarioComparisonMoes(selected, savedScenarioComparisonBaselineSlug);
     wrap.innerHTML = `<div style="display:flex;flex-direction:column;gap:13px;">
-      <div style="display:flex;gap:4px;border-bottom:1px solid var(--border2);padding-bottom:12px;"><button type="button" class="btn" onclick="setSavedScenarioComparisonMode('moes')" style="padding:7px 9px;font-size:9px;${savedScenarioComparisonMode === 'moes' ? 'border-color:#4cc9f0;color:#4cc9f0;' : ''}">Final MoEs</button><button type="button" class="btn" onclick="setSavedScenarioComparisonMode('history')" style="padding:7px 9px;font-size:9px;${savedScenarioComparisonMode === 'history' ? 'border-color:#4cc9f0;color:#4cc9f0;' : ''}">Time histories</button></div>
+      <div style="display:grid;grid-template-columns:minmax(320px,1fr) auto;gap:10px;align-items:end;border-bottom:1px solid var(--border2);padding-bottom:12px;"><div><div style="font-size:9px;color:var(--text3);margin-bottom:6px;">Completed scenarios (select 2-4)</div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:6px;">${scenarioChoices}</div></div><div><div style="font-size:9px;color:var(--text3);margin-bottom:6px;">View</div><div style="display:flex;gap:4px;"><button type="button" class="btn" onclick="setSavedScenarioComparisonMode('moes')" style="padding:7px 9px;font-size:9px;${savedScenarioComparisonMode === 'moes' ? 'border-color:#4cc9f0;color:#4cc9f0;' : ''}">Final MoEs</button><button type="button" class="btn" onclick="setSavedScenarioComparisonMode('history')" style="padding:7px 9px;font-size:9px;${savedScenarioComparisonMode === 'history' ? 'border-color:#4cc9f0;color:#4cc9f0;' : ''}">Time histories</button></div></div></div>
       ${visual}
     </div>`;
   }
