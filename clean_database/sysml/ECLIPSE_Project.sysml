@@ -266,8 +266,8 @@ package ECLIPSE_LSP1 {
 
             // BEGIN AUTO CAD METADATA: LOXRover
             attribute cadAreaScaleFactor = 10.1154088624;
-            attribute cadCenterOfMassXM = -2.49361335266e-08;
-            attribute cadCenterOfMassYM = -0.129871126758;
+            attribute cadCenterOfMassXM = 0.129871126758;
+            attribute cadCenterOfMassYM = -2.49361334237e-08;
             attribute cadCenterOfMassZM = 0.484521449619;
             attribute cadFormat = "USDC";
             attribute cadLengthScaleFactor = 3.18047305639;
@@ -384,8 +384,8 @@ package ECLIPSE_LSP1 {
 
             // BEGIN AUTO CAD METADATA: RegolithRover
             attribute cadAreaScaleFactor = 10.1154088624;
-            attribute cadCenterOfMassXM = -3.74651548604e-18;
-            attribute cadCenterOfMassYM = 3.89893272083;
+            attribute cadCenterOfMassXM = -3.89893272083;
+            attribute cadCenterOfMassYM = 3.45888235323e-16;
             attribute cadCenterOfMassZM = 5.15623914379e-06;
             attribute cadFormat = "USDC";
             attribute cadLengthScaleFactor = 3.18047305639;

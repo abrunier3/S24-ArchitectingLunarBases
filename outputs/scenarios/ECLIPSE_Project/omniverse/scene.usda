@@ -182,7 +182,7 @@ def Xform "World"
 
     def Xform "LOXRover"
     {
-        custom string attributes = "{'batteryCapacity': 100, 'maxCapacity': 5000, 'energyPerKmPerKg': 0.00034, 'batteryCharge': 100, 'totalDistanceTraveled': 0, 'totalEnergyConsumed': 0, 'hoursPerKm': 5, 'LOXRover_volume_m3': 45, 'cadAreaScaleFactor': 10.115408862432707, 'cadCenterOfMassXM': -2.4936133526610364e-08, 'cadCenterOfMassYM': -0.12987112675790208, 'cadCenterOfMassZM': 0.4845214496187235, 'cadLengthScaleFactor': 3.1804730563915657, 'cadMetadataScaleFactor': 3.1804730563915657, 'cadSourceCenterOfMassXM': -7.840385088783578e-09, 'cadSourceCenterOfMassYM': -0.04149283413090417, 'cadSourceCenterOfMassZM': 0.15234095204984757, 'cadSourceSurfaceAreaM2': 4.454986583704249, 'cadSurfaceAreaM2': 45.06401077082077, 'cadVolumeScaleFactor': 32.171785341351686, 'cadVolumeAvailable': False}"
+        custom string attributes = "{'batteryCapacity': 100, 'maxCapacity': 5000, 'energyPerKmPerKg': 0.00034, 'batteryCharge': 100, 'totalDistanceTraveled': 0, 'totalEnergyConsumed': 0, 'hoursPerKm': 5, 'LOXRover_volume_m3': 45, 'cadAreaScaleFactor': 10.115408862432705, 'cadCenterOfMassXM': 0.12987112675790205, 'cadCenterOfMassYM': -2.4936133423668696e-08, 'cadCenterOfMassZM': 0.4845214496187234, 'cadLengthScaleFactor': 3.1804730563915653, 'cadMetadataScaleFactor': 3.1804730563915653, 'cadSourceCenterOfMassXM': -7.840385088783578e-09, 'cadSourceCenterOfMassYM': -0.04149283413090417, 'cadSourceCenterOfMassZM': 0.15234095204984757, 'cadSourceSurfaceAreaM2': 4.454986583704249, 'cadSurfaceAreaM2': 45.064010770820765, 'cadVolumeScaleFactor': 32.17178534135167, 'cadVolumeAvailable': False}"
         custom string dimensions = "{'size_m': {'length': 5, 'width': 3, 'height': 3}, 'metersPerUnit': 1, 'upAxis': 'Y', 'massUnit': 'kg', 'lengthUnit': 'm'}"
         custom string part:name = "LOXRover"
         float3 xformOp:rotateXYZ = (0, 0, 0)
@@ -193,26 +193,26 @@ def Xform "World"
         def Xform "Geometry"
         {
             custom string cad:authoredXformOps = "/scene:xformOp:translate,xformOp:rotateXYZ,xformOp:scale; /scene/Meshes:xformOp:scale; /scene/Meshes/Sketchfab_model:xformOp:transform,xformOp:translate,xformOp:rotateXYZ,xformOp:scale; /scene/Meshes/Sketchfab_model/mars_rover_fbx:xformOp:transform; /scene/Meshes/Sketchfab_model/mars_rover_fbx/RootNode:xformOp:transform; /scene/Meshes/Sketchfab_model/mars_rover_fbx/RootNode/mars_rover:xformOp:transform; /scene/Meshes/Sketchfab_model/mars_rover_fbx/RootNode/mars_rover/_:xformOp:transform"
-            custom double2 cad:bboxCenterXYOffset = (0, -0.0020957142287629793)
+            custom double2 cad:bboxCenterXYOffset = (0.0020957142287629793, -1.1102230246251565e-16)
             custom double3 cad:bboxMax = (0.40513343876227703, 0.7853876582137302, 0.2999983822069222)
             custom double3 cad:bboxMin = (-0.40513343876227703, -0.7867055214319401, -0.0000016212176781228702)
             custom double3 cad:bboxSize = (0.8102668775245541, 1.5720931796456703, 0.3000000034246003)
-            custom double3 cad:fitScale = (3.1804730563915657, 3.1804730563915657, 3.1804730563915657)
-            custom double3 cad:fittedBboxSize = (2.577031972453369, 5, 0.9541419278093187)
-            custom double3 cad:groundingTranslate = (-0, 0.0020957142287629793, 0.000005156239143815483)
+            custom double3 cad:fitScale = (3.1804730563915653, 3.1804730563915653, 3.1804730563915653)
+            custom double3 cad:fittedBboxSize = (5, 2.5770319724533697, 0.9541419278093186)
+            custom double3 cad:groundingTranslate = (-0.0020957142287629793, 1.1102230246251565e-16, 0.000005156239143815482)
             custom bool cad:hasAuthoredXforms = 1
             custom double cad:metersPerUnit = 1
             custom string cad:normalizationMode = "preserve_authored_xforms_sysml_size_uniform_bbox_fit_xy_interchangeable_centered_ground_aligned"
-            custom double3 cad:orientedBboxSize = (0.8102668775245541, 1.5720931796456703, 0.3000000034246003)
+            custom double3 cad:orientedBboxSize = (1.5720931796456705, 0.8102668775245544, 0.3000000034246003)
             custom string cad:scaleMode = "sysml_size_m_uniform_bbox_fit_xy_interchangeable"
             custom string cad:sourceUpAxis = "Y"
             custom double3 cad:targetSizeM = (5, 3, 3)
             custom double3 cad:unitScale = (1, 1, 1)
             custom string cad:userSourceFrontAxis = "-Y"
             custom string cad:userSourceUpAxis = "Y"
-            float3 xformOp:rotateXYZ = (0, 0, 0)
+            float3 xformOp:rotateXYZ = (0, 0, 90)
             float3 xformOp:scale = (3.180473, 3.180473, 3.180473)
-            double3 xformOp:translate = (-0, 0.0020957142287629793, 0.000005156239143815483)
+            double3 xformOp:translate = (-0.0020957142287629793, 1.1102230246251565e-16, 0.000005156239143815482)
             uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
 
             def Xform "Model" (
@@ -280,7 +280,7 @@ def Xform "World"
 
     def Xform "RegolithRover"
     {
-        custom string attributes = "{'batteryCapacity': 100, 'maxCapacity': 5000, 'energyPerKmPerKg': 0.00034, 'batteryCharge': 100, 'totalDistanceTraveled': 0, 'totalEnergyConsumed': 0, 'hoursPerKm': 5, 'RegolithRover_volume_m3': 45, 'cadAreaScaleFactor': 10.115408862432707, 'cadCenterOfMassXM': -3.746515486038109e-18, 'cadCenterOfMassYM': 3.8989327208276725, 'cadCenterOfMassZM': 5.156239143793003e-06, 'cadLengthScaleFactor': 3.1804730563915657, 'cadMetadataScaleFactor': 3.1804730563915657, 'cadSourceCenterOfMassXM': -1.1779742886074789e-18, 'cadSourceCenterOfMassYM': 1.2252381760529991, 'cadSourceCenterOfMassZM': -7.067845731644873e-18, 'cadSourceSurfaceAreaM2': 19.714362582194088, 'cadSourceVolumeM3': 3.927020575924407, 'cadSurfaceAreaM2': 199.4188379811378, 'cadVolumeM3': 126.3392629997113, 'cadVolumeScaleFactor': 32.171785341351686, 'cadVolumeAvailable': True}"
+        custom string attributes = "{'batteryCapacity': 100, 'maxCapacity': 5000, 'energyPerKmPerKg': 0.00034, 'batteryCharge': 100, 'totalDistanceTraveled': 0, 'totalEnergyConsumed': 0, 'hoursPerKm': 5, 'RegolithRover_volume_m3': 45, 'cadAreaScaleFactor': 10.115408862432705, 'cadCenterOfMassXM': -3.898932720827672, 'cadCenterOfMassYM': 3.458882353229929e-16, 'cadCenterOfMassZM': 5.1562391437930025e-06, 'cadLengthScaleFactor': 3.1804730563915653, 'cadMetadataScaleFactor': 3.1804730563915653, 'cadSourceCenterOfMassXM': -1.1779742886074789e-18, 'cadSourceCenterOfMassYM': 1.2252381760529991, 'cadSourceCenterOfMassZM': -7.067845731644873e-18, 'cadSourceSurfaceAreaM2': 19.714362582194088, 'cadSourceVolumeM3': 3.927020575924407, 'cadSurfaceAreaM2': 199.41883798113778, 'cadVolumeM3': 126.33926299971124, 'cadVolumeScaleFactor': 32.17178534135167, 'cadVolumeAvailable': True}"
         custom string dimensions = "{'size_m': {'length': 5, 'width': 3, 'height': 3}, 'metersPerUnit': 1, 'upAxis': 'Y', 'massUnit': 'kg', 'lengthUnit': 'm'}"
         custom string part:name = "RegolithRover"
         float3 xformOp:rotateXYZ = (0, 0, 0)
@@ -291,26 +291,26 @@ def Xform "World"
         def Xform "Geometry"
         {
             custom string cad:authoredXformOps = "/scene:xformOp:translate,xformOp:rotateXYZ,xformOp:scale; /scene/Meshes:xformOp:scale; /scene/Meshes/Sketchfab_model:xformOp:transform,xformOp:translate,xformOp:rotateXYZ,xformOp:scale; /scene/Meshes/Sketchfab_model/mars_rover_fbx:xformOp:transform; /scene/Meshes/Sketchfab_model/mars_rover_fbx/RootNode:xformOp:transform; /scene/Meshes/Sketchfab_model/mars_rover_fbx/RootNode/mars_rover:xformOp:transform; /scene/Meshes/Sketchfab_model/mars_rover_fbx/RootNode/mars_rover/_:xformOp:transform"
-            custom double2 cad:bboxCenterXYOffset = (0, -0.0020957142287629793)
+            custom double2 cad:bboxCenterXYOffset = (0.0020957142287629793, -1.1102230246251565e-16)
             custom double3 cad:bboxMax = (0.40513343876227703, 0.7853876582137302, 0.2999983822069222)
             custom double3 cad:bboxMin = (-0.40513343876227703, -0.7867055214319401, -0.0000016212176781228702)
             custom double3 cad:bboxSize = (0.8102668775245541, 1.5720931796456703, 0.3000000034246003)
-            custom double3 cad:fitScale = (3.1804730563915657, 3.1804730563915657, 3.1804730563915657)
-            custom double3 cad:fittedBboxSize = (2.577031972453369, 5, 0.9541419278093187)
-            custom double3 cad:groundingTranslate = (-0, 0.0020957142287629793, 0.000005156239143815483)
+            custom double3 cad:fitScale = (3.1804730563915653, 3.1804730563915653, 3.1804730563915653)
+            custom double3 cad:fittedBboxSize = (5, 2.5770319724533697, 0.9541419278093186)
+            custom double3 cad:groundingTranslate = (-0.0020957142287629793, 1.1102230246251565e-16, 0.000005156239143815482)
             custom bool cad:hasAuthoredXforms = 1
             custom double cad:metersPerUnit = 1
             custom string cad:normalizationMode = "preserve_authored_xforms_sysml_size_uniform_bbox_fit_xy_interchangeable_centered_ground_aligned"
-            custom double3 cad:orientedBboxSize = (0.8102668775245541, 1.5720931796456703, 0.3000000034246003)
+            custom double3 cad:orientedBboxSize = (1.5720931796456705, 0.8102668775245544, 0.3000000034246003)
             custom string cad:scaleMode = "sysml_size_m_uniform_bbox_fit_xy_interchangeable"
             custom string cad:sourceUpAxis = "Y"
             custom double3 cad:targetSizeM = (5, 3, 3)
             custom double3 cad:unitScale = (1, 1, 1)
             custom string cad:userSourceFrontAxis = "-Y"
             custom string cad:userSourceUpAxis = "Y"
-            float3 xformOp:rotateXYZ = (0, 0, 0)
+            float3 xformOp:rotateXYZ = (0, 0, 90)
             float3 xformOp:scale = (3.180473, 3.180473, 3.180473)
-            double3 xformOp:translate = (-0, 0.0020957142287629793, 0.000005156239143815483)
+            double3 xformOp:translate = (-0.0020957142287629793, 1.1102230246251565e-16, 0.000005156239143815482)
             uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
 
             def Xform "Model" (
