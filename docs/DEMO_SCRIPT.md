@@ -34,7 +34,7 @@ During the presentation, trigger the actions to show that the pipeline is real. 
 
 **Behind the scenes:**
 
-> All data remains tied to one scenario identifier. That identifier links the SysML model, configuration, selected CAD, DES results, and Omniverse package.
+> Everything in this workflow is tied together through GitHub. GitHub stores the SysML source model, scenario configuration, CAD files, simulation outputs, and Omniverse packages in one versioned repository. When a user triggers an operation in the interface, a GitHub Action runs the corresponding pipeline step and commits the generated artifacts back to the same scenario. This gives us a traceable source of truth from the system model to the visualized mission.
 
 ## 1:30-3:00 | Choose a Starting Point
 
