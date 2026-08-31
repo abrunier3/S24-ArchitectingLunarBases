@@ -145,42 +145,30 @@ def _source_orientation_rotation(
         metadata,
         authored_up_axis=authored_up_axis,
     )
-    if not _uses_source_up_axis(metadata):
-        return rotate_xyz
-
-    up_axis = str(authored_up_axis or metadata.get("cadSourceUpAxis") or "Z").upper()
-    front_axis = str(metadata.get("cadSourceFrontAxis") or "+X").upper()
-
-    front_vector = _axis_after_up_correction(front_axis, up_axis)
-    vx, vy = front_vector[0], front_vector[1]
-    if math.hypot(vx, vy) < 1e-9:
-        return rotate_xyz
-
-    yaw_correction = -math.degrees(math.atan2(vy, vx))
-    return [rotate_xyz[0], rotate_xyz[1], rotate_xyz[2] + yaw_correction]
+    return [
+        rotate_xyz[0],
+        rotate_xyz[1],
+        rotate_xyz[2] + _source_front_yaw(metadata),
+    ]
 
 
-def _source_front_yaw(
-    metadata: Dict[str, Any] | None,
-    *,
-    authored_up_axis: str | None = None,
-) -> float:
-    """Return the horizontal front alignment in the referenced USD's axes."""
+def _source_front_yaw(metadata: Dict[str, Any] | None) -> float:
+    """Align the Step 3 front selection with the rover's local +X axis."""
     metadata = metadata or {}
     if not _uses_source_up_axis(metadata):
         return 0.0
 
-    front_vector = _axis_after_up_correction(
-        str(metadata.get("cadSourceFrontAxis") or "+X").upper(),
-        # ``cadSourceUpAxis`` is the raw CAD axis used for STEP conversion.
-        # The front selector is shown beside the generated USD preview, so it
-        # must use the referenced USD stage axis after conversion instead.
-        str(authored_up_axis or metadata.get("cadSourceUpAxis") or "Z").upper(),
-    )
-    vx, vy = front_vector[0], front_vector[1]
-    if math.hypot(vx, vy) < 1e-9:
-        return 0.0
-    return -math.degrees(math.atan2(vy, vx))
+    # The Step 3 selector describes the visual model directly. Do not remap
+    # it through the original USD header's upAxis: some USDs are authored with
+    # stale Y-up metadata even though their visible rover uses Z as up. The
+    # scene wrapper makes the selected forward direction local +X, which the
+    # playback extension then follows along the route.
+    return {
+        "+X": 0.0,
+        "-X": 180.0,
+        "+Y": -90.0,
+        "-Y": 90.0,
+    }.get(str(metadata.get("cadSourceFrontAxis") or "+X").upper(), 0.0)
 
 
 def _stage_has_authored_orientation(stage: Usd.Stage) -> bool:
@@ -278,19 +266,11 @@ def _cad_normalization(
     if orientation_is_baked:
         # The source up-axis correction is baked into the converted mesh; the
         # front-axis remains a horizontal placement choice for the scenario.
-        rotate_xyz = [
-            0.0,
-            0.0,
-            _source_front_yaw(metadata, authored_up_axis=up_axis),
-        ]
+        rotate_xyz = [0.0, 0.0, _source_front_yaw(metadata)]
     elif has_authored_orientation:
         # Preserve a USD's authored upright orientation, while still applying
         # the user-selected horizontal front direction at scene placement.
-        rotate_xyz = [
-            0.0,
-            0.0,
-            _source_front_yaw(metadata, authored_up_axis=up_axis),
-        ]
+        rotate_xyz = [0.0, 0.0, _source_front_yaw(metadata)]
     else:
         rotate_xyz = _source_orientation_rotation(metadata, authored_up_axis=up_axis)
 
