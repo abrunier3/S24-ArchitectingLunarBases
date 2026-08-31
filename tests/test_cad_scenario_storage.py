@@ -108,7 +108,7 @@ class CadScenarioStorageTests(unittest.TestCase):
         self.assertIn('"source_up_axis": _normalise_up_axis', converter)
         self.assertIn("def _is_baked_cad_conversion", scene_builder)
         self.assertIn("if orientation_is_baked:", scene_builder)
-        self.assertIn("_source_front_yaw(metadata)", scene_builder)
+        self.assertIn("_source_front_yaw(metadata, authored_up_axis=up_axis)", scene_builder)
         self.assertIn("Preserve a USD's authored upright orientation", scene_builder)
         self.assertIn("def _find_scenario_cad_file", submission)
 
@@ -116,11 +116,23 @@ class CadScenarioStorageTests(unittest.TestCase):
         html = (Path(__file__).resolve().parents[1] / "ScenarioIndex.html").read_text()
 
         self.assertIn("function isCompatibleCadFrontAxis", html)
-        self.assertIn("cadAxisBase(axis) !== getCadSourceUpAxis(moduleName)", html)
+        self.assertIn("function getCadDetectedUpAxis", html)
+        self.assertIn("cadAxisBase(axis) !== getCadDetectedUpAxis(moduleName)", html)
         self.assertIn("const cadAxisSavePromises = new Map()", html)
         self.assertIn("async function waitForCadAxisSaves", html)
         self.assertIn("await waitForCadAxisSaves()", html)
         self.assertIn("Omniverse placement yaw", html)
+
+    def test_preview_uses_generated_usd_axes_not_raw_cad_axes(self):
+        root = Path(__file__).resolve().parents[1]
+        html = (root / "ScenarioIndex.html").read_text()
+        scene_builder = (root / "S24/usd/scene_builder.py").read_text()
+
+        self.assertIn("USD up: ${detectedUpAxis} (detected)", html)
+        self.assertIn("Raw CAD up (rebuild)", html)
+        self.assertIn("USD front", html)
+        self.assertIn("const selectedUp = getCadDetectedUpAxis(moduleName)", html)
+        self.assertIn("authored_up_axis or metadata.get(\"cadSourceUpAxis\")", scene_builder)
 
     def test_glb_preview_converts_generated_z_up_usd_to_y_up(self):
         converter = (

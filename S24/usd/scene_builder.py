@@ -160,15 +160,22 @@ def _source_orientation_rotation(
     return [rotate_xyz[0], rotate_xyz[1], rotate_xyz[2] + yaw_correction]
 
 
-def _source_front_yaw(metadata: Dict[str, Any] | None) -> float:
-    """Return only the horizontal front-axis alignment for a converted CAD."""
+def _source_front_yaw(
+    metadata: Dict[str, Any] | None,
+    *,
+    authored_up_axis: str | None = None,
+) -> float:
+    """Return the horizontal front alignment in the referenced USD's axes."""
     metadata = metadata or {}
     if not _uses_source_up_axis(metadata):
         return 0.0
 
     front_vector = _axis_after_up_correction(
         str(metadata.get("cadSourceFrontAxis") or "+X").upper(),
-        str(metadata.get("cadSourceUpAxis") or "Z").upper(),
+        # ``cadSourceUpAxis`` is the raw CAD axis used for STEP conversion.
+        # The front selector is shown beside the generated USD preview, so it
+        # must use the referenced USD stage axis after conversion instead.
+        str(authored_up_axis or metadata.get("cadSourceUpAxis") or "Z").upper(),
     )
     vx, vy = front_vector[0], front_vector[1]
     if math.hypot(vx, vy) < 1e-9:
@@ -271,11 +278,19 @@ def _cad_normalization(
     if orientation_is_baked:
         # The source up-axis correction is baked into the converted mesh; the
         # front-axis remains a horizontal placement choice for the scenario.
-        rotate_xyz = [0.0, 0.0, _source_front_yaw(metadata)]
+        rotate_xyz = [
+            0.0,
+            0.0,
+            _source_front_yaw(metadata, authored_up_axis=up_axis),
+        ]
     elif has_authored_orientation:
         # Preserve a USD's authored upright orientation, while still applying
         # the user-selected horizontal front direction at scene placement.
-        rotate_xyz = [0.0, 0.0, _source_front_yaw(metadata)]
+        rotate_xyz = [
+            0.0,
+            0.0,
+            _source_front_yaw(metadata, authored_up_axis=up_axis),
+        ]
     else:
         rotate_xyz = _source_orientation_rotation(metadata, authored_up_axis=up_axis)
 

@@ -10467,6 +10467,15 @@ let up42MoonImg = null;
     return String(axis || '').replace(/^[+-]/, '').toUpperCase();
   }
 
+  function getCadDetectedUpAxis(moduleName) {
+    const cached = moduleMetaCache[moduleName] || {};
+    const metadata = sysmlPartsCache[moduleName]?.metadata || {};
+    return normalizeUpAxis(
+      cached.detectedUpAxis || metadata.cadDetectedUpAxis || cached.upAxis || 'Z',
+      'Z'
+    );
+  }
+
   function getCadSourceUpAxis(moduleName) {
     const cached = moduleMetaCache[moduleName] || {};
     const metadata = sysmlPartsCache[moduleName]?.metadata || {};
@@ -10474,13 +10483,13 @@ let up42MoonImg = null;
   }
 
   function isCompatibleCadFrontAxis(moduleName, axis) {
-    return cadAxisBase(axis) !== getCadSourceUpAxis(moduleName);
+    return cadAxisBase(axis) !== getCadDetectedUpAxis(moduleName);
   }
 
   function cadFrontPlacementYaw(moduleName, axis) {
     const sourceAxis = cadAxisBase(axis);
     const sign = String(axis || '').trim().startsWith('-') ? -1 : 1;
-    const upAxis = getCadSourceUpAxis(moduleName);
+    const upAxis = getCadDetectedUpAxis(moduleName);
     const vectors = { X: [1, 0, 0], Y: [0, 1, 0], Z: [0, 0, 1] };
     let [x, y, z] = vectors[sourceAxis] || vectors.X;
     x *= sign;
@@ -10718,7 +10727,7 @@ let up42MoonImg = null;
   async function setCadSourceFrontAxis(moduleName, axis) {
     const normalized = normalizeFrontAxis(axis, '+X');
     if (!isCompatibleCadFrontAxis(moduleName, normalized)) {
-      const upAxis = getCadSourceUpAxis(moduleName);
+      const upAxis = getCadDetectedUpAxis(moduleName);
       setCadAxisStatus(
         moduleName,
         `Cannot use ${normalized} as front: it is parallel to the ${upAxis}-up axis.`,
@@ -10881,7 +10890,9 @@ let up42MoonImg = null;
     const modelViewer = document.getElementById(`mv-${moduleName}`);
     if (!triad || !modelViewer) return;
 
-    const selectedUp = normalizeUpAxis(moduleMetaCache[moduleName]?.cadSourceUpAxis || 'Z', 'Z');
+    // The triad represents the generated USD/GLB coordinate system. For a
+    // converted STEP file, this is Z-up even when its original CAD was Y-up.
+    const selectedUp = getCadDetectedUpAxis(moduleName);
     const selectedFront = normalizeFrontAxis(moduleMetaCache[moduleName]?.cadSourceFrontAxis || '+X', '+X');
     const axes = projectedCadAxes(modelViewer);
     const origin = [58, 58];
@@ -11850,9 +11861,8 @@ let up42MoonImg = null;
     const showSourceUpAxis = !!options.showSourceUpAxis || !!options.showSourceAxis;
     const showFrontAxis = options.showFrontAxis !== false;
     const showAxisPanel = showSourceUpAxis || showFrontAxis;
-    const selectedAxis = showSourceUpAxis
-      ? normalizeUpAxis(moduleMetaCache[moduleName]?.cadSourceUpAxis || 'Z', 'Z')
-      : null;
+    const detectedUpAxis = getCadDetectedUpAxis(moduleName);
+    const selectedSourceAxis = getCadSourceUpAxis(moduleName);
     const selectedFrontAxis = normalizeFrontAxis(moduleMetaCache[moduleName]?.cadSourceFrontAxis || '+X', '+X');
     const selectedFrontAxisBase = cadAxisBase(selectedFrontAxis);
 
@@ -11890,21 +11900,24 @@ let up42MoonImg = null;
               <div style="font-size:10px;color:rgba(255,255,255,0.62);text-align:center;margin-bottom:7px;">
                 CAD axes
               </div>
+              <div style="font-size:9px;color:#72c5ff;text-align:center;margin:-3px 0 7px;">
+                USD up: ${detectedUpAxis} (detected)
+              </div>
               <svg data-cad-axis-triad="${moduleName}" data-cad-show-up="${showSourceUpAxis ? '1' : '0'}" viewBox="0 0 116 116"
                 style="width:112px;height:112px;display:block;margin:0 auto;border-radius:10px;
                   background:rgba(255,255,255,0.035);border:1px solid rgba(255,255,255,0.08);">
                 <circle cx="58" cy="58" r="3.5" fill="rgba(255,255,255,0.86)"></circle>
                 ${['X', 'Y', 'Z'].map(axis => `
                   <line data-triad-line="${axis}" x1="58" y1="58" x2="58" y2="24"
-                    stroke="${axis === selectedAxis ? '#178bff' : (axis === selectedFrontAxisBase ? '#f7c948' : 'rgba(220,226,236,0.72)')}"
-                    stroke-width="${axis === selectedAxis || axis === selectedFrontAxisBase ? '3.4' : '2.3'}"
+                    stroke="${axis === detectedUpAxis ? '#178bff' : (axis === selectedFrontAxisBase ? '#f7c948' : 'rgba(220,226,236,0.72)')}"
+                    stroke-width="${axis === detectedUpAxis || axis === selectedFrontAxisBase ? '3.4' : '2.3'}"
                     stroke-linecap="round"></line>
                   <circle data-triad-dot="${axis}" cx="58" cy="24" r="4"
-                    fill="${axis === selectedAxis ? '#178bff' : (axis === selectedFrontAxisBase ? '#f7c948' : 'rgba(220,226,236,0.72)')}"></circle>
+                    fill="${axis === detectedUpAxis ? '#178bff' : (axis === selectedFrontAxisBase ? '#f7c948' : 'rgba(220,226,236,0.72)')}"></circle>
                   <text data-triad-label="${axis}" x="58" y="14" text-anchor="middle"
                     font-size="13" font-family="JetBrains Mono, monospace"
-                    fill="${axis === selectedAxis ? '#178bff' : (axis === selectedFrontAxisBase ? '#f7c948' : 'rgba(220,226,236,0.72)')}"
-                    font-weight="${axis === selectedAxis || axis === selectedFrontAxisBase ? '800' : '650'}">${axis}</text>
+                    fill="${axis === detectedUpAxis ? '#178bff' : (axis === selectedFrontAxisBase ? '#f7c948' : 'rgba(220,226,236,0.72)')}"
+                    font-weight="${axis === detectedUpAxis || axis === selectedFrontAxisBase ? '800' : '650'}">${axis}</text>
                 `).join('')}
               </svg>
             </div>
@@ -11912,17 +11925,17 @@ let up42MoonImg = null;
               ${showSourceUpAxis ? `
               <div>
               <div style="font-size:10px;color:rgba(255,255,255,0.62);text-align:center;margin-bottom:8px;">
-                Source up
+                Raw CAD up (rebuild)
               </div>
               <div style="display:flex;gap:7px;justify-content:center;">
                 ${['X', 'Y', 'Z'].map(axis => `
                   <button type="button" data-cad-axis-module="${moduleName}" data-axis-kind="up" data-axis="${axis}"
                     title="Use ${axis} as source up axis"
                     style="width:31px;height:31px;border-radius:50%;border:1px solid rgba(210,220,235,0.35);
-                      background:${axis === selectedAxis ? '#178bff' : 'rgba(120,132,150,0.35)'};
-                      color:${axis === selectedAxis ? '#fff' : 'rgba(230,236,245,0.82)'};
+                      background:${axis === selectedSourceAxis ? '#178bff' : 'rgba(120,132,150,0.35)'};
+                      color:${axis === selectedSourceAxis ? '#fff' : 'rgba(230,236,245,0.82)'};
                       font-weight:800;font-size:11px;cursor:pointer;
-                      box-shadow:${axis === selectedAxis ? '0 0 14px rgba(23,139,255,0.45)' : 'none'};">
+                      box-shadow:${axis === selectedSourceAxis ? '0 0 14px rgba(23,139,255,0.45)' : 'none'};">
                     ${axis}
                   </button>
                 `).join('')}
@@ -11936,14 +11949,14 @@ let up42MoonImg = null;
               ${showFrontAxis ? `
               <div>
               <div style="font-size:10px;color:rgba(255,255,255,0.62);text-align:center;margin-bottom:8px;">
-                Source front
+                USD front
               </div>
               <div style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap;">
                 ${['+X', '-X', '+Y', '-Y', '+Z', '-Z'].map(axis => {
                   const compatible = isCompatibleCadFrontAxis(moduleName, axis);
                   return `
                   <button type="button" data-cad-axis-module="${moduleName}" data-axis-kind="front" data-axis="${axis}"
-                    title="${compatible ? `Use ${axis} as source front axis` : `${axis} is parallel to source up and cannot be used as front` }"
+                    title="${compatible ? `Use ${axis} as USD front axis` : `${axis} is parallel to detected USD up and cannot be used as front` }"
                     ${compatible ? '' : 'disabled'}
                     style="width:30px;height:30px;border-radius:50%;border:1px solid rgba(210,220,235,0.35);
                       background:${axis === selectedFrontAxis ? '#f7c948' : 'rgba(120,132,150,0.35)'};
