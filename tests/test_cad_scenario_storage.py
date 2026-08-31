@@ -1,8 +1,20 @@
+import importlib.util
 import unittest
 from pathlib import Path
+from tempfile import TemporaryDirectory
 
 from S24.cad.paths import scenario_slug_from_cad_path
 from S24.sysml.cad_metadata_updater import _cad_path_candidates
+
+
+ROOT = Path(__file__).resolve().parents[1]
+MODEL_SUBMISSION_PATH = ROOT / "S24/usd/model_submission.py"
+MODEL_SUBMISSION_SPEC = importlib.util.spec_from_file_location(
+    "model_submission", MODEL_SUBMISSION_PATH
+)
+model_submission = importlib.util.module_from_spec(MODEL_SUBMISSION_SPEC)
+MODEL_SUBMISSION_SPEC.loader.exec_module(model_submission)
+_find_scenario_cad_file = model_submission._find_scenario_cad_file
 
 
 class CadScenarioStorageTests(unittest.TestCase):
@@ -29,6 +41,34 @@ class CadScenarioStorageTests(unittest.TestCase):
                 "clean_database/cad_models/Other/LOXRover/LOXRover.usdc",
             ],
         )
+
+    def test_scenario_cad_precedes_stale_sysml_geometry_reference(self):
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            asset_path = root / "clean_database/json/Demo/assets/RegolithRover.json"
+            asset_path.parent.mkdir(parents=True)
+            asset_path.write_text("{}")
+
+            stale_sysml_ref = root / "assets/geom/Rover_geom.usda"
+            stale_sysml_ref.parent.mkdir(parents=True)
+            stale_sysml_ref.write_text("#usda 1.0")
+
+            scenario_cad = (
+                root
+                / "clean_database/cad_models/Demo/RegolithRover/RegolithRover.usdc"
+            )
+            scenario_cad.parent.mkdir(parents=True)
+            scenario_cad.write_text("PXR-USDC")
+
+            selected = _find_scenario_cad_file(
+                asset_path,
+                cad_dir=root / "clean_database/cad_models",
+                part_name="RegolithRover",
+                metadata={"geometryRef": "assets/geom/Rover_geom.usda"},
+                repo_root=root,
+            )
+
+            self.assertEqual(selected, scenario_cad.resolve())
 
     def test_step_three_reuses_a_copied_scenario_scoped_cad(self):
         html = (Path(__file__).resolve().parents[1] / "ScenarioIndex.html").read_text()

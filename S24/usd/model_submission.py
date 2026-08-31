@@ -115,15 +115,56 @@ def _find_scenario_cad_file(
     *,
     cad_dir: Path,
     part_name: str,
+    metadata: Dict[str, Any] | None = None,
+    repo_root: Path | None = None,
 ) -> Optional[Path]:
-    """Use the CAD owned by a saved scenario before falling back to global CAD."""
+    """Use the CAD owned by a scenario before falling back to global CAD.
+
+    Scenario asset JSON can still contain a legacy SysML ``geometryRef`` such
+    as ``assets/geom/Rover_geom.usda``. That reference must not win over a
+    scenario-scoped CAD which was uploaded or reoriented in Step 3: otherwise
+    the USD rebuilt from a selected raw-CAD up axis is never used by the scene.
+    """
     if json_path.parent.name != "assets" or json_path.parent.parent.parent.name != "json":
         return None
 
     scenario_slug = json_path.parent.parent.name
-    if scenario_slug == "ECLIPSE_Project":
+    scenario_part_dir = (cad_dir / scenario_slug / part_name).resolve()
+    if not scenario_part_dir.is_dir():
         return None
-    return _find_cad_file(cad_dir / scenario_slug, part_name)
+
+    metadata = metadata or {}
+    if repo_root:
+        geometry_ref = metadata.get("geometryRef")
+        if geometry_ref:
+            candidate = _resolve_metadata_cad_file(
+                {"geometryRef": geometry_ref},
+                cad_dir=cad_dir,
+                part_name=part_name,
+                repo_root=repo_root,
+            )
+            if candidate and candidate.is_relative_to(scenario_part_dir):
+                return candidate
+
+    cad_file_name = Path(str(metadata.get("cadFileName") or "")).name
+    if cad_file_name:
+        candidate = scenario_part_dir / cad_file_name
+        if candidate.is_file() and candidate.suffix.lower() in USD_EXTENSIONS:
+            return candidate.resolve()
+
+    # Raw STEP/STL/OBJ conversions are deterministically written with the
+    # module name. Prefer that converted USD over unrelated old files.
+    for suffix in (".usdc", ".usd", ".usda", ".usdz"):
+        candidate = scenario_part_dir / f"{part_name}{suffix}"
+        if candidate.is_file():
+            return candidate.resolve()
+
+    cad_candidates = sorted(
+        (path for path in scenario_part_dir.iterdir()
+         if path.is_file() and path.suffix.lower() in USD_EXTENSIONS),
+        key=lambda path: path.name.lower(),
+    )
+    return cad_candidates[0].resolve() if cad_candidates else None
 
 
 def build_submission_manifest(
@@ -187,15 +228,17 @@ def build_submission_manifest(
         part_name = part_data["name"]
         metadata = part_data.get("metadata", {})
 
-        cad_file_abs = _resolve_metadata_cad_file(
+        cad_file_abs = _find_scenario_cad_file(
+            json_path_abs,
+            cad_dir=cad_dir,
+            part_name=part_name,
+            metadata=metadata,
+            repo_root=root,
+        ) or _resolve_metadata_cad_file(
             metadata,
             cad_dir=cad_dir,
             part_name=part_name,
             repo_root=root,
-        ) or _find_scenario_cad_file(
-            json_path_abs,
-            cad_dir=cad_dir,
-            part_name=part_name,
         ) or _find_cad_file(cad_dir, part_name)
         cad_found = cad_file_abs is not None
 
