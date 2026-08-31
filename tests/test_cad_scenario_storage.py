@@ -123,16 +123,13 @@ class CadScenarioStorageTests(unittest.TestCase):
         self.assertIn("await waitForCadAxisSaves()", html)
         self.assertIn("Omniverse placement yaw", html)
 
-    def test_preview_uses_generated_usd_axes_not_raw_cad_axes(self):
-        root = Path(__file__).resolve().parents[1]
-        html = (root / "ScenarioIndex.html").read_text()
-        scene_builder = (root / "S24/usd/scene_builder.py").read_text()
+    def test_native_usd_preview_does_not_show_or_reserve_an_up_axis(self):
+        html = (Path(__file__).resolve().parents[1] / "ScenarioIndex.html").read_text()
 
-        self.assertIn("USD up: ${detectedUpAxis} (detected)", html)
-        self.assertIn("Raw CAD up (rebuild)", html)
-        self.assertIn("USD front", html)
-        self.assertIn("const selectedUp = getCadDetectedUpAxis(moduleName)", html)
-        self.assertIn("authored_up_axis or metadata.get(\"cadSourceUpAxis\")", scene_builder)
+        self.assertIn("Native USD files determine their up axis later in the pipeline", html)
+        self.assertIn("if (!/\\.(step|stp|stl|obj)$/i.test(sourcePath)) return true;", html)
+        self.assertIn("const selectedUp = showSourceUpAxis ? getCadSourceUpAxis(moduleName) : null;", html)
+        self.assertNotIn("USD up: ${detectedUpAxis} (detected)", html)
 
     def test_glb_preview_converts_generated_z_up_usd_to_y_up(self):
         converter = (
