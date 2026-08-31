@@ -53,6 +53,30 @@ class OmniverseManifestTests(unittest.TestCase):
         self.assertIn("if selected in active:", extension_source)
         self.assertIn("if start_time <= des_time < end_time:", extension_source)
 
+    def test_fixed_modules_receive_a_terrain_foundation_but_rovers_do_not(self):
+        terrain_plane = {"max_clearance_m": 3.054}
+        footprint = {"size_m": {"length": 43.301, "width": 50.0}}
+        fixed = manifest_builder._module_terrain_foundation(
+            part={"dimensions": {"size_m": footprint["size_m"]}},
+            source_name="LaunchLandingZone",
+            footprint=footprint,
+            terrain_plane=terrain_plane,
+        )
+        rover = manifest_builder._module_terrain_foundation(
+            part={"dimensions": {"size_m": {"length": 5.0, "width": 3.0}}},
+            source_name="RegolithRover",
+            footprint=None,
+            terrain_plane=terrain_plane,
+        )
+        extension_source = EXTENSION_PATH.read_text()
+
+        self.assertTrue(fixed["required"])
+        self.assertEqual(fixed["terrain_gap_m"], 3.054)
+        self.assertEqual(fixed["size_m"]["height"], 3.304)
+        self.assertFalse(rover["required"])
+        self.assertIn("def _ensure_module_terrain_foundations", extension_source)
+        self.assertIn('f"{prim_path}/TerrainFoundation"', extension_source)
+
 
 if __name__ == "__main__":
     unittest.main()
