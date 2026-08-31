@@ -785,13 +785,6 @@ def _build_module_terrain_diagnostics(
             placement_z = max(valid_z)
             placement_rotation = None
 
-        terrain_foundation = _module_terrain_foundation(
-            part=part,
-            source_name=source_name,
-            footprint=footprint,
-            terrain_plane=terrain_plane,
-        )
-
         modules[name] = {
             "status": "partial_footprint_out_of_bounds" if missing_samples else "ok",
             "source_module": source_name,
@@ -802,7 +795,6 @@ def _build_module_terrain_diagnostics(
             "delta_z_m": round(authored_z - placement_z, 3),
             "placement_rotation_deg": placement_rotation,
             "terrain_plane": terrain_plane,
-            "terrain_foundation": terrain_foundation,
             "sample_strategy": "center_corners_edge_midpoints_grid_5x5_max",
             "footprint_source": (footprint or {}).get("source", "sysml_size_m"),
             "footprint_size_m": (footprint or {}).get("size_m"),
@@ -815,49 +807,6 @@ def _build_module_terrain_diagnostics(
         "status": "terrain_alignment_warning" if out_of_bounds else "ok",
         "out_of_bounds_count": out_of_bounds,
         "modules": modules,
-    }
-
-
-def _module_terrain_foundation(
-    *,
-    part: dict[str, Any],
-    source_name: str,
-    footprint: dict[str, Any] | None,
-    terrain_plane: dict[str, Any] | None,
-) -> dict[str, Any]:
-    """Describe a plinth that closes any terrain gap below a fixed module.
-
-    A rigid CAD model can only follow one fitted terrain plane. On uneven terrain,
-    some locations under a large fixed footprint will therefore remain below that
-    plane. The Omniverse extension uses this manifest data to place a support
-    volume whose top is flush with the module base and whose bottom is embedded
-    into the terrain. Rovers intentionally receive no foundation.
-    """
-    if "rover" in source_name.lower():
-        return {"required": False, "reason": "mobile_rover"}
-
-    size_m = (footprint or {}).get("size_m")
-    if not size_m:
-        size_m = (part.get("dimensions") or {}).get("size_m") or {}
-    length = float(size_m.get("length") or 0.0)
-    width = float(size_m.get("width") or 0.0)
-    if length <= 0.0 or width <= 0.0:
-        return {"required": False, "reason": "missing_footprint"}
-
-    max_clearance = float((terrain_plane or {}).get("max_clearance_m") or 0.0)
-    # A shallow plinth also makes sub-decimetre visual gaps disappear. The extra
-    # 0.25 m embeds the support beneath the lowest terrain sample.
-    height_m = max(0.25, max_clearance + 0.25)
-    return {
-        "required": True,
-        "placement": "module_local_support_plinth",
-        "size_m": {
-            "length": round(length, 3),
-            "width": round(width, 3),
-            "height": round(height_m, 3),
-        },
-        "top_z_m": 0.0,
-        "terrain_gap_m": round(max_clearance, 3),
     }
 
 

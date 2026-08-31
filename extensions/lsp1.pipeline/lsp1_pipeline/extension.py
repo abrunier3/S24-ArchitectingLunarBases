@@ -301,7 +301,6 @@ class LSP1PipelineExtension(omni.ext.IExt):
             self._load_waypoints_under_world()
             self._load_terrain_model()
             self._apply_module_terrain_projection()
-            self._ensure_module_terrain_foundations()
             self._apply_default_rover_terrain_poses()
             self._ensure_scene_overlays()
             self._draw_route_slope_debug()
@@ -641,55 +640,6 @@ class LSP1PipelineExtension(omni.ext.IExt):
 
         except Exception as e:
             print("[LSP1 Pipeline] Module terrain projection failed:", repr(e))
-
-    def _ensure_module_terrain_foundations(self):
-        """Create terrain support plinths for fixed modules with uneven footprints."""
-        try:
-            import omni.usd
-            from pxr import Gf, UsdGeom
-
-            modules = (
-                self.manifest.get("terrain_projection", {})
-                .get("modules", {})
-                .get("modules", {})
-            )
-            stage = omni.usd.get_context().get_stage()
-            if not stage or not modules:
-                return
-
-            created = 0
-            for module_name, info in modules.items():
-                foundation = info.get("terrain_foundation") or {}
-                prim_path = info.get("prim_path", f"/World/{module_name}")
-                foundation_path = f"{prim_path}/TerrainFoundation"
-                existing = stage.GetPrimAtPath(foundation_path)
-                if not foundation.get("required"):
-                    if existing and existing.IsValid():
-                        stage.RemovePrim(foundation_path)
-                    continue
-
-                size = foundation.get("size_m") or {}
-                length = float(size.get("length") or 0.0)
-                width = float(size.get("width") or 0.0)
-                height = float(size.get("height") or 0.0)
-                if length <= 0.0 or width <= 0.0 or height <= 0.0:
-                    continue
-
-                if existing and existing.IsValid():
-                    stage.RemovePrim(foundation_path)
-                support = UsdGeom.Cube.Define(stage, foundation_path)
-                support.CreateSizeAttr(1.0)
-                support.CreateDisplayColorAttr([Gf.Vec3f(0.32, 0.30, 0.27)])
-
-                xform = UsdGeom.Xformable(support.GetPrim())
-                xform.ClearXformOpOrder()
-                xform.AddTranslateOp().Set(Gf.Vec3d(0.0, 0.0, -height / 2.0))
-                xform.AddScaleOp().Set(Gf.Vec3f(length, width, height))
-                created += 1
-
-            print(f"[LSP1 Pipeline] Created terrain foundations for {created} fixed module(s).")
-        except Exception as exc:
-            print("[LSP1 Pipeline] Terrain foundation creation failed:", repr(exc))
 
     def _apply_default_rover_terrain_poses(self):
         """Ground source rover prims before DES movement begins."""
