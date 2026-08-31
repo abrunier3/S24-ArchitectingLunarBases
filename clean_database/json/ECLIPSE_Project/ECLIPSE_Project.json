@@ -65,14 +65,14 @@
       },
       "transform": {
         "position_m": [
-          -360,
-          256.88,
-          0
+          0.0,
+          0.0,
+          0.0
         ],
         "rotation_deg": [
-          0,
-          0,
-          0
+          0.0,
+          0.0,
+          0.0
         ]
       },
       "attributes": {
@@ -130,14 +130,14 @@
       },
       "transform": {
         "position_m": [
-          -1360,
-          961.88,
-          0
+          0.0,
+          0.0,
+          0.0
         ],
         "rotation_deg": [
-          0,
-          0,
-          0
+          0.0,
+          0.0,
+          0.0
         ]
       },
       "attributes": {
@@ -232,14 +232,14 @@
       },
       "transform": {
         "position_m": [
-          -1095,
-          161.88,
-          0
+          0.0,
+          0.0,
+          0.0
         ],
         "rotation_deg": [
-          0,
-          0,
-          0
+          0.0,
+          0.0,
+          0.0
         ]
       },
       "attributes": {
@@ -304,14 +304,14 @@
       },
       "transform": {
         "position_m": [
-          295,
-          1036.88,
-          0
+          0.0,
+          5.0,
+          0.0
         ],
         "rotation_deg": [
-          0,
-          0,
-          0
+          0.0,
+          0.0,
+          0.0
         ]
       },
       "attributes": {
@@ -396,8 +396,8 @@
         "hoursPerKm": 5.0,
         "LOXRover_volume_m3": 45.0,
         "cadAreaScaleFactor": 10.1154088624,
-        "cadCenterOfMassXM": 0.129871126758,
-        "cadCenterOfMassYM": -2.49361334237e-08,
+        "cadCenterOfMassXM": -2.49361335266e-08,
+        "cadCenterOfMassYM": -0.129871126758,
         "cadCenterOfMassZM": 0.484521449619,
         "cadLengthScaleFactor": 3.18047305639,
         "cadMetadataScaleFactor": 3.18047305639,
@@ -412,7 +412,7 @@
         "geometryRef": "assets/geom/Rover_geom.usda",
         "cadFormat": "USDC",
         "cadSourceFile": "LOXRover.usdc",
-        "cadSourceFrontAxis": "-Y",
+        "cadSourceFrontAxis": "+X",
         "cadSourceUpAxis": "Y",
         "cadVolumeAvailable": "false",
         "cadVolumeStatus": "mesh_not_watertight"
@@ -448,14 +448,14 @@
       },
       "transform": {
         "position_m": [
-          950,
-          646.88,
-          0
+          0.0,
+          0.0,
+          0.0
         ],
         "rotation_deg": [
-          0,
-          0,
-          0
+          0.0,
+          0.0,
+          0.0
         ]
       },
       "attributes": {
@@ -573,26 +573,26 @@
         "totalEnergyConsumed": 0.0,
         "hoursPerKm": 5.0,
         "RegolithRover_volume_m3": 45.0,
-        "cadAreaScaleFactor": 10.1154088624,
-        "cadCenterOfMassXM": -3.89893272083,
-        "cadCenterOfMassYM": 3.45888235323e-16,
-        "cadCenterOfMassZM": 5.15623914379e-06,
-        "cadLengthScaleFactor": 3.18047305639,
-        "cadMetadataScaleFactor": 3.18047305639,
-        "cadSourceCenterOfMassXM": -1.17797428861e-18,
-        "cadSourceCenterOfMassYM": 1.22523817605,
-        "cadSourceCenterOfMassZM": -7.06784573164e-18,
-        "cadSourceSurfaceAreaM2": 19.7143625822,
-        "cadSourceVolumeM3": 3.92702057592,
-        "cadSurfaceAreaM2": 199.418837981,
-        "cadVolumeM3": 126.339263,
-        "cadVolumeScaleFactor": 32.1717853414
+        "cadAreaScaleFactor": 1.49943568337,
+        "cadCenterOfMassXM": -2.14102566277e-17,
+        "cadCenterOfMassYM": 1.50028229897,
+        "cadCenterOfMassZM": 0.306068111089,
+        "cadLengthScaleFactor": 1.22451446842,
+        "cadMetadataScaleFactor": 1.22451446842,
+        "cadSourceCenterOfMassXM": -1.74846906099e-17,
+        "cadSourceCenterOfMassYM": 1.22520585723,
+        "cadSourceCenterOfMassZM": 3.78834963215e-17,
+        "cadSourceSurfaceAreaM2": 19.714776743,
+        "cadSourceVolumeM3": 3.92712415182,
+        "cadSurfaceAreaM2": 29.5610397381,
+        "cadVolumeM3": 7.21051681747,
+        "cadVolumeScaleFactor": 1.83608068875
       },
       "metadata": {
         "geometryRef": "assets/geom/Rover_geom.usda",
-        "cadFormat": "USDC",
-        "cadSourceFile": "RegolithRover.usdc",
-        "cadSourceFrontAxis": "-Y",
+        "cadFormat": "STEP",
+        "cadSourceFile": "Viper Rover.STEP",
+        "cadSourceFrontAxis": "+X",
         "cadSourceUpAxis": "Y",
         "cadVolumeAvailable": "true",
         "cadVolumeStatus": "available"
@@ -632,14 +632,14 @@
       },
       "transform": {
         "position_m": [
-          1050,
-          -438.13,
-          0
+          0.0,
+          5.0,
+          0.0
         ],
         "rotation_deg": [
-          0,
-          0,
-          0
+          0.0,
+          0.0,
+          0.0
         ]
       },
       "attributes": {
@@ -693,7 +693,7 @@
   ],
   "connections": [
     {
-      "name": "ISRUPlantToLaunchLandingZone",
+      "name": "ISRUPlantToRover",
       "type": "LOXMovement",
       "flow": "LOX",
       "from": {
@@ -703,70 +703,10 @@
       "to": {
         "part": "ISRUPlant",
         "port": "ISRU_LOXPortOut"
-      },
-      "path": {
-        "waypoints_m": [
-          [
-            -1360,
-            970,
-            0
-          ],
-          [
-            -1276.67,
-            700,
-            0
-          ],
-          [
-            -1193.33,
-            430,
-            0
-          ],
-          [
-            -1110,
-            160,
-            0
-          ],
-          [
-            -863.33,
-            195,
-            0
-          ],
-          [
-            -616.67,
-            230,
-            0
-          ],
-          [
-            -370,
-            265,
-            0
-          ],
-          [
-            -202.5,
-            458.75,
-            0
-          ],
-          [
-            -35,
-            652.5,
-            0
-          ],
-          [
-            132.5,
-            846.25,
-            0
-          ],
-          [
-            300,
-            1040,
-            0
-          ]
-        ],
-        "distance_km": 2.619
       }
     },
     {
-      "name": "ISRUPlantToPropellantDepot",
+      "name": "RoverToPropellantDepot",
       "type": "LOXMovement",
       "flow": "LOX",
       "from": {
@@ -776,101 +716,6 @@
       "to": {
         "part": "PropellantDepot",
         "port": "Propellant_LOXPortIn"
-      },
-      "path": {
-        "waypoints_m": [
-          [
-            -1360,
-            970,
-            0
-          ],
-          [
-            -1276.67,
-            700,
-            0
-          ],
-          [
-            -1193.33,
-            430,
-            0
-          ],
-          [
-            -1110,
-            160,
-            0
-          ],
-          [
-            -863.33,
-            195,
-            0
-          ],
-          [
-            -616.67,
-            230,
-            0
-          ],
-          [
-            -370,
-            265,
-            0
-          ],
-          [
-            -202.5,
-            458.75,
-            0
-          ],
-          [
-            -35,
-            652.5,
-            0
-          ],
-          [
-            132.5,
-            846.25,
-            0
-          ],
-          [
-            300,
-            1040,
-            0
-          ],
-          [
-            132.5,
-            846.25,
-            0
-          ],
-          [
-            -35,
-            652.5,
-            0
-          ],
-          [
-            -202.5,
-            458.75,
-            0
-          ],
-          [
-            -370,
-            265,
-            0
-          ],
-          [
-            -616.67,
-            230,
-            0
-          ],
-          [
-            -863.33,
-            195,
-            0
-          ],
-          [
-            -1110,
-            160,
-            0
-          ]
-        ],
-        "distance_km": 4.39
       }
     },
     {
@@ -926,7 +771,7 @@
       }
     },
     {
-      "name": "ISRUExcavationToISRUPlant",
+      "name": "ISRUExcavationToRegolithRover",
       "type": "RegolithMovement",
       "flow": "Regolith",
       "from": {
@@ -936,106 +781,19 @@
       "to": {
         "part": "RegolithRover",
         "port": "RegolithRover_RegolithPortInOut"
+      }
+    },
+    {
+      "name": "RegolithRoverToISRUPlant",
+      "type": "RegolithMovement",
+      "flow": "Regolith",
+      "from": {
+        "part": "RegolithRover",
+        "port": "RegolithRover_RegolithPortInOut"
       },
-      "path": {
-        "waypoints_m": [
-          [
-            1040,
-            -440,
-            0
-          ],
-          [
-            830,
-            -265,
-            0
-          ],
-          [
-            856.25,
-            -35,
-            0
-          ],
-          [
-            882.5,
-            195,
-            0
-          ],
-          [
-            908.75,
-            425,
-            0
-          ],
-          [
-            935,
-            655,
-            0
-          ],
-          [
-            723.33,
-            783.33,
-            0
-          ],
-          [
-            511.67,
-            911.67,
-            0
-          ],
-          [
-            300,
-            1040,
-            0
-          ],
-          [
-            132.5,
-            846.25,
-            0
-          ],
-          [
-            -35,
-            652.5,
-            0
-          ],
-          [
-            -202.5,
-            458.75,
-            0
-          ],
-          [
-            -370,
-            265,
-            0
-          ],
-          [
-            -616.67,
-            230,
-            0
-          ],
-          [
-            -863.33,
-            195,
-            0
-          ],
-          [
-            -1110,
-            160,
-            0
-          ],
-          [
-            -1193.33,
-            430,
-            0
-          ],
-          [
-            -1276.67,
-            700,
-            0
-          ],
-          [
-            -1360,
-            970,
-            0
-          ]
-        ],
-        "distance_km": 4.561
+      "to": {
+        "part": "ISRUPlant",
+        "port": "ISRU_RegolithPortIn"
       }
     },
     {
@@ -1050,864 +808,6 @@
         "part": "ISRUExcavation",
         "port": "Excavation_PowerPortIn"
       }
-    },
-    {
-      "name": "ISRUExcavationToISRUPlant_Regolith",
-      "type": "OperationalRoute",
-      "flow": "Regolith",
-      "from": {
-        "part": "ISRUExcavation"
-      },
-      "to": {
-        "part": "ISRUPlant"
-      },
-      "rover_id": "RegolithRover",
-      "stops": [],
-      "path": {
-        "waypoints_m": [
-          [
-            1040,
-            -440,
-            0
-          ],
-          [
-            830,
-            -265,
-            0
-          ],
-          [
-            856.25,
-            -35,
-            0
-          ],
-          [
-            882.5,
-            195,
-            0
-          ],
-          [
-            908.75,
-            425,
-            0
-          ],
-          [
-            935,
-            655,
-            0
-          ],
-          [
-            723.33,
-            783.33,
-            0
-          ],
-          [
-            511.67,
-            911.67,
-            0
-          ],
-          [
-            300,
-            1040,
-            0
-          ],
-          [
-            132.5,
-            846.25,
-            0
-          ],
-          [
-            -35,
-            652.5,
-            0
-          ],
-          [
-            -202.5,
-            458.75,
-            0
-          ],
-          [
-            -370,
-            265,
-            0
-          ],
-          [
-            -616.67,
-            230,
-            0
-          ],
-          [
-            -863.33,
-            195,
-            0
-          ],
-          [
-            -1110,
-            160,
-            0
-          ],
-          [
-            -1193.33,
-            430,
-            0
-          ],
-          [
-            -1276.67,
-            700,
-            0
-          ],
-          [
-            -1360,
-            970,
-            0
-          ]
-        ],
-        "distance_km": 4.561
-      }
-    },
-    {
-      "name": "ISRUPlantToPropellantDepot_LOX",
-      "type": "OperationalRoute",
-      "flow": "LOX",
-      "from": {
-        "part": "ISRUPlant"
-      },
-      "to": {
-        "part": "PropellantDepot"
-      },
-      "rover_id": "LOXRover",
-      "stops": [],
-      "path": {
-        "waypoints_m": [
-          [
-            -1360,
-            970,
-            0
-          ],
-          [
-            -1276.67,
-            700,
-            0
-          ],
-          [
-            -1193.33,
-            430,
-            0
-          ],
-          [
-            -1110,
-            160,
-            0
-          ],
-          [
-            -863.33,
-            195,
-            0
-          ],
-          [
-            -616.67,
-            230,
-            0
-          ],
-          [
-            -370,
-            265,
-            0
-          ],
-          [
-            -202.5,
-            458.75,
-            0
-          ],
-          [
-            -35,
-            652.5,
-            0
-          ],
-          [
-            132.5,
-            846.25,
-            0
-          ],
-          [
-            300,
-            1040,
-            0
-          ]
-        ],
-        "distance_km": 2.619
-      }
     }
-  ],
-  "urban_planning": {
-    "site": "MMA",
-    "site_name": "Malapert Massif",
-    "site_lat": -85.9,
-    "site_lon": -0.5,
-    "map_frame_m": {
-      "center_m": [
-        0,
-        0,
-        0
-      ],
-      "x_min": -1395,
-      "x_max": 1395,
-      "y_min": -1395,
-      "y_max": 1395,
-      "width_m": 2790,
-      "height_m": 2790,
-      "meters_per_pixel": 5,
-      "frame_px": {
-        "x": 170,
-        "y": 0,
-        "size": 558
-      }
-    },
-    "module_instances": {
-      "HabitationModule": {
-        "type": "HabitationModule",
-        "position_m": [
-          -360,
-          256.88,
-          0
-        ],
-        "rotation_deg": [
-          0,
-          0,
-          0
-        ]
-      },
-      "ISRUPlant": {
-        "type": "ISRUPlant",
-        "position_m": [
-          -1360,
-          961.88,
-          0
-        ],
-        "rotation_deg": [
-          0,
-          0,
-          0
-        ]
-      },
-      "LaunchLandingZone": {
-        "type": "LaunchLandingZone",
-        "position_m": [
-          -1095,
-          161.88,
-          0
-        ],
-        "rotation_deg": [
-          0,
-          0,
-          0
-        ]
-      },
-      "PropellantDepot": {
-        "type": "PropellantDepot",
-        "position_m": [
-          295,
-          1036.88,
-          0
-        ],
-        "rotation_deg": [
-          0,
-          0,
-          0
-        ]
-      },
-      "SolarPowerSystem": {
-        "type": "SolarPowerSystem",
-        "position_m": [
-          950,
-          646.88,
-          0
-        ],
-        "rotation_deg": [
-          0,
-          0,
-          0
-        ]
-      },
-      "ISRUExcavation": {
-        "type": "ISRUExcavation",
-        "position_m": [
-          1050,
-          -438.13,
-          0
-        ],
-        "rotation_deg": [
-          0,
-          0,
-          0
-        ]
-      }
-    },
-    "routes": [
-      {
-        "from": "HabitationModule",
-        "to": "LaunchLandingZone",
-        "key": "HabitationModuleToLaunchLandingZone",
-        "flow": "LOX",
-        "distance_km": 0.747
-      },
-      {
-        "from": "LaunchLandingZone",
-        "to": "ISRUPlant",
-        "key": "LaunchLandingZoneToISRUPlant",
-        "flow": "LOX",
-        "distance_km": 0.848
-      },
-      {
-        "from": "HabitationModule",
-        "to": "PropellantDepot",
-        "key": "HabitationModuleToPropellantDepot",
-        "flow": "LOX",
-        "distance_km": 1.024
-      },
-      {
-        "from": "PropellantDepot",
-        "to": "SolarPowerSystem",
-        "key": "PropellantDepotToSolarPowerSystem",
-        "flow": "Power",
-        "distance_km": 0.743
-      },
-      {
-        "from": "SolarPowerSystem",
-        "to": "ISRUExcavation",
-        "key": "SolarPowerSystemToISRUExcavation",
-        "flow": "Regolith",
-        "distance_km": 1.199
-      }
-    ],
-    "route_geometry": {
-      "HabitationModuleToLaunchLandingZone": {
-        "flow": "LOX",
-        "waypoints_m": [
-          [
-            -370,
-            265,
-            0
-          ],
-          [
-            -616.67,
-            230,
-            0
-          ],
-          [
-            -863.33,
-            195,
-            0
-          ],
-          [
-            -1110,
-            160,
-            0
-          ]
-        ],
-        "distance_km": 0.747
-      },
-      "LaunchLandingZoneToISRUPlant": {
-        "flow": "LOX",
-        "waypoints_m": [
-          [
-            -1110,
-            160,
-            0
-          ],
-          [
-            -1193.33,
-            430,
-            0
-          ],
-          [
-            -1276.67,
-            700,
-            0
-          ],
-          [
-            -1360,
-            970,
-            0
-          ]
-        ],
-        "distance_km": 0.848
-      },
-      "HabitationModuleToPropellantDepot": {
-        "flow": "LOX",
-        "waypoints_m": [
-          [
-            -370,
-            265,
-            0
-          ],
-          [
-            -202.5,
-            458.75,
-            0
-          ],
-          [
-            -35,
-            652.5,
-            0
-          ],
-          [
-            132.5,
-            846.25,
-            0
-          ],
-          [
-            300,
-            1040,
-            0
-          ]
-        ],
-        "distance_km": 1.024
-      },
-      "PropellantDepotToSolarPowerSystem": {
-        "flow": "Power",
-        "waypoints_m": [
-          [
-            300,
-            1040,
-            0
-          ],
-          [
-            511.67,
-            911.67,
-            0
-          ],
-          [
-            723.33,
-            783.33,
-            0
-          ],
-          [
-            935,
-            655,
-            0
-          ]
-        ],
-        "distance_km": 0.743
-      },
-      "SolarPowerSystemToISRUExcavation": {
-        "flow": "Regolith",
-        "waypoints_m": [
-          [
-            935,
-            655,
-            0
-          ],
-          [
-            908.75,
-            425,
-            0
-          ],
-          [
-            882.5,
-            195,
-            0
-          ],
-          [
-            856.25,
-            -35,
-            0
-          ],
-          [
-            830,
-            -265,
-            0
-          ],
-          [
-            1040,
-            -440,
-            0
-          ]
-        ],
-        "distance_km": 1.199
-      },
-      "ISRUExcavationToISRUPlant_Regolith": {
-        "waypoints_m": [
-          [
-            1040,
-            -440,
-            0
-          ],
-          [
-            830,
-            -265,
-            0
-          ],
-          [
-            856.25,
-            -35,
-            0
-          ],
-          [
-            882.5,
-            195,
-            0
-          ],
-          [
-            908.75,
-            425,
-            0
-          ],
-          [
-            935,
-            655,
-            0
-          ],
-          [
-            723.33,
-            783.33,
-            0
-          ],
-          [
-            511.67,
-            911.67,
-            0
-          ],
-          [
-            300,
-            1040,
-            0
-          ],
-          [
-            132.5,
-            846.25,
-            0
-          ],
-          [
-            -35,
-            652.5,
-            0
-          ],
-          [
-            -202.5,
-            458.75,
-            0
-          ],
-          [
-            -370,
-            265,
-            0
-          ],
-          [
-            -616.67,
-            230,
-            0
-          ],
-          [
-            -863.33,
-            195,
-            0
-          ],
-          [
-            -1110,
-            160,
-            0
-          ],
-          [
-            -1193.33,
-            430,
-            0
-          ],
-          [
-            -1276.67,
-            700,
-            0
-          ],
-          [
-            -1360,
-            970,
-            0
-          ]
-        ],
-        "distance_km": 4.561,
-        "flow": "Regolith"
-      },
-      "ISRUPlantToPropellantDepot_LOX": {
-        "waypoints_m": [
-          [
-            -1360,
-            970,
-            0
-          ],
-          [
-            -1276.67,
-            700,
-            0
-          ],
-          [
-            -1193.33,
-            430,
-            0
-          ],
-          [
-            -1110,
-            160,
-            0
-          ],
-          [
-            -863.33,
-            195,
-            0
-          ],
-          [
-            -616.67,
-            230,
-            0
-          ],
-          [
-            -370,
-            265,
-            0
-          ],
-          [
-            -202.5,
-            458.75,
-            0
-          ],
-          [
-            -35,
-            652.5,
-            0
-          ],
-          [
-            132.5,
-            846.25,
-            0
-          ],
-          [
-            300,
-            1040,
-            0
-          ]
-        ],
-        "distance_km": 2.619,
-        "flow": "LOX"
-      }
-    }
-  },
-  "scenario_logic": {
-    "scenario_mode": "isru",
-    "instances": [
-      {
-        "id": "HabitationModule",
-        "type": "HabitationModule",
-        "placed": true,
-        "position_canvas": {
-          "cx": 377,
-          "cy": 227.625
-        },
-        "orientation_deg": 0
-      },
-      {
-        "id": "ISRUPlant",
-        "type": "ISRUPlant",
-        "placed": true,
-        "position_canvas": {
-          "cx": 177,
-          "cy": 86.625
-        },
-        "orientation_deg": 0
-      },
-      {
-        "id": "LaunchLandingZone",
-        "type": "LaunchLandingZone",
-        "placed": true,
-        "position_canvas": {
-          "cx": 230,
-          "cy": 246.625
-        },
-        "orientation_deg": 0
-      },
-      {
-        "id": "PropellantDepot",
-        "type": "PropellantDepot",
-        "placed": true,
-        "position_canvas": {
-          "cx": 508,
-          "cy": 71.625
-        },
-        "orientation_deg": 0
-      },
-      {
-        "id": "SolarPowerSystem",
-        "type": "SolarPowerSystem",
-        "placed": true,
-        "position_canvas": {
-          "cx": 639,
-          "cy": 149.625
-        },
-        "orientation_deg": 0
-      },
-      {
-        "id": "ISRUExcavation",
-        "type": "ISRUExcavation",
-        "placed": true,
-        "position_canvas": {
-          "cx": 659,
-          "cy": 366.625
-        },
-        "orientation_deg": 0
-      }
-    ],
-    "rover_counts": {
-      "regolith": 1,
-      "lox": 1
-    },
-    "rover_payloads_kg": {
-      "regolith": 4000,
-      "lox": 4000
-    },
-    "module_classes": {
-      "HabitationModule": "Consumer",
-      "ISRUPlant": "Processor",
-      "LaunchLandingZone": "Consumer",
-      "PropellantDepot": "Consumer",
-      "LOXRover": "Transporter",
-      "SolarPowerSystem": "PowerGenerator",
-      "RegolithRover": "Transporter",
-      "ISRUExcavation": "Source"
-    },
-    "power_mode": "power_constrained",
-    "ignore_power": false,
-    "sysml_interfaces": [
-      {
-        "id": "sysml_interface_1",
-        "from_type": "SolarPowerSystem",
-        "to_type": "PropellantDepot",
-        "flow": "Power",
-        "from_port": "Power_PowerPortOutToPropellantDepot",
-        "to_port": "Propellant_PowerPortIn",
-        "from_instances": [
-          "SolarPowerSystem"
-        ],
-        "to_instances": [
-          "PropellantDepot"
-        ]
-      },
-      {
-        "id": "sysml_interface_2",
-        "from_type": "SolarPowerSystem",
-        "to_type": "ISRUPlant",
-        "flow": "Power",
-        "from_port": "Power_PowerPortOutToISRUPlant",
-        "to_port": "ISRU_PowerPortIn",
-        "from_instances": [
-          "SolarPowerSystem"
-        ],
-        "to_instances": [
-          "ISRUPlant"
-        ]
-      },
-      {
-        "id": "sysml_interface_3",
-        "from_type": "SolarPowerSystem",
-        "to_type": "HabitationModule",
-        "flow": "Power",
-        "from_port": "Power_PowerPortOutToHabitationModule",
-        "to_port": "Habitation_PowerPortIn",
-        "from_instances": [
-          "SolarPowerSystem"
-        ],
-        "to_instances": [
-          "HabitationModule"
-        ]
-      },
-      {
-        "id": "sysml_interface_4",
-        "from_type": "SolarPowerSystem",
-        "to_type": "LaunchLandingZone",
-        "flow": "Power",
-        "from_port": "Power_PowerPortOutToLaunchLandingZone",
-        "to_port": "LaunchZone_PowerPortIn",
-        "from_instances": [
-          "SolarPowerSystem"
-        ],
-        "to_instances": [
-          "LaunchLandingZone"
-        ]
-      },
-      {
-        "id": "sysml_interface_5",
-        "from_type": "SolarPowerSystem",
-        "to_type": "ISRUExcavation",
-        "flow": "Power",
-        "from_port": "Power_PowerPortOutToISRUExcavation",
-        "to_port": "Excavation_PowerPortIn",
-        "from_instances": [
-          "SolarPowerSystem"
-        ],
-        "to_instances": [
-          "ISRUExcavation"
-        ]
-      }
-    ],
-    "transport_links": [
-      {
-        "id": "ISRUPlantToRover_RoverToPropellantDepot",
-        "flow": "LOX",
-        "from_type": "ISRUPlant",
-        "to_type": "PropellantDepot",
-        "rover_type": "LOXRover",
-        "from_instances": [
-          "ISRUPlant"
-        ],
-        "to_instances": [
-          "PropellantDepot"
-        ]
-      },
-      {
-        "id": "ISRUExcavationToRegolithRover_RegolithRoverToISRUPlant",
-        "flow": "Regolith",
-        "from_type": "ISRUExcavation",
-        "to_type": "ISRUPlant",
-        "rover_type": "RegolithRover",
-        "from_instances": [
-          "ISRUExcavation"
-        ],
-        "to_instances": [
-          "ISRUPlant"
-        ]
-      }
-    ],
-    "resource_routes": [
-      {
-        "id": "Regolith_1788197067817_0",
-        "flow": "Regolith",
-        "rover_type": "RegolithRover",
-        "rover_id": "RegolithRover",
-        "from": "ISRUExcavation",
-        "to": "ISRUPlant",
-        "stops": [],
-        "distance_km": 2.967,
-        "mean_slope_deg": 8.412,
-        "max_slope_deg": 14.681
-      },
-      {
-        "id": "LOX_1788197066322_0",
-        "flow": "LOX",
-        "rover_type": "LOXRover",
-        "rover_id": "LOXRover",
-        "from": "ISRUPlant",
-        "to": "PropellantDepot",
-        "stops": [],
-        "distance_km": 2.118,
-        "mean_slope_deg": 12.58,
-        "max_slope_deg": 15.145
-      }
-    ],
-    "module_equations": {
-      "ISRUExcavation": "RegolithOut = RequestedRegolith\nEnergyConsumed = excavationEnergyCoeff * RegolithOut\nPowerOut = 0",
-      "RegolithRover": "RegolithOut = min(RegolithIn, RoverCapacity)\nTravelTime = Distance * hoursPerKm\nEnergyConsumed = Distance * CargoMass * energyPerKmPerKg\nPowerOut = 0",
-      "ISRUPlant": "LOXOut = RegolithIn * conversionEfficiency\nProcessingTime = RegolithIn / processingRate\nBeneficiatedIlmenite = RegolithIn * ilmeniteRecoveryFraction * regHeadGrade\nBeneficiatedRegolith = BeneficiatedIlmenite / (beneficiationRegolithMultiplier * regHeadGrade)\nGangueMass = RegolithIn - BeneficiatedRegolith\nWaterMass = BeneficiatedIlmenite * waterRecoveryFraction * waterMolarMass / ilmeniteMolarMass\nOxygenMass = WaterMass * oxygenMolarMass / (2 * waterMolarMass)\nExcavationEnergy = excavationEnergyCoeff * RegolithIn\nTransportEnergy = transportEnergyCoeff * RegolithIn * transportDist\nBeneficiationEnergy = RegolithIn * lunarGravity * liftHeight / joulesPerKWh + GangueMass * gangueTransportEnergyCoeff * gangueTransportDist\nReactorEnergy = reactorEnergyCoeff * BeneficiatedRegolith\nElectrolysisEnergy = electrolysisEnergyCoeff * WaterMass\nLiquefactionEnergy = liquefactionEnergyCoeff * OxygenMass\nEnergyConsumed = ExcavationEnergy + TransportEnergy + BeneficiationEnergy + ReactorEnergy + ElectrolysisEnergy + LiquefactionEnergy\nPowerOut = 0",
-      "LOXRover": "LOXOut = min(LOXIn, RoverCapacity)\nTravelTime = Distance * hoursPerKm\nEnergyConsumed = Distance * CargoMass * energyPerKmPerKg\nPowerOut = 0",
-      "PropellantDepot": "LOXStored = LOXStored + LOXIn\nPowerIn = 0\nPowerOut = 0",
-      "SolarPowerSystem": "PowerOut = powerOutput\nPowerIn = 0",
-      "HabitationModule": "PowerIn = constantPowerRate\nPowerOut = 0",
-      "LaunchLandingZone": "PowerIn = utilitiesPowerRate + LOXStored * chillingPowerPerKgLox\nPowerOut = 0"
-    }
-  }
+  ]
 }
