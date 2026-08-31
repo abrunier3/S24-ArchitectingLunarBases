@@ -1,329 +1,195 @@
 # ECLIPSE Pipeline User Guide
 
-This guide explains how to use the ECLIPSE lunar base pipeline from the browser interface to Omniverse visualization.
+This guide describes the current ECLIPSE workflow: build an ISRU mission in the browser, run the discrete-event simulation (DES), compare completed scenarios, and replay the result in NVIDIA Omniverse.
 
-## 1. What The Tool Does
+## 1. Overview
 
-The pipeline connects four main steps:
+The workflow has four connected parts:
 
-1. The browser interface configures the mission architecture.
-2. GitHub Actions parses SysML, updates JSON, converts CAD previews, runs DES, and regenerates USD outputs.
-3. The Omniverse manifest collects the latest scene, terrain, waypoints, DES results, and rover playback data.
-4. The Omniverse extension loads the generated scene and plays the mission visualization.
+1. Select or create a scenario and define its mission architecture.
+2. Configure placement, rover routes, SysML interfaces, and equations in the four scenario phases.
+3. Configure and run the DES, then inspect its results and compare completed scenarios.
+4. Load the generated scenario in Omniverse for animated playback, cameras, and live mission telemetry.
 
-The main user-facing files are:
-
-```text
-ScenarioIndex.html
-clean_database/sysml/<Scenario_Name>.sysml
-clean_database/scenarios/<Scenario_Name>.json
-clean_database/json/<Scenario_Name>/<Scenario_Name>.json
-clean_database/usd/scenes/scene.usda
-clean_database/scenes/waypoints.usda
-outputs/scenarios/<Scenario_Name>/graph.json
-outputs/scenarios/<Scenario_Name>/des_results.json
-extensions/lsp1.pipeline/data/manifest.json
-```
-
-## 2. Prerequisites
-
-You need:
-
-- a GitHub account with write access to this repository;
-- a GitHub Personal Access Token that can dispatch workflows and write repository contents;
-- a local clone of the repository if you want to use Omniverse;
-- NVIDIA Omniverse or Omniverse Kit with extension support;
-- Git installed and visible from Omniverse if you want to use the extension pull button.
-
-For the browser interface, the token is entered when prompted and stored only in the current browser session.
-
-## 3. Branch Consistency
-
-The browser interface dispatches workflows on the branch defined by `GH_REF` in `ScenarioIndex.html`.
-
-The Omniverse extension pull button currently pulls the branch hardcoded in:
-
-```text
-extensions/lsp1.pipeline/lsp1_pipeline/extension.py
-```
-
-Before running a full end-to-end test, make sure both point to the same branch. Otherwise the browser may generate outputs on one branch while Omniverse pulls another branch.
-
-For the current cleanup test, the browser interface is configured to use:
-
-```text
-cleanup-branch
-```
-
-Before public release, set the branch back to the branch used by the deployed interface.
-
-## 4. Use The Browser Interface
-
-Open the latest interface:
+The browser interface is available at:
 
 ```text
 https://abrunier3.github.io/S24-ArchitectingLunarBases/ScenarioIndex.html
 ```
 
-If you are testing a non-deployed branch, open the local `ScenarioIndex.html` file or deploy GitHub Pages from that branch.
+The interface and Omniverse must use the same Git branch. The current cleanup/testing branch is `cleanup-branch`.
 
-### Mission Scenario
+## 2. Before You Start
 
-Click `Start building your mission now` to open the scenario selector. Choose
-the ISRU reference, a saved scenario, or `Build New Scenario`. For a new ISRU or
-generic scenario, enter its name immediately. The normalized name becomes the
-common stem of its configuration and SysML file, and both are preserved on
-GitHub. Saved scenarios are loaded from the browser cache and from
-`clean_database/scenarios/` in the repository.
+You need:
 
-The ISRU reference is defined in
-`clean_database/scenarios/presets/ISRU.json`. Selecting `ISRU Scenario`
-reloads this complete preset, including active modules, instance counts,
-equations, rover fleets, power models, and DES assumptions.
+- write access to the repository;
+- a GitHub Personal Access Token when the browser asks for one; it is kept only for the browser session;
+- a local repository checkout and Omniverse Kit or USD Composer to use the Omniverse playback extension;
+- Git available to Omniverse if you use the extension's `Pull GitHub Omniverse` button.
 
-### Step 1 - Build Requirements
+Choose a scenario from the mission entry screen:
 
-Use this section to inspect or define the high-level system requirements. These requirements contextualize the mission architecture but do not by themselves run the pipeline.
+- `ISRU Scenario` starts from the reference ISRU architecture;
+- a saved scenario restores its model and configuration;
+- `Build New Scenario` starts from an empty logic model.
 
-### Step 2 - Mission Network Activation
+New ISRU scenarios start with the reference ISRU CAD assignments. They remain scenario-specific: changing or uploading a CAD in one scenario does not overwrite the CAD selected by another scenario.
 
-Click `Run Graph`.
+## 3. Build the Mission Scenario
 
-This triggers:
+Run the graph when prompted after selecting a scenario. The browser loads the active SysML model, its parts, ports, attributes, equations, and available interfaces.
 
-```text
-.github/workflows/run_graph.yml
-```
+The mission editor is organized into four phases.
 
-The workflow:
+### Phase 1: Asset Instancing and Placement
 
-- parses `clean_database/sysml/<Scenario_Name>.sysml`;
-- updates `clean_database/json/<Scenario_Name>/`;
-- writes `outputs/scenarios/<Scenario_Name>/graph.json`;
-- commits the generated files back to the selected branch.
+Set the required count for each static module, then place every instance on the terrain map.
 
-After the graph loads, activate or deactivate the modules you want to keep in the mission scenario.
+- Fixed assets, such as the ISRU plant, excavation unit, depot, power system, habitat, and landing zone, must be placed.
+- Rovers are mobile actors. They are assigned to routes rather than placed as fixed modules.
+- Use the placement view to inspect terrain constraints and choose viable locations.
 
-### Step 3 - CAD Model Submission
+### Phase 2: Route Generation
 
-For each module that needs a CAD model:
+Create the terrain paths that rovers will travel during the DES.
 
-1. Select the module.
-2. Upload a USD, USDA, USDC, USDZ, STEP, STP, STL, or OBJ file.
-3. Review detected metadata such as material, units, dimensions, up axis, and signed front axis.
-4. If metadata is detected from the CAD file, treat it as the source of truth.
-5. If metadata is not detected, fill the missing fields manually.
-6. Publish the CAD model.
+1. Select either `Regolith rover route` or `LOX rover route`.
+2. Set the number of rovers in that fleet.
+3. Select the origin, any intermediate stops, and the destination in traversal order.
+4. Choose the rover assigned to the route and create it.
 
-This triggers:
+Terrain routes are operational routes. They determine route distance, terrain slope, rover travel time, and transport energy. The resource-flow arrows shown in the SysML view are only a visual representation of the model's logical flows; they are not additional terrain routes.
 
-```text
-.github/workflows/convert_cad.yml
-```
+A fleet can contain fewer rovers than routes. In that case, the DES uses the available rovers as a shared fleet and a rover becomes available again after completing its route cycle.
 
-The workflow:
+Use `Ignore power constraints` in this phase only when you deliberately want an energy-unconstrained simulation. When it is enabled, the DES treats energy as unlimited and ignores power interfaces, demand, supply, and battery failures.
 
-- stores CAD files under `clean_database/cad_models/<ModuleName>/`;
-- converts STEP/STP/STL/OBJ inputs into Omniverse-ready USD;
-- generates browser preview assets under `outputs/cad_previews/`;
-- extracts CAD metadata;
-- updates the corresponding asset JSON.
+### Phase 3: SysML Interfaces and Equations
 
-### Step 4 - Urban Planning
+This phase displays the active interfaces, rover routes, and equations under their appropriate modules.
 
-Choose the scenario mode, then use the map to place modules and generate routes.
+- Double-click a module, or use the module equation list, to inspect and edit its equations.
+- The equations define the simulated resource, timing, and process behavior. An edited equation is used by the next DES run.
+- The graph view is a logical operations diagram. It shows power, LOX, and regolith flows; it is not a terrain map.
+- If validation says `No SysML interface available from the active graph`, the active graph does not expose a usable SysML interface for the current scenario. This is separate from visible map links or terrain routes.
 
-Important behavior:
+For the ISRU reference scenario, system/process constants originate from the SysML model and mission operating settings are configured in the DES panel. The reference scenario remains a safe starting point, but its exposed equations and simulation parameters can be modified for the scenario.
 
-- fixed modules are placed on the map;
-- the number of fixed module instances is selected before placement;
-- rovers are mobile actors and are not manually placed like static modules;
-- resource-route tools and rover fleets are inferred from active rover ports;
-- rover routes are built from the ordered module buttons: select the origin,
-  any intermediate stops, then the destination and assigned rover;
-- module equations define resource output, processing time, storage, and event energy;
-- SysML power interfaces constrain which consumers are supplied;
-- route distances are passed to the DES sliders;
-- module positions, orientations, site information, and route waypoints are sent to the DES workflow through the `urban_planning` input.
+### Phase 4: Scenario Validation
 
-Confirm the placement before running DES.
+Review the placed instances, terrain routes, SysML interfaces, equations, and power mode before confirming the scenario.
 
-### Step 5 - DES Simulation
+Validation prevents a DES submission when the active architecture is incomplete. Correct the reported missing placement, route, interface, or equation before running the DES. Confirming a scenario does not replace it with a hidden backup scenario: the DES always runs the configuration currently shown in the editor.
 
-Adjust the DES parameters, then click `Run DES Simulation`.
+## 4. CAD Model Submission
 
-For each active module, select one power-demand mode: a constant average, a
-piecewise-linear time profile, or an equation. Profiles can be edited by
-dragging their points or entering exact time and power values in the table.
-Optional one-time spikes are configured in the same module panel. Power
-equations are evaluated at every power-management interval and must assign
-either `PowerIn` in kW or `EnergyConsumed` in kWh.
+Use the CAD section to associate a model with the selected module instance type.
 
-This triggers:
+### Upload, reuse, and storage
+
+For the selected module, you can:
+
+- drag and drop a USD, USDA, USDC, USDZ, STEP, STP, STL, or OBJ file, or click the upload area to choose it;
+- select `Upload & Publish selected CAD` to import it into the active scenario;
+- choose `Load a CAD from a scenario or the CAD library...` to reuse any published CAD;
+- select a CAD from the grouped scenario list or the shared `clean_database/cad_models` library, then click `Load`.
+
+Published CAD is stored under:
 
 ```text
-.github/workflows/run_des.yml
+clean_database/cad_models/<Scenario_Name>/<Module_Name>/
 ```
 
-The workflow:
+The CAD picker lists only scenarios and assets that actually contain a CAD file. The shared library remains available and is never removed merely because a scenario changes its own selection.
 
-- reads active nodes from the interface or the active scenario graph;
-- runs the historical ISRU engine for the ISRU preset;
-- compiles Step 4 instances, routes, and equations into generic SimPy processes for a new scenario;
-- writes `outputs/scenarios/<Scenario_Name>/des_results.json`;
-- updates `clean_database/json/<Scenario_Name>/<Scenario_Name>.json` with urban planning data;
-- regenerates `clean_database/usd/scenes/scene.usda`;
-- regenerates `clean_database/scenes/waypoints.usda`;
-- rebuilds `extensions/lsp1.pipeline/data/manifest.json`;
-- commits the generated files back to the selected branch.
+`Save & Publish All` publishes all pending CAD changes. It is useful after uploading several models. A source-front selection is saved immediately; it does not require a separate `Save & Publish All` action before moving to the next phase.
 
-If the DES fails, for example because of a power failure, the workflow stops and the latest successful Omniverse manifest may not be updated.
+### CAD axes and Omniverse orientation
 
-## 5. Install The Omniverse Extension For The First Time
+The preview has two distinct concepts:
 
-Clone the repository locally:
+- **Source up** is used only for raw CAD inputs such as STEP, STP, STL, and OBJ. Select the source up axis only when the imported source needs to be rebuilt into USD. The interface rebuilds the USD and reports `USD rebuilt as ... Ready for Omniverse` when it completes.
+- **Source front** selects the direction the vehicle or asset faces after it is placed in Omniverse. Choose `+X`, `-X`, `+Y`, `-Y`, `+Z`, or `-Z`, except for a direction parallel to the up axis.
 
-```bash
-git clone https://github.com/abrunier3/S24-ArchitectingLunarBases.git
-cd S24-ArchitectingLunarBases
-git checkout cleanup-branch
-```
+For native USD files, the USD stage's up axis is detected automatically by the pipeline. The blue up-axis choice is intentionally not shown for those files. Choose only the source front direction. The front choice is saved to the scenario asset and applied as placement yaw in the generated Omniverse scene.
 
-For another branch, replace `cleanup-branch` with the branch used by the browser interface.
+After changing a raw CAD up axis, wait for the rebuilt-preview status before continuing. After changing a front axis, wait for the saved status. `Run DES` also waits for any pending front-axis saves before dispatching the workflow.
 
-Open Omniverse, then:
+## 5. Configure and Run the DES
 
-1. Open the Extension Manager.
-2. Add this repository's extension search path:
+After confirming the scenario, configure the DES parameters and select `Run DES Simulation`.
+
+The configuration is organized by operating concern. Important settings include:
+
+- rover transport energy coefficient, payload, flat-terrain speed, and slope speed reduction;
+- process throughput, conversion, storage, and dispatch settings;
+- power generation, stationary battery capacity, initial stationary battery charge, and module power profiles;
+- the `Regolith dispatch check interval`, which is how often the DES checks whether ISRU transport should dispatch a regolith shipment. It is not simply a check for an empty storage bin.
+
+The configured rover speed is the nominal speed on flat ground. The simulation calculates a slower effective speed on sloped terrain:
 
 ```text
-/path/to/S24-ArchitectingLunarBases/extensions
+effective speed = flat speed / (1 + slope penalty x route slope in degrees)
 ```
 
-3. Search for `LSP1 Pipeline`.
-4. Enable the extension.
+The stationary solar battery is different from a rover battery. It stores surplus power generated by the solar power system and supplies the mission during generation deficits. `Initial battery charge [SolarPowerSystem]` is the energy already stored in that stationary battery at mission start; it cannot exceed the configured capacity.
 
-When the extension loads, a window named `LSP1 Pipeline` should appear.
+For power-constrained runs, rover and process energy demands are included in the mission power balance. A power failure means the required energy could not be supplied by generation plus available stationary storage. For an energy-unconstrained run, the DES deliberately ignores these constraints.
 
-If it does not appear:
+The workflow writes the DES result, updated scenario data, USD scene, terrain waypoints, and Omniverse manifest. If the DES reports an error, correct the scenario or simulation settings and run it again.
 
-- refresh the Extension Manager;
-- disable and re-enable the extension;
-- restart Omniverse;
-- verify that the search path points to the parent `extensions` folder, not only to `extensions/lsp1.pipeline`.
+## 6. Inspect Results and Compare Scenarios
 
-## 6. Use Omniverse For Visualization
+The DES page shows the latest scenario's final values and mission time histories. The primary resource for the ISRU reference scenario is LOX.
 
-Before opening the visualization, make sure the DES workflow has completed successfully and pushed the generated files.
+The `Saved Scenario Comparison` panel compares completed simulations:
 
-In the `LSP1 Pipeline` window:
+1. Select two to four completed scenarios with their checkboxes.
+2. Select one of the checked scenarios as `Baseline`.
+3. Choose `Final MoEs` or `Time histories`.
 
-1. Click `Pull GitHub Omniverse`.
-2. Wait until the status reports a successful pull.
-3. Click `Load DES Playback`.
-4. The extension loads:
+`Final MoEs` displays the key outcome values and their percentage change from the selected baseline, including LOX produced and delivered, regolith received, and energy consumed. `Time histories` overlays every selected scenario on the same graph so their trajectories can be compared directly. The selection, baseline, and active view are preserved while you switch between the two views.
 
-```text
-clean_database/usd/scenes/scene.usda
-clean_database/scenes/waypoints.usda
-clean_database/scenes/Lunar_surface_v4.usdc
-outputs/scenarios/<Scenario_Name>/des_results.json
-extensions/lsp1.pipeline/data/manifest.json
-```
+## 7. Omniverse Playback
 
-5. Click `Play` to start the rover playback.
-6. Use `Pause` and `Reset` as needed.
-7. Use `Show Routes` to display route segments colored by slope severity.
+Install the extension once:
 
-The extension also applies terrain projection data from the manifest:
+1. Clone the repository and check out the same branch used by the browser interface.
+2. In Omniverse, open Extension Manager and add the repository's `extensions` directory as an extension search path.
+3. Enable `LSP1 Pipeline`.
 
-- terrain placement and scale;
-- module ground altitude and local orientation;
-- route altitude sampling;
-- rover yaw and pitch along the route;
-- slope warning and caution counts.
+After a successful DES run:
 
-## 7. Generated Files
+1. Open the `LSP1 Mission Playback` window.
+2. Select the scenario.
+3. Click `Pull GitHub Omniverse` to obtain the latest outputs.
+4. Start playback with `Play`.
 
-The following files are generated but intentionally kept because the interface and Omniverse consume them:
+The playback controls support `Pause`, `Reset`, one-hour backward/forward steps, adjustable playback rate, and a mission-position slider. The slider can scrub to an exact moment and supports moving backward in the mission timeline.
+
+The mission dashboard updates during playback with key results such as LOX produced and delivered, LOX at plants, regolith received, power balance, and stationary solar battery state.
+
+Use the camera controls to switch between:
+
+- `Overview`: the full terrain map, with modules and moving rovers visible;
+- `Follow Active`: follows the rover currently active in the simulated operation;
+- `Rover Chase`: follows the selected rover from behind.
+
+Choose the rover camera target in the extension. The selected-rover telemetry shows its speed, local slope, battery, and payload. `Show Routes` toggles the operational terrain routes and their slope diagnostics.
+
+## 8. Generated Outputs
+
+The following generated files are consumed by the interface or Omniverse and should be retained:
 
 ```text
 outputs/scenarios/<Scenario_Name>/graph.json
 outputs/scenarios/<Scenario_Name>/des_results.json
-outputs/cad_previews/
-clean_database/usd/scenes/scene.usda
-clean_database/scenes/waypoints.usda
-extensions/lsp1.pipeline/data/manifest.json
+outputs/cad_previews/<Scenario_Name>/
+clean_database/cad_models/<Scenario_Name>/
+outputs/scenarios/<Scenario_Name>/omniverse/scene.usda
+outputs/scenarios/<Scenario_Name>/omniverse/waypoints.usda
+outputs/scenarios/<Scenario_Name>/omniverse/manifest.json
 ```
 
-Do not delete these files during normal use.
-
-## 8. Troubleshooting
-
-### The Interface Runs The Wrong Branch
-
-Check `GH_REF` in `ScenarioIndex.html`.
-
-If it points to the wrong branch, workflows will dispatch to the wrong branch and generated outputs will not match what Omniverse pulls.
-
-### Omniverse Loads Old Results
-
-Check that:
-
-- the DES workflow completed successfully;
-- the generated files were committed and pushed;
-- the extension pull button pulled the same branch used by the browser interface;
-- local changes are not blocking `git pull`.
-
-### The Extension Cannot Load The Scene
-
-Check that these files exist locally:
-
-```text
-clean_database/usd/scenes/scene.usda
-clean_database/scenes/waypoints.usda
-outputs/scenarios/<Scenario_Name>/des_results.json
-extensions/lsp1.pipeline/data/manifest.json
-```
-
-Also check the Omniverse console for the exact missing file path.
-
-### Routes Do Not Appear
-
-Click `Show Routes`.
-
-If nothing appears, check that `extensions/lsp1.pipeline/data/manifest.json` contains route data and that `clean_database/scenes/waypoints.usda` exists.
-
-### The DES Fails With A Power Error
-
-This means the simulated mission consumed more energy than the active power system could provide. Adjust the DES parameters, such as rover count, haul distance, travel time, processing rate, or power-related architecture choices, then rerun the DES simulation.
-
-### CAD Metadata Looks Wrong
-
-If CAD metadata is detected directly from the uploaded/converted CAD file, it is treated as the source of truth. Manual fields are only fallback values when the CAD file does not provide the metadata.
-
-If scale looks wrong, verify:
-
-- `metersPerUnit`;
-- CAD bounding box dimensions;
-- SysML module dimensions;
-- whether the uploaded USD already contains authored transforms.
-
-## 9. Recommended End-To-End Test
-
-For a clean validation run:
-
-1. Open the browser interface.
-2. Run Graph.
-3. Confirm the active modules.
-4. Upload or verify CAD previews if needed.
-5. Place modules in Urban Planning.
-6. Confirm placements.
-7. Run DES Simulation.
-8. Wait for the GitHub Action to complete and push generated files.
-9. Open Omniverse.
-10. Enable or reload the `LSP1 Pipeline` extension.
-11. Pull GitHub from the extension.
-12. Load DES Playback.
-13. Play the scenario.
-14. Toggle Show Routes and verify route colors.
+Do not delete these files as part of normal scenario use. The CAD library at `clean_database/cad_models/` also contains reusable reference assets outside a scenario folder.
