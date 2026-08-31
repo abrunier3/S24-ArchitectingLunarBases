@@ -69,6 +69,8 @@ During the presentation, trigger the actions to show that the pipeline is real. 
 > Step 2 turns the SysML model into an operational mission graph. Here, I choose which systems are active: for example excavation, the ISRU plant, rovers, the depot, and the solar power system.
 >
 > I now click `Run Graph`. The graph on the right shows logical relations: red for power, blue for LOX, and yellow for regolith. This is not yet a terrain route map. It is a graph of SysML flows and interfaces.
+>
+> Under each module name, the interface also shows its SysML class. For example, a displayed mission module can be an instance of the `ISRUPlant` or `SolarPowerSystem` class. The class is not a second asset: it is the reusable SysML definition that provides the instance with its ports, attributes, and applicable equations. This lets the user see both the mission-level asset and the system-model definition behind it.
 
 **Behind the scenes:**
 
