@@ -2193,7 +2193,7 @@
       "LOXRover": "LOXOut = min(LOXIn, RoverCapacity)\nTravelTime = Distance * hoursPerKm\nEnergyConsumed = Distance * CargoMass * energyPerKmPerKg\nPowerOut = 0",
       "PropellantDepot": "LOXStored = LOXStored + LOXIn\nPowerIn = 0\nPowerOut = 0",
       "SolarPowerSystem": "PowerOut = powerOutput\nPowerIn = 0",
-      "HabitationModule": "PowerIn = constantPowerRate\nPowerOut=3* constantPowerRate",
+      "HabitationModule": "PowerIn = constantPowerRate\nPowerOut=0",
       "LaunchLandingZone": "PowerIn = utilitiesPowerRate + LOXStored * chillingPowerPerKgLox\nPowerOut = 0",
       "ISRUPlant_1": "ProcessingTime = RegolithIn / processingRate\nBeneficiatedIlmenite = RegolithIn * ilmeniteRecoveryFraction * regHeadGrade\nBeneficiatedRegolith = BeneficiatedIlmenite / (beneficiationRegolithMultiplier * regHeadGrade)\nGangueMass = RegolithIn - BeneficiatedRegolith\nWaterMass = BeneficiatedIlmenite * waterRecoveryFraction * waterMolarMass / ilmeniteMolarMass\nOxygenMass = WaterMass * oxygenMolarMass / (2 * waterMolarMass)\nExcavationEnergy = excavationEnergyCoeff * RegolithIn\nTransportEnergy = transportEnergyCoeff * RegolithIn * transportDist\nBeneficiationEnergy = RegolithIn * lunarGravity * liftHeight / joulesPerKWh + GangueMass * gangueTransportEnergyCoeff * gangueTransportDist\nReactorEnergy = reactorEnergyCoeff * BeneficiatedRegolith\nElectrolysisEnergy = electrolysisEnergyCoeff * WaterMass\nLiquefactionEnergy = liquefactionEnergyCoeff * OxygenMass\nEnergyConsumed = ExcavationEnergy + TransportEnergy + BeneficiationEnergy + ReactorEnergy + ElectrolysisEnergy + LiquefactionEnergy\nPowerOut = 0\nLOXOut= ProcessingTime* RegolithIn"
     }
