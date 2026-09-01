@@ -54,7 +54,7 @@ package ECLIPSE_LSP1 {
             attribute cadSourceCenterOfMassYM = 0.37874091546;
             attribute cadSourceCenterOfMassZM = 0.0373024441854;
             attribute cadSourceFile = "habitationmodule.usdc";
-            attribute cadSourceFrontAxis = "+Z";
+            attribute cadSourceFrontAxis = "+X";
             attribute cadSourceSurfaceAreaM2 = 1.60374852394;
             attribute cadSourceUpAxis = "Y";
             attribute cadSurfaceAreaM2 = 647.240931246;
