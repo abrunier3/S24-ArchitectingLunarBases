@@ -47,7 +47,6 @@ package ECLIPSE_LSP1 {
             attribute cadCenterOfMassXM = 0.685675050283;
             attribute cadCenterOfMassYM = 3.28553946567;
             attribute cadCenterOfMassZM = 0.954978730281;
-            attribute cadFormat = "USDC";
             attribute cadLengthScaleFactor = 20.0893022172;
             attribute cadMetadataScaleFactor = 20.0893022172;
             attribute cadSourceCenterOfMassXM = -0.0450327138669;
@@ -118,7 +117,6 @@ package ECLIPSE_LSP1 {
             attribute cadCenterOfMassXM = 0.00773617730256;
             attribute cadCenterOfMassYM = 0.258932262227;
             attribute cadCenterOfMassZM = 1.49095969563;
-            attribute cadFormat = "USDC";
             attribute cadLengthScaleFactor = 4.43227740453;
             attribute cadMetadataScaleFactor = 4.43227740453;
             attribute cadSourceCenterOfMassXM = 0.310870675744;
@@ -166,7 +164,6 @@ package ECLIPSE_LSP1 {
             attribute cadCenterOfMassXM = 0.609205335822;
             attribute cadCenterOfMassYM = 0.844316722688;
             attribute cadCenterOfMassZM = 1.5671814238;
-            attribute cadFormat = "USDC";
             attribute cadLengthScaleFactor = 7.59785244966;
             attribute cadMetadataScaleFactor = 7.59785244966;
             attribute cadSourceCenterOfMassXM = 0.080181253829;
@@ -218,7 +215,6 @@ package ECLIPSE_LSP1 {
             attribute cadCenterOfMassXM = 0.0441818826344;
             attribute cadCenterOfMassYM = 0.098826606475;
             attribute cadCenterOfMassZM = 0.783243752505;
-            attribute cadFormat = "USDC";
             attribute cadLengthScaleFactor = 7.69049440686;
             attribute cadMetadataScaleFactor = 7.69049440686;
             attribute cadSourceCenterOfMassXM = -14.2430094959;
@@ -265,24 +261,26 @@ package ECLIPSE_LSP1 {
             satisfy requirement loxRoverEnergyTest :> LSP1_3::LSP1_3_3;
 
             // BEGIN AUTO CAD METADATA: LOXRover
-            attribute cadAreaScaleFactor = 10.1154088624;
-            attribute cadCenterOfMassXM = -2.49361335266e-08;
-            attribute cadCenterOfMassYM = -0.129871126758;
-            attribute cadCenterOfMassZM = 0.484521449619;
-            attribute cadFormat = "USDC";
-            attribute cadLengthScaleFactor = 3.18047305639;
-            attribute cadMetadataScaleFactor = 3.18047305639;
-            attribute cadSourceCenterOfMassXM = -7.84038508878e-09;
-            attribute cadSourceCenterOfMassYM = -0.0414928341309;
-            attribute cadSourceCenterOfMassZM = 0.15234095205;
-            attribute cadSourceFile = "LOXRover.usdc";
+            attribute cadAreaScaleFactor = 1.49943568337;
+            attribute cadCenterOfMassXM = -2.14102566277e-17;
+            attribute cadCenterOfMassYM = 1.50028229897;
+            attribute cadCenterOfMassZM = 0.306068111089;
+            attribute cadFormat = "STEP";
+            attribute cadLengthScaleFactor = 1.22451446842;
+            attribute cadMetadataScaleFactor = 1.22451446842;
+            attribute cadSourceCenterOfMassXM = -1.74846906099e-17;
+            attribute cadSourceCenterOfMassYM = 1.22520585723;
+            attribute cadSourceCenterOfMassZM = 3.78834963215e-17;
+            attribute cadSourceFile = "Viper Rover.STEP";
             attribute cadSourceFrontAxis = "+X";
-            attribute cadSourceSurfaceAreaM2 = 4.4549865837;
+            attribute cadSourceSurfaceAreaM2 = 19.714776743;
             attribute cadSourceUpAxis = "Y";
-            attribute cadSurfaceAreaM2 = 45.0640107708;
-            attribute cadVolumeAvailable = false;
-            attribute cadVolumeScaleFactor = 32.1717853414;
-            attribute cadVolumeStatus = "mesh_not_watertight";
+            attribute cadSourceVolumeM3 = 3.92712415182;
+            attribute cadSurfaceAreaM2 = 29.5610397381;
+            attribute cadVolumeAvailable = true;
+            attribute cadVolumeM3 = 7.21051681747;
+            attribute cadVolumeScaleFactor = 1.83608068875;
+            attribute cadVolumeStatus = "available";
             // END AUTO CAD METADATA: LOXRover
 
         }
@@ -333,7 +331,6 @@ package ECLIPSE_LSP1 {
             attribute cadCenterOfMassXM = 0.454395652488;
             attribute cadCenterOfMassYM = 0.248785183066;
             attribute cadCenterOfMassZM = 0.754174470046;
-            attribute cadFormat = "USDC";
             attribute cadLengthScaleFactor = 13.3333334783;
             attribute cadMetadataScaleFactor = 13.3333334783;
             attribute cadSourceCenterOfMassXM = 0.00790950754972;
@@ -383,13 +380,13 @@ package ECLIPSE_LSP1 {
             satisfy requirement regolithRoverRangeTest :> LSP1_2::LSP1_2_5;
 
             // BEGIN AUTO CAD METADATA: RegolithRover
-            attribute cadAreaScaleFactor = 1.49943568337;
-            attribute cadCenterOfMassXM = -2.14102566277e-17;
-            attribute cadCenterOfMassYM = 1.50028229897;
-            attribute cadCenterOfMassZM = 0.306068111089;
+            attribute cadAreaScaleFactor = 3.84467526874;
+            attribute cadCenterOfMassXM = -3.42837077193e-17;
+            attribute cadCenterOfMassYM = 0.490551239096;
+            attribute cadCenterOfMassZM = 1.5;
             attribute cadFormat = "STEP";
-            attribute cadLengthScaleFactor = 1.22451446842;
-            attribute cadMetadataScaleFactor = 1.22451446842;
+            attribute cadLengthScaleFactor = 1.96078435039;
+            attribute cadMetadataScaleFactor = 1.96078435039;
             attribute cadSourceCenterOfMassXM = -1.74846906099e-17;
             attribute cadSourceCenterOfMassYM = 1.22520585723;
             attribute cadSourceCenterOfMassZM = 3.78834963215e-17;
@@ -398,10 +395,10 @@ package ECLIPSE_LSP1 {
             attribute cadSourceSurfaceAreaM2 = 19.714776743;
             attribute cadSourceUpAxis = "Y";
             attribute cadSourceVolumeM3 = 3.92712415182;
-            attribute cadSurfaceAreaM2 = 29.5610397381;
+            attribute cadSurfaceAreaM2 = 75.7969145727;
             attribute cadVolumeAvailable = true;
-            attribute cadVolumeM3 = 7.21051681747;
-            attribute cadVolumeScaleFactor = 1.83608068875;
+            attribute cadVolumeM3 = 29.6049360512;
+            attribute cadVolumeScaleFactor = 7.53857909928;
             attribute cadVolumeStatus = "available";
             // END AUTO CAD METADATA: RegolithRover
 
@@ -442,7 +439,6 @@ package ECLIPSE_LSP1 {
             attribute cadCenterOfMassXM = -0.131913291676;
             attribute cadCenterOfMassYM = -0.0892818044328;
             attribute cadCenterOfMassZM = 0.12265806199;
-            attribute cadFormat = "USDC";
             attribute cadLengthScaleFactor = 0.612057379885;
             attribute cadMetadataScaleFactor = 0.612057379885;
             attribute cadSourceCenterOfMassXM = 0.251615315939;
