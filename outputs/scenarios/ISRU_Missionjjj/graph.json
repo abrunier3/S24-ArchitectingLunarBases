@@ -1,10 +1,9 @@
 {
-  "written_at": 1795642523355,
+  "written_at": 1795642564853,
   "scenario_name": "ISRU_Missionjjj",
   "scenario_slug": "ISRU_Missionjjj",
   "sysml_file": "clean_database/sysml/ISRU_Missionjjj.sysml",
   "active_nodes": [
-    "HabitationModule",
     "ISRUPlant",
     "LaunchLandingZone",
     "PropellantDepot",
@@ -13,7 +12,7 @@
     "RegolithRover",
     "ISRUExcavation"
   ],
-  "active_nodes_count": 8,
+  "active_nodes_count": 7,
   "connections": [
     {
       "name": "ISRUPlantToRover",
@@ -65,19 +64,6 @@
       "to": {
         "part": "ISRUPlant",
         "port": "ISRU_PowerPortIn"
-      }
-    },
-    {
-      "name": "PowerGenToHabMod",
-      "type": "PowerMovement",
-      "flow": "Power",
-      "from": {
-        "part": "SolarPowerSystem",
-        "port": "Power_PowerPortOutToHabitationModule"
-      },
-      "to": {
-        "part": "HabitationModule",
-        "port": "Habitation_PowerPortIn"
       }
     },
     {
@@ -134,68 +120,6 @@
     }
   ],
   "parts": {
-    "HabitationModule": {
-      "id": "urn:S24_PIPELINE:part:HabitationModule:001",
-      "type": "Part",
-      "dimensions": {
-        "size_m": {
-          "length": 20.0,
-          "width": 10.0,
-          "height": 8.0
-        },
-        "metersPerUnit": 1,
-        "upAxis": "Z"
-      },
-      "transform": {
-        "position_m": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "rotation_deg": [
-          0.0,
-          0.0,
-          0.0
-        ]
-      },
-      "attributes": {
-        "constantPowerRate": 5.0,
-        "totalEnergyConsumed": 0.0,
-        "HabitationModule_volume_m3": 1600.0,
-        "cadAreaScaleFactor": 403.580063574,
-        "cadCenterOfMassXM": 0.685675050283,
-        "cadCenterOfMassYM": 3.28553946567,
-        "cadCenterOfMassZM": 0.954978730281,
-        "cadLengthScaleFactor": 20.0893022172,
-        "cadMetadataScaleFactor": 20.0893022172,
-        "cadSourceCenterOfMassXM": -0.0450327138669,
-        "cadSourceCenterOfMassYM": 0.37874091546,
-        "cadSourceCenterOfMassZM": 0.0373024441854,
-        "cadSourceSurfaceAreaM2": 1.60374852394,
-        "cadSurfaceAreaM2": 647.240931246,
-        "cadVolumeScaleFactor": 8107.64186597
-      },
-      "materialRef": null,
-      "ports": [
-        {
-          "name": "Habitation_PowerPortIn",
-          "direction": [
-            "in"
-          ],
-          "items": [
-            "PowerIn"
-          ]
-        }
-      ],
-      "metadata": {
-        "geometryRef": "assets/geom/HabitationModule_geom.usda",
-        "cadSourceFile": "habitationmodule.usdc",
-        "cadSourceFrontAxis": "+X",
-        "cadSourceUpAxis": "Y",
-        "cadVolumeAvailable": "false",
-        "cadVolumeStatus": "mesh_not_watertight"
-      }
-    },
     "ISRUPlant": {
       "id": "urn:S24_PIPELINE:part:ISRUPlant:001",
       "type": "Part",
