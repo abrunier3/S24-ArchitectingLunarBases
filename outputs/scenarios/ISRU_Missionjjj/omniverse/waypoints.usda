@@ -8,135 +8,234 @@ def Xform "World"
 {
     def Xform "Connections"
     {
-        def BasisCurves "HabitationModuleToPropellantDepot"
+        def BasisCurves "LaunchLandingZoneToPropellantDepot"
         {
             uniform token basis = "bezier"
-            custom double connection:distanceKm = 0.854
+            custom double connection:distanceKm = 0.958
             custom string connection:flow = "LOX"
-            custom string connection:name = "HabitationModuleToPropellantDepot"
-            custom int connection:numWaypoints = 4
-            custom string connection:sourcePart = "HabitationModule"
+            custom string connection:name = "LaunchLandingZoneToPropellantDepot"
+            custom int connection:numWaypoints = 5
+            custom string connection:sourcePart = "LaunchLandingZone"
             custom string connection:sourcePort = ""
             custom string connection:targetPart = "PropellantDepot"
             custom string connection:targetPort = ""
             custom string connection:type = "UrbanPlanningRoute"
-            int[] curveVertexCounts = [4]
-            point3f[] points = [(-192.5, 227.5, 0), (-405.83, 39.17, 0), (-619.17, -149.17, 0), (-832.5, -337.5, 0)]
+            int[] curveVertexCounts = [5]
+            point3f[] points = [(-1252.5, 970, 0), (-1252.5, 777.5, 0), (-1252.5, 585, 0), (-1060, 372.5, 0), (-867.5, 160, 0)]
             color3f[] primvars:displayColor = [(0, 0.25, 1)]
             uniform token type = "linear"
             float[] widths = [4]
         }
 
-        def BasisCurves "HabitationModuleToLaunchLandingZone"
+        def BasisCurves "PropellantDepotToISRUExcavation"
         {
             uniform token basis = "bezier"
-            custom double connection:distanceKm = 0.837
-            custom string connection:flow = "LOX"
-            custom string connection:name = "HabitationModuleToLaunchLandingZone"
-            custom int connection:numWaypoints = 4
-            custom string connection:sourcePart = "HabitationModule"
-            custom string connection:sourcePort = ""
-            custom string connection:targetPart = "LaunchLandingZone"
-            custom string connection:targetPort = ""
-            custom string connection:type = "UrbanPlanningRoute"
-            int[] curveVertexCounts = [4]
-            point3f[] points = [(-192.5, 227.5, 0), (-27.5, 452.5, 0), (137.5, 677.5, 0), (302.5, 902.5, 0)]
-            color3f[] primvars:displayColor = [(0, 0.25, 1)]
-            uniform token type = "linear"
-            float[] widths = [4]
-        }
-
-        def BasisCurves "LaunchLandingZoneToISRUExcavation"
-        {
-            uniform token basis = "bezier"
-            custom double connection:distanceKm = 1.669
+            custom double connection:distanceKm = 0.72
             custom string connection:flow = "Regolith"
-            custom string connection:name = "LaunchLandingZoneToISRUExcavation"
-            custom int connection:numWaypoints = 8
-            custom string connection:sourcePart = "LaunchLandingZone"
+            custom string connection:name = "PropellantDepotToISRUExcavation"
+            custom int connection:numWaypoints = 4
+            custom string connection:sourcePart = "PropellantDepot"
             custom string connection:sourcePort = ""
             custom string connection:targetPart = "ISRUExcavation"
             custom string connection:targetPort = ""
             custom string connection:type = "UrbanPlanningRoute"
-            int[] curveVertexCounts = [8]
-            point3f[] points = [(302.5, 902.5, 0), (479.5, 718.5, 0), (656.5, 534.5, 0), (833.5, 350.5, 0), (1010.5, 166.5, 0), (1187.5, -17.5, 0), (1167.5, 177.5, 0), (1147.5, 372.5, 0)]
+            int[] curveVertexCounts = [4]
+            point3f[] points = [(-867.5, 160, 0), (-819.17, -75, 0), (-770.83, -310, 0), (-722.5, -545, 0)]
             color3f[] primvars:displayColor = [(0.45, 0.25, 0.05)]
             uniform token type = "linear"
             float[] widths = [4]
         }
 
-        def BasisCurves "ISRUExcavationToSolarPowerSystem"
+        def BasisCurves "PropellantDepotToISRUPlant_1"
         {
             uniform token basis = "bezier"
-            custom double connection:distanceKm = 0.603
-            custom string connection:flow = "Regolith"
-            custom string connection:name = "ISRUExcavationToSolarPowerSystem"
+            custom double connection:distanceKm = 0.752
+            custom string connection:flow = "LOX"
+            custom string connection:name = "PropellantDepotToISRUPlant_1"
             custom int connection:numWaypoints = 4
-            custom string connection:sourcePart = "ISRUExcavation"
+            custom string connection:sourcePart = "PropellantDepot"
+            custom string connection:sourcePort = ""
+            custom string connection:targetPart = "ISRUPlant_1"
+            custom string connection:targetPort = ""
+            custom string connection:type = "UrbanPlanningRoute"
+            int[] curveVertexCounts = [4]
+            point3f[] points = [(-867.5, 160, 0), (-619.17, 195, 0), (-370.83, 230, 0), (-122.5, 265, 0)]
+            color3f[] primvars:displayColor = [(0, 0.25, 1)]
+            uniform token type = "linear"
+            float[] widths = [4]
+        }
+
+        def BasisCurves "ISRUPlant_1ToSolarPowerSystem"
+        {
+            uniform token basis = "bezier"
+            custom double connection:distanceKm = 0.776
+            custom string connection:flow = "Power"
+            custom string connection:name = "ISRUPlant_1ToSolarPowerSystem"
+            custom int connection:numWaypoints = 4
+            custom string connection:sourcePart = "ISRUPlant_1"
             custom string connection:sourcePort = ""
             custom string connection:targetPart = "SolarPowerSystem"
             custom string connection:targetPort = ""
             custom string connection:type = "UrbanPlanningRoute"
             int[] curveVertexCounts = [4]
-            point3f[] points = [(1147.5, 372.5, 0), (1077.5, 184.17, 0), (1007.5, -4.17, 0), (937.5, -192.5, 0)]
-            color3f[] primvars:displayColor = [(0.45, 0.25, 0.05)]
+            point3f[] points = [(-122.5, 265, 0), (-134.17, 523.33, 0), (-145.83, 781.67, 0), (-157.5, 1040, 0)]
+            color3f[] primvars:displayColor = [(1, 0, 0)]
             uniform token type = "linear"
             float[] widths = [4]
         }
 
-        def BasisCurves "HabitationModuleToISRUPlant"
+        def BasisCurves "SolarPowerSystemToISRUPlant_2"
         {
             uniform token basis = "bezier"
-            custom double connection:distanceKm = 1.635
-            custom string connection:flow = "Structural"
-            custom string connection:name = "HabitationModuleToISRUPlant"
-            custom int connection:numWaypoints = 8
-            custom string connection:sourcePart = "HabitationModule"
+            custom double connection:distanceKm = 0.659
+            custom string connection:flow = "Power"
+            custom string connection:name = "SolarPowerSystemToISRUPlant_2"
+            custom int connection:numWaypoints = 4
+            custom string connection:sourcePart = "SolarPowerSystem"
             custom string connection:sourcePort = ""
-            custom string connection:targetPart = "ISRUPlant"
+            custom string connection:targetPart = "ISRUPlant_2"
             custom string connection:targetPort = ""
             custom string connection:type = "UrbanPlanningRoute"
-            int[] curveVertexCounts = [8]
-            point3f[] points = [(-192.5, 227.5, 0), (-426.5, 312.5, 0), (-660.5, 397.5, 0), (-894.5, 482.5, 0), (-1128.5, 567.5, 0), (-1362.5, 652.5, 0), (-1362.5, 847.5, 0), (-1362.5, 1042.5, 0)]
+            int[] curveVertexCounts = [4]
+            point3f[] points = [(-157.5, 1040, 0), (54.17, 981.67, 0), (265.83, 923.33, 0), (477.5, 865, 0)]
+            color3f[] primvars:displayColor = [(1, 0, 0)]
+            uniform token type = "linear"
+            float[] widths = [4]
+        }
+
+        def BasisCurves "ISRUPlant_2ToISRUPlant_3"
+        {
+            uniform token basis = "bezier"
+            custom double connection:distanceKm = 0.481
+            custom string connection:flow = "Structural"
+            custom string connection:name = "ISRUPlant_2ToISRUPlant_3"
+            custom int connection:numWaypoints = 3
+            custom string connection:sourcePart = "ISRUPlant_2"
+            custom string connection:sourcePort = ""
+            custom string connection:targetPart = "ISRUPlant_3"
+            custom string connection:targetPort = ""
+            custom string connection:type = "UrbanPlanningRoute"
+            int[] curveVertexCounts = [3]
+            point3f[] points = [(477.5, 865, 0), (707.5, 795, 0), (937.5, 725, 0)]
             color3f[] primvars:displayColor = [(0.5, 0.5, 0.5)]
             uniform token type = "linear"
             float[] widths = [4]
         }
 
-        def BasisCurves "ISRUExcavationToISRUPlant_Regolith"
+        def BasisCurves "ISRUExcavationToISRUPlant_1_Regolith"
         {
             uniform token basis = "bezier"
-            custom double connection:distanceKm = 4.141
+            custom double connection:distanceKm = 1.472
             custom string connection:flow = "Regolith"
-            custom string connection:name = "ISRUExcavationToISRUPlant_Regolith"
-            custom int connection:numWaypoints = 18
+            custom string connection:name = "ISRUExcavationToISRUPlant_1_Regolith"
+            custom int connection:numWaypoints = 7
             custom string connection:sourcePart = "Unknown"
             custom string connection:sourcePort = ""
             custom string connection:targetPart = "Unknown"
             custom string connection:targetPort = ""
             custom string connection:type = "UrbanPlanningRoute"
-            int[] curveVertexCounts = [18]
-            point3f[] points = [(1147.5, 372.5, 0), (1167.5, 177.5, 0), (1187.5, -17.5, 0), (1010.5, 166.5, 0), (833.5, 350.5, 0), (656.5, 534.5, 0), (479.5, 718.5, 0), (302.5, 902.5, 0), (137.5, 677.5, 0), (-27.5, 452.5, 0), (-192.5, 227.5, 0), (-426.5, 312.5, 0), (-660.5, 397.5, 0), (-894.5, 482.5, 0), (-1128.5, 567.5, 0), (-1362.5, 652.5, 0), (-1362.5, 847.5, 0), (-1362.5, 1042.5, 0)]
+            int[] curveVertexCounts = [7]
+            point3f[] points = [(-722.5, -545, 0), (-770.83, -310, 0), (-819.17, -75, 0), (-867.5, 160, 0), (-619.17, 195, 0), (-370.83, 230, 0), (-122.5, 265, 0)]
             color3f[] primvars:displayColor = [(0.45, 0.25, 0.05)]
             uniform token type = "linear"
             token visibility = "invisible"
             float[] widths = [4]
         }
 
-        def BasisCurves "ISRUPlantToPropellantDepot_LOX"
+        def BasisCurves "ISRUExcavationToISRUPlant_2_Regolith"
         {
             uniform token basis = "bezier"
-            custom double connection:distanceKm = 2.489
-            custom string connection:flow = "LOX"
-            custom string connection:name = "ISRUPlantToPropellantDepot_LOX"
-            custom int connection:numWaypoints = 11
+            custom double connection:distanceKm = 2.907
+            custom string connection:flow = "Regolith"
+            custom string connection:name = "ISRUExcavationToISRUPlant_2_Regolith"
+            custom int connection:numWaypoints = 13
             custom string connection:sourcePart = "Unknown"
             custom string connection:sourcePort = ""
             custom string connection:targetPart = "Unknown"
             custom string connection:targetPort = ""
             custom string connection:type = "UrbanPlanningRoute"
-            int[] curveVertexCounts = [11]
-            point3f[] points = [(-1362.5, 1042.5, 0), (-1362.5, 847.5, 0), (-1362.5, 652.5, 0), (-1128.5, 567.5, 0), (-894.5, 482.5, 0), (-660.5, 397.5, 0), (-426.5, 312.5, 0), (-192.5, 227.5, 0), (-405.83, 39.17, 0), (-619.17, -149.17, 0), (-832.5, -337.5, 0)]
+            int[] curveVertexCounts = [13]
+            point3f[] points = [(-722.5, -545, 0), (-770.83, -310, 0), (-819.17, -75, 0), (-867.5, 160, 0), (-619.17, 195, 0), (-370.83, 230, 0), (-122.5, 265, 0), (-134.17, 523.33, 0), (-145.83, 781.67, 0), (-157.5, 1040, 0), (54.17, 981.67, 0), (265.83, 923.33, 0), (477.5, 865, 0)]
+            color3f[] primvars:displayColor = [(0.45, 0.25, 0.05)]
+            uniform token type = "linear"
+            token visibility = "invisible"
+            float[] widths = [4]
+        }
+
+        def BasisCurves "ISRUExcavationToISRUPlant_3_Regolith"
+        {
+            uniform token basis = "bezier"
+            custom double connection:distanceKm = 5.304
+            custom string connection:flow = "Regolith"
+            custom string connection:name = "ISRUExcavationToISRUPlant_3_Regolith"
+            custom int connection:numWaypoints = 23
+            custom string connection:sourcePart = "Unknown"
+            custom string connection:sourcePort = ""
+            custom string connection:targetPart = "Unknown"
+            custom string connection:targetPort = ""
+            custom string connection:type = "UrbanPlanningRoute"
+            int[] curveVertexCounts = [23]
+            point3f[] points = [(-722.5, -545, 0), (-770.83, -310, 0), (-819.17, -75, 0), (-867.5, 160, 0), (-1060, 372.5, 0), (-1252.5, 585, 0), (-1252.5, 777.5, 0), (-1252.5, 970, 0), (-1252.5, 777.5, 0), (-1252.5, 585, 0), (-1060, 372.5, 0), (-867.5, 160, 0), (-619.17, 195, 0), (-370.83, 230, 0), (-122.5, 265, 0), (-134.17, 523.33, 0), (-145.83, 781.67, 0), (-157.5, 1040, 0), (54.17, 981.67, 0), (265.83, 923.33, 0), (477.5, 865, 0), (707.5, 795, 0), (937.5, 725, 0)]
+            color3f[] primvars:displayColor = [(0.45, 0.25, 0.05)]
+            uniform token type = "linear"
+            token visibility = "invisible"
+            float[] widths = [4]
+        }
+
+        def BasisCurves "ISRUPlant_1ToPropellantDepot_LOX"
+        {
+            uniform token basis = "bezier"
+            custom double connection:distanceKm = 0.752
+            custom string connection:flow = "LOX"
+            custom string connection:name = "ISRUPlant_1ToPropellantDepot_LOX"
+            custom int connection:numWaypoints = 4
+            custom string connection:sourcePart = "Unknown"
+            custom string connection:sourcePort = ""
+            custom string connection:targetPart = "Unknown"
+            custom string connection:targetPort = ""
+            custom string connection:type = "UrbanPlanningRoute"
+            int[] curveVertexCounts = [4]
+            point3f[] points = [(-122.5, 265, 0), (-370.83, 230, 0), (-619.17, 195, 0), (-867.5, 160, 0)]
+            color3f[] primvars:displayColor = [(0, 0.25, 1)]
+            uniform token type = "linear"
+            token visibility = "invisible"
+            float[] widths = [4]
+        }
+
+        def BasisCurves "ISRUPlant_2ToPropellantDepot_LOX"
+        {
+            uniform token basis = "bezier"
+            custom double connection:distanceKm = 2.187
+            custom string connection:flow = "LOX"
+            custom string connection:name = "ISRUPlant_2ToPropellantDepot_LOX"
+            custom int connection:numWaypoints = 10
+            custom string connection:sourcePart = "Unknown"
+            custom string connection:sourcePort = ""
+            custom string connection:targetPart = "Unknown"
+            custom string connection:targetPort = ""
+            custom string connection:type = "UrbanPlanningRoute"
+            int[] curveVertexCounts = [10]
+            point3f[] points = [(477.5, 865, 0), (265.83, 923.33, 0), (54.17, 981.67, 0), (-157.5, 1040, 0), (-145.83, 781.67, 0), (-134.17, 523.33, 0), (-122.5, 265, 0), (-370.83, 230, 0), (-619.17, 195, 0), (-867.5, 160, 0)]
+            color3f[] primvars:displayColor = [(0, 0.25, 1)]
+            uniform token type = "linear"
+            token visibility = "invisible"
+            float[] widths = [4]
+        }
+
+        def BasisCurves "ISRUPlant_3ToPropellantDepot_LOX"
+        {
+            uniform token basis = "bezier"
+            custom double connection:distanceKm = 2.668
+            custom string connection:flow = "LOX"
+            custom string connection:name = "ISRUPlant_3ToPropellantDepot_LOX"
+            custom int connection:numWaypoints = 12
+            custom string connection:sourcePart = "Unknown"
+            custom string connection:sourcePort = ""
+            custom string connection:targetPart = "Unknown"
+            custom string connection:targetPort = ""
+            custom string connection:type = "UrbanPlanningRoute"
+            int[] curveVertexCounts = [12]
+            point3f[] points = [(937.5, 725, 0), (707.5, 795, 0), (477.5, 865, 0), (265.83, 923.33, 0), (54.17, 981.67, 0), (-157.5, 1040, 0), (-145.83, 781.67, 0), (-134.17, 523.33, 0), (-122.5, 265, 0), (-370.83, 230, 0), (-619.17, 195, 0), (-867.5, 160, 0)]
             color3f[] primvars:displayColor = [(0, 0.25, 1)]
             uniform token type = "linear"
             token visibility = "invisible"
@@ -146,14 +245,14 @@ def Xform "World"
 
     def Xform "ConnectionWaypoints"
     {
-        def Xform "HabitationModuleToPropellantDepot"
+        def Xform "LaunchLandingZoneToPropellantDepot"
         {
             def Sphere "Waypoint_000"
             {
                 color3f[] primvars:displayColor = [(0, 0.25, 1)]
                 double radius = 10
                 custom int waypoint:index = 0
-                double3 xformOp:translate = (-192.5, 227.5, 0)
+                double3 xformOp:translate = (-1252.5, 970, 0)
                 uniform token[] xformOpOrder = ["xformOp:translate"]
             }
 
@@ -162,7 +261,7 @@ def Xform "World"
                 color3f[] primvars:displayColor = [(0, 0.25, 1)]
                 double radius = 10
                 custom int waypoint:index = 1
-                double3 xformOp:translate = (-405.83, 39.17, 0)
+                double3 xformOp:translate = (-1252.5, 777.5, 0)
                 uniform token[] xformOpOrder = ["xformOp:translate"]
             }
 
@@ -171,7 +270,7 @@ def Xform "World"
                 color3f[] primvars:displayColor = [(0, 0.25, 1)]
                 double radius = 10
                 custom int waypoint:index = 2
-                double3 xformOp:translate = (-619.17, -149.17, 0)
+                double3 xformOp:translate = (-1252.5, 585, 0)
                 uniform token[] xformOpOrder = ["xformOp:translate"]
             }
 
@@ -180,133 +279,28 @@ def Xform "World"
                 color3f[] primvars:displayColor = [(0, 0.25, 1)]
                 double radius = 10
                 custom int waypoint:index = 3
-                double3 xformOp:translate = (-832.5, -337.5, 0)
-                uniform token[] xformOpOrder = ["xformOp:translate"]
-            }
-        }
-
-        def Xform "HabitationModuleToLaunchLandingZone"
-        {
-            def Sphere "Waypoint_000"
-            {
-                color3f[] primvars:displayColor = [(0, 0.25, 1)]
-                double radius = 10
-                custom int waypoint:index = 0
-                double3 xformOp:translate = (-192.5, 227.5, 0)
-                uniform token[] xformOpOrder = ["xformOp:translate"]
-            }
-
-            def Sphere "Waypoint_001"
-            {
-                color3f[] primvars:displayColor = [(0, 0.25, 1)]
-                double radius = 10
-                custom int waypoint:index = 1
-                double3 xformOp:translate = (-27.5, 452.5, 0)
-                uniform token[] xformOpOrder = ["xformOp:translate"]
-            }
-
-            def Sphere "Waypoint_002"
-            {
-                color3f[] primvars:displayColor = [(0, 0.25, 1)]
-                double radius = 10
-                custom int waypoint:index = 2
-                double3 xformOp:translate = (137.5, 677.5, 0)
-                uniform token[] xformOpOrder = ["xformOp:translate"]
-            }
-
-            def Sphere "Waypoint_003"
-            {
-                color3f[] primvars:displayColor = [(0, 0.25, 1)]
-                double radius = 10
-                custom int waypoint:index = 3
-                double3 xformOp:translate = (302.5, 902.5, 0)
-                uniform token[] xformOpOrder = ["xformOp:translate"]
-            }
-        }
-
-        def Xform "LaunchLandingZoneToISRUExcavation"
-        {
-            def Sphere "Waypoint_000"
-            {
-                color3f[] primvars:displayColor = [(0.45, 0.25, 0.05)]
-                double radius = 10
-                custom int waypoint:index = 0
-                double3 xformOp:translate = (302.5, 902.5, 0)
-                uniform token[] xformOpOrder = ["xformOp:translate"]
-            }
-
-            def Sphere "Waypoint_001"
-            {
-                color3f[] primvars:displayColor = [(0.45, 0.25, 0.05)]
-                double radius = 10
-                custom int waypoint:index = 1
-                double3 xformOp:translate = (479.5, 718.5, 0)
-                uniform token[] xformOpOrder = ["xformOp:translate"]
-            }
-
-            def Sphere "Waypoint_002"
-            {
-                color3f[] primvars:displayColor = [(0.45, 0.25, 0.05)]
-                double radius = 10
-                custom int waypoint:index = 2
-                double3 xformOp:translate = (656.5, 534.5, 0)
-                uniform token[] xformOpOrder = ["xformOp:translate"]
-            }
-
-            def Sphere "Waypoint_003"
-            {
-                color3f[] primvars:displayColor = [(0.45, 0.25, 0.05)]
-                double radius = 10
-                custom int waypoint:index = 3
-                double3 xformOp:translate = (833.5, 350.5, 0)
+                double3 xformOp:translate = (-1060, 372.5, 0)
                 uniform token[] xformOpOrder = ["xformOp:translate"]
             }
 
             def Sphere "Waypoint_004"
             {
-                color3f[] primvars:displayColor = [(0.45, 0.25, 0.05)]
+                color3f[] primvars:displayColor = [(0, 0.25, 1)]
                 double radius = 10
                 custom int waypoint:index = 4
-                double3 xformOp:translate = (1010.5, 166.5, 0)
-                uniform token[] xformOpOrder = ["xformOp:translate"]
-            }
-
-            def Sphere "Waypoint_005"
-            {
-                color3f[] primvars:displayColor = [(0.45, 0.25, 0.05)]
-                double radius = 10
-                custom int waypoint:index = 5
-                double3 xformOp:translate = (1187.5, -17.5, 0)
-                uniform token[] xformOpOrder = ["xformOp:translate"]
-            }
-
-            def Sphere "Waypoint_006"
-            {
-                color3f[] primvars:displayColor = [(0.45, 0.25, 0.05)]
-                double radius = 10
-                custom int waypoint:index = 6
-                double3 xformOp:translate = (1167.5, 177.5, 0)
-                uniform token[] xformOpOrder = ["xformOp:translate"]
-            }
-
-            def Sphere "Waypoint_007"
-            {
-                color3f[] primvars:displayColor = [(0.45, 0.25, 0.05)]
-                double radius = 10
-                custom int waypoint:index = 7
-                double3 xformOp:translate = (1147.5, 372.5, 0)
+                double3 xformOp:translate = (-867.5, 160, 0)
                 uniform token[] xformOpOrder = ["xformOp:translate"]
             }
         }
 
-        def Xform "ISRUExcavationToSolarPowerSystem"
+        def Xform "PropellantDepotToISRUExcavation"
         {
             def Sphere "Waypoint_000"
             {
                 color3f[] primvars:displayColor = [(0.45, 0.25, 0.05)]
                 double radius = 10
                 custom int waypoint:index = 0
-                double3 xformOp:translate = (1147.5, 372.5, 0)
+                double3 xformOp:translate = (-867.5, 160, 0)
                 uniform token[] xformOpOrder = ["xformOp:translate"]
             }
 
@@ -315,7 +309,7 @@ def Xform "World"
                 color3f[] primvars:displayColor = [(0.45, 0.25, 0.05)]
                 double radius = 10
                 custom int waypoint:index = 1
-                double3 xformOp:translate = (1077.5, 184.17, 0)
+                double3 xformOp:translate = (-819.17, -75, 0)
                 uniform token[] xformOpOrder = ["xformOp:translate"]
             }
 
@@ -324,7 +318,7 @@ def Xform "World"
                 color3f[] primvars:displayColor = [(0.45, 0.25, 0.05)]
                 double radius = 10
                 custom int waypoint:index = 2
-                double3 xformOp:translate = (1007.5, -4.17, 0)
+                double3 xformOp:translate = (-770.83, -310, 0)
                 uniform token[] xformOpOrder = ["xformOp:translate"]
             }
 
@@ -333,19 +327,136 @@ def Xform "World"
                 color3f[] primvars:displayColor = [(0.45, 0.25, 0.05)]
                 double radius = 10
                 custom int waypoint:index = 3
-                double3 xformOp:translate = (937.5, -192.5, 0)
+                double3 xformOp:translate = (-722.5, -545, 0)
                 uniform token[] xformOpOrder = ["xformOp:translate"]
             }
         }
 
-        def Xform "HabitationModuleToISRUPlant"
+        def Xform "PropellantDepotToISRUPlant_1"
+        {
+            def Sphere "Waypoint_000"
+            {
+                color3f[] primvars:displayColor = [(0, 0.25, 1)]
+                double radius = 10
+                custom int waypoint:index = 0
+                double3 xformOp:translate = (-867.5, 160, 0)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+            }
+
+            def Sphere "Waypoint_001"
+            {
+                color3f[] primvars:displayColor = [(0, 0.25, 1)]
+                double radius = 10
+                custom int waypoint:index = 1
+                double3 xformOp:translate = (-619.17, 195, 0)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+            }
+
+            def Sphere "Waypoint_002"
+            {
+                color3f[] primvars:displayColor = [(0, 0.25, 1)]
+                double radius = 10
+                custom int waypoint:index = 2
+                double3 xformOp:translate = (-370.83, 230, 0)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+            }
+
+            def Sphere "Waypoint_003"
+            {
+                color3f[] primvars:displayColor = [(0, 0.25, 1)]
+                double radius = 10
+                custom int waypoint:index = 3
+                double3 xformOp:translate = (-122.5, 265, 0)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+            }
+        }
+
+        def Xform "ISRUPlant_1ToSolarPowerSystem"
+        {
+            def Sphere "Waypoint_000"
+            {
+                color3f[] primvars:displayColor = [(1, 0, 0)]
+                double radius = 10
+                custom int waypoint:index = 0
+                double3 xformOp:translate = (-122.5, 265, 0)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+            }
+
+            def Sphere "Waypoint_001"
+            {
+                color3f[] primvars:displayColor = [(1, 0, 0)]
+                double radius = 10
+                custom int waypoint:index = 1
+                double3 xformOp:translate = (-134.17, 523.33, 0)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+            }
+
+            def Sphere "Waypoint_002"
+            {
+                color3f[] primvars:displayColor = [(1, 0, 0)]
+                double radius = 10
+                custom int waypoint:index = 2
+                double3 xformOp:translate = (-145.83, 781.67, 0)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+            }
+
+            def Sphere "Waypoint_003"
+            {
+                color3f[] primvars:displayColor = [(1, 0, 0)]
+                double radius = 10
+                custom int waypoint:index = 3
+                double3 xformOp:translate = (-157.5, 1040, 0)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+            }
+        }
+
+        def Xform "SolarPowerSystemToISRUPlant_2"
+        {
+            def Sphere "Waypoint_000"
+            {
+                color3f[] primvars:displayColor = [(1, 0, 0)]
+                double radius = 10
+                custom int waypoint:index = 0
+                double3 xformOp:translate = (-157.5, 1040, 0)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+            }
+
+            def Sphere "Waypoint_001"
+            {
+                color3f[] primvars:displayColor = [(1, 0, 0)]
+                double radius = 10
+                custom int waypoint:index = 1
+                double3 xformOp:translate = (54.17, 981.67, 0)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+            }
+
+            def Sphere "Waypoint_002"
+            {
+                color3f[] primvars:displayColor = [(1, 0, 0)]
+                double radius = 10
+                custom int waypoint:index = 2
+                double3 xformOp:translate = (265.83, 923.33, 0)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+            }
+
+            def Sphere "Waypoint_003"
+            {
+                color3f[] primvars:displayColor = [(1, 0, 0)]
+                double radius = 10
+                custom int waypoint:index = 3
+                double3 xformOp:translate = (477.5, 865, 0)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+            }
+        }
+
+        def Xform "ISRUPlant_2ToISRUPlant_3"
         {
             def Sphere "Waypoint_000"
             {
                 color3f[] primvars:displayColor = [(0.5, 0.5, 0.5)]
                 double radius = 10
                 custom int waypoint:index = 0
-                double3 xformOp:translate = (-192.5, 227.5, 0)
+                double3 xformOp:translate = (477.5, 865, 0)
                 uniform token[] xformOpOrder = ["xformOp:translate"]
             }
 
@@ -354,7 +465,7 @@ def Xform "World"
                 color3f[] primvars:displayColor = [(0.5, 0.5, 0.5)]
                 double radius = 10
                 custom int waypoint:index = 1
-                double3 xformOp:translate = (-426.5, 312.5, 0)
+                double3 xformOp:translate = (707.5, 795, 0)
                 uniform token[] xformOpOrder = ["xformOp:translate"]
             }
 
@@ -363,57 +474,12 @@ def Xform "World"
                 color3f[] primvars:displayColor = [(0.5, 0.5, 0.5)]
                 double radius = 10
                 custom int waypoint:index = 2
-                double3 xformOp:translate = (-660.5, 397.5, 0)
-                uniform token[] xformOpOrder = ["xformOp:translate"]
-            }
-
-            def Sphere "Waypoint_003"
-            {
-                color3f[] primvars:displayColor = [(0.5, 0.5, 0.5)]
-                double radius = 10
-                custom int waypoint:index = 3
-                double3 xformOp:translate = (-894.5, 482.5, 0)
-                uniform token[] xformOpOrder = ["xformOp:translate"]
-            }
-
-            def Sphere "Waypoint_004"
-            {
-                color3f[] primvars:displayColor = [(0.5, 0.5, 0.5)]
-                double radius = 10
-                custom int waypoint:index = 4
-                double3 xformOp:translate = (-1128.5, 567.5, 0)
-                uniform token[] xformOpOrder = ["xformOp:translate"]
-            }
-
-            def Sphere "Waypoint_005"
-            {
-                color3f[] primvars:displayColor = [(0.5, 0.5, 0.5)]
-                double radius = 10
-                custom int waypoint:index = 5
-                double3 xformOp:translate = (-1362.5, 652.5, 0)
-                uniform token[] xformOpOrder = ["xformOp:translate"]
-            }
-
-            def Sphere "Waypoint_006"
-            {
-                color3f[] primvars:displayColor = [(0.5, 0.5, 0.5)]
-                double radius = 10
-                custom int waypoint:index = 6
-                double3 xformOp:translate = (-1362.5, 847.5, 0)
-                uniform token[] xformOpOrder = ["xformOp:translate"]
-            }
-
-            def Sphere "Waypoint_007"
-            {
-                color3f[] primvars:displayColor = [(0.5, 0.5, 0.5)]
-                double radius = 10
-                custom int waypoint:index = 7
-                double3 xformOp:translate = (-1362.5, 1042.5, 0)
+                double3 xformOp:translate = (937.5, 725, 0)
                 uniform token[] xformOpOrder = ["xformOp:translate"]
             }
         }
 
-        def Xform "ISRUExcavationToISRUPlant_Regolith"
+        def Xform "ISRUExcavationToISRUPlant_1_Regolith"
         {
             def Sphere "Waypoint_000"
             {
@@ -421,7 +487,7 @@ def Xform "World"
                 double radius = 10
                 token visibility = "invisible"
                 custom int waypoint:index = 0
-                double3 xformOp:translate = (1147.5, 372.5, 0)
+                double3 xformOp:translate = (-722.5, -545, 0)
                 uniform token[] xformOpOrder = ["xformOp:translate"]
             }
 
@@ -431,7 +497,7 @@ def Xform "World"
                 double radius = 10
                 token visibility = "invisible"
                 custom int waypoint:index = 1
-                double3 xformOp:translate = (1167.5, 177.5, 0)
+                double3 xformOp:translate = (-770.83, -310, 0)
                 uniform token[] xformOpOrder = ["xformOp:translate"]
             }
 
@@ -441,7 +507,7 @@ def Xform "World"
                 double radius = 10
                 token visibility = "invisible"
                 custom int waypoint:index = 2
-                double3 xformOp:translate = (1187.5, -17.5, 0)
+                double3 xformOp:translate = (-819.17, -75, 0)
                 uniform token[] xformOpOrder = ["xformOp:translate"]
             }
 
@@ -451,7 +517,7 @@ def Xform "World"
                 double radius = 10
                 token visibility = "invisible"
                 custom int waypoint:index = 3
-                double3 xformOp:translate = (1010.5, 166.5, 0)
+                double3 xformOp:translate = (-867.5, 160, 0)
                 uniform token[] xformOpOrder = ["xformOp:translate"]
             }
 
@@ -461,7 +527,7 @@ def Xform "World"
                 double radius = 10
                 token visibility = "invisible"
                 custom int waypoint:index = 4
-                double3 xformOp:translate = (833.5, 350.5, 0)
+                double3 xformOp:translate = (-619.17, 195, 0)
                 uniform token[] xformOpOrder = ["xformOp:translate"]
             }
 
@@ -471,7 +537,7 @@ def Xform "World"
                 double radius = 10
                 token visibility = "invisible"
                 custom int waypoint:index = 5
-                double3 xformOp:translate = (656.5, 534.5, 0)
+                double3 xformOp:translate = (-370.83, 230, 0)
                 uniform token[] xformOpOrder = ["xformOp:translate"]
             }
 
@@ -481,7 +547,80 @@ def Xform "World"
                 double radius = 10
                 token visibility = "invisible"
                 custom int waypoint:index = 6
-                double3 xformOp:translate = (479.5, 718.5, 0)
+                double3 xformOp:translate = (-122.5, 265, 0)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+            }
+        }
+
+        def Xform "ISRUExcavationToISRUPlant_2_Regolith"
+        {
+            def Sphere "Waypoint_000"
+            {
+                color3f[] primvars:displayColor = [(0.45, 0.25, 0.05)]
+                double radius = 10
+                token visibility = "invisible"
+                custom int waypoint:index = 0
+                double3 xformOp:translate = (-722.5, -545, 0)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+            }
+
+            def Sphere "Waypoint_001"
+            {
+                color3f[] primvars:displayColor = [(0.45, 0.25, 0.05)]
+                double radius = 10
+                token visibility = "invisible"
+                custom int waypoint:index = 1
+                double3 xformOp:translate = (-770.83, -310, 0)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+            }
+
+            def Sphere "Waypoint_002"
+            {
+                color3f[] primvars:displayColor = [(0.45, 0.25, 0.05)]
+                double radius = 10
+                token visibility = "invisible"
+                custom int waypoint:index = 2
+                double3 xformOp:translate = (-819.17, -75, 0)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+            }
+
+            def Sphere "Waypoint_003"
+            {
+                color3f[] primvars:displayColor = [(0.45, 0.25, 0.05)]
+                double radius = 10
+                token visibility = "invisible"
+                custom int waypoint:index = 3
+                double3 xformOp:translate = (-867.5, 160, 0)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+            }
+
+            def Sphere "Waypoint_004"
+            {
+                color3f[] primvars:displayColor = [(0.45, 0.25, 0.05)]
+                double radius = 10
+                token visibility = "invisible"
+                custom int waypoint:index = 4
+                double3 xformOp:translate = (-619.17, 195, 0)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+            }
+
+            def Sphere "Waypoint_005"
+            {
+                color3f[] primvars:displayColor = [(0.45, 0.25, 0.05)]
+                double radius = 10
+                token visibility = "invisible"
+                custom int waypoint:index = 5
+                double3 xformOp:translate = (-370.83, 230, 0)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+            }
+
+            def Sphere "Waypoint_006"
+            {
+                color3f[] primvars:displayColor = [(0.45, 0.25, 0.05)]
+                double radius = 10
+                token visibility = "invisible"
+                custom int waypoint:index = 6
+                double3 xformOp:translate = (-122.5, 265, 0)
                 uniform token[] xformOpOrder = ["xformOp:translate"]
             }
 
@@ -491,7 +630,7 @@ def Xform "World"
                 double radius = 10
                 token visibility = "invisible"
                 custom int waypoint:index = 7
-                double3 xformOp:translate = (302.5, 902.5, 0)
+                double3 xformOp:translate = (-134.17, 523.33, 0)
                 uniform token[] xformOpOrder = ["xformOp:translate"]
             }
 
@@ -501,7 +640,7 @@ def Xform "World"
                 double radius = 10
                 token visibility = "invisible"
                 custom int waypoint:index = 8
-                double3 xformOp:translate = (137.5, 677.5, 0)
+                double3 xformOp:translate = (-145.83, 781.67, 0)
                 uniform token[] xformOpOrder = ["xformOp:translate"]
             }
 
@@ -511,7 +650,7 @@ def Xform "World"
                 double radius = 10
                 token visibility = "invisible"
                 custom int waypoint:index = 9
-                double3 xformOp:translate = (-27.5, 452.5, 0)
+                double3 xformOp:translate = (-157.5, 1040, 0)
                 uniform token[] xformOpOrder = ["xformOp:translate"]
             }
 
@@ -521,7 +660,7 @@ def Xform "World"
                 double radius = 10
                 token visibility = "invisible"
                 custom int waypoint:index = 10
-                double3 xformOp:translate = (-192.5, 227.5, 0)
+                double3 xformOp:translate = (54.17, 981.67, 0)
                 uniform token[] xformOpOrder = ["xformOp:translate"]
             }
 
@@ -531,7 +670,7 @@ def Xform "World"
                 double radius = 10
                 token visibility = "invisible"
                 custom int waypoint:index = 11
-                double3 xformOp:translate = (-426.5, 312.5, 0)
+                double3 xformOp:translate = (265.83, 923.33, 0)
                 uniform token[] xformOpOrder = ["xformOp:translate"]
             }
 
@@ -541,7 +680,140 @@ def Xform "World"
                 double radius = 10
                 token visibility = "invisible"
                 custom int waypoint:index = 12
-                double3 xformOp:translate = (-660.5, 397.5, 0)
+                double3 xformOp:translate = (477.5, 865, 0)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+            }
+        }
+
+        def Xform "ISRUExcavationToISRUPlant_3_Regolith"
+        {
+            def Sphere "Waypoint_000"
+            {
+                color3f[] primvars:displayColor = [(0.45, 0.25, 0.05)]
+                double radius = 10
+                token visibility = "invisible"
+                custom int waypoint:index = 0
+                double3 xformOp:translate = (-722.5, -545, 0)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+            }
+
+            def Sphere "Waypoint_001"
+            {
+                color3f[] primvars:displayColor = [(0.45, 0.25, 0.05)]
+                double radius = 10
+                token visibility = "invisible"
+                custom int waypoint:index = 1
+                double3 xformOp:translate = (-770.83, -310, 0)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+            }
+
+            def Sphere "Waypoint_002"
+            {
+                color3f[] primvars:displayColor = [(0.45, 0.25, 0.05)]
+                double radius = 10
+                token visibility = "invisible"
+                custom int waypoint:index = 2
+                double3 xformOp:translate = (-819.17, -75, 0)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+            }
+
+            def Sphere "Waypoint_003"
+            {
+                color3f[] primvars:displayColor = [(0.45, 0.25, 0.05)]
+                double radius = 10
+                token visibility = "invisible"
+                custom int waypoint:index = 3
+                double3 xformOp:translate = (-867.5, 160, 0)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+            }
+
+            def Sphere "Waypoint_004"
+            {
+                color3f[] primvars:displayColor = [(0.45, 0.25, 0.05)]
+                double radius = 10
+                token visibility = "invisible"
+                custom int waypoint:index = 4
+                double3 xformOp:translate = (-1060, 372.5, 0)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+            }
+
+            def Sphere "Waypoint_005"
+            {
+                color3f[] primvars:displayColor = [(0.45, 0.25, 0.05)]
+                double radius = 10
+                token visibility = "invisible"
+                custom int waypoint:index = 5
+                double3 xformOp:translate = (-1252.5, 585, 0)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+            }
+
+            def Sphere "Waypoint_006"
+            {
+                color3f[] primvars:displayColor = [(0.45, 0.25, 0.05)]
+                double radius = 10
+                token visibility = "invisible"
+                custom int waypoint:index = 6
+                double3 xformOp:translate = (-1252.5, 777.5, 0)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+            }
+
+            def Sphere "Waypoint_007"
+            {
+                color3f[] primvars:displayColor = [(0.45, 0.25, 0.05)]
+                double radius = 10
+                token visibility = "invisible"
+                custom int waypoint:index = 7
+                double3 xformOp:translate = (-1252.5, 970, 0)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+            }
+
+            def Sphere "Waypoint_008"
+            {
+                color3f[] primvars:displayColor = [(0.45, 0.25, 0.05)]
+                double radius = 10
+                token visibility = "invisible"
+                custom int waypoint:index = 8
+                double3 xformOp:translate = (-1252.5, 777.5, 0)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+            }
+
+            def Sphere "Waypoint_009"
+            {
+                color3f[] primvars:displayColor = [(0.45, 0.25, 0.05)]
+                double radius = 10
+                token visibility = "invisible"
+                custom int waypoint:index = 9
+                double3 xformOp:translate = (-1252.5, 585, 0)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+            }
+
+            def Sphere "Waypoint_010"
+            {
+                color3f[] primvars:displayColor = [(0.45, 0.25, 0.05)]
+                double radius = 10
+                token visibility = "invisible"
+                custom int waypoint:index = 10
+                double3 xformOp:translate = (-1060, 372.5, 0)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+            }
+
+            def Sphere "Waypoint_011"
+            {
+                color3f[] primvars:displayColor = [(0.45, 0.25, 0.05)]
+                double radius = 10
+                token visibility = "invisible"
+                custom int waypoint:index = 11
+                double3 xformOp:translate = (-867.5, 160, 0)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+            }
+
+            def Sphere "Waypoint_012"
+            {
+                color3f[] primvars:displayColor = [(0.45, 0.25, 0.05)]
+                double radius = 10
+                token visibility = "invisible"
+                custom int waypoint:index = 12
+                double3 xformOp:translate = (-619.17, 195, 0)
                 uniform token[] xformOpOrder = ["xformOp:translate"]
             }
 
@@ -551,7 +823,7 @@ def Xform "World"
                 double radius = 10
                 token visibility = "invisible"
                 custom int waypoint:index = 13
-                double3 xformOp:translate = (-894.5, 482.5, 0)
+                double3 xformOp:translate = (-370.83, 230, 0)
                 uniform token[] xformOpOrder = ["xformOp:translate"]
             }
 
@@ -561,7 +833,7 @@ def Xform "World"
                 double radius = 10
                 token visibility = "invisible"
                 custom int waypoint:index = 14
-                double3 xformOp:translate = (-1128.5, 567.5, 0)
+                double3 xformOp:translate = (-122.5, 265, 0)
                 uniform token[] xformOpOrder = ["xformOp:translate"]
             }
 
@@ -571,7 +843,7 @@ def Xform "World"
                 double radius = 10
                 token visibility = "invisible"
                 custom int waypoint:index = 15
-                double3 xformOp:translate = (-1362.5, 652.5, 0)
+                double3 xformOp:translate = (-134.17, 523.33, 0)
                 uniform token[] xformOpOrder = ["xformOp:translate"]
             }
 
@@ -581,7 +853,7 @@ def Xform "World"
                 double radius = 10
                 token visibility = "invisible"
                 custom int waypoint:index = 16
-                double3 xformOp:translate = (-1362.5, 847.5, 0)
+                double3 xformOp:translate = (-145.83, 781.67, 0)
                 uniform token[] xformOpOrder = ["xformOp:translate"]
             }
 
@@ -591,12 +863,62 @@ def Xform "World"
                 double radius = 10
                 token visibility = "invisible"
                 custom int waypoint:index = 17
-                double3 xformOp:translate = (-1362.5, 1042.5, 0)
+                double3 xformOp:translate = (-157.5, 1040, 0)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+            }
+
+            def Sphere "Waypoint_018"
+            {
+                color3f[] primvars:displayColor = [(0.45, 0.25, 0.05)]
+                double radius = 10
+                token visibility = "invisible"
+                custom int waypoint:index = 18
+                double3 xformOp:translate = (54.17, 981.67, 0)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+            }
+
+            def Sphere "Waypoint_019"
+            {
+                color3f[] primvars:displayColor = [(0.45, 0.25, 0.05)]
+                double radius = 10
+                token visibility = "invisible"
+                custom int waypoint:index = 19
+                double3 xformOp:translate = (265.83, 923.33, 0)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+            }
+
+            def Sphere "Waypoint_020"
+            {
+                color3f[] primvars:displayColor = [(0.45, 0.25, 0.05)]
+                double radius = 10
+                token visibility = "invisible"
+                custom int waypoint:index = 20
+                double3 xformOp:translate = (477.5, 865, 0)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+            }
+
+            def Sphere "Waypoint_021"
+            {
+                color3f[] primvars:displayColor = [(0.45, 0.25, 0.05)]
+                double radius = 10
+                token visibility = "invisible"
+                custom int waypoint:index = 21
+                double3 xformOp:translate = (707.5, 795, 0)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+            }
+
+            def Sphere "Waypoint_022"
+            {
+                color3f[] primvars:displayColor = [(0.45, 0.25, 0.05)]
+                double radius = 10
+                token visibility = "invisible"
+                custom int waypoint:index = 22
+                double3 xformOp:translate = (937.5, 725, 0)
                 uniform token[] xformOpOrder = ["xformOp:translate"]
             }
         }
 
-        def Xform "ISRUPlantToPropellantDepot_LOX"
+        def Xform "ISRUPlant_1ToPropellantDepot_LOX"
         {
             def Sphere "Waypoint_000"
             {
@@ -604,7 +926,7 @@ def Xform "World"
                 double radius = 10
                 token visibility = "invisible"
                 custom int waypoint:index = 0
-                double3 xformOp:translate = (-1362.5, 1042.5, 0)
+                double3 xformOp:translate = (-122.5, 265, 0)
                 uniform token[] xformOpOrder = ["xformOp:translate"]
             }
 
@@ -614,7 +936,7 @@ def Xform "World"
                 double radius = 10
                 token visibility = "invisible"
                 custom int waypoint:index = 1
-                double3 xformOp:translate = (-1362.5, 847.5, 0)
+                double3 xformOp:translate = (-370.83, 230, 0)
                 uniform token[] xformOpOrder = ["xformOp:translate"]
             }
 
@@ -624,7 +946,7 @@ def Xform "World"
                 double radius = 10
                 token visibility = "invisible"
                 custom int waypoint:index = 2
-                double3 xformOp:translate = (-1362.5, 652.5, 0)
+                double3 xformOp:translate = (-619.17, 195, 0)
                 uniform token[] xformOpOrder = ["xformOp:translate"]
             }
 
@@ -634,7 +956,50 @@ def Xform "World"
                 double radius = 10
                 token visibility = "invisible"
                 custom int waypoint:index = 3
-                double3 xformOp:translate = (-1128.5, 567.5, 0)
+                double3 xformOp:translate = (-867.5, 160, 0)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+            }
+        }
+
+        def Xform "ISRUPlant_2ToPropellantDepot_LOX"
+        {
+            def Sphere "Waypoint_000"
+            {
+                color3f[] primvars:displayColor = [(0, 0.25, 1)]
+                double radius = 10
+                token visibility = "invisible"
+                custom int waypoint:index = 0
+                double3 xformOp:translate = (477.5, 865, 0)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+            }
+
+            def Sphere "Waypoint_001"
+            {
+                color3f[] primvars:displayColor = [(0, 0.25, 1)]
+                double radius = 10
+                token visibility = "invisible"
+                custom int waypoint:index = 1
+                double3 xformOp:translate = (265.83, 923.33, 0)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+            }
+
+            def Sphere "Waypoint_002"
+            {
+                color3f[] primvars:displayColor = [(0, 0.25, 1)]
+                double radius = 10
+                token visibility = "invisible"
+                custom int waypoint:index = 2
+                double3 xformOp:translate = (54.17, 981.67, 0)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+            }
+
+            def Sphere "Waypoint_003"
+            {
+                color3f[] primvars:displayColor = [(0, 0.25, 1)]
+                double radius = 10
+                token visibility = "invisible"
+                custom int waypoint:index = 3
+                double3 xformOp:translate = (-157.5, 1040, 0)
                 uniform token[] xformOpOrder = ["xformOp:translate"]
             }
 
@@ -644,7 +1009,7 @@ def Xform "World"
                 double radius = 10
                 token visibility = "invisible"
                 custom int waypoint:index = 4
-                double3 xformOp:translate = (-894.5, 482.5, 0)
+                double3 xformOp:translate = (-145.83, 781.67, 0)
                 uniform token[] xformOpOrder = ["xformOp:translate"]
             }
 
@@ -654,7 +1019,7 @@ def Xform "World"
                 double radius = 10
                 token visibility = "invisible"
                 custom int waypoint:index = 5
-                double3 xformOp:translate = (-660.5, 397.5, 0)
+                double3 xformOp:translate = (-134.17, 523.33, 0)
                 uniform token[] xformOpOrder = ["xformOp:translate"]
             }
 
@@ -664,7 +1029,7 @@ def Xform "World"
                 double radius = 10
                 token visibility = "invisible"
                 custom int waypoint:index = 6
-                double3 xformOp:translate = (-426.5, 312.5, 0)
+                double3 xformOp:translate = (-122.5, 265, 0)
                 uniform token[] xformOpOrder = ["xformOp:translate"]
             }
 
@@ -674,7 +1039,7 @@ def Xform "World"
                 double radius = 10
                 token visibility = "invisible"
                 custom int waypoint:index = 7
-                double3 xformOp:translate = (-192.5, 227.5, 0)
+                double3 xformOp:translate = (-370.83, 230, 0)
                 uniform token[] xformOpOrder = ["xformOp:translate"]
             }
 
@@ -684,7 +1049,7 @@ def Xform "World"
                 double radius = 10
                 token visibility = "invisible"
                 custom int waypoint:index = 8
-                double3 xformOp:translate = (-405.83, 39.17, 0)
+                double3 xformOp:translate = (-619.17, 195, 0)
                 uniform token[] xformOpOrder = ["xformOp:translate"]
             }
 
@@ -694,7 +1059,110 @@ def Xform "World"
                 double radius = 10
                 token visibility = "invisible"
                 custom int waypoint:index = 9
-                double3 xformOp:translate = (-619.17, -149.17, 0)
+                double3 xformOp:translate = (-867.5, 160, 0)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+            }
+        }
+
+        def Xform "ISRUPlant_3ToPropellantDepot_LOX"
+        {
+            def Sphere "Waypoint_000"
+            {
+                color3f[] primvars:displayColor = [(0, 0.25, 1)]
+                double radius = 10
+                token visibility = "invisible"
+                custom int waypoint:index = 0
+                double3 xformOp:translate = (937.5, 725, 0)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+            }
+
+            def Sphere "Waypoint_001"
+            {
+                color3f[] primvars:displayColor = [(0, 0.25, 1)]
+                double radius = 10
+                token visibility = "invisible"
+                custom int waypoint:index = 1
+                double3 xformOp:translate = (707.5, 795, 0)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+            }
+
+            def Sphere "Waypoint_002"
+            {
+                color3f[] primvars:displayColor = [(0, 0.25, 1)]
+                double radius = 10
+                token visibility = "invisible"
+                custom int waypoint:index = 2
+                double3 xformOp:translate = (477.5, 865, 0)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+            }
+
+            def Sphere "Waypoint_003"
+            {
+                color3f[] primvars:displayColor = [(0, 0.25, 1)]
+                double radius = 10
+                token visibility = "invisible"
+                custom int waypoint:index = 3
+                double3 xformOp:translate = (265.83, 923.33, 0)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+            }
+
+            def Sphere "Waypoint_004"
+            {
+                color3f[] primvars:displayColor = [(0, 0.25, 1)]
+                double radius = 10
+                token visibility = "invisible"
+                custom int waypoint:index = 4
+                double3 xformOp:translate = (54.17, 981.67, 0)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+            }
+
+            def Sphere "Waypoint_005"
+            {
+                color3f[] primvars:displayColor = [(0, 0.25, 1)]
+                double radius = 10
+                token visibility = "invisible"
+                custom int waypoint:index = 5
+                double3 xformOp:translate = (-157.5, 1040, 0)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+            }
+
+            def Sphere "Waypoint_006"
+            {
+                color3f[] primvars:displayColor = [(0, 0.25, 1)]
+                double radius = 10
+                token visibility = "invisible"
+                custom int waypoint:index = 6
+                double3 xformOp:translate = (-145.83, 781.67, 0)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+            }
+
+            def Sphere "Waypoint_007"
+            {
+                color3f[] primvars:displayColor = [(0, 0.25, 1)]
+                double radius = 10
+                token visibility = "invisible"
+                custom int waypoint:index = 7
+                double3 xformOp:translate = (-134.17, 523.33, 0)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+            }
+
+            def Sphere "Waypoint_008"
+            {
+                color3f[] primvars:displayColor = [(0, 0.25, 1)]
+                double radius = 10
+                token visibility = "invisible"
+                custom int waypoint:index = 8
+                double3 xformOp:translate = (-122.5, 265, 0)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+            }
+
+            def Sphere "Waypoint_009"
+            {
+                color3f[] primvars:displayColor = [(0, 0.25, 1)]
+                double radius = 10
+                token visibility = "invisible"
+                custom int waypoint:index = 9
+                double3 xformOp:translate = (-370.83, 230, 0)
                 uniform token[] xformOpOrder = ["xformOp:translate"]
             }
 
@@ -704,7 +1172,17 @@ def Xform "World"
                 double radius = 10
                 token visibility = "invisible"
                 custom int waypoint:index = 10
-                double3 xformOp:translate = (-832.5, -337.5, 0)
+                double3 xformOp:translate = (-619.17, 195, 0)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+            }
+
+            def Sphere "Waypoint_011"
+            {
+                color3f[] primvars:displayColor = [(0, 0.25, 1)]
+                double radius = 10
+                token visibility = "invisible"
+                custom int waypoint:index = 11
+                double3 xformOp:translate = (-867.5, 160, 0)
                 uniform token[] xformOpOrder = ["xformOp:translate"]
             }
         }
