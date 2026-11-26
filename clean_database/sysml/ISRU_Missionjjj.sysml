@@ -261,25 +261,25 @@ package ECLIPSE_LSP1 {
             satisfy requirement loxRoverEnergyTest :> LSP1_3::LSP1_3_3;
 
             // BEGIN AUTO CAD METADATA: LOXRover
-            attribute cadAreaScaleFactor = 1.49943568337;
-            attribute cadCenterOfMassXM = -2.14102566277e-17;
-            attribute cadCenterOfMassYM = 1.50028229897;
-            attribute cadCenterOfMassZM = 0.306068111089;
+            attribute cadAreaScaleFactor = 10.1154088624;
+            attribute cadCenterOfMassXM = -5.56095873841e-17;
+            attribute cadCenterOfMassYM = 3.89882993167;
+            attribute cadCenterOfMassZM = 5.15623914394e-06;
             attribute cadFormat = "STEP";
-            attribute cadLengthScaleFactor = 1.22451446842;
-            attribute cadMetadataScaleFactor = 1.22451446842;
+            attribute cadLengthScaleFactor = 3.18047305639;
+            attribute cadMetadataScaleFactor = 3.18047305639;
             attribute cadSourceCenterOfMassXM = -1.74846906099e-17;
             attribute cadSourceCenterOfMassYM = 1.22520585723;
             attribute cadSourceCenterOfMassZM = 3.78834963215e-17;
             attribute cadSourceFile = "Viper Rover.STEP";
-            attribute cadSourceFrontAxis = "+X";
+            attribute cadSourceFrontAxis = "-Z";
             attribute cadSourceSurfaceAreaM2 = 19.714776743;
             attribute cadSourceUpAxis = "Y";
             attribute cadSourceVolumeM3 = 3.92712415182;
-            attribute cadSurfaceAreaM2 = 29.5610397381;
+            attribute cadSurfaceAreaM2 = 199.423027387;
             attribute cadVolumeAvailable = true;
-            attribute cadVolumeM3 = 7.21051681747;
-            attribute cadVolumeScaleFactor = 1.83608068875;
+            attribute cadVolumeM3 = 126.342595221;
+            attribute cadVolumeScaleFactor = 32.1717853414;
             attribute cadVolumeStatus = "available";
             // END AUTO CAD METADATA: LOXRover
 
