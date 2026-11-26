@@ -5910,6 +5910,8 @@ function createPathBetweenModules(from, to) {
   const start = up42Placements[from];
   const end = up42Placements[to];
   if (!start || !end) return [];
+  const networkPath = getNetworkRoutePath(from, to);
+  if (networkPath.length) return networkPath;
   const GRID = up42SyntheticTerrain?.length || 80;
   return aStar(start, end, GRID) || straightLinePath(start, end);
 }
@@ -6578,6 +6580,25 @@ function splitModuleEquations(value) {
     .filter(Boolean);
 }
 
+// A saved or edited module owns its whole ordered list (including deletions).
+// Untouched model defaults can follow a later Run Graph for the same scenario.
+function importSysmlModuleEquations(parts) {
+  if (currentScenarioMode !== 'new') return;
+  const sources = up42Scenario.sysmlEquationSources ||= {};
+  for (const [moduleId, part] of Object.entries(parts)) {
+    if (!Array.isArray(part.operational_equations) || sources[moduleId] === null) continue;
+    const current = up42Scenario.moduleEquations[moduleId];
+    const previous = sources[moduleId];
+    const boundary = isPowerGeneratorModule(moduleId) ? 'PowerIn = 0' : 'PowerOut = 0';
+    const previousWithBoundary = previous ? previous + '\n' + boundary : boundary;
+    if (current !== undefined && current !== previous && current !== previousWithBoundary) continue;
+    const imported = part.operational_equations.join('\n');
+    if (imported === (previous || '')) continue;
+    setModuleEquationList(moduleId, part.operational_equations);
+    sources[moduleId] = imported;
+  }
+}
+
 function getModuleEquationList(moduleId) {
   if (Object.prototype.hasOwnProperty.call(up42Scenario.moduleEquations || {}, moduleId)) {
     return splitModuleEquations(up42Scenario.moduleEquations[moduleId]);
@@ -6808,15 +6829,34 @@ function renderEquationRequirements(moduleId, equations) {
   }).join('')}</div>`;
 }
 
-function setModuleEquationList(moduleId, equations) {
+function setModuleEquationList(moduleId, equations, userEdited = false) {
+  if (userEdited) (up42Scenario.sysmlEquationSources ||= {})[moduleId] = null;
   up42Scenario.moduleEquations[moduleId] = equations
     .map(equation => String(equation || '').trim())
     .filter(Boolean)
     .join('\n');
 }
 
+function getModuleDemandEquation(moduleId) {
+  if (isPowerGeneratorModule(moduleId)) return '';
+  const needed = new Set(['PowerIn']);
+  const lines = getModuleEquationList(moduleId);
+  const selected = [];
+  for (let i = lines.length - 1; i >= 0; i--) {
+    if (!needed.delete(getEquationOutputName(lines[i]))) continue;
+    selected.push(lines[i]);
+    const rhs = lines[i].slice(lines[i].indexOf('=') + 1);
+    for (const name of rhs.match(/[A-Za-z_][A-Za-z0-9_]*/g) || []) needed.add(name);
+  }
+  return selected.reverse().join('\n');
+}
+
 function syncStep4PowerEquationsToStep5(moduleId) {
   if (isPowerIgnored()) return;
+  if (currentScenarioMode === 'new' && ensurePowerModel(moduleId).followModuleDemand !== undefined) {
+    renderScenarioPowerModels();
+    return;
+  }
   const powerEquations = getModuleEquationList(moduleId).filter(equation =>
     /^(PowerIn|PowerOut|EnergyGenerated)\s*=/i.test(equation)
   ).filter(equation => {
@@ -6889,6 +6929,7 @@ function renderEquationBuilder(moduleId, groups, equation, equationIndex) {
       style="width:100%;min-height:72px;resize:vertical;margin-top:6px;background:#07101a;color:var(--text1);border:1px solid var(--accent);border-radius:8px;padding:8px;font-size:10px;font-family:monospace;line-height:1.45;">${escapeHtml(equation)}</textarea>
     ${renderTokenButtons('Ports', groups.ports, '#4cc9f0')}
     ${renderTokenButtons('Attributes', groups.attrs.slice(0, 24), '#ffd166')}
+    ${renderTokenButtons('Earlier outputs', getModuleEquationList(moduleId).slice(0, equationIndex).map(getEquationOutputName).filter(Boolean), '#ffd166')}
     ${renderTokenButtons('Operators', groups.ops, '#00ff9d')}
     <div style="display:flex;gap:6px;margin-top:10px;">
       <button type="button" class="btn btn-primary" style="flex:1;padding:7px;font-size:10px;" onclick="saveModuleEquation('${jsString(moduleId)}',${equationIndex})">Save equation</button>
@@ -6929,7 +6970,7 @@ function saveModuleEquation(moduleId, equationIndex) {
   } else if (equationIndex < equations.length) {
     equations.splice(equationIndex, 1);
   }
-  setModuleEquationList(moduleId, equations);
+  setModuleEquationList(moduleId, equations, true);
   syncStep4PowerEquationsToStep5(moduleId);
   up42EquationEditorIndex = null;
   updateUp42InfoCard();
@@ -6939,7 +6980,7 @@ function saveModuleEquation(moduleId, equationIndex) {
 }
 
 function clearModuleEquation(moduleId) {
-  up42Scenario.moduleEquations[moduleId] = '';
+  setModuleEquationList(moduleId, [], true);
   up42EquationEditorIndex = null;
   const textarea = document.getElementById('up42EquationText');
   if (textarea) textarea.value = '';
@@ -6971,7 +7012,7 @@ function removeModuleEquation(moduleId, equationIndex) {
   const equations = getModuleEquationList(moduleId);
   if (equationIndex < 0 || equationIndex >= equations.length) return;
   equations.splice(equationIndex, 1);
-  setModuleEquationList(moduleId, equations);
+  setModuleEquationList(moduleId, equations, true);
   syncStep4PowerEquationsToStep5(moduleId);
   up42EquationEditorModule = moduleId;
   up42EquationEditorIndex = null;
@@ -7202,6 +7243,7 @@ function buildScenarioLogicPayload() {
   syncScenarioInterfacesFromSysML();
   syncModuleClassesWithCurrentGraph();
   refreshScenarioResourceRoutePaths();
+  const routeNames = new Set();
   return {
     scenario_mode: currentScenarioMode || 'new',
     instances: getScenarioInstances().map(inst => ({
@@ -7220,8 +7262,15 @@ function buildScenarioLogicPayload() {
     transport_links: up42Scenario.transportLinks,
     resource_routes: (up42Scenario.resourceRoutes || []).map(route => {
       const slope = getRouteSlopeStats(route.pts || []);
+      const baseName = `${route.from}To${route.to}_${route.flow}`;
+      let routeName = baseName;
+      for (let suffix = 2; routeNames.has(routeName); suffix++) {
+        routeName = `${baseName}__${suffix}`;
+      }
+      routeNames.add(routeName);
       return {
         id: route.id,
+        route_name: routeName,
         flow: route.flow,
         rover_type: route.rover_type,
         rover_id: route.rover_id || null,
@@ -7939,7 +7988,7 @@ function buildUrbanPlanningPayload(options = {}) {
   const quiet = options.quiet === true;
   const site = upSelectedSite;
   if (!site) return null;
-  refreshScenarioResourceRoutePaths();
+  const scenarioLogic = buildScenarioLogicPayload();
 
   const R = 1737400; // lunar radius in metres
   const cosLat = Math.cos(site.lat * Math.PI / 180);
@@ -8002,17 +8051,16 @@ function buildUrbanPlanningPayload(options = {}) {
     };
   });
 
-  up42Scenario.resourceRoutes.forEach(route => {
-    const key = `${route.from}To${route.to}_${route.flow}`;
+  up42Scenario.resourceRoutes.forEach((route, index) => {
+    const assignment = scenarioLogic.resource_routes[index];
     const waypoints = (route.pts || []).map(pt => canvasToMeters(pt.x, pt.y));
-    const distKm = getRoutePathDistanceKm(route.pts || []);
-    connections[key] = {
+    connections[assignment.route_name] = {
       flow: route.flow,
       rover_type: route.rover_type,
       rover_id: route.rover_id || null,
       stops: route.stops || [],
       waypoints_m: waypoints,
-      distance_km: +distKm.toFixed(3)
+      distance_km: assignment.distance_km
     };
   });
 
@@ -8035,7 +8083,7 @@ function buildUrbanPlanningPayload(options = {}) {
     modules,
     connections,
     mst_edges,
-    scenario_logic: buildScenarioLogicPayload()
+    scenario_logic: scenarioLogic
   };
   if (!quiet) {
     console.log('[UP] connections keys:', Object.keys(connections));
@@ -9112,6 +9160,7 @@ let up42MoonImg = null;
     window._lastGraphData = data;
     window._currentGraphData = fullGraphData;
     syncModuleClassesWithCurrentGraph();
+    importSysmlModuleEquations(data.parts || {});
     const visibleGraphData = buildOperationsGraphDisplayData(fullGraphData);
     const visibleNodeCount = visibleGraphData.active_nodes.length;
     const visibleConnectionCount = visibleGraphData.connections.length;
@@ -12408,12 +12457,17 @@ let up42MoonImg = null;
       const average = inferModuleAveragePower(moduleId);
       scenarioPowerModels[moduleId] = {
         mode: 'average',
+        ...(currentScenarioMode === 'new' ? {followModuleDemand: true} : {}),
         average_kw: average,
         points: [{time_hr:0, power_kw:average}, {time_hr:duration, power_kw:average}],
         equation: ''
       };
     }
     const model = scenarioPowerModels[moduleId];
+    if (model.followModuleDemand) {
+      model.equation = getModuleDemandEquation(moduleId);
+      model.mode = model.equation ? 'equation' : 'average';
+    }
     model.points = Array.isArray(model.points) && model.points.length >= 2
       ? model.points
       : [{time_hr:0, power_kw:Number(model.average_kw || 0)}, {time_hr:duration, power_kw:Number(model.average_kw || 0)}];
@@ -12488,17 +12542,22 @@ let up42MoonImg = null;
   }
 
   function setPowerModelMode(moduleId, mode) {
-    ensurePowerModel(moduleId).mode = mode;
+    const model = ensurePowerModel(moduleId);
+    if (model.followModuleDemand) model.followModuleDemand = false;
+    model.mode = mode;
     renderScenarioPowerModels();
   }
 
   function setPowerModelAverage(moduleId, value) {
     const model = ensurePowerModel(moduleId);
+    if (model.followModuleDemand) model.followModuleDemand = false;
     model.average_kw = Math.max(0, Number(value) || 0);
   }
 
   function setPowerModelEquation(moduleId, value) {
-    ensurePowerModel(moduleId).equation = String(value || '');
+    const model = ensurePowerModel(moduleId);
+    if (model.followModuleDemand) model.followModuleDemand = false;
+    model.equation = String(value || '');
   }
 
   function setPowerModelSpike(moduleId, field, value) {
@@ -12510,6 +12569,7 @@ let up42MoonImg = null;
 
   function appendPowerModelToken(moduleId, token) {
     const model = ensurePowerModel(moduleId);
+    if (model.followModuleDemand) model.followModuleDemand = false;
     model.equation = `${model.equation || ''}${model.equation ? ' ' : ''}${token}`;
     renderScenarioPowerModels();
   }

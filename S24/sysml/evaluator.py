@@ -3,6 +3,7 @@ import ast
 from typing import Any, Dict, List, Optional, Union
 
 from S24.sysml.ast import Model, PartNode
+from S24.sysml.operational_equations import extract_operational_equations
 
 def evaluate_attributes(model: Model, *, max_passes: int = 10) -> None:
     """
@@ -11,6 +12,7 @@ def evaluate_attributes(model: Model, *, max_passes: int = 10) -> None:
       2) iteratively evaluating numeric expressions using SafeEvaluator
     """
     def init_literals(part: PartNode) -> None:
+        part.operational_equations = extract_operational_equations(part)
         for name, raw in part.attributes_raw.items():
             part.attributes_val[name] = _parse_literal_token(raw)
         for child in part.children.values():
@@ -46,7 +48,8 @@ def evaluate_attributes(model: Model, *, max_passes: int = 10) -> None:
                     part.attributes_val[name] = val
                     changed = True
                 except Exception as e:
-                    print(f"[WARN] Could not evaluate {name}: {raw} → {e}")
+                    if name not in part.operational_equations:
+                        print(f"[WARN] Could not evaluate {name}: {raw} → {e}")
 
             for child in part.children.values():
                 try_eval(child)

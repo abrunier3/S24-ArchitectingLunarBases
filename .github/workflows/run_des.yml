@@ -472,21 +472,18 @@ jobs:
                   source = route.get("from")
                   destination = route.get("to")
                   route_name = route.get("route_name") or f"{source}To{destination}_{flow}"
-                  geometry = concat_operational_path(
-                      source,
-                      destination,
-                      route.get("stops", []),
-                  )
-                  if geometry:
-                      geometry["flow"] = flow
-                      conns[route_name] = geometry
-                  else:
-                      # Keep the explicit Step 4 path only as a compatibility
-                      # fallback when the physical terrain graph is disconnected.
-                      geometry = conns.get(route_name)
+                  # The current portal names the exact polyline it measured for the DES.
+                  geometry = conns.get(route.get("route_name"))
+                  if not geometry or not geometry.get("waypoints_m"):
+                      # Older payloads did not identify a resolved operational path.
+                      geometry = concat_operational_path(
+                          source, destination, route.get("stops", [])
+                      ) or conns.get(route_name)
                   if not geometry:
                       print(f"[UP] Operational route geometry missing: {route_name}")
                       continue
+                  geometry["flow"] = flow
+                  conns[route_name] = geometry
 
                   operational_connection = {
                       "name": route_name,

@@ -12,6 +12,8 @@ class PartNode:
     ports: Dict[str, Dict[str, Any]] = field(default_factory=dict)   
     metadata: Dict[str, Any] = field(default_factory=dict)           
 
+    operational_equations: Dict[str, str] = field(default_factory=dict)
+
 
 @dataclass
 class Model:

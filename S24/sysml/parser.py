@@ -121,7 +121,7 @@ def parse_sysml(sysml_text: str) -> Model:
             continue
 
         if current_stack:
-            m = re.match(r"attribute\s+(\w+)\s*=\s*(.+);", line)
+            m = re.match(r"attribute\s+(\w+)(?:\s*:\s*[\w:]+)?\s*=\s*(.+);", line)
             if m:
                 attr_name = m.group(1)
                 raw_val = m.group(2).strip()

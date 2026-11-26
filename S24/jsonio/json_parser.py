@@ -1,3 +1,4 @@
+import re
 from typing import Dict, Any, Tuple, List
 
 from S24.sysml.ast import Model, PartNode
@@ -48,10 +49,18 @@ def build_part_json_representation(part: PartNode, *, namespace: str) -> Dict[st
                 continue
             dimensions[k] = v
 
+    equations = [f"{name} = {rhs}" for name, rhs in part.operational_equations.items()]
+    equation_inputs = set(re.findall(r"\b[A-Za-z_]\w*\b", " ".join(part.operational_equations.values())))
+    unit_aliases = []
     for k, v in attrs.items():
         if isinstance(v, (int, float)):
             nk, nv = _convert_numeric_with_units(k, float(v))
             attributes[nk] = nv
+            if nk != k and k in equation_inputs and k not in part.operational_equations:
+                # The DES exposes the normalized key. Evaluate the SysML RHS in its original units.
+                _, scale = _convert_numeric_with_units(k, 1.0)
+                original_units = nk if scale == 1 else f"{nk} / {scale:g}"
+                unit_aliases.append(f"{k} = {original_units}")
 
     for k, v in attrs.items():
         if not isinstance(v, (int, float)) and k not in ("material", "materialRef"):
@@ -83,6 +92,7 @@ def build_part_json_representation(part: PartNode, *, namespace: str) -> Dict[st
         "metadata": metadata,
         "materialRef": obj_material_ref,
         "ports": ports,
+        "operational_equations": unit_aliases + equations,
     }
 
 def build_connections_json(model: Model) -> List[Dict[str, Any]]:

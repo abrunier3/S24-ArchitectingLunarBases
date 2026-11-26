@@ -43,6 +43,27 @@ Each module instance owns its own inventory and processing process. Multiple ins
 
 ## Equation Contract
 
+In **Build New Scenario**, Run Graph imports operational laws declared as
+attributes on each SysML part. For example, a processor with ports carrying
+`WaterIn` and `ProductOut` can declare:
+
+```sysml
+attribute conversionEfficiency = 0.8;
+attribute processingRate = 10;
+attribute Recovered = WaterIn * conversionEfficiency;
+attribute ProductOut = Recovered;
+attribute ProcessingTime = WaterIn / processingRate;
+```
+
+The editor receives the resource and timing laws with their intermediate
+assignments in dependency order. Numeric properties remain available as
+parameters. Rerunning the graph refreshes an untouched module. Once a user
+edits or deletes a line, the scenario owns that module’s ordered list, including
+after save and reload. An instance can still override its type. Older graph
+files need a fresh Run Graph to expose the declarations. This import supports
+attribute assignments in the DES expression language. SysML actions,
+calculations and requirement constraints have separate semantics.
+
 The supported transformation outputs are:
 
 ```text
