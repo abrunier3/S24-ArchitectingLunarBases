@@ -227,7 +227,7 @@ jobs:
 
           active_nodes = (
               list(sysml_active_nodes)
-              if engine_mode == "generic"
+              if engine_mode == "generic" or "batch_operations" in scenario_config_payload
               else infer_des_engine_nodes(sysml_active_nodes)
           )
           print(f"[DES] SysML active nodes: {sysml_active_nodes}")
@@ -525,6 +525,12 @@ jobs:
               # in Step 4.2. The DES consumes the same payload directly, while
               # the authoritative JSON keeps an auditable copy of destinations,
               # stops, interfaces, rover counts, and user equations.
+              if "batch_operations" in scenario_config_payload:
+                  scenario_logic["batch_operations"] = scenario_config_payload["batch_operations"]
+                  scenario_logic["batch_auxiliary_routes"] = [
+                      route for route in scenario_config_payload.get("scenario_builder", {}).get("resource_routes", [])
+                      if route.get("flow") in {"Residue", "ResidueReturn"}
+                  ]
               sysml["scenario_logic"] = scenario_logic
 
               with sysml_path.open("w") as f:
@@ -547,6 +553,7 @@ jobs:
 
           # ── Run DES ────────────────────────────────────────────────────────
           from S24.DES_pipeline_version.scenario_runner import run_scenario, check_scenario_validity
+          from S24.DES_pipeline_version.batch_results import collect_result_fields
 
           print("[DES] Checking scenario validity...")
           messages = check_scenario_validity(slider_value_dict, raiseError=False)
@@ -566,7 +573,8 @@ jobs:
           else:
               print("[DES] Running scenario...")
               try:
-                  run_scenario(slider_value_dict)
+                  execution = run_scenario(slider_value_dict)
+                  result_fields = collect_result_fields(slider_value_dict, execution)
               except Exception as exc:
                   result = {
                       "written_at": int(time.time() * 1000),
@@ -580,12 +588,6 @@ jobs:
                   }
                   print(f"[DES] Scenario failed — results file will still be written: {exc}")
               else:
-                  with open('lunar_spaceport_results.json') as f:
-                      sim_results = json.load(f)
-
-                  with open('lunar_spaceport_log.json') as f:
-                      sim_log = json.load(f)
-
                   result = {
                       "written_at": int(time.time() * 1000),
                       "status": "success",
@@ -593,8 +595,7 @@ jobs:
                       "inputs": slider_value_dict,
                       "sysml_active_nodes": sysml_active_nodes,
                       "des_active_nodes": active_nodes,
-                      "results": sim_results,
-                      "log": sim_log,
+                      **result_fields,
                   }
 
           result["scenario_name"] = scenario_name

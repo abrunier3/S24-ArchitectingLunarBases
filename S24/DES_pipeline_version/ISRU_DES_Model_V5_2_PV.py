@@ -537,6 +537,10 @@ def check_scenario_validity(active_nodes, raiseError=True):
 def run_scenario(optionsDict):
     start_time = time.perf_counter()
     scenario_config = load_scenario_config(optionsDict)
+    if "batch_operations" in scenario_config:
+        from S24.DES_pipeline_version.batch_isru import BatchOperations
+
+        return BatchOperations(scenario_config).run()
     power_ignored = bool(scenario_config.get("power", {}).get("ignore_power", False))
 
     # =========================================================

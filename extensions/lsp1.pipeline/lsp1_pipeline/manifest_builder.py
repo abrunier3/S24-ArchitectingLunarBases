@@ -1505,6 +1505,41 @@ def _build_lox_movements(
     return movements
 
 
+def _timed_operations(des_data, waypoint_routes):
+    """Export measured intervals, with geometry gaps explicit in the manifest."""
+    config = des_data["results"]["Scenario_Config"]
+    routes = {route["id"]: route for route in config["scenario_builder"]["resource_routes"]}
+    sim_end = _simulation_end_time(des_data)
+    movements = []
+    plants = {}
+    warnings = set()
+    for event in des_data.get("operation_events", []):
+        start = float(event["time_hr"])
+        if event["event"] == "batch_started":
+            plants.setdefault(event["actor"], []).append({
+                "start_time": start,
+                "end_time": min(start + float(event["duration_hr"]), sim_end),
+                "batch_kg": event["mass_kg"],
+            })
+        if event["event"] != "phase_start" or not event.get("phase", "").startswith("drive_"):
+            continue
+        route = routes.get(event.get("route_id"), {})
+        name = route.get("route_name")
+        if name not in waypoint_routes:
+            warnings.add(f"No spatial geometry for timed route {event.get('route_id')}.")
+            continue
+        end = start + float(event["duration_hr"])
+        if start < sim_end and end > start:
+            movements.append({
+                "actor_id": event["actor"], "route_name": name,
+                "from_module": event["origin"], "to_module": event["destination"],
+                "start_time": start, "end_time": end,
+                "reverse": event.get("route_direction") == "return",
+                "source": "DES timed drive phase",
+            })
+    return movements, plants, sorted(warnings)
+
+
 def _actor_prim_path(actor_id: str) -> str:
     if actor_id.startswith("Regolith Cargo Rover"):
         match = re.search(r"(\d+)$", actor_id)
@@ -1551,10 +1586,15 @@ def build_manifest(
 
     system_json = _load_json(system_json_path)
     des_data = _load_json(des_json_path)
-    routes = _movement_connections(system_json, waypoints_usd_path, des_data)
-
+    is_batch = des_data.get("results", {}).get("Engine") == "BatchISRU"
     all_movements: list[dict[str, Any]] = []
     warnings: list[str] = []
+    plant_operations = {}
+    routes = {} if is_batch else _movement_connections(system_json, waypoints_usd_path, des_data)
+    if is_batch:
+        all_movements, plant_operations, warnings = _timed_operations(
+            des_data, _route_names_from_waypoints(waypoints_usd_path)
+        )
     if routes.get("Regolith"):
         regolith_movements = _build_regolith_movements(des_data, routes["Regolith"])
         all_movements.extend(regolith_movements)
@@ -1569,11 +1609,18 @@ def build_manifest(
     actors_by_id: dict[str, dict[str, Any]] = {}
     for movement in all_movements:
         actor_id = movement.pop("actor_id")
+        source_prim = _actor_source_prim_path(actor_id)
+        prim_path = _actor_prim_path(actor_id)
+        if is_batch:
+            vehicle_type = re.sub(r"_\d+$", "", actor_id)
+            source_prim = f"/World/{vehicle_type}"
+            # Use the source prim for the first instance, cloning it for additional rovers.
+            prim_path = source_prim if actor_id in {vehicle_type, f"{vehicle_type}_1"} else prim_path
         actor = actors_by_id.setdefault(actor_id, {
             "id": actor_id,
             "label": _actor_label(actor_id),
-            "prim_path": _actor_prim_path(actor_id),
-            "source_prim_path": _actor_source_prim_path(actor_id),
+            "prim_path": prim_path,
+            "source_prim_path": source_prim,
             "dashboard_fields": DEFAULT_DASHBOARD_FIELDS,
             "movements": [],
         })
@@ -1654,6 +1701,10 @@ def build_manifest(
         "actors": sorted(actors_by_id.values(), key=lambda actor: actor["id"]),
     }
 
+    if is_batch:
+        manifest["scenario"]["request_id"] = des_data.get("request_id")
+        manifest["plant_operations"] = plant_operations
+        manifest["playback"]["timing_basis"] = "DES event intervals in hours"
     return manifest
 
 

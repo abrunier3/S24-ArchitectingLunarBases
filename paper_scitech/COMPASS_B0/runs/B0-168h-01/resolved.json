@@ -1,0 +1,383 @@
+{
+  "engine": {
+    "mode": "isru",
+    "schema_version": 1
+  },
+  "simulation": {
+    "duration_hr": 168,
+    "sample_hr": 1
+  },
+  "regolith": {
+    "rover_load_kg": 4000,
+    "plant_batch_kg": 4000,
+    "plant_input_capacity_kg": 20000,
+    "dispatch_policy": "least_fill_ratio",
+    "dispatch_poll_dt_hr": 0.1
+  },
+  "isru": {
+    "plant_count": 1,
+    "processing_rate_kg_hr": 1600,
+    "conversion_efficiency": 0.002527902017,
+    "lox_transport_threshold_kg": 100,
+    "lox_delivery_poll_dt_hr": 1,
+    "lox_storage_energy_kwh_per_kg_hr": 0.31,
+    "lox_storage_energy_dt_hr": 1
+  },
+  "rovers": {
+    "regolith": {
+      "count": 1
+    },
+    "lox": {
+      "count": 1
+    },
+    "energy_kwh_per_km_per_kg": 0.00034,
+    "flat_speed_kph": 0.0,
+    "slope_speed_penalty_per_deg": 0.05,
+    "travel_time_hr_per_km": 5,
+    "max_capacity_kg": 4000.0,
+    "capacity_by_flow_kg": {
+      "regolith": 4000.0,
+      "lox": 4000.0
+    }
+  },
+  "routes": {
+    "use_sysml_distances": false,
+    "regolith_distance_km": 1,
+    "lox_distance_km": 1,
+    "distance_source": "defaults"
+  },
+  "power": {
+    "management_dt_hr": 1,
+    "supply": {
+      "power_output_kw": 100.0,
+      "battery_capacity_kwh": 500.0,
+      "initial_battery_charge_kwh": 500.0
+    },
+    "continuous_load_kw": {
+      "habitation": null,
+      "communications": null,
+      "landing_zone_utilities": null
+    },
+    "landing_zone_chilling_kw_per_kg": null,
+    "spikes": {
+      "habitation": [
+        {
+          "time_hr": 10,
+          "energy_kwh": 20
+        }
+      ],
+      "communications": [
+        {
+          "time_hr": 15,
+          "energy_kwh": 10
+        }
+      ],
+      "landing_zone": [
+        {
+          "time_hr": 25,
+          "energy_kwh": 50
+        }
+      ]
+    },
+    "module_models": {}
+  },
+  "scenario": {
+    "name": "Lunar Spaceport B0 \u2014 Malapert Massif",
+    "status": "executed",
+    "spatial_source": "paper_scitech/B0/run/scenario.json",
+    "polyline_source": "paper_scitech/B0/run/routing.json",
+    "active_types": [
+      "ISRUExcavation",
+      "RegolithRover",
+      "ISRUPlant",
+      "LOXRover",
+      "PropellantDepot",
+      "SolarPowerSystem",
+      "LaunchLandingZone"
+    ],
+    "slug": "Malapert_B0_Compass",
+    "sysml_file": "paper_scitech/B0/run/reference.sysml"
+  },
+  "batch_operations": {
+    "lines": [
+      {
+        "plant_id": "ISRUPlant_1",
+        "liquefier_id": "Liquefier_1",
+        "batch_kg": 9.3,
+        "processing_hr": 1.6666666666666667,
+        "slot_interval_hr": 1.7142857142857142,
+        "first_slot_hr": 0,
+        "oxygen_yield": 0.121,
+        "feed_capacity_kg": 130.2,
+        "initial_feed_kg": 130.2,
+        "regolith_rover": {
+          "id": "RegolithRover_1",
+          "payload_kg": 35,
+          "speed_kph": 1,
+          "battery_kwh": 1,
+          "reserve_kwh": 0.2,
+          "duty_kw": 0.07158836689038031,
+          "schedule_period_hr": 24,
+          "supply_slots_hr": [
+            0,
+            6,
+            12,
+            18
+          ],
+          "load_hr": 0.05,
+          "unload_hr": 0.08333333333333333,
+          "charge_interval_hr": 0,
+          "charge_kw": 0.1,
+          "charge_hr": 10,
+          "charge_efficiency": 0.8,
+          "residue": {
+            "slots_hr": [
+              3,
+              9,
+              15
+            ],
+            "load_hr": 0.08333333333333333,
+            "unload_hr": 0,
+            "payload_kg": 40
+          },
+          "recharge_as_needed": true
+        },
+        "lox_rover": {
+          "id": "LOXRover_1",
+          "payload_kg": 18,
+          "speed_kph": 1,
+          "dispatch_kg": 15,
+          "poll_hr": 0.08333333333333333
+        }
+      },
+      {
+        "plant_id": "ISRUPlant_2",
+        "liquefier_id": "Liquefier_2",
+        "batch_kg": 9.3,
+        "processing_hr": 1.6666666666666667,
+        "slot_interval_hr": 1.7142857142857142,
+        "first_slot_hr": 0,
+        "oxygen_yield": 0.121,
+        "feed_capacity_kg": 130.2,
+        "initial_feed_kg": 130.2,
+        "regolith_rover": {
+          "id": "RegolithRover_2",
+          "payload_kg": 35,
+          "speed_kph": 1,
+          "battery_kwh": 1,
+          "reserve_kwh": 0.2,
+          "duty_kw": 0.07158836689038031,
+          "schedule_period_hr": 24,
+          "supply_slots_hr": [
+            0,
+            6,
+            12,
+            18
+          ],
+          "load_hr": 0.05,
+          "unload_hr": 0.08333333333333333,
+          "charge_interval_hr": 0,
+          "charge_kw": 0.1,
+          "charge_hr": 10,
+          "charge_efficiency": 0.8,
+          "residue": {
+            "slots_hr": [
+              3,
+              9,
+              15
+            ],
+            "load_hr": 0.08333333333333333,
+            "unload_hr": 0,
+            "payload_kg": 40
+          },
+          "recharge_as_needed": true
+        },
+        "lox_rover": {
+          "id": "LOXRover_2",
+          "payload_kg": 18,
+          "speed_kph": 1,
+          "dispatch_kg": 15,
+          "poll_hr": 0.08333333333333333
+        }
+      }
+    ],
+    "liquefiers": [
+      {
+        "id": "Liquefier_1",
+        "output_id": "ISRUPlant_1",
+        "rate_kg_hr": 0.65,
+        "packet_kg": 0.05,
+        "capacity_kg": 35
+      },
+      {
+        "id": "Liquefier_2",
+        "output_id": "ISRUPlant_2",
+        "rate_kg_hr": 0.65,
+        "packet_kg": 0.05,
+        "capacity_kg": 35
+      }
+    ],
+    "power": {
+      "electric_available_kw": 15,
+      "electric_full_kw": 11.544,
+      "electric_idle_kw": 2.678,
+      "thermal_per_line_kw": 11.1
+    },
+    "depots_kg": {
+      "PropellantDepot": 250
+    }
+  },
+  "scenario_builder": {
+    "resource_routes": [
+      {
+        "id": "Regolith_1790955470183_0",
+        "route_name": "ISRUExcavationToISRUPlant_1_Regolith",
+        "flow": "Regolith",
+        "rover_type": "RegolithRover",
+        "rover_id": "RegolithRover_1",
+        "from": "ISRUExcavation",
+        "to": "ISRUPlant_1",
+        "stops": [],
+        "distance_km": 1.944,
+        "mean_slope_deg": 12.782,
+        "max_slope_deg": 13.819
+      },
+      {
+        "id": "Regolith_1790955470189_1",
+        "route_name": "ISRUExcavationToISRUPlant_2_Regolith",
+        "flow": "Regolith",
+        "rover_type": "RegolithRover",
+        "rover_id": "RegolithRover_2",
+        "from": "ISRUExcavation",
+        "to": "ISRUPlant_2",
+        "stops": [],
+        "distance_km": 4.065,
+        "mean_slope_deg": 12.28,
+        "max_slope_deg": 14.73
+      },
+      {
+        "id": "LOX_1790955450825_0",
+        "route_name": "ISRUPlant_1ToPropellantDepot_LOX",
+        "flow": "LOX",
+        "rover_type": "LOXRover",
+        "rover_id": "LOXRover_1",
+        "from": "ISRUPlant_1",
+        "to": "PropellantDepot",
+        "stops": [],
+        "distance_km": 0.696,
+        "mean_slope_deg": 12.62,
+        "max_slope_deg": 13.819
+      },
+      {
+        "id": "LOX_1790955451209_1",
+        "route_name": "ISRUPlant_2ToPropellantDepot_LOX",
+        "flow": "LOX",
+        "rover_type": "LOXRover",
+        "rover_id": "LOXRover_2",
+        "from": "ISRUPlant_2",
+        "to": "PropellantDepot",
+        "stops": [],
+        "distance_km": 2.817,
+        "mean_slope_deg": 12.027,
+        "max_slope_deg": 14.73
+      },
+      {
+        "id": "RegolithRover_1_Residue",
+        "rover_id": "RegolithRover_1",
+        "flow": "Residue",
+        "from": "ISRUPlant_1",
+        "to": "ResidueDump_1",
+        "distance_km": 0.1
+      },
+      {
+        "id": "RegolithRover_1_ResidueReturn",
+        "rover_id": "RegolithRover_1",
+        "flow": "ResidueReturn",
+        "from": "ResidueDump_1",
+        "to": "ISRUExcavation",
+        "distance_km": 2.044
+      },
+      {
+        "id": "RegolithRover_2_Residue",
+        "rover_id": "RegolithRover_2",
+        "flow": "Residue",
+        "from": "ISRUPlant_2",
+        "to": "ResidueDump_2",
+        "distance_km": 0.1
+      },
+      {
+        "id": "RegolithRover_2_ResidueReturn",
+        "rover_id": "RegolithRover_2",
+        "flow": "ResidueReturn",
+        "from": "ResidueDump_2",
+        "to": "ISRUExcavation",
+        "distance_km": 4.165
+      }
+    ],
+    "module_equations": {
+      "ISRUPlant": "OxygenOut = RegolithIn * OxygenYield"
+    },
+    "instances": [
+      {
+        "id": "ISRUPlant_1",
+        "type": "ISRUPlant",
+        "placed": true,
+        "position_canvas": {
+          "cx": 334.1364472298241,
+          "cy": 77.90076357663668
+        },
+        "orientation_deg": 0
+      },
+      {
+        "id": "ISRUPlant_2",
+        "type": "ISRUPlant",
+        "placed": true,
+        "position_canvas": {
+          "cx": 659.0812638883356,
+          "cy": 94.89522594841847
+        },
+        "orientation_deg": 0
+      },
+      {
+        "id": "LaunchLandingZone",
+        "type": "LaunchLandingZone",
+        "placed": true,
+        "position_canvas": {
+          "cx": 801.0571530129776,
+          "cy": 121.79554864049112
+        },
+        "orientation_deg": 232
+      },
+      {
+        "id": "PropellantDepot",
+        "type": "PropellantDepot",
+        "placed": true,
+        "position_canvas": {
+          "cx": 344.13474928085526,
+          "cy": 211.76623178521837
+        },
+        "orientation_deg": 0
+      },
+      {
+        "id": "SolarPowerSystem",
+        "type": "SolarPowerSystem",
+        "placed": true,
+        "position_canvas": {
+          "cx": 816.8395430416998,
+          "cy": 368.53465087402697
+        },
+        "orientation_deg": 196
+      },
+      {
+        "id": "ISRUExcavation",
+        "type": "ISRUExcavation",
+        "placed": true,
+        "position_canvas": {
+          "cx": 376.3550172381623,
+          "cy": 460.41278143298996
+        },
+        "orientation_deg": 136
+      }
+    ]
+  }
+}

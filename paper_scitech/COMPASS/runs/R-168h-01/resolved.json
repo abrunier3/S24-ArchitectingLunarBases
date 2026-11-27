@@ -1,0 +1,246 @@
+{
+  "engine": {
+    "mode": "isru",
+    "schema_version": 1
+  },
+  "simulation": {
+    "duration_hr": 168,
+    "sample_hr": 1
+  },
+  "regolith": {
+    "rover_load_kg": 4000,
+    "plant_batch_kg": 4000,
+    "plant_input_capacity_kg": 20000,
+    "dispatch_policy": "least_fill_ratio",
+    "dispatch_poll_dt_hr": 0.1
+  },
+  "isru": {
+    "plant_count": 1,
+    "processing_rate_kg_hr": 1600,
+    "conversion_efficiency": 0.002527902017,
+    "lox_transport_threshold_kg": 100,
+    "lox_delivery_poll_dt_hr": 1,
+    "lox_storage_energy_kwh_per_kg_hr": 0.31,
+    "lox_storage_energy_dt_hr": 1
+  },
+  "rovers": {
+    "regolith": {
+      "count": 1
+    },
+    "lox": {
+      "count": 1
+    },
+    "energy_kwh_per_km_per_kg": 0.00034,
+    "flat_speed_kph": 0.0,
+    "slope_speed_penalty_per_deg": 0.05,
+    "travel_time_hr_per_km": 5,
+    "max_capacity_kg": 4000.0,
+    "capacity_by_flow_kg": {
+      "regolith": 4000.0,
+      "lox": 4000.0
+    }
+  },
+  "routes": {
+    "use_sysml_distances": false,
+    "regolith_distance_km": 1,
+    "lox_distance_km": 1,
+    "distance_source": "defaults"
+  },
+  "power": {
+    "management_dt_hr": 1,
+    "supply": {
+      "power_output_kw": 100.0,
+      "battery_capacity_kwh": 500.0,
+      "initial_battery_charge_kwh": 500.0
+    },
+    "continuous_load_kw": {
+      "habitation": null,
+      "communications": null,
+      "landing_zone_utilities": null
+    },
+    "landing_zone_chilling_kw_per_kg": null,
+    "spikes": {
+      "habitation": [
+        {
+          "time_hr": 10,
+          "energy_kwh": 20
+        }
+      ],
+      "communications": [
+        {
+          "time_hr": 15,
+          "energy_kwh": 10
+        }
+      ],
+      "landing_zone": [
+        {
+          "time_hr": 25,
+          "energy_kwh": 50
+        }
+      ]
+    },
+    "module_models": {}
+  },
+  "scenario": {
+    "name": "NASA COMPASS 7 t/yr, sunlit operations",
+    "source": "NASA NTRS 20190029197, Case 2 ISRU CD-2018-162"
+  },
+  "batch_operations": {
+    "lines": [
+      {
+        "plant_id": "ISRUPlant_1",
+        "liquefier_id": "CommonLiquefier",
+        "batch_kg": 9.3,
+        "processing_hr": 1.6666666666666667,
+        "slot_interval_hr": 1.7142857142857142,
+        "first_slot_hr": 0,
+        "oxygen_yield": 0.121,
+        "feed_capacity_kg": 130.2,
+        "initial_feed_kg": 130.2,
+        "regolith_rover": {
+          "id": "RegolithRover_1",
+          "payload_kg": 35,
+          "speed_kph": 1,
+          "battery_kwh": 1,
+          "reserve_kwh": 0.2,
+          "duty_kw": 0.07158836689038031,
+          "schedule_period_hr": 24,
+          "supply_slots_hr": [
+            0,
+            6,
+            12,
+            18
+          ],
+          "load_hr": 0.05,
+          "unload_hr": 0.08333333333333333,
+          "charge_interval_hr": 108,
+          "charge_kw": 0.1,
+          "charge_hr": 10,
+          "charge_efficiency": 0.8,
+          "residue": {
+            "slots_hr": [
+              3,
+              9,
+              15
+            ],
+            "load_hr": 0.08333333333333333,
+            "unload_hr": 0,
+            "payload_kg": 40
+          }
+        }
+      },
+      {
+        "plant_id": "ISRUPlant_2",
+        "liquefier_id": "CommonLiquefier",
+        "batch_kg": 9.3,
+        "processing_hr": 1.6666666666666667,
+        "slot_interval_hr": 1.7142857142857142,
+        "first_slot_hr": 0,
+        "oxygen_yield": 0.121,
+        "feed_capacity_kg": 130.2,
+        "initial_feed_kg": 130.2,
+        "regolith_rover": {
+          "id": "RegolithRover_2",
+          "payload_kg": 35,
+          "speed_kph": 1,
+          "battery_kwh": 1,
+          "reserve_kwh": 0.2,
+          "duty_kw": 0.07158836689038031,
+          "schedule_period_hr": 24,
+          "supply_slots_hr": [
+            0,
+            6,
+            12,
+            18
+          ],
+          "load_hr": 0.05,
+          "unload_hr": 0.08333333333333333,
+          "charge_interval_hr": 108,
+          "charge_kw": 0.1,
+          "charge_hr": 10,
+          "charge_efficiency": 0.8,
+          "residue": {
+            "slots_hr": [
+              3,
+              9,
+              15
+            ],
+            "load_hr": 0.08333333333333333,
+            "unload_hr": 0,
+            "payload_kg": 40
+          }
+        }
+      }
+    ],
+    "liquefiers": [
+      {
+        "id": "CommonLiquefier",
+        "output_id": "LanderTank",
+        "rate_kg_hr": 1.3,
+        "packet_kg": 0.05,
+        "capacity_kg": 250
+      }
+    ],
+    "power": {
+      "electric_available_kw": 15,
+      "electric_full_kw": 11.544,
+      "electric_idle_kw": 2.678,
+      "thermal_per_line_kw": 11.1
+    }
+  },
+  "scenario_builder": {
+    "resource_routes": [
+      {
+        "id": "RegolithRover_1_Regolith",
+        "rover_id": "RegolithRover_1",
+        "flow": "Regolith",
+        "from": "ISRUExcavation",
+        "to": "ISRUPlant_1",
+        "distance_km": 0.1
+      },
+      {
+        "id": "RegolithRover_1_Residue",
+        "rover_id": "RegolithRover_1",
+        "flow": "Residue",
+        "from": "ISRUPlant_1",
+        "to": "ResidueDump_1",
+        "distance_km": 0.1
+      },
+      {
+        "id": "RegolithRover_1_ResidueReturn",
+        "rover_id": "RegolithRover_1",
+        "flow": "ResidueReturn",
+        "from": "ResidueDump_1",
+        "to": "ISRUExcavation",
+        "distance_km": 0.1
+      },
+      {
+        "id": "RegolithRover_2_Regolith",
+        "rover_id": "RegolithRover_2",
+        "flow": "Regolith",
+        "from": "ISRUExcavation",
+        "to": "ISRUPlant_2",
+        "distance_km": 0.1
+      },
+      {
+        "id": "RegolithRover_2_Residue",
+        "rover_id": "RegolithRover_2",
+        "flow": "Residue",
+        "from": "ISRUPlant_2",
+        "to": "ResidueDump_2",
+        "distance_km": 0.1
+      },
+      {
+        "id": "RegolithRover_2_ResidueReturn",
+        "rover_id": "RegolithRover_2",
+        "flow": "ResidueReturn",
+        "from": "ResidueDump_2",
+        "to": "ISRUExcavation",
+        "distance_km": 0.1
+      }
+    ],
+    "module_equations": {
+      "ISRUPlant": "OxygenOut = RegolithIn * OxygenYield"
+    }
+  }
+}

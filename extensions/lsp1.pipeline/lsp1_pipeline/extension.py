@@ -382,6 +382,7 @@ class LSP1PipelineExtension(omni.ext.IExt):
 
     def _build_actor_dashboard(self):
         self.actor_labels = {}
+        self.plant_labels = {}
         self.actor_motion_state = {}
         self.camera_actor_ids = [actor.get("id", "") for actor in self.actors]
         if self.selected_actor_id not in self.camera_actor_ids:
@@ -406,6 +407,9 @@ class LSP1PipelineExtension(omni.ext.IExt):
                     field_labels[key] = ui.Label(f"  {field_label}: --")
 
                 self.actor_labels[actor_id] = field_labels
+
+            for plant_id in self.manifest.get("plant_operations", {}):
+                self.plant_labels[plant_id] = ui.Label(plant_id)
 
         self._refresh_camera_actor_selector()
 
@@ -1152,6 +1156,12 @@ class LSP1PipelineExtension(omni.ext.IExt):
         self._update_scene_highlights()
         self._update_camera(des_time)
         self._update_dashboard(snap)
+        for plant_id, label in self.plant_labels.items():
+            active = any(interval["start_time"] <= des_time < interval["end_time"]
+                         for interval in self.manifest["plant_operations"][plant_id])
+            state = "Processing batch" if active else "Idle"
+            lox = float(snap.get(plant_id, {}).get("LOX_Stored", 0))
+            label.text = f"{plant_id} · {state} · LOX in buffer {lox:.2f} kg"
 
     def _update_seek_slider(self, des_time):
         if not self.seek_slider_model:

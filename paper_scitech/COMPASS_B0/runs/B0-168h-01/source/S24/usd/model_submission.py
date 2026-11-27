@@ -1,0 +1,456 @@
+from typing import Dict, Any, List, Optional
+from pathlib import Path
+import json
+
+from S24.utils.setup_paths import _find_project_root
+
+
+USD_EXTENSIONS = (".usd", ".usda", ".usdc", ".usdz")
+
+
+def _to_repo_relative(path: Path, repo_root: Path) -> str:
+    """
+    Convert a path to a repo-relative POSIX path.
+
+    This prevents GitHub Actions absolute paths such as:
+        /home/runner/work/S24-ArchitectingLunarBases/S24-ArchitectingLunarBases/...
+
+    from being written into persistent JSON/USD metadata.
+    """
+    path = path.resolve()
+    repo_root = repo_root.resolve()
+
+    try:
+        return path.relative_to(repo_root).as_posix()
+    except ValueError:
+        # Fallback for paths outside the repository.
+        # This should be rare, but keeps the function robust.
+        return path.as_posix()
+
+
+def _resolve_json_path(json_path: str | Path, repo_root: Path) -> Path:
+    """
+    Resolve incoming JSON path.
+
+    Allows both:
+    - absolute paths
+    - repo-relative paths
+    """
+    p = Path(json_path)
+
+    if p.is_absolute():
+        return p
+
+    return repo_root / p
+
+
+def _find_cad_file(cad_dir: Path, part_name: str) -> Optional[Path]:
+    """
+    Find a CAD/USD file for a given part.
+
+    Tries:
+    1. clean_database/cad_models/<PartName>/
+    2. clean_database/cad_models/<partname-lowercase>/
+
+    Returns the first matching USD-family file.
+    """
+    candidate_folders = [
+        cad_dir / part_name,
+        cad_dir / part_name.lower(),
+    ]
+
+    for folder in candidate_folders:
+        if not folder.exists():
+            continue
+
+        cad_candidates = [
+            p for p in folder.iterdir()
+            if p.is_file() and p.suffix.lower() in USD_EXTENSIONS
+        ]
+
+        if cad_candidates:
+            # Deterministic selection instead of arbitrary filesystem order.
+            return sorted(cad_candidates, key=lambda p: p.name.lower())[0]
+
+    return None
+
+
+def _resolve_metadata_cad_file(
+    metadata: Dict[str, Any],
+    *,
+    cad_dir: Path,
+    part_name: str,
+    repo_root: Path,
+) -> Optional[Path]:
+    """
+    Prefer the CAD file recorded by the UI metadata when it points to a real
+    USD-family file. This keeps preview metadata and Omniverse references from
+    drifting apart when a folder contains old uploads or renamed CAD files.
+    """
+    geometry_ref = metadata.get("geometryRef")
+    if geometry_ref:
+        ref_path = Path(geometry_ref)
+        candidates = []
+        if ref_path.is_absolute():
+            candidates.append(ref_path)
+        else:
+            candidates.append(repo_root / ref_path)
+            candidates.append(cad_dir / part_name / ref_path.name)
+
+        for candidate in candidates:
+            if candidate.is_file() and candidate.suffix.lower() in USD_EXTENSIONS:
+                return candidate.resolve()
+
+    cad_file_name = metadata.get("cadFileName")
+    if cad_file_name:
+        candidate = cad_dir / part_name / cad_file_name
+        if candidate.is_file() and candidate.suffix.lower() in USD_EXTENSIONS:
+            return candidate.resolve()
+
+    return None
+
+
+def _find_scenario_cad_file(
+    json_path: Path,
+    *,
+    cad_dir: Path,
+    part_name: str,
+    metadata: Dict[str, Any] | None = None,
+    repo_root: Path | None = None,
+) -> Optional[Path]:
+    """Use the CAD owned by a scenario before falling back to global CAD.
+
+    Scenario asset JSON can still contain a legacy SysML ``geometryRef`` such
+    as ``assets/geom/Rover_geom.usda``. That reference must not win over a
+    scenario-scoped CAD which was uploaded or reoriented in Step 3: otherwise
+    the USD rebuilt from a selected raw-CAD up axis is never used by the scene.
+    """
+    if json_path.parent.name != "assets" or json_path.parent.parent.parent.name != "json":
+        return None
+
+    scenario_slug = json_path.parent.parent.name
+    scenario_part_dir = (cad_dir / scenario_slug / part_name).resolve()
+    if not scenario_part_dir.is_dir():
+        return None
+
+    metadata = metadata or {}
+    if repo_root:
+        geometry_ref = metadata.get("geometryRef")
+        if geometry_ref:
+            candidate = _resolve_metadata_cad_file(
+                {"geometryRef": geometry_ref},
+                cad_dir=cad_dir,
+                part_name=part_name,
+                repo_root=repo_root,
+            )
+            if candidate and candidate.is_relative_to(scenario_part_dir):
+                return candidate
+
+    cad_file_name = Path(str(metadata.get("cadFileName") or "")).name
+    if cad_file_name:
+        candidate = scenario_part_dir / cad_file_name
+        if candidate.is_file() and candidate.suffix.lower() in USD_EXTENSIONS:
+            return candidate.resolve()
+
+    # Raw STEP/STL/OBJ conversions are deterministically written with the
+    # module name. Prefer that converted USD over unrelated old files.
+    for suffix in (".usdc", ".usd", ".usda", ".usdz"):
+        candidate = scenario_part_dir / f"{part_name}{suffix}"
+        if candidate.is_file():
+            return candidate.resolve()
+
+    cad_candidates = sorted(
+        (path for path in scenario_part_dir.iterdir()
+         if path.is_file() and path.suffix.lower() in USD_EXTENSIONS),
+        key=lambda path: path.name.lower(),
+    )
+    return cad_candidates[0].resolve() if cad_candidates else None
+
+
+def build_submission_manifest(
+    asset_paths: List[str],
+    *,
+    verbose: int = 1
+) -> Dict[str, Any]:
+    """
+    STEP 3: Model Submission.
+
+    Builds a unified part-level manifest that links:
+    - JSON part data
+    - CAD model availability
+    - Transform information
+    - Metadata useful for USD/Omniverse
+
+    Important path convention
+    -------------------------
+    Persistent paths stored in the manifest are repo-relative, not absolute.
+
+    For example, this is correct:
+        clean_database/cad_models/RegolithRover/RegolithRover.usdc
+
+    This is intentionally avoided:
+        /home/runner/work/S24-ArchitectingLunarBases/S24-ArchitectingLunarBases/...
+
+    Parameters
+    ----------
+    asset_paths : List[str]
+        Paths to per-part JSON files. Can be absolute or repo-relative.
+
+    verbose : int
+        0 -> silent
+        1 -> summary
+        2 -> detailed per-part output
+
+    Returns
+    -------
+    Dict[str, Any]
+        {
+            "parts": [...],
+            "summary": {...}
+        }
+    """
+
+    root = _find_project_root().resolve()
+    database_dir = root / "clean_database"
+    cad_dir = database_dir / "cad_models"
+
+    manifest_parts = []
+
+    for raw_json_path in asset_paths:
+        json_path_abs = _resolve_json_path(raw_json_path, root)
+
+        if not json_path_abs.exists():
+            raise FileNotFoundError(f"Asset JSON not found: {json_path_abs}")
+
+        with open(json_path_abs, "r", encoding="utf-8") as f:
+            part_data = json.load(f)
+
+        part_name = part_data["name"]
+        metadata = part_data.get("metadata", {})
+
+        cad_file_abs = _find_scenario_cad_file(
+            json_path_abs,
+            cad_dir=cad_dir,
+            part_name=part_name,
+            metadata=metadata,
+            repo_root=root,
+        ) or _resolve_metadata_cad_file(
+            metadata,
+            cad_dir=cad_dir,
+            part_name=part_name,
+            repo_root=root,
+        ) or _find_cad_file(cad_dir, part_name)
+        cad_found = cad_file_abs is not None
+
+        json_path_repo = _to_repo_relative(json_path_abs, root)
+        cad_path_repo = _to_repo_relative(cad_file_abs, root) if cad_found else None
+
+        transform = part_data.get("transform", {})
+        position = transform.get("position_m", [0, 0, 0])
+        rotation = transform.get("rotation_deg", [0, 0, 0])
+
+        dimensions = part_data.get("dimensions", {})
+        attributes = part_data.get("attributes", {})
+        material = part_data.get("materialRef")
+        geometry_ref = metadata.get("geometryRef")
+
+        entry = {
+            "name": part_name,
+            "id": part_data.get("id"),
+
+            # --- Data sources ---
+            # Persistent paths are repo-relative.
+            "json_path": json_path_repo,
+            "cad_path": cad_path_repo,
+            "cad_found": cad_found,
+
+            # Optional debug-only absolute paths.
+            # Do not use these for USD references.
+            "json_path_abs": str(json_path_abs.resolve()),
+            "cad_path_abs": str(cad_file_abs.resolve()) if cad_found else None,
+
+            # --- Spatial info ---
+            "position_m": position,
+            "rotation_deg": rotation,
+
+            # --- Geometry / semantics ---
+            "dimensions": dimensions,
+            "attributes": attributes,
+            "material": material,
+            "metadata": metadata,
+            "geometry_ref": geometry_ref,
+
+            # --- Ports ---
+            "ports": part_data.get("ports", []),
+        }
+
+        manifest_parts.append(entry)
+
+        if verbose >= 2:
+            status = "CAD FOUND" if cad_found else "CAD MISSING"
+            print(f"[PART] {part_name}")
+            print(f"  JSON repo path : {json_path_repo}")
+            print(f"  JSON abs path  : {json_path_abs.resolve()}")
+            print(f"  CAD repo path  : {cad_path_repo if cad_found else 'MISSING'}")
+            print(f"  CAD abs path   : {cad_file_abs.resolve() if cad_found else 'MISSING'}")
+            print(f"  Pos            : {position}")
+            print(f"  Rot            : {rotation}")
+            print(f"  → {status}\n")
+
+    total = len(manifest_parts)
+    cad_ok = sum(1 for p in manifest_parts if p["cad_found"])
+    cad_missing = total - cad_ok
+
+    if verbose >= 1:
+        print("\n" + "=" * 50)
+        print("STEP 3: MODEL SUBMISSION SUMMARY")
+        print("=" * 50)
+        print(f"Total parts      : {total}")
+        print(f"CAD found        : {cad_ok}")
+        print(f"CAD missing      : {cad_missing}")
+        print("=" * 50)
+
+    return {
+        "parts": manifest_parts,
+        "summary": {
+            "total_parts": total,
+            "cad_found": cad_ok,
+            "cad_missing": cad_missing,
+        }
+    }
+
+# from typing import Dict, Any, List
+# from pathlib import Path
+# import json
+
+# from S24.utils.setup_paths import _find_project_root
+
+
+# def build_submission_manifest(
+#     asset_paths: List[str],
+#     *,
+#     verbose: int = 1
+# ) -> Dict[str, Any]:
+#     """
+#     STEP 3: Model Submission
+
+#     Builds a unified part-level manifest that links:
+#     - JSON part data
+#     - CAD model availability
+#     - Transform (position/orientation)
+#     - Metadata useful for USD/Omniverse
+
+#     Parameters
+#     ----------
+#     asset_paths : List[str]
+#         Paths to per-part JSON files
+
+#     verbose : int
+#         0 → silent
+#         1 → summary
+#         2 → detailed per-part output
+
+#     Returns
+#     -------
+#     Dict[str, Any]
+#         {
+#             "parts": [...],
+#             "summary": {...}
+#         }
+#     """
+
+#     root = _find_project_root()
+#     database_dir = root / "clean_database"
+#     cad_dir = database_dir / "cad_models"
+
+#     manifest_parts = []
+
+#     for json_path in asset_paths:
+#         json_path = Path(json_path)
+
+#         with open(json_path, "r", encoding="utf-8") as f:
+#             part_data = json.load(f)
+
+#         part_name = part_data["name"]
+
+
+#         cad_folder = cad_dir / part_name
+#         if not cad_folder.exists():
+#             cad_folder = cad_dir / part_name.lower()
+#         cad_file = None
+
+#         if cad_folder.exists():
+#             cad_candidates = list(cad_folder.glob("*.usd*"))
+#             if cad_candidates:
+#                 cad_file = cad_candidates[0]
+
+#         cad_found = cad_file is not None
+
+
+#         transform = part_data.get("transform", {})
+#         position = transform.get("position_m", [0, 0, 0])
+#         rotation = transform.get("rotation_deg", [0, 0, 0])
+
+
+#         dimensions = part_data.get("dimensions", {})
+#         attributes = part_data.get("attributes", {})
+#         material = part_data.get("materialRef")
+#         geometry_ref = part_data.get("metadata", {}).get("geometryRef")
+
+
+#         entry = {
+#             "name": part_name,
+#             "id": part_data.get("id"),
+
+#             # --- Data sources ---
+#             "json_path": str(json_path),
+#             "cad_path": str(cad_file) if cad_found else None,
+#             "cad_found": cad_found,
+
+#             # --- Spatial info ---
+#             "position_m": position,
+#             "rotation_deg": rotation,
+
+#             # --- Geometry / semantics ---
+#             "dimensions": dimensions,
+#             "attributes": attributes,
+#             "material": material,
+#             "geometry_ref": geometry_ref,
+
+#             # --- Ports (useful later for routing/visualization)
+#             "ports": part_data.get("ports", []),
+#         }
+
+#         manifest_parts.append(entry)
+
+
+#         if verbose >= 2:
+#             status = "CAD FOUND" if cad_found else "CAD MISSING"
+#             print(f"[PART] {part_name}")
+#             print(f"  JSON: {json_path}")
+#             print(f"  CAD : {cad_file if cad_found else 'MISSING'}")
+#             print(f"  Pos : {position}")
+#             print(f"  Rot : {rotation}")
+#             print(f"  → {status}\n")
+
+#     total = len(manifest_parts)
+#     cad_ok = sum(1 for p in manifest_parts if p["cad_found"])
+#     cad_missing = total - cad_ok
+
+#     if verbose >= 1:
+#         print("\n" + "="*50)
+#         print("STEP 3: MODEL SUBMISSION SUMMARY")
+#         print("="*50)
+#         print(f"Total parts      : {total}")
+#         print(f"CAD found        : {cad_ok}")
+#         print(f"CAD missing      : {cad_missing}")
+#         print("="*50)
+
+#     return {
+#         "parts": manifest_parts,
+#         "summary": {
+#             "total_parts": total,
+#             "cad_found": cad_ok,
+#             "cad_missing": cad_missing,
+#         }
+#     }

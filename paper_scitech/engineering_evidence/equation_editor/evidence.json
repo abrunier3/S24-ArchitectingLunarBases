@@ -1,0 +1,93 @@
+{
+  "scope": "Offline browser editor to saved and restored equation to local DES, two-hour functional check",
+  "revision": "c271a8cf5d86ca306c04d46e06b8f552e9e86c52",
+  "source_sha256": {
+    "ScenarioIndex.html": "0316e852681e629c9247071cb4743cae3ca04dc96347206b246f291df6a91d5e",
+    "S24/DES_pipeline_version/batch_isru.py": "077625b0207465c4f47bb3178bd4b00319d36463e25e17b93dc6e4e8d7e76dc3",
+    "S24/DES_pipeline_version/scenario_equations.py": "aefac7d85fd940bc8dbadcb94832ba4152f77c44a8192f4aca000a21c66cb8ba",
+    "S24/DES_pipeline_version/scenario_runner.py": "eefb67f6dab47421f7dadc14d3bd4b773b28cd34fd8b921a30390f42e6e705bb"
+  },
+  "browser_check": {
+    "browser": "158.0.8127.88",
+    "instance": "ISRUPlant_1",
+    "saved": {
+      "ISRUPlant": "OxygenOut = RegolithIn * OxygenYield",
+      "ISRUPlant_1": "OxygenOut = min(RegolithIn * OxygenYield, 1.0)"
+    },
+    "restored": {
+      "ISRUPlant": "OxygenOut = RegolithIn * OxygenYield",
+      "ISRUPlant_1": "OxygenOut = min(RegolithIn * OxygenYield, 1.0)"
+    },
+    "route_lengths": [
+      [
+        "Regolith_1790955470183_0",
+        1.944
+      ],
+      [
+        "Regolith_1790955470189_1",
+        4.065
+      ],
+      [
+        "LOX_1790955450825_0",
+        0.696
+      ],
+      [
+        "LOX_1790955451209_1",
+        2.817
+      ],
+      [
+        "RegolithRover_1_Residue",
+        0.1
+      ],
+      [
+        "RegolithRover_1_ResidueReturn",
+        2.044
+      ],
+      [
+        "RegolithRover_2_Residue",
+        0.1
+      ],
+      [
+        "RegolithRover_2_ResidueReturn",
+        4.165
+      ]
+    ],
+    "snapshot": "Malapert_B0_Compass"
+  },
+  "python": "3.12.12",
+  "simpy": "4.1.2",
+  "nominal_reference_first_completed_events": [
+    {
+      "time_hr": 1.6666666666666667,
+      "actor": "ISRUPlant_1",
+      "event": "batch_completed",
+      "mass_kg": 9.3,
+      "oxygen_kg": 1.1253
+    },
+    {
+      "time_hr": 1.6666666666666667,
+      "actor": "ISRUPlant_2",
+      "event": "batch_completed",
+      "mass_kg": 9.3,
+      "oxygen_kg": 1.1253
+    }
+  ],
+  "measured_completed_events": [
+    {
+      "time_hr": 1.6666666666666667,
+      "actor": "ISRUPlant_1",
+      "event": "batch_completed",
+      "mass_kg": 9.3,
+      "oxygen_kg": 1.0
+    },
+    {
+      "time_hr": 1.6666666666666667,
+      "actor": "ISRUPlant_2",
+      "event": "batch_completed",
+      "mass_kg": 9.3,
+      "oxygen_kg": 1.1253
+    }
+  ],
+  "raw_result_sha256": "40fcfae14d0f1ea90014995d959556e4762dd17e0660b855928a5bbdb661f26e",
+  "configuration_sha256": "c69d73f9512b69c2f9832ca04be1540e964c7eaf74962614de863c48f1e590cc"
+}

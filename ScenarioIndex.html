@@ -1854,6 +1854,10 @@
         <div style="font-size:11px;font-weight:700;color:var(--text2);">Saved configurations</div>
         <button type="button" class="btn" title="Close" onclick="closeSavedScenarioPicker()" style="width:30px;height:30px;padding:0;font-size:16px;">&times;</button>
       </div>
+      <label>Import saved configuration or result snapshot
+        <input type="file" accept=".json,application/json" onchange="importSavedScenario(this)">
+      </label>
+      <div id="savedScenarioImportStatus" role="status" class="mini-note"></div>
       <div id="savedScenarioList" style="display:grid;gap:7px;"></div>
     </div>
 
@@ -4024,6 +4028,8 @@ function clearScenarioBuilderState() {
     roverPayloadsKg: { regolith: 4000, lox: 4000 }
   };
   scenarioPowerModels = {};
+  const batchInput = document.getElementById('desBatchOperations');
+  if (batchInput) batchInput.value = '';
   pendingStopRoute = null;
   editingResourceRouteId = null;
   up42EquationEditorModule = null;
@@ -4168,13 +4174,13 @@ function restoreScenarioSnapshot(snapshot) {
   up42Orientations = cloneScenarioValue(snapshot.orientations || {});
   up42Routes = cloneScenarioValue(snapshot.terrain_routes || []);
   up42Scenario = cloneScenarioValue(snapshot.scenario_logic || up42Scenario);
+  restoreDesFormValues(snapshot.des_form || {});
   migrateLegacyIsruEquations();
   scenarioPowerModels = cloneScenarioValue(snapshot.power_models || {});
   clearAutoSyncedEventEnergyModels();
   updatePowerModeStatus();
   setInputValueIfPresent('up42RegolithRoverCount', up42Scenario.roverCounts?.regolith ?? 1);
   setInputValueIfPresent('up42LoxRoverCount', up42Scenario.roverCounts?.lox ?? 1);
-  restoreDesFormValues(snapshot.des_form || {});
   if (snapshot.results) renderDesResults(cloneScenarioValue(snapshot.results));
   setScenarioModeUI(snapshot.mode === 'isru' ? 'isru' : 'new', snapshot.name || 'Saved scenario');
   renderUp42ModuleList();
@@ -4200,6 +4206,28 @@ async function openSavedScenarioPicker() {
   renderSavedScenarioList();
   await fetchRepositoryScenarios();
   renderSavedScenarioList();
+}
+
+async function importSavedScenario(input) {
+  const status = document.getElementById('savedScenarioImportStatus');
+  try {
+    const file = input.files?.[0];
+    if (!file) return;
+    const snapshot = normalizeScenarioSnapshot(JSON.parse(await file.text()));
+    if (!snapshot || !/^[A-Za-z0-9_-]+$/.test(snapshot.scenario_slug)
+        || (!snapshot.scenario_logic && !hasScenarioComparisonResults(snapshot))) {
+      throw new Error('Choose a saved ECLIPSE configuration or result snapshot.');
+    }
+    if (getSavedScenarios().some(item => item.id === snapshot.id)) {
+      throw new Error('That configuration is already saved in this browser.');
+    }
+    writeSavedScenarios([...getSavedScenarios(), snapshot]);
+    status.textContent = `Imported ${snapshot.name}.`;
+  } catch (error) {
+    status.textContent = error.message;
+  } finally {
+    input.value = '';
+  }
 }
 
 function closeSavedScenarioPicker() {
@@ -6470,6 +6498,11 @@ function jsString(value) {
 
 function getDefaultEquationTemplate(moduleId) {
   const baseId = getBaseModuleId(moduleId);
+  if (isTimedBatchConfigured()) {
+    if (baseId === 'ISRUPlant') return 'OxygenOut = RegolithIn * OxygenYield';
+    if (['RegolithRover', 'LOXRover'].includes(baseId)) return 'TravelTime = Distance / EffectiveSpeedKph';
+    return '';
+  }
   if (baseId === 'ISRUPlant') {
     return [
       'BeneficiatedIlmenite = RegolithIn * ilmeniteRecoveryFraction * regHeadGrade',
@@ -6511,6 +6544,7 @@ function expandLegacyIsruEnergyEquation(equations) {
 }
 
 function migrateLegacyIsruEquations() {
+  if (isTimedBatchConfigured()) return;
   up42Scenario.moduleEquations = up42Scenario.moduleEquations || {};
   Object.entries(up42Scenario.moduleEquations).forEach(([moduleId, equations]) => {
     if (getBaseModuleId(moduleId) !== 'ISRUPlant') return;
@@ -6520,6 +6554,10 @@ function migrateLegacyIsruEquations() {
 
 function getEquationTokenGroups(moduleId) {
   const baseId = getBaseModuleId(moduleId);
+  if (isTimedBatchConfigured() && baseId === 'ISRUPlant') {
+    return {ports: ['RegolithIn', 'OxygenOut', 'OxygenYield', 'ProcessingTime', 'SimulationTime'],
+      attrs: [], ops: ['=', '+', '-', '*', '/', '(', ')', 'min(', 'max(']};
+  }
   const part = getSysmlPartData(baseId) || {};
   const moduleClass = getModuleClass(baseId);
   const explicitPorts = [...new Set((Array.isArray(part.ports) ? part.ports : []).flatMap(port => {
@@ -6780,6 +6818,7 @@ function isPowerGeneratorModule(moduleId) {
 }
 
 function ensureScenarioPowerBoundaryEquations() {
+  if (isTimedBatchConfigured()) return;
   systems.filter(system => system.active).forEach(system => {
     const moduleId = system.id;
     const equations = getModuleEquationList(moduleId);
@@ -6792,6 +6831,8 @@ function ensureScenarioPowerBoundaryEquations() {
 }
 
 function getModuleEquationRequirements(moduleId) {
+  // Timed batches have complete default laws in their model parameters.
+  if (isTimedBatchConfigured()) return [];
   const baseId = getBaseModuleId(moduleId);
   const moduleClass = getModuleClass(baseId);
   const ports = getModuleResourcePorts(baseId);
@@ -8334,6 +8375,17 @@ let up42MoonImg = null;
       </div>
       <!-- Run button pinned at bottom -->
       <div style="padding:10px 14px;border-top:1px solid var(--border);display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;">
+        <details style="grid-column:1/-1;padding:10px;border:1px solid var(--border2);border-radius:8px;">
+          <summary>Timed ISRU batch operations</summary>
+          <label for="desBatchOperations">Model parameters (JSON)</label>
+          <textarea id="desBatchOperations" rows="7" spellcheck="false" style="width:100%;"
+            oninput="syncDesScenarioModeVisibility()"></textarea>
+          <label>Import model parameters and equations
+            <input type="file" accept=".json,application/json" onchange="importBatchScenarioModel(this)">
+          </label>
+          <div class="mini-note">Edit plant and rover equations in the scenario equation editor. The map and rover assignments supply the operational transport geometry.</div>
+        </details>
+
         <button id="runDesBtn" class="btn btn-primary" style="width:100%;padding:10px;" onclick="triggerDesWorkflow()">
           ▶ Run DES Simulation
         </button>
@@ -12657,7 +12709,7 @@ let up42MoonImg = null;
 	    const isIsru = currentScenarioMode === 'isru';
 	    ['desControlProcessRate', 'desControlConversionEfficiency', 'desControlLoxThresh', 'desIsruConfigurationHeading', 'desIsruAdvancedAssumptions'].forEach(id => {
 	      const element = document.getElementById(id);
-	      if (element) element.style.display = isIsru ? '' : 'none';
+	      if (element) element.style.display = isIsru && !isTimedBatchConfigured() ? '' : 'none';
 	    });
 	    syncPowerModeVisibility();
 	    renderScenarioPowerModels();
@@ -12702,7 +12754,69 @@ let up42MoonImg = null;
     return Number.isFinite(value) ? value : fallback;
   }
 
+  function isTimedBatchConfigured() {
+    return Boolean(document.getElementById('desBatchOperations')?.value.trim());
+  }
+
+  function readBatchScenarioInput() {
+    if (!isTimedBatchConfigured()) return null;
+    const input = document.getElementById('desBatchOperations');
+    const data = JSON.parse(input.value);
+    if (!data || !Array.isArray(data.batch_operations?.lines) || !data.batch_operations.lines.length) {
+      throw new Error('Timed ISRU parameters require batch_operations with at least one line.');
+    }
+    if (data.auxiliary_routes !== undefined && !Array.isArray(data.auxiliary_routes)) {
+      throw new Error('Auxiliary routes must be an array.');
+    }
+    return data;
+  }
+
+  async function importBatchScenarioModel(input) {
+    try {
+      const file = input.files?.[0];
+      if (!file) return;
+      const data = JSON.parse(await file.text());
+      if (!Array.isArray(data?.batch_operations?.lines) || !data.batch_operations.lines.length) {
+        throw new Error('The file has no timed ISRU lines.');
+      }
+      document.getElementById('desBatchOperations').value = JSON.stringify({
+        batch_operations: data.batch_operations,
+        auxiliary_routes: data.auxiliary_routes || (data.scenario_builder?.resource_routes || [])
+          .filter(route => ['Residue', 'ResidueReturn'].includes(route.flow)),
+      }, null, 2);
+      document.getElementById('desSimDuration').value = data.simulation?.duration_hr ?? 168;
+      Object.entries(data.scenario_builder?.module_equations || {}).forEach(([module, equations]) =>
+        setModuleEquationList(module, splitModuleEquations(equations), true));
+      syncDesScenarioModeVisibility();
+      renderEquationModuleList();
+      setDesStatus('Timed ISRU model loaded.', '#7ee0b1');
+    } catch (error) {
+      setDesStatus(error.message, '#ff7a8a');
+    } finally {
+      input.value = '';
+    }
+  }
+
+  function buildTimedBatchConfig(batch) {
+    const scenario = {
+      name: currentScenarioName, slug: currentScenarioSlug, sysml_file: currentSysmlFile,
+      json_asset_root: `clean_database/json/${currentScenarioSlug}/assets`,
+    };
+    const logic = buildScenarioLogicPayload();
+    logic.resource_routes = [...logic.resource_routes, ...(batch.auxiliary_routes || [])];
+    return {
+      engine: {mode: 'isru', schema_version: 1},
+      scenario,
+      simulation: {duration_hr: getNumberInputValue('desSimDuration', 168), sample_hr: 1},
+      routes: {use_sysml_distances: false},
+      scenario_builder: logic,
+      batch_operations: batch.batch_operations,
+    };
+  }
+
 	  function buildDesScenarioConfig() {
+    const batch = readBatchScenarioInput();
+    if (batch) return buildTimedBatchConfig(batch);
 	    const isIsruPreset = currentScenarioMode === 'isru';
 	    const ignorePower = isPowerIgnored();
 	    const sliderValues = getDesSliderValues();
@@ -12917,11 +13031,21 @@ let up42MoonImg = null;
     const log = snapshot?.results?.log || {};
     const results = snapshot?.results?.results || snapshot?.results || {};
     const generic = results.Engine === 'GenericScenario';
+    const batch = results.Engine === 'BatchISRU';
     return Object.entries(log)
       .map(([rawTime, snap]) => ({time: Number(rawTime), snap: snap || {}}))
       .filter(entry => Number.isFinite(entry.time))
       .sort((left, right) => left.time - right.time)
       .map(({time, snap}) => {
+        if (batch) {
+          const state = snap.Batch_Operations || {};
+          const producedLox = Number(state.Total_LOX_Produced_kg || 0);
+          return {time, producedLox,
+            lox: Number(state.Plant_LOX_kg || 0) + Number(state.Common_Tank_LOX_kg || 0)
+              + Number(state.Total_LOX_Delivered_kg || 0) + Number(state.In_Transit_LOX_kg || 0),
+            regolith: Number(state.Total_Regolith_Received_kg || 0),
+            energy: Number(state.Total_System_Demand_kWh || 0)};
+        }
         let lox = 0;
         let regolith = 0;
         let producedLox = 0;
@@ -13151,8 +13275,15 @@ let up42MoonImg = null;
       setDesStatus('The active scenario has no linked SysML model. Reload it from Mission Scenario.', '#ff7a8a');
       return;
     }
+    let batch;
+    try {
+      batch = readBatchScenarioInput();
+    } catch (error) {
+      setDesStatus(error.message, '#ff7a8a');
+      return;
+    }
     const scenarioValidation = getScenarioValidationMessages();
-    const powerErrors = getPowerModelValidationErrors();
+    const powerErrors = batch ? [] : getPowerModelValidationErrors();
     if (scenarioValidation.errors.length || powerErrors.length) {
       const errors = [...scenarioValidation.errors, ...powerErrors];
       setDesStatus(`Cannot run: ${errors[0]}${errors.length > 1 ? ` (+${errors.length - 1} more)` : ''}`, '#ff7a8a');
@@ -13702,6 +13833,21 @@ let up42MoonImg = null;
     const snap = currentEntry?.snap || {};
     const wrap = document.getElementById('desMetricsWrap');
     if (!wrap) return;
+    if (results?.Engine === 'BatchISRU') {
+      const state = snap.Batch_Operations || {};
+      const rows = [
+        ['LOX liquefied', state.Total_LOX_Produced_kg, 'kg'],
+        ['LOX delivered to depot', state.Total_LOX_Delivered_kg, 'kg'],
+        ['LOX in transit', state.In_Transit_LOX_kg, 'kg'],
+        ['Regolith delivered', state.Total_Regolith_Received_kg, 'kg'],
+        ['Electrical demand', state.Total_System_Demand_kWh, 'kWh'],
+        ['Heat received at reactors', state.Thermal_To_Reactors_kWh, 'kWh thermal'],
+      ];
+      wrap.innerHTML = rows.map(([label, value, unit]) =>
+        `<div style="padding:8px;border-bottom:1px solid var(--border);">${label}
+          <b>${formatComparisonNumber(value, unit)}</b></div>`).join('');
+      return;
+    }
 
     // ── Primary: use structured results if available ──────────────────
     const ft  = results?.ISRU_Plants?.Fleet_Totals;
